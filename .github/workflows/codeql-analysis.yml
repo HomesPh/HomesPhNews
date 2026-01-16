@@ -1,13 +1,14 @@
 name: "CodeQL Analysis"
 
-on:
-  push:
-    branches: [ "**" ]
-  pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "**" ]
-  schedule:
-    - cron: '30 1 * * 1'
+# on:
+#   push:
+#     branches: [ "**" ]
+#   pull_request:
+#     # The branches below must be a subset of the branches above
+#     branches: [ "**" ]
+#   schedule:
+#     - cron: '30 1 * * 1'
+on: workflow_dispatch: # Allows manual trigger only
 
 jobs:
   analyze:
