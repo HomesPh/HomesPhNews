@@ -2,6 +2,8 @@ import ArticleCard from "@/components/features/dashboard/ArticleCard";
 import HeroSection from "@/components/features/dashboard/HeroSection";
 import { articles } from "./data";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import TrendingTopicsCard from "@/components/features/dashboard/TrendingTopicsCard";
+import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
 
 type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -11,7 +13,7 @@ export default async function Dashboard({ searchParams }: Props) {
   const { country, category } = await searchParams;
 
   return (
-    <div className="grid grid-cols-3 gap-4 gap-x-12">
+    <div className="w-full grid grid-cols-3 gap-4 gap-x-12">
       {/* main - takes 2 columns */}
       <div className="col-span-2">
         <HeroSection
@@ -35,17 +37,32 @@ export default async function Dashboard({ searchParams }: Props) {
       </div>
 
       {/* aside */}
-      <div className="col-span-1 flex flex-col gap-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Trending Topics</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Most Read Today</CardTitle>
-          </CardHeader>
-        </Card>
+      <div className="col-span-1 flex flex-col gap-4">
+        <TrendingTopicsCard
+          items={[
+            { id: 1, label: "GPT-5 Launch" },
+            { id: 2, label: "Quantum Computing" },
+            { id: 3, label: "AI Ethics Debate" },
+            { id: 4, label: "Robotics Revolution" },
+            { id: 5, label: "Neural Interfaces" },
+          ]}
+        />
+        <MostReadTodayCard
+          items={[
+            {
+              id: 1,
+              title: "How AI is Changing Education Forever",
+              views: 24000,
+              imageUrl: "/healthcare.jpg"
+            },
+            {
+              id: 2,
+              title: "Blockchain meets AI: The Future of Finance",
+              views: 19800,
+              imageUrl: "/healthcare.jpg"
+            }
+          ]}
+        />
       </div>
     </div>
   );
