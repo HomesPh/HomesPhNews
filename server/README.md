@@ -1,59 +1,33 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+So, What Did I Build? The Brains of Our News App
+Basically, I built the entire engine that works behind the scenes for our news website. It handles all the data, figures out what's popular, and serves it up to the frontend (the part users actually see).
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Think of it in three main parts:
 
-## About Laravel
+1. The Basic Controls
+I started by building all the usual controls for our news articles. You can now:
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Create a new article.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Read a list of all articles, or just a single one.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Update an article if you need to fix a typo.
 
-## Learning Laravel
+Delete an article.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+This is the standard, essential stuff that lets us actually manage our news content.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+2. The Smart Features (The Fun Part)
+This is where it gets cool. I added a few special, custom links that the frontend can use to display dynamic content, making the site feel alive.
 
-## Laravel Sponsors
+A "Trending" Feed (/news/trending): Think of this as the "What's New?" section. It automatically grabs the 5 most recently published articles.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+A "Most-Read" List (/news/most-read): This is the "What's Hot?" section. I added a little counter that ticks up every time someone reads an article. This link uses that count to show the top 10 most popular articles.
 
-### Premium Partners
+A "Global News" Channel (/news/latest-global): This lets us create special sections on the website. I made sure our news articles can be properly organized into categories (like "Global," "Sports," etc.), and this link grabs only the latest articles from the "Global News" category.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+3. How It's All Built to Last
+To make sure this system is solid and easy for anyone to use, I didn't just mess around in the database by hand.
 
-## Contributing
+Database Blueprints (Migrations): I created a set of "blueprints" for our database. This means any developer can run a single command and instantly have the exact same database structure. No more guessing what the tables should look like!
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Automatic Fake Data (Seeders): This is a huge time-saver. I built a "magic button" (php artisan db:seed) that automatically fills the database with realistic-looking fake news, categories, authors, etc. This is a lifesaver for development because it means you're never working with an empty, boring website.
