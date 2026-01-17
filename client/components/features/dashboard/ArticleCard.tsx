@@ -31,7 +31,7 @@ export default function ArticleCard({
       'group flex gap-4 rounded-xl border bg-white p-4 transition-all hover:shadow-lg',
       className
     )}>
-      <div className="relative h-32 w-48 flex-shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-neutral-200 to-neutral-300">
+      <div className="relative h-32 w-48 shrink-0 overflow-hidden rounded-lg bg-linear-to-br from-neutral-200 to-neutral-300">
         <Image
           src={imageSrc}
           alt={imageAlt}
