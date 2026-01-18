@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\News;
@@ -81,11 +81,10 @@ class NewsController extends Controller
         // Then, order the results by creation date, newest first.
         ->orderBy('created_at', 'desc')
         // Take the top 10.
-        ->take(10)
         // Execute the query.
+        ->take(10)
         ->get();
 
     return response()->json($latestGlobalNews);
 }
 }
-
