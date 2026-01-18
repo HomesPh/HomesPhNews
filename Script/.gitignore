@@ -5,11 +5,23 @@ __pycache__/
 venv/
 .venv/
 env/
-.env
 
-# Credentials & Config
-*.json
+# Environment & Secrets (CRITICAL)
+.env
+*.env
+.env.*
+!.env.example
 !env.example
+
+# Credentials & Service Account Keys
+*.json
+!package.json
+!package-lock.json
+service-account*.json
+
+# Temporary files from image generation
+temp_*.png
+temp_*.jpg
 
 # Notebooks
 .ipynb_checkpoints/
@@ -18,3 +30,7 @@ env/
 .DS_Store
 Thumbs.db
 *.log
+
+# IDE
+.vscode/
+.idea/

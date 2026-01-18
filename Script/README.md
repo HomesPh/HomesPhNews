@@ -23,14 +23,19 @@ graph TD
 ## 🛠️ Components
 
 ### 1. Scraper Service (`scraper.py`)
-- **Source**: Google News RSS or Search.
-- **Extraction**: Fetches original links and retrieves full article content using Newspaper3k or similar library.
-- **Fields**: Title, Author, Original Link, Publish Date, Raw Content.
+- **Sources**: Major international and local news agencies (CNN, BBC, New York Times, Press Gazette, etc.).
+- **Extraction**: Fetches original links and retrieves full article content.
+- **Filter System**:
+    - **Country**: (e.g., Philippines, Singapore).
+    - **Keywords**: (e.g., Real Estate, Cars, Tech).
+    - **Domains**: Whitelist specific links like `bbc.com`, `cnn.com`.
+    - **Scheduler**: Configurable time for automated daily runs (Cron ready).
 
 ### 2. AI Service (`ai_service.py`)
-- **Summarization**: Condenses the raw article content into a readable paragraph.
-- **Paraphrasing**: Rewrites the original title into a "catchy" or alternate version.
-- **Image Generation (Nano Banana)**: Uses the summarized content to generate a prompt and create an AI image representing the news story.
+- **Engine**: Google Gemini.
+- **Plagiarism Avoidance**: Instead of just summarizing, the AI **paraphrases and rewrites** the entire content into a "New and Polished" version.
+- **Image Generation (Nano Banana)**: Translates the rewritten article's theme into a high-quality visual asset.
+- **Fields**: Paraphrased Title, Polished Content, Author Bio, AI-Generated Image URL.
 
 ### 3. Storage Layer (`storage.py`)
 - **Object Storage (S3)**: Stores the generated `.png`/`.jpg` files from Nano Banana.
