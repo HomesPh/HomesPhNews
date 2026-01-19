@@ -30,14 +30,14 @@ export const articleData = {
       title: "Self-Driving Cars Get Federal Approval: What This Means for the Future",
       category: "Technology | USA",
       image: "/images/healthcare.jpg", // Using existing placeholder
-      href: "#",
+      href: "/article",
     },
     {
       id: "2",
       title: "Singapore Launches World's First AI-Powered Urban Management System",
       category: "Technology | SINGAPORE",
       image: "/images/singapore_mbs.png",
-      href: "#",
+      href: "/article",
     },
   ],
 }

@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
+import Link from "next/link";
 
 interface MostReadTodayProps {
   title?: string;
@@ -8,6 +9,7 @@ interface MostReadTodayProps {
     title: string;
     views: number;
     imageUrl: string;
+    href?: string;
   }[];
 }
 
@@ -21,22 +23,22 @@ export default function MostReadTodayCard({ title = "Most Read Today", items = [
         {/* article list */}
         {items.map((article) => (
           /* article */
-          <div key={article.id} className="grid grid-cols-[72px_1fr] gap-4 items-center">
+          <Link key={article.id} href={article.href || "/article"} className="grid grid-cols-[72px_1fr] gap-4 items-center group">
             {/* image */}
-            <div className="relative w-full aspect-square">
+            <div className="relative w-full aspect-square overflow-hidden rounded-md">
               <Image
                 src={article.imageUrl}
                 alt="article image"
                 fill
-                className="object-cover rounded-md"
+                className="object-cover transition-transform duration-300 group-hover:scale-110"
               />
             </div>
             {/* everything else */}
             <div className="flex flex-col">
-              <span className="font-semibold leading-tight">{article.title}</span>
+              <span className="font-semibold leading-tight group-hover:text-red-600 transition-colors">{article.title}</span>
               <span className="text-sm text-gray-500">{article.views.toLocaleString()}</span>
             </div>
-          </div>
+          </Link>
         ))}
       </CardContent>
     </Card>

@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Clock } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 
 type HeroSectionProps = {
   title: string
@@ -12,6 +13,7 @@ type HeroSectionProps = {
   imageAlt?: string
   timeAgo: string
   isFeatured?: boolean
+  href?: string
   onReadMore?: () => void
   readMoreText?: string
 }
@@ -25,10 +27,11 @@ export default function HeroSection({
   imageAlt = 'Hero image',
   timeAgo,
   isFeatured = false,
+  href = "/article",
   onReadMore,
   readMoreText = 'Read Full Story'
 }: HeroSectionProps) {
-  return (
+  const content = (
     <div className="group relative mb-12 overflow-hidden rounded-2xl bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-900 shadow-xl transition-transform hover:scale-[1.01]">
       <div className="absolute inset-0 opacity-30">
         <Image
@@ -69,11 +72,11 @@ export default function HeroSection({
         </p>
 
         <Button
-          className="bg-red-600 hover:bg-red-700"
+          className="bg-red-600 hover:bg-red-700 pointer-events-none"
           size="lg"
-          onClick={onReadMore}
+          asChild
         >
-          {readMoreText}
+          <div>{readMoreText}</div>
         </Button>
       </div>
 
@@ -81,5 +84,19 @@ export default function HeroSection({
       <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-white/5 blur-3xl"></div>
       <div className="absolute -bottom-12 -left-12 h-64 w-64 rounded-full bg-white/5 blur-3xl"></div>
     </div>
-  )
+  );
+
+  if (onReadMore) {
+    return (
+      <div onClick={onReadMore} className="cursor-pointer">
+        {content}
+      </div>
+    );
+  }
+
+  return href ? (
+    <Link href={href}>
+      {content}
+    </Link>
+  ) : content;
 }

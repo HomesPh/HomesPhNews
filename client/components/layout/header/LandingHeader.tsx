@@ -3,6 +3,7 @@
 import { Globe } from "lucide-react";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function LandingHeader() {
@@ -25,18 +26,18 @@ export default function LandingHeader() {
   return (
     <header className="w-full border-b bg-white z-50">
       <div className="max-w-7xl mx-auto flex flex-row justify-between items-center py-4 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3 group">
           {/* Logo */}
-          <div className="bg-red-600 text-white rounded-2xl flex justify-center items-center w-12 h-12 sm:w-14 sm:h-14 shrink-0 transition-transform hover:scale-105">
+          <div className="bg-red-600 text-white rounded-2xl flex justify-center items-center w-12 h-12 sm:w-14 sm:h-14 shrink-0 transition-transform group-hover:scale-105">
             <Globe className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
 
           {/* Text container */}
           <div className="flex flex-col">
-            <h1 className="text-lg sm:text-xl font-bold leading-tight">Global News</h1>
+            <h1 className="text-lg sm:text-xl font-bold leading-tight group-hover:text-red-600 transition-colors">Global News</h1>
             <p className="text-xs text-gray-500 leading-tight">Network</p>
           </div>
-        </div>
+        </Link>
 
         <div className="flex flex-row items-center gap-2 sm:gap-3">
           {/* Subscribe button - Outline on mobile, default on desktop */}

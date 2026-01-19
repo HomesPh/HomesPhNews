@@ -25,6 +25,7 @@ export default async function Dashboard({ searchParams }: Props) {
           imageAlt="AI Healthcare Technology"
           timeAgo="12 mins ago"
           isFeatured={true}
+          href="/article"
         />
 
         <div className="space-y-6">
@@ -40,11 +41,11 @@ export default async function Dashboard({ searchParams }: Props) {
       <div className="flex flex-col gap-6">
         <TrendingTopicsCard
           items={[
-            { id: 1, label: "GPT-5 Launch" },
-            { id: 2, label: "Quantum Computing" },
-            { id: 3, label: "AI Ethics Debate" },
-            { id: 4, label: "Robotics Revolution" },
-            { id: 5, label: "Neural Interfaces" },
+            { id: 1, label: "GPT-5 Launch", href: "/article" },
+            { id: 2, label: "Quantum Computing", href: "/article" },
+            { id: 3, label: "AI Ethics Debate", href: "/article" },
+            { id: 4, label: "Robotics Revolution", href: "/article" },
+            { id: 5, label: "Neural Interfaces", href: "/article" },
           ]}
         />
         <MostReadTodayCard
@@ -53,13 +54,15 @@ export default async function Dashboard({ searchParams }: Props) {
               id: 1,
               title: "How AI is Changing Education Forever",
               views: 24000,
-              imageUrl: "/healthcare.jpg"
+              imageUrl: "/healthcare.jpg",
+              href: "/article"
             },
             {
               id: 2,
               title: "Blockchain meets AI: The Future of Finance",
               views: 19800,
-              imageUrl: "/healthcare.jpg"
+              imageUrl: "/healthcare.jpg",
+              href: "/article"
             }
           ]}
         />

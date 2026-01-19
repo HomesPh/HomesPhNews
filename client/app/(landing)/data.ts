@@ -6,7 +6,8 @@ export const articles = [
     description: 'The US Department of Transportation has approved...',
     timeAgo: '5 mins ago',
     views: '100 views',
-    imageSrc: '/healthcare.jpg'
+    imageSrc: '/healthcare.jpg',
+    href: '/article',
   },
   {
     category: 'Business',
@@ -15,6 +16,7 @@ export const articles = [
     description: 'Singapore unveils an integrated platform...',
     timeAgo: '1h ago',
     views: '250 views',
-    imageSrc: '/healthcare.jpg'
+    imageSrc: '/healthcare.jpg',
+    href: '/article',
   }
 ]
