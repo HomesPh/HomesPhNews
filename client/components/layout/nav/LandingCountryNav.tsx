@@ -36,7 +36,7 @@ export default function LandingCountryNav({ countries }: LandingCountryNavProps)
           value={searchParams.get("country") || "all"}
           onValueChange={(v) => handleChangeCountryTab(v)}
         >
-          <TabsList className="w-full bg-transparent flex flex-row gap-7">
+          <TabsList className="w-full bg-transparent flex flex-row gap-4 sm:gap-7 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide justify-start sm:justify-start">
             {countries.map((c) => (
               <TabsTrigger
                 key={c.id}
@@ -44,7 +44,7 @@ export default function LandingCountryNav({ countries }: LandingCountryNavProps)
                 className={
                   clsx([
                     // inactive tab
-                    "shadow-none border-0 rounded-none",
+                    "shadow-none border-0 rounded-none shrink-0",
                     // active tab
                     "data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-red-500 data-[state=active]:text-red-500"
                   ])
