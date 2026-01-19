@@ -13,9 +13,9 @@ export default async function Dashboard({ searchParams }: Props) {
   const { country, category } = await searchParams;
 
   return (
-    <div className="w-full grid grid-cols-3 gap-4 gap-x-12">
-      {/* main - takes 2 columns */}
-      <div className="col-span-2">
+    <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* main - takes 2 columns on lg */}
+      <div className="lg:col-span-2 space-y-8">
         <HeroSection
           title="AI Revolution: How Machine Learning is Transforming Healthcare in North America"
           description="Canadian researchers develop groundbreaking AI system that can detect early signs of cancer with 86% accuracy, potentially saving thousands of lives annually."
@@ -27,7 +27,7 @@ export default async function Dashboard({ searchParams }: Props) {
           isFeatured={true}
         />
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <h1 className="text-2xl font-bold">Latest Global News</h1>
 
           {articles.map((article, index) => (
@@ -37,7 +37,7 @@ export default async function Dashboard({ searchParams }: Props) {
       </div>
 
       {/* aside */}
-      <div className="col-span-1 flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <TrendingTopicsCard
           items={[
             { id: 1, label: "GPT-5 Launch" },

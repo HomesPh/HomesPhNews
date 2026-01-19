@@ -13,7 +13,7 @@ interface MostReadTodayProps {
 
 export default function MostReadTodayCard({ title = "Most Read Today", items = [] }: MostReadTodayProps) {
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="text-lg font-bold text-slate-900">{title}</CardTitle>
       </CardHeader>
