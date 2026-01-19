@@ -33,15 +33,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
-        <LandingHeader />
-        <LandingCountryNav countries={Countries} />
-        <LandingCategoryNav categories={Categories} />
-        <main className="flex-1 w-full bg-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-            {children}
-          </div>
-        </main>
-        <LandingFooter />
+        {children}
       </body>
     </html>
   );

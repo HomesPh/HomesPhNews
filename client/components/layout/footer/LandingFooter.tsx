@@ -85,15 +85,19 @@ const FollowUs = () => {
 
 export default function LandingFooter() {
   return (
-    <footer className="bg-slate-900 grid grid-cols-5 text-white p-12">
-      {Links.map((list, index) => (
-        <LinksList
-          key={index}
-          title={list.title}
-          items={list.items}
-        />
-      ))}
-      <FollowUs />
+    <footer className="bg-slate-900 text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-12">
+          {Links.map((list, index) => (
+            <LinksList
+              key={index}
+              title={list.title}
+              items={list.items}
+            />
+          ))}
+          <FollowUs />
+        </div>
+      </div>
     </footer>
   );
 }
