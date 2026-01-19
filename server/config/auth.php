@@ -18,6 +18,15 @@ return [
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
+    'guards' => [
+    // ...
+    'api' => [
+        'driver' => 'sanctum',
+        'provider' => 'users',
+    ],
+    //...
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Authentication Guards
@@ -40,6 +49,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        //For Admin
+        'sanctum' => [
+        'driver' => 'sanctum',
+        'provider' => 'users',
+    ],
     ],
 
     /*
