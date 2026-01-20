@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('news', function (Blueprint $table) {
-            // Add the views_count column after 'author'
-            $table->unsignedInteger('views_count')->default(0)->after('author');
+        Schema::table('articles', function (Blueprint $table) {
+            $table->string('distributed_in')->nullable()->after('status');
         });
     }
 
@@ -22,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('news', function (Blueprint $table) {
-            $table->dropColumn('views_count');
+        Schema::table('articles', function (Blueprint $table) {
+            $table->dropColumn('distributed_in');
         });
     }
 };

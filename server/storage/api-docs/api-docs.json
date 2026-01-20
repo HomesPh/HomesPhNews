@@ -1,0 +1,464 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Laravel Article API Documentation",
+        "description": "This is the central API documentation for the article management system, including both user and admin endpoints.",
+        "contact": {
+            "email": "support@yourapi.com"
+        },
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/admin/articles": {
+            "get": {
+                "tags": [
+                    "Admin: Articles"
+                ],
+                "summary": "Get a filtered list of articles for the admin dashboard",
+                "description": "Returns a paginated list of all articles with extensive filtering and sorting capabilities.",
+                "operationId": "getAdminArticlesList",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status (published, pending review, rejected)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "category",
+                        "in": "query",
+                        "description": "Filter by category slug",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "country",
+                        "in": "query",
+                        "description": "Filter by 2-letter country code",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search term for title or summary",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Start date for filtering (YYYY-MM-DD)",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "End date for filtering (YYYY-MM-DD)",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Column to sort by (created_at, views_count, title)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort_direction",
+                        "in": "query",
+                        "description": "Sort direction (asc, desc)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "The page number to retrieve",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin: Articles"
+                ],
+                "summary": "Create a new article",
+                "description": "Creates a new article and returns its data.",
+                "operationId": "storeAdminArticle",
+                "requestBody": {
+                    "description": "Article data payload",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "summary",
+                                    "content",
+                                    "category",
+                                    "country"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Amazing New Article Title"
+                                    },
+                                    "summary": {
+                                        "type": "string",
+                                        "example": "A short and engaging summary of the article."
+                                    },
+                                    "content": {
+                                        "type": "string",
+                                        "example": "The full content of the article goes here..."
+                                    },
+                                    "category": {
+                                        "type": "string",
+                                        "example": "tech"
+                                    },
+                                    "country": {
+                                        "type": "string",
+                                        "example": "US"
+                                    },
+                                    "status": {
+                                        "description": "Default is 'pending review'",
+                                        "type": "string",
+                                        "example": "pending review"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Article created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/articles/{id}": {
+            "get": {
+                "tags": [
+                    "Admin: Articles"
+                ],
+                "summary": "Get a single article's details",
+                "description": "Returns all data for a single article.",
+                "operationId": "getAdminArticleById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "The ID of the article",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Admin: Articles"
+                ],
+                "summary": "Update an existing article",
+                "description": "Updates article details, including custom titles for different platforms.",
+                "operationId": "updateAdminArticle",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "summary": {
+                                        "type": "string"
+                                    },
+                                    "content": {
+                                        "type": "string"
+                                    },
+                                    "category": {
+                                        "type": "string"
+                                    },
+                                    "country": {
+                                        "type": "string"
+                                    },
+                                    "distributed_in": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "string"
+                                    },
+                                    "custom_titles": {
+                                        "description": "JSON object mapping platform names to custom titles",
+                                        "type": "object",
+                                        "example": "{\"FilipinoHomes\": \"Custom Title 1\", \"Rent.ph\": \"Custom Title 2\"}"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Article updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Article not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/articles/{id}/titles": {
+            "patch": {
+                "tags": [
+                    "Admin: Articles"
+                ],
+                "summary": "Update article titles specifically",
+                "description": "A dedicated endpoint to update the original title and all platform-specific headlines.",
+                "operationId": "updateAdminArticleTitles",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "description": "The original/main title",
+                                        "type": "string"
+                                    },
+                                    "custom_titles": {
+                                        "description": "JSON mapping of platforms to titles",
+                                        "type": "object",
+                                        "example": "{\"FilipinoHomes\": \"Custom Headline\", \"Rent.ph\": \"Another Headline\"}"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Titles updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/article": {
+            "get": {
+                "tags": [
+                    "User: Articles"
+                ],
+                "summary": "Display a dynamic feed of articles",
+                "description": "Returns Trending, Most Read, and Latest Global articles filtered by criteria.",
+                "operationId": "getUserArticleFeed",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "country",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "category",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/health": {
+            "get": {
+                "summary": "Health check",
+                "operationId": "f61ec9be4340d5f6e4fad01d743442ce",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "servers": [
+                    {
+                        "url": "http://localhost:8000",
+                        "description": "Local Development Server"
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "description": "Enter your Bearer token in the format 'Bearer {token}'",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Admin: Articles",
+            "description": "Admin: Articles"
+        },
+        {
+            "name": "User: Articles",
+            "description": "User: Articles"
+        }
+    ]
+}
