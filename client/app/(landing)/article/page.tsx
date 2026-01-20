@@ -1,3 +1,4 @@
+import Link from "next/link";
 import ArticleBreadcrumb from "@/components/features/article/ArticleBreadcrumb";
 import ArticleHeader from "@/components/features/article/ArticleHeader";
 import ArticleFeaturedImage from "@/components/features/article/ArticleFeaturedImage";
@@ -7,28 +8,76 @@ import RelatedArticles from "@/components/features/article/RelatedArticles";
 
 // dummy article data
 import { articleData } from "./data";
+import { getArticleById } from "../data";
 
-export default function Article() {
+interface Props {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function Article({ searchParams }: Props) {
+  const { id } = await searchParams;
+  const articleId = Array.isArray(id) ? id[0] : id;
+  const foundArticle = articleId ? getArticleById(articleId) : undefined;
+
+  // Use found article or fallback to dummy data
+  // detailed mapping to handle data structure differences
+  const displayData = foundArticle ? {
+    category: foundArticle.category,
+    location: foundArticle.location,
+    country: foundArticle.location, // breadcrumb uses country, header uses location
+    title: foundArticle.title,
+    subtitle: foundArticle.subtitle || foundArticle.description,
+    author: {
+      name: foundArticle.author?.name || "Unknown Author",
+      image: foundArticle.author?.avatar, // Map avatar to image
+    },
+    date: foundArticle.createdAt || foundArticle.timeAgo,
+    views: parseInt(foundArticle.views) || 0,
+    featuredImageUrl: foundArticle.featuredImageUrl || foundArticle.imageSrc,
+    content: foundArticle.content || foundArticle.description,
+    topics: foundArticle.topics || [],
+    relatedArticles: [], // Todo: implement related articles logic
+  } : {
+    // Adapter for existing dummy data
+    category: articleData.category,
+    location: articleData.country,
+    country: articleData.country,
+    title: articleData.title,
+    subtitle: articleData.subtitle,
+    author: {
+      name: articleData.author.name,
+      image: articleData.author.imageUrl
+    },
+    date: articleData.createdAt,
+    views: articleData.views,
+    featuredImageUrl: articleData.featuredImageUrl,
+    content: articleData.content,
+    topics: articleData.topics,
+    relatedArticles: articleData.relatedArticles
+  };
+
   return (
     <div className="max-w-7xl mx-auto">
-      <ArticleBreadcrumb category={articleData.category} country={articleData.country} />
+      <ArticleBreadcrumb category={displayData.category} country={displayData.country} />
       <ArticleHeader
-        category={articleData.category}
-        location={articleData.country}
-        title={articleData.title}
-        subtitle={articleData.subtitle}
-        author={articleData.author}
-        date={articleData.createdAt}
-        views={articleData.views}
+        category={displayData.category}
+        location={displayData.location}
+        title={displayData.title}
+        subtitle={displayData.subtitle || ""}
+        author={displayData.author}
+        date={displayData.date}
+        views={displayData.views}
       />
-      <ArticleFeaturedImage
-        src={articleData.featuredImageUrl}
-        alt={articleData.title}
-        caption=""
-      />
-      <ArticleContent content={articleData.content} topics={articleData.topics} />
+      {displayData.featuredImageUrl && (
+        <ArticleFeaturedImage
+          src={displayData.featuredImageUrl}
+          alt={displayData.title}
+          caption=""
+        />
+      )}
+      <ArticleContent content={displayData.content} topics={displayData.topics} />
       <ArticleShareBox />
-      <RelatedArticles articles={articleData.relatedArticles} />
+      <RelatedArticles articles={displayData.relatedArticles as any} />
     </div>
   );
 }

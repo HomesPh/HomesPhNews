@@ -4,38 +4,42 @@ import { Globe } from "lucide-react";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 export default function LandingHeader() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // this changes search parameter 'search' 
+  // this changes search parameter 'q' 
+  // this changes search parameter 'q' 
   const handleSearch = (value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
+    // We want to navigate to /search page with ?q=value
+    // If empty, navigate back to home or the search page without query
 
     if (value.trim()) {
-      params.set("search", value);
+      router.push(`/search?q=${encodeURIComponent(value)}`);
     } else {
-      params.delete("search");
+      // If cleared, go back to home or just plain search page
+      router.push('/');
     }
-
-    router.push(`?${params.toString()}`, { scroll: false });
   }
 
   return (
     <header className="w-full border-b bg-white z-50">
       <div className="max-w-7xl mx-auto flex flex-row justify-between items-center py-4 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
-          {/* Logo */}
-          <div className="bg-red-600 text-white rounded-2xl flex justify-center items-center w-12 h-12 sm:w-14 sm:h-14 shrink-0 transition-transform hover:scale-105">
-            <Globe className="w-6 h-6 sm:w-7 sm:h-7" />
-          </div>
+          <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            {/* Logo */}
+            <div className="bg-red-600 text-white rounded-2xl flex justify-center items-center w-12 h-12 sm:w-14 sm:h-14 shrink-0 transition-transform hover:scale-105">
+              <Globe className="w-6 h-6 sm:w-7 sm:h-7" />
+            </div>
 
-          {/* Text container */}
-          <div className="flex flex-col">
-            <h1 className="text-lg sm:text-xl font-bold leading-tight">Global News</h1>
-            <p className="text-xs text-gray-500 leading-tight">Network</p>
-          </div>
+            {/* Text container */}
+            <div className="flex flex-col">
+              <h1 className="text-lg sm:text-xl font-bold leading-tight">Global News</h1>
+              <p className="text-xs text-gray-500 leading-tight">Network</p>
+            </div>
+          </Link>
         </div>
 
         <div className="flex flex-row items-center gap-2 sm:gap-3">

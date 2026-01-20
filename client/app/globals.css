@@ -125,3 +125,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) skewX(-20deg); }
+  50% { transform: translateX(100%) skewX(-20deg); }
+  100% { transform: translateX(100%) skewX(-20deg); }
+}

@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import clsx from "clsx";
 import { Flame } from "lucide-react";
+import Link from "next/link";
 
 interface TrendingTopicsProps {
   title?: string;
@@ -20,14 +21,14 @@ export default function TrendingTopicsCard({ title = "Trending Topics", items = 
       </CardHeader>
       <CardContent className="grid gap-6">
         {items.map((item, index) => (
-          <div key={item.id} className="flex items-center gap-4">
-            <span className="flex h-8 w-6 items-center justify-center text-2xl font-bold text-slate-200">
+          <Link href={`/search?topic=${encodeURIComponent(item.label)}`} key={item.id} className="flex items-center gap-4 group cursor-pointer">
+            <span className="flex h-8 w-6 items-center justify-center text-2xl font-bold text-slate-200 group-hover:text-red-500 transition-colors">
               {index + 1}
             </span>
-            <span className="text-sm font-semibold text-slate-800">
+            <span className="text-sm font-semibold text-slate-800 group-hover:text-red-600 transition-colors">
               {item.label}
             </span>
-          </div>
+          </Link>
         ))}
       </CardContent>
     </Card>

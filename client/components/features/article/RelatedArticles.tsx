@@ -9,7 +9,7 @@ interface Article {
   title: string;
   category: string;
   image: string;
-  href: string;
+  href?: string;
 }
 
 interface RelatedArticlesProps {
@@ -17,6 +17,8 @@ interface RelatedArticlesProps {
 }
 
 export default function RelatedArticles({ articles }: RelatedArticlesProps) {
+  if (!articles || articles.length === 0) return null;
+
   return (
     <section className="mt-12 pt-12 border-t border-gray-200">
       <h2 className="text-2xl font-bold text-gray-900 mb-2">Related Articles</h2>
@@ -29,7 +31,7 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
         {articles.map((article) => (
-          <Link key={article.id} href={article.href} className="group">
+          <Link key={article.id} href={article.href || `/article?id=${article.id}`} className="group">
             <Card className="h-full overflow-hidden border-0 bg-transparent shadow-none hover:shadow-none">
               <div className="relative aspect-[16/9] rounded-xl overflow-hidden mb-4">
                 <Image
