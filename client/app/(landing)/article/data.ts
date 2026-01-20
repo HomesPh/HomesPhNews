@@ -1,4 +1,4 @@
-import { Article } from "@/lib/api/auth/types";
+import { Article } from "@/lib/api/news/types";
 
 // dummy data, should be replaced with actual data from API
 export const articleData: Article = {
