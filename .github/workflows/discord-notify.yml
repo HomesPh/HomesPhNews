@@ -5,8 +5,8 @@ on:
     branches: ['**']
     types: [opened, closed, reopened, synchronize]
 
-env:DISCORD_PR_NOTIFICATION
-  DISCORD_PR_NOTIFICATION: ${{ secrets. }}
+env:
+  DISCORD_PR_NOTIFICATION: ${{ secrets.DISCORD_PR_NOTIFICATION }}
 
 jobs:
   notify-discord:
