@@ -9,7 +9,8 @@ import Pagination from "@/components/features/admin/shared/Pagination";
 import { articlesData, Article } from "@/app/admin/articles/data";
 import { cn } from "@/lib/utils";
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useCallback, useEffect } from 'react';
 import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
 
 /**
@@ -17,12 +18,59 @@ import ArticleEditorModal from "@/components/features/admin/articles/ArticleEdit
  */
 export default function ArticlesPage() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<ArticleTab>('all');
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
+    // Initial state from URL params
+    const statusParam = searchParams.get('status') as ArticleTab | null;
+    const categoryParam = searchParams.get('category');
+    const countryParam = searchParams.get('country');
+
+    const [activeTab, setActiveTabState] = useState<ArticleTab>(statusParam || 'all');
     const [searchQuery, setSearchQuery] = useState('');
-    const [categoryFilter, setCategoryFilter] = useState('All Categories');
-    const [countryFilter, setCountryFilter] = useState('All Countries');
+    const [categoryFilter, setCategoryFilterState] = useState(categoryParam || 'All Category');
+    const [countryFilter, setCountryFilterState] = useState(countryParam || 'All Countries');
     const [currentPage, setCurrentPage] = useState(1);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+    // Update URL when filters change
+    const createQueryString = useCallback(
+        (name: string, value: string) => {
+            const params = new URLSearchParams(searchParams.toString());
+            if (value && value !== 'all' && value !== 'All Category' && value !== 'All Countries') {
+                params.set(name, value);
+            } else {
+                params.delete(name);
+            }
+            return params.toString();
+        },
+        [searchParams]
+    );
+
+    const setActiveTab = (tab: ArticleTab) => {
+        setActiveTabState(tab);
+        const query = createQueryString('status', tab);
+        router.push(`${pathname}${query ? `?${query}` : ''}`, { scroll: false });
+    };
+
+    const setCategoryFilter = (category: string) => {
+        setCategoryFilterState(category);
+        const query = createQueryString('category', category);
+        router.push(`${pathname}${query ? `?${query}` : ''}`, { scroll: false });
+    };
+
+    const setCountryFilter = (country: string) => {
+        setCountryFilterState(country);
+        const query = createQueryString('country', country);
+        router.push(`${pathname}${query ? `?${query}` : ''}`, { scroll: false });
+    };
+
+    // Update state if URL changes (e.g. browser back button)
+    useEffect(() => {
+        if (statusParam) setActiveTabState(statusParam);
+        if (categoryParam) setCategoryFilterState(categoryParam);
+        if (countryParam) setCountryFilterState(countryParam);
+    }, [statusParam, categoryParam, countryParam]);
 
     // Calculate counts for tabs
     const counts = useMemo(() => ({
@@ -38,7 +86,7 @@ export default function ArticlesPage() {
             const matchesTab = activeTab === 'all' || article.status === activeTab;
             const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 article.description.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesCategory = categoryFilter === 'All Categories' || article.category === categoryFilter;
+            const matchesCategory = categoryFilter === 'All Category' || article.category === categoryFilter;
             const matchesCountry = countryFilter === 'All Countries' || article.location === countryFilter;
 
             return matchesTab && matchesSearch && matchesCategory && matchesCountry;
