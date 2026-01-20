@@ -41,6 +41,7 @@ export default function AdminDashboard() {
                         {recentArticles.map((article) => (
                             <ArticleCard
                                 key={article.id}
+                                id={article.id}
                                 image={article.image}
                                 category={article.category}
                                 location={article.location}
