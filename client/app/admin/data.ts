@@ -18,6 +18,7 @@ export interface DashboardArticle {
     title: string;
     date: string;
     views: string;
+    status: 'published' | 'pending' | 'rejected' | 'active';
 }
 
 export interface SiteDistribution {
@@ -73,7 +74,8 @@ export const recentArticles: DashboardArticle[] = [
         location: 'USA',
         title: 'Self-Driving Cars Get Federal Approval: What This Means for the Future',
         date: 'January 14, 2026',
-        views: '100 views'
+        views: '100 views',
+        status: 'published'
     },
     {
         id: 2,
@@ -82,7 +84,8 @@ export const recentArticles: DashboardArticle[] = [
         location: 'SINGAPORE',
         title: "Singapore Launches World's First AI-Powered Urban Management System",
         date: 'January 14, 2026',
-        views: '100 views'
+        views: '100 views',
+        status: 'pending'
     },
     {
         id: 3,
@@ -91,7 +94,8 @@ export const recentArticles: DashboardArticle[] = [
         location: 'EUROPE',
         title: 'EU Passes Landmark AI Ethics Legislation: Tech Giants Face New Restrictions',
         date: 'January 14, 2026',
-        views: '100 views'
+        views: '100 views',
+        status: 'rejected'
     },
     {
         id: 4,
@@ -100,7 +104,8 @@ export const recentArticles: DashboardArticle[] = [
         location: 'PHILIPPINES',
         title: "Philippines Emerges as Southeast Asia's AI Outsourcing Leader",
         date: 'January 14, 2026',
-        views: '100 views'
+        views: '100 views',
+        status: 'published'
     }
 ];
 

@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from 'react';
-import StatCard from "@/components/features/admin/dashboard/StatCard";
+import StatCard from "@/components/features/admin/shared/StatCard";
 import AnalyticsHeader from "@/components/features/admin/analytics/AnalyticsHeader";
-import AnalyticsStats from "@/components/features/admin/analytics/AnalyticsStats";
 import TrafficTrendsChart from "@/components/features/admin/analytics/TrafficTrendsChart";
 import CategoryDistributionChart from "@/components/features/admin/analytics/CategoryDistributionChart";
 import CountryPerformanceChart from "@/components/features/admin/analytics/CountryPerformanceChart";
@@ -58,7 +57,15 @@ export default function AnalyticsPage() {
                 onExport={handleExportData}
             />
 
-            <AnalyticsStats stats={analyticsStats} />
+            {/* Analytics Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {analyticsStats.map((stat, index) => (
+                    <StatCard
+                        key={index}
+                        {...stat}
+                    />
+                ))}
+            </div>
 
             {/* Charts Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

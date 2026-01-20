@@ -1,4 +1,4 @@
-import ProgressTracker from "./ProgressTracker";
+import ProgressTracker from "@/components/features/admin/shared/ProgressTracker";
 
 interface SiteDistribution {
     name: string;
