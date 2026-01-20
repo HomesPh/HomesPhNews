@@ -34,7 +34,8 @@ export const Countries: { id: string; label: string; }[] = [
 ]
 
 /**
- * Categories for navigation
+ * Categories for navigation.
+ * Inserted this for testing.
  */
 export const Categories: { id: string; label: string; }[] = [
   {
