@@ -9,15 +9,20 @@ import Pagination from "@/components/features/admin/shared/Pagination";
 import { articlesData, Article } from "@/app/admin/articles/data";
 import { cn } from "@/lib/utils";
 
+import { useRouter } from 'next/navigation';
+import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
+
 /**
  * ArticlesPage component for the admin dashboard
  */
 export default function ArticlesPage() {
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState<ArticleTab>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('All Categories');
     const [countryFilter, setCountryFilter] = useState('All Countries');
     const [currentPage, setCurrentPage] = useState(1);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     // Calculate counts for tabs
     const counts = useMemo(() => ({
@@ -42,7 +47,7 @@ export default function ArticlesPage() {
 
     return (
         <div className="p-8 bg-[#f9fafb] min-h-screen">
-            <ArticlesHeader onNewArticle={() => console.log("New Article clicked")} />
+            <ArticlesHeader onNewArticle={() => setIsCreateModalOpen(true)} />
 
 
             <div className="bg-white rounded-[12px] border border-[#e5e7eb] overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
@@ -67,7 +72,7 @@ export default function ArticlesPage() {
                             <ArticleListItem
                                 key={article.id}
                                 article={article}
-                                onClick={() => console.log("Article clicked", article.id)}
+                                onClick={() => router.push(`/admin/articles/${article.id}`)}
                             />
                         ))
                     ) : (
@@ -84,6 +89,13 @@ export default function ArticlesPage() {
                     onPageChange={setCurrentPage}
                 />
             </div>
+
+            {/* Create Article Modal */}
+            <ArticleEditorModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                mode="create"
+            />
         </div>
     );
 }

@@ -9,6 +9,10 @@ export interface Article {
     views: string;
     status: 'published' | 'pending' | 'rejected';
     sites: string[];
+    tags: string[];
+    author?: string;
+    slug?: string;
+    content?: string;
 }
 
 export const articlesData: Article[] = [
@@ -22,7 +26,10 @@ export const articlesData: Article[] = [
         date: 'January 14, 2026',
         views: '1,240 views',
         status: 'published',
-        sites: ['Main Portal', 'Bayanihan']
+        sites: ['Main Portal', 'Bayanihan'],
+        tags: ['Healthcare', 'AI', 'Technology'],
+        author: 'John Doe',
+        slug: 'ai-revolution-healthcare'
     },
     {
         id: 2,
@@ -34,7 +41,10 @@ export const articlesData: Article[] = [
         date: 'January 14, 2026',
         views: '850 views',
         status: 'published',
-        sites: ['Main Portal', 'Filipino Homes']
+        sites: ['Main Portal', 'Filipino Homes'],
+        tags: ['Singapore', 'Smart City', 'AI'],
+        author: 'Jane Smith',
+        slug: 'singapore-ai-urban-management'
     },
     {
         id: 3,
@@ -46,7 +56,10 @@ export const articlesData: Article[] = [
         date: 'January 14, 2026',
         views: '620 views',
         status: 'pending',
-        sites: ['Main Portal']
+        sites: ['Main Portal'],
+        tags: ['EU', 'Ethics', 'Legislation'],
+        author: 'Mark Johnson',
+        slug: 'eu-ai-ethics-legislation'
     },
     {
         id: 4,
@@ -58,7 +71,10 @@ export const articlesData: Article[] = [
         date: 'January 14, 2026',
         views: '2,100 views',
         status: 'published',
-        sites: ['Main Portal', 'Filipino Homes', 'Rent.ph']
+        sites: ['Main Portal', 'Filipino Homes', 'Rent.ph'],
+        tags: ['Philippines', 'Outsourcing', 'Business'],
+        author: 'Maria Santos',
+        slug: 'philippines-ai-outsourcing'
     },
     {
         id: 5,
@@ -70,7 +86,10 @@ export const articlesData: Article[] = [
         date: 'January 14, 2026',
         views: '430 views',
         status: 'rejected',
-        sites: ['Main Portal']
+        sites: ['Main Portal'],
+        tags: ['Economy', 'Investment', 'Global'],
+        author: 'David Wilson',
+        slug: 'global-markets-ai-investment'
     },
 ];
 
