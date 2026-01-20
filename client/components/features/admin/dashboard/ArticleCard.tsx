@@ -1,5 +1,6 @@
 import { Calendar } from 'lucide-react';
 import Image from 'next/image';
+import StatusBadge, { StatusType } from '@/components/features/admin/shared/StatusBadge';
 
 interface ArticleCardProps {
     image: string;
@@ -8,6 +9,7 @@ interface ArticleCardProps {
     title: string;
     date: string;
     views: string;
+    status: StatusType;
 }
 
 /**
@@ -19,7 +21,8 @@ export default function ArticleCard({
     location,
     title,
     date,
-    views
+    views,
+    status
 }: ArticleCardProps) {
     return (
         <div className="bg-white rounded-[8px] border border-[#f3f4f6] p-4 hover:shadow-md transition-shadow">
@@ -47,10 +50,13 @@ export default function ArticleCard({
                         </span>
                     </div>
 
-                    {/* Article Title */}
-                    <h3 className="text-[15px] font-bold text-[#111827] leading-[28px] tracking-[-0.5px] mb-2">
-                        {title}
-                    </h3>
+                    {/* Article Title and Status */}
+                    <div className="flex items-center gap-3 mb-1">
+                        <h3 className="text-[15px] font-bold text-[#111827] leading-[22px] tracking-[-0.5px] line-clamp-1">
+                            {title}
+                        </h3>
+                        <StatusBadge status={status} className="scale-90 origin-left" />
+                    </div>
 
                     {/* Article Metadata */}
                     <div className="flex items-center gap-2 text-[14px] text-[#6b7280] tracking-[-0.5px]">

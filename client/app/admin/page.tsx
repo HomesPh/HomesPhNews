@@ -1,4 +1,4 @@
-import StatCard from "@/components/features/admin/dashboard/StatCard";
+import StatCard from "@/components/features/admin/shared/StatCard";
 import ArticleCard from "@/components/features/admin/dashboard/ArticleCard";
 import ArticleDistribution from "@/components/features/admin/dashboard/ArticleDistribution";
 import QuickActions from "@/components/features/admin/dashboard/QuickActions";
@@ -47,6 +47,7 @@ export default function AdminDashboard() {
                                 title={article.title}
                                 date={article.date}
                                 views={article.views}
+                                status={article.status}
                             />
                         ))}
                     </div>
