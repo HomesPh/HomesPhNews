@@ -1,5 +1,7 @@
+import { Article } from "@/lib/api/auth/types";
+
 // dummy data, should be replaced with actual data from API
-export const articleData = {
+export const articleData: Article = {
   id: 1,
   country: "sg",
   category: "tech",
