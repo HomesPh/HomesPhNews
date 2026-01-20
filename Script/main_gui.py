@@ -1,6 +1,6 @@
 """
-HomesPh Global News Engine - CNN-Style Dashboard (Light Theme)
-Professional news scraper interface with CNN design aesthetics.
+HomesPh Global News Engine - Combined Dashboard (Scraper + Reader)
+Professional news management interface with CNN design aesthetics.
 """
 
 import tkinter as tk
@@ -12,14 +12,24 @@ from config import COUNTRIES, CATEGORIES
 import threading
 import uuid
 import time
+import redis
+import json
+import os
+import webbrowser
+from PIL import Image, ImageTk
+import requests
+from io import BytesIO
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class HomesPhDashboard:
     def __init__(self, root):
         self.root = root
         self.root.title("HomesPh | Global News Engine")
-        self.root.geometry("1300x800")
+        self.root.geometry("1400x900")
         self.root.configure(bg="#ffffff")
-        self.root.minsize(1100, 700)
+        self.root.minsize(1200, 800)
 
         # CNN Colors (Light Theme)
         self.CNN_RED = "#cc0000"
@@ -34,6 +44,7 @@ class HomesPhDashboard:
         # Fonts (Helvetica)
         self.font_brand = ("Helvetica", 22, "bold")
         self.font_heading = ("Helvetica", 14, "bold")
+        self.font_headline = ("Helvetica", 20, "bold")
         self.font_body = ("Helvetica", 11)
         self.font_small = ("Helvetica", 9)
         self.font_category = ("Helvetica", 10, "bold")
@@ -43,7 +54,15 @@ class HomesPhDashboard:
         self.ai = AIProcessor()
         self.storage = StorageHandler()
         
+        # Redis Setup for Reader
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        self.redis_client = redis.from_url(redis_url, decode_responses=True)
+        self.prefix = os.getenv("REDIS_PREFIX", "homesph:")
+        
         self.articles = []
+        self.current_image = None
+        self.full_url = ""
+        
         self.setup_styles()
         self.setup_ui()
 
@@ -67,6 +86,11 @@ class HomesPhDashboard:
             font=self.font_category
         )
         style.map("CNN.Treeview", background=[("selected", self.CNN_RED)], foreground=[("selected", self.CNN_WHITE)])
+        
+        # Tab Style
+        style.configure("TNotebook", background=self.CNN_GRAY)
+        style.configure("TNotebook.Tab", font=self.font_category, padding=[20, 10])
+        style.map("TNotebook.Tab", background=[("selected", self.CNN_RED)], foreground=[("selected", self.CNN_WHITE)])
 
     def setup_ui(self):
         # === TOP NAVIGATION BAR (Black) ===
@@ -84,24 +108,6 @@ class HomesPhDashboard:
             bg=self.CNN_RED, 
             font=self.font_brand
         ).pack()
-
-        # Category Navigation
-        categories_frame = tk.Frame(nav_bar, bg=self.CNN_BLACK)
-        categories_frame.pack(side="left", padx=30)
-        
-        for cat in CATEGORIES[:6]:
-            btn = tk.Label(
-                categories_frame, 
-                text=cat, 
-                fg="#999999", 
-                bg=self.CNN_BLACK,
-                font=self.font_small,
-                cursor="hand2",
-                padx=15
-            )
-            btn.pack(side="left")
-            btn.bind("<Enter>", lambda e, b=btn: b.config(fg=self.CNN_WHITE))
-            btn.bind("<Leave>", lambda e, b=btn: b.config(fg="#999999"))
 
         # Right side - Status
         self.status_label = tk.Label(
@@ -136,8 +142,40 @@ class HomesPhDashboard:
         )
         self.ticker_text.pack(side="left", padx=15)
 
-        # === CONTROL PANEL (Light Gray) ===
-        control_panel = tk.Frame(self.root, bg=self.CNN_GRAY, pady=15, padx=25)
+        # === TABBED NOTEBOOK ===
+        self.notebook = ttk.Notebook(self.root)
+        self.notebook.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # Tab 1: Scraper
+        self.scraper_tab = tk.Frame(self.notebook, bg=self.CNN_WHITE)
+        self.notebook.add(self.scraper_tab, text="  🔍 SCRAPER  ")
+        self.setup_scraper_tab()
+
+        # Tab 2: Reader
+        self.reader_tab = tk.Frame(self.notebook, bg=self.CNN_WHITE)
+        self.notebook.add(self.reader_tab, text="  📰 READER  ")
+        self.setup_reader_tab()
+
+        # === FOOTER (Light Gray) ===
+        footer = tk.Frame(self.root, bg=self.CNN_GRAY, height=40)
+        footer.pack(fill="x")
+        footer.pack_propagate(False)
+        
+        tk.Label(
+            footer, 
+            text="© 2026 HomesPh Global News Engine — Powered by Gemini AI", 
+            fg=self.CNN_MUTED, 
+            bg=self.CNN_GRAY,
+            font=self.font_small
+        ).pack(pady=12)
+
+    # ═══════════════════════════════════════════════════════════════
+    # TAB 1: SCRAPER
+    # ═══════════════════════════════════════════════════════════════
+    
+    def setup_scraper_tab(self):
+        # === CONTROL PANEL ===
+        control_panel = tk.Frame(self.scraper_tab, bg=self.CNN_GRAY, pady=15, padx=25)
         control_panel.pack(fill="x")
 
         # Left Controls
@@ -216,8 +254,8 @@ class HomesPhDashboard:
         )
         self.btn_process.pack(side="left", padx=8)
 
-        # === MAIN CONTENT AREA (White) ===
-        content_area = tk.Frame(self.root, bg=self.CNN_WHITE, padx=25, pady=15)
+        # === MAIN CONTENT AREA ===
+        content_area = tk.Frame(self.scraper_tab, bg=self.CNN_WHITE, padx=25, pady=15)
         content_area.pack(fill="both", expand=True)
 
         # Table Header
@@ -241,7 +279,7 @@ class HomesPhDashboard:
         )
         self.count_label.pack(side="right")
 
-        # Table Container with Border
+        # Table Container
         table_container = tk.Frame(content_area, bg=self.CNN_LIGHT_GRAY, padx=1, pady=1)
         table_container.pack(fill="both", expand=True)
         
@@ -274,18 +312,200 @@ class HomesPhDashboard:
         self.tree.configure(yscroll=scrollbar.set)
         scrollbar.pack(side="right", fill="y")
 
-        # === FOOTER (Light Gray) ===
-        footer = tk.Frame(self.root, bg=self.CNN_GRAY, height=40)
-        footer.pack(fill="x")
-        footer.pack_propagate(False)
+    # ═══════════════════════════════════════════════════════════════
+    # TAB 2: READER
+    # ═══════════════════════════════════════════════════════════════
+    
+    def setup_reader_tab(self):
+        # Main Pane
+        main_pane = tk.PanedWindow(
+            self.reader_tab, orient="horizontal", 
+            bg=self.CNN_LIGHT_GRAY, sashwidth=4, sashrelief="flat"
+        )
+        main_pane.pack(fill="both", expand=True)
+
+        # === LEFT PANEL: ARTICLE LIST ===
+        left_panel = tk.Frame(main_pane, bg=self.CNN_WHITE, width=320)
+        main_pane.add(left_panel, minsize=280)
+
+        # Filter Header
+        filter_header = tk.Frame(left_panel, bg=self.CNN_GRAY, pady=15, padx=15)
+        filter_header.pack(fill="x")
         
         tk.Label(
-            footer, 
-            text="© 2026 HomesPh Global News Engine — Powered by Gemini AI", 
-            fg=self.CNN_MUTED, 
-            bg=self.CNN_GRAY,
+            filter_header, text="SAVED ARTICLES", 
+            fg=self.CNN_BLACK, bg=self.CNN_GRAY,
+            font=self.font_category
+        ).pack(side="left")
+
+        btn_refresh = tk.Button(
+            filter_header, text="↻ Refresh", 
+            command=self.refresh_reader_list,
+            bg=self.CNN_RED, fg=self.CNN_WHITE,
+            font=("Helvetica", 9, "bold"),
+            relief="flat",
+            padx=10,
+            cursor="hand2"
+        )
+        btn_refresh.pack(side="right")
+
+        # Country Filter
+        filter_row = tk.Frame(left_panel, bg=self.CNN_WHITE, padx=15, pady=10)
+        filter_row.pack(fill="x")
+        
+        tk.Label(
+            filter_row, text="Filter by Region:", 
+            fg=self.CNN_MUTED, bg=self.CNN_WHITE,
             font=self.font_small
-        ).pack(pady=12)
+        ).pack(anchor="w")
+        
+        self.reader_country_var = tk.StringVar(value="All Regions")
+        reader_country_options = ["All Regions"] + list(COUNTRIES.keys())
+        self.reader_country_menu = ttk.Combobox(
+            filter_row, 
+            textvariable=self.reader_country_var, 
+            values=reader_country_options, 
+            width=30,
+            font=self.font_body
+        )
+        self.reader_country_menu.pack(fill="x", pady=5)
+        self.reader_country_menu.bind("<<ComboboxSelected>>", lambda e: self.refresh_reader_list())
+
+        # Separator
+        tk.Frame(left_panel, bg=self.CNN_LIGHT_GRAY, height=1).pack(fill="x")
+
+        # Article List
+        list_frame = tk.Frame(left_panel, bg=self.CNN_WHITE, padx=10, pady=10)
+        list_frame.pack(fill="both", expand=True)
+        
+        self.reader_listbox = tk.Listbox(
+            list_frame, 
+            font=("Helvetica", 10), 
+            bg=self.CNN_WHITE, 
+            fg=self.CNN_TEXT,
+            selectbackground=self.CNN_RED,
+            selectforeground=self.CNN_WHITE,
+            activestyle="none",
+            relief="flat",
+            highlightthickness=0,
+            bd=0
+        )
+        self.reader_listbox.pack(fill="both", expand=True, side="left")
+        self.reader_listbox.bind("<<ListboxSelect>>", self.on_reader_select)
+
+        scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=self.reader_listbox.yview)
+        self.reader_listbox.configure(yscroll=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+
+        # === RIGHT PANEL: ARTICLE CONTENT ===
+        right_panel = tk.Frame(main_pane, bg=self.CNN_WHITE)
+        main_pane.add(right_panel, minsize=600)
+
+        # Scrollable Content
+        canvas = tk.Canvas(right_panel, bg=self.CNN_WHITE, highlightthickness=0)
+        scrollbar_right = ttk.Scrollbar(right_panel, orient="vertical", command=canvas.yview)
+        self.reader_content_frame = tk.Frame(canvas, bg=self.CNN_WHITE)
+
+        self.reader_content_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.create_window((0, 0), window=self.reader_content_frame, anchor="nw", width=720)
+        canvas.configure(yscrollcommand=scrollbar_right.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar_right.pack(side="right", fill="y")
+
+        # Article Content Elements
+        content_inner = tk.Frame(self.reader_content_frame, bg=self.CNN_WHITE, padx=35, pady=25)
+        content_inner.pack(fill="both", expand=True)
+
+        # Category Badge
+        self.reader_category_label = tk.Label(
+            content_inner, text="NEWS", 
+            fg=self.CNN_WHITE, bg=self.CNN_RED,
+            font=self.font_category,
+            padx=12, pady=5
+        )
+        self.reader_category_label.pack(anchor="w", pady=(0, 18))
+
+        # Headline
+        self.reader_title_var = tk.StringVar(value="Select an article to read")
+        self.reader_title_label = tk.Label(
+            content_inner, 
+            textvariable=self.reader_title_var, 
+            font=self.font_headline, 
+            bg=self.CNN_WHITE, 
+            fg=self.CNN_BLACK,
+            wraplength=650,
+            justify="left",
+            anchor="w"
+        )
+        self.reader_title_label.pack(anchor="w", pady=(0, 15), fill="x")
+
+        # Country & Keywords
+        self.reader_meta_label = tk.Label(
+            content_inner, text="", 
+            fg=self.CNN_MUTED, bg=self.CNN_WHITE, 
+            font=self.font_small,
+            anchor="w"
+        )
+        self.reader_meta_label.pack(anchor="w", pady=(0, 20))
+
+        # Featured Image Container
+        self.reader_img_container = tk.Frame(content_inner, bg=self.CNN_LIGHT_GRAY, height=350)
+        self.reader_img_container.pack(fill="x", pady=(0, 20))
+        self.reader_img_container.pack_propagate(False)
+        
+        self.reader_img_label = tk.Label(self.reader_img_container, bg=self.CNN_LIGHT_GRAY, text="📷 Image", fg=self.CNN_MUTED)
+        self.reader_img_label.pack(expand=True)
+
+        # Separator
+        tk.Frame(content_inner, bg=self.CNN_LIGHT_GRAY, height=1).pack(fill="x", pady=(0, 20))
+
+        # Article Body
+        self.reader_content_text = tk.Text(
+            content_inner, 
+            font=self.font_body, 
+            wrap="word", 
+            height=12,
+            bg=self.CNN_WHITE,
+            fg=self.CNN_TEXT,
+            relief="flat",
+            padx=0,
+            pady=0,
+            spacing1=8,
+            spacing2=4,
+            spacing3=12,
+            highlightthickness=0,
+            bd=0
+        )
+        self.reader_content_text.pack(fill="x", pady=(0, 20))
+        self.reader_content_text.config(state="disabled")
+
+        # Source Link
+        link_frame = tk.Frame(content_inner, bg=self.CNN_WHITE)
+        link_frame.pack(fill="x", pady=(15, 0))
+        
+        tk.Label(
+            link_frame, text="SOURCE:", 
+            fg=self.CNN_MUTED, bg=self.CNN_WHITE, 
+            font=self.font_small
+        ).pack(side="left")
+        
+        self.reader_link_label = tk.Label(
+            link_frame, text="", 
+            fg="#0066cc", 
+            bg=self.CNN_WHITE, 
+            font=("Helvetica", 9, "underline"),
+            cursor="hand2"
+        )
+        self.reader_link_label.pack(side="left", padx=8)
+        self.reader_link_label.bind("<Button-1>", self.open_reader_link)
+
+        # Auto-refresh when tab is selected
+        self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
+
+    # ═══════════════════════════════════════════════════════════════
+    # SCRAPER METHODS
+    # ═══════════════════════════════════════════════════════════════
 
     def start_scraping(self):
         self.btn_scrape.config(state="disabled", bg=self.CNN_DARK_RED)
@@ -388,6 +608,137 @@ class HomesPhDashboard:
         except Exception as e:
             self.root.after(0, lambda: messagebox.showerror("Error", f"Processing failed: {e}"))
             self.root.after(0, lambda: self.btn_process.config(state="normal", bg=self.CNN_BLACK))
+
+    # ═══════════════════════════════════════════════════════════════
+    # READER METHODS
+    # ═══════════════════════════════════════════════════════════════
+    
+    def on_tab_change(self, event):
+        """Auto-refresh reader when switching to Reader tab."""
+        selected_tab = event.widget.index("current")
+        if selected_tab == 1:  # Reader tab
+            self.refresh_reader_list()
+
+    def refresh_reader_list(self):
+        self.reader_listbox.delete(0, tk.END)
+        
+        selected_country = self.reader_country_var.get()
+        
+        try:
+            if selected_country == "All Regions":
+                article_ids = self.redis_client.smembers(f"{self.prefix}all_articles")
+            else:
+                country_key = f"{self.prefix}country:{selected_country.lower().replace(' ', '_')}"
+                article_ids = self.redis_client.smembers(country_key)
+            
+            self.reader_article_ids = sorted(list(article_ids), reverse=True)
+            
+            for aid in self.reader_article_ids:
+                data = self.redis_client.get(f"{self.prefix}article:{aid}")
+                if data:
+                    article = json.loads(data)
+                    country = article.get("country", "")[:3].upper()
+                    title = article.get("title", article.get("paraphrased_title", "Untitled"))[:50]
+                    
+                    display = f"[{country}] {title}..."
+                    self.reader_listbox.insert(tk.END, display)
+            
+            count = self.reader_listbox.size()
+            self.ticker_text.config(text=f"📰 {count} articles in database")
+        except Exception as e:
+            self.ticker_text.config(text=f"⚠️ Redis connection error: {str(e)[:40]}")
+
+    def on_reader_select(self, event):
+        selection = self.reader_listbox.curselection()
+        if not selection:
+            return
+        
+        try:
+            article_id = self.reader_article_ids[selection[0]]
+            raw_data = self.redis_client.get(f"{self.prefix}article:{article_id}")
+            
+            if raw_data:
+                data = json.loads(raw_data)
+                self.display_reader_article(data)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load article: {e}")
+
+    def display_reader_article(self, data):
+        # Category
+        category = data.get("category", "NEWS")
+        self.reader_category_label.config(text=category.upper())
+        
+        # Title
+        title = data.get("title", data.get("paraphrased_title", "No Title"))
+        self.reader_title_var.set(title)
+        
+        # Meta (Country + Keywords)
+        country = data.get("country", "Global")
+        keywords = data.get("keywords", "")
+        meta_text = f"📍 {country}"
+        if keywords:
+            meta_text += f"  •  🏷️ {keywords}"
+        self.reader_meta_label.config(text=meta_text)
+        
+        # Content
+        content = data.get("content", "No content available.")
+        self.reader_content_text.config(state="normal")
+        self.reader_content_text.delete("1.0", tk.END)
+        self.reader_content_text.insert(tk.END, content)
+        self.reader_content_text.config(state="disabled")
+
+        # Link
+        self.full_url = data.get("original_url", "")
+        if self.full_url:
+            display_url = self.full_url[:55] + "..." if len(self.full_url) > 55 else self.full_url
+            self.reader_link_label.config(text=display_url)
+        else:
+            self.reader_link_label.config(text="No source available")
+
+        # Image
+        img_url = data.get("image_url", "")
+        if img_url:
+            self.reader_img_label.config(text="⏳ Loading image...", image="")
+            threading.Thread(target=self.load_reader_image, args=(img_url,), daemon=True).start()
+        else:
+            self.reader_img_label.config(image="", text="📷 No image available", fg=self.CNN_MUTED)
+
+    def load_reader_image(self, url):
+        try:
+            if url.startswith("http"):
+                response = requests.get(url, timeout=15)
+                img_data = response.content
+            else:
+                if os.path.exists(url):
+                    with open(url, "rb") as f:
+                        img_data = f.read()
+                else:
+                    return
+            
+            img = Image.open(BytesIO(img_data))
+            
+            # Resize maintaining aspect ratio
+            max_width = 680
+            max_height = 340
+            img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+            
+            photo = ImageTk.PhotoImage(img)
+            
+            def update_image():
+                self.reader_img_label.config(image=photo, text="")
+                self.reader_img_label.image = photo
+                self.current_image = photo
+            
+            self.root.after(0, update_image)
+        except Exception as e:
+            def show_error():
+                self.reader_img_label.config(image="", text=f"❌ Image failed to load", fg=self.CNN_RED)
+            self.root.after(0, show_error)
+
+    def open_reader_link(self, event):
+        if self.full_url:
+            webbrowser.open(self.full_url)
+
 
 if __name__ == "__main__":
     root = tk.Tk()
