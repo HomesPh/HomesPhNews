@@ -1,9 +1,11 @@
 import { Badge } from '@/components/ui/badge'
 import { Clock, Eye } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 interface ArticleCardProps {
+  id: string
   category: string
   location?: string
   title: string
@@ -16,6 +18,7 @@ interface ArticleCardProps {
 }
 
 export default function ArticleCard({
+  id,
   category,
   location,
   title,
@@ -27,7 +30,7 @@ export default function ArticleCard({
   className
 }: ArticleCardProps) {
   return (
-    <article className={cn(
+    <Link href={`/article?id=${id}`} className={cn(
       'group flex gap-4 rounded-xl border bg-white p-4 transition-all hover:shadow-lg',
       className
     )}>
@@ -77,6 +80,6 @@ export default function ArticleCard({
           </div>
         </div>
       </div>
-    </article>
+    </Link>
   )
 }

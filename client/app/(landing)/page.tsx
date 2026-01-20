@@ -17,6 +17,7 @@ export default async function Dashboard({ searchParams }: Props) {
       {/* main - takes 2 columns on lg */}
       <div className="lg:col-span-2 space-y-8">
         <HeroSection
+          id="detect-cancer-ai"
           title="AI Revolution: How Machine Learning is Transforming Healthcare in North America"
           description="Canadian researchers develop groundbreaking AI system that can detect early signs of cancer with 86% accuracy, potentially saving thousands of lives annually."
           category="Technology"
@@ -31,7 +32,17 @@ export default async function Dashboard({ searchParams }: Props) {
           <h1 className="text-2xl font-bold">Latest Global News</h1>
 
           {articles.map((article, index) => (
-            <ArticleCard key={index} {...article} />
+            <ArticleCard
+              key={article.id}
+              id={article.id}
+              category={article.category}
+              location={article.location}
+              title={article.title}
+              description={article.description}
+              timeAgo={article.timeAgo}
+              views={article.views}
+              imageSrc={article.imageSrc}
+            />
           ))}
         </div>
       </div>

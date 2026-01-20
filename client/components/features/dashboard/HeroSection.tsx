@@ -2,8 +2,10 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Clock } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 
 type HeroSectionProps = {
+  id?: string
   title: string
   description: string
   category: string
@@ -17,6 +19,7 @@ type HeroSectionProps = {
 }
 
 export default function HeroSection({
+  id = 'hero-article', // fallback to avoid breaking if not passed, but arguably should be passed
   title,
   description,
   category,
@@ -68,13 +71,15 @@ export default function HeroSection({
           {description}
         </p>
 
-        <Button
-          className="bg-red-600 hover:bg-red-700"
-          size="lg"
-          onClick={onReadMore}
-        >
-          {readMoreText}
-        </Button>
+        <Link href={`/article?id=${id}`}>
+          <Button
+            className="bg-red-600 hover:bg-red-700"
+            size="lg"
+            onClick={onReadMore}
+          >
+            {readMoreText}
+          </Button>
+        </Link>
       </div>
 
       {/* Decorative Elements */}
