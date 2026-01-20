@@ -2,12 +2,13 @@ export interface DashboardStat {
     title: string;
     value: string | number;
     trend: string;
-    iconName: 'FileText' | 'CheckCircle2' | 'AlertCircle' | 'Eye';
+    iconName: 'FileText' | 'CheckCircle2' | 'AlertCircle' | 'Eye' | 'Users' | 'MousePointerClick' | 'TrendingUp';
     hasIconBg?: boolean;
     iconBgColor?: string;
     iconColor?: string;
     iconSize?: string;
 }
+
 
 export interface DashboardArticle {
     id: number;
