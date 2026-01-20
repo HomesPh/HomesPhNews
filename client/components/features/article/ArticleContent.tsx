@@ -22,9 +22,7 @@ export default function ArticleContent({ content, topics }: ArticleContentProps)
 
       {/* Main Content - Ideally this would be a rich text renderer or MDX */}
       {/* For now, we will just render the passed string as paragraphs if it was an array, or just displaying structure */}
-      <div className="space-y-6">
-        <p>{content}</p>
-      </div>
+      <div className="space-y-6" dangerouslySetInnerHTML={{ __html: content }} />
 
       {/* Topics */}
       <div className="mt-12 p-6 bg-gray-50 rounded-xl border border-gray-100">
