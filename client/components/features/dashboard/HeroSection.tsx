@@ -1,6 +1,5 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Clock } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -19,7 +18,7 @@ type HeroSectionProps = {
 }
 
 export default function HeroSection({
-  id = 'hero-article', // fallback to avoid breaking if not passed, but arguably should be passed
+  id = 'hero-article',
   title,
   description,
   category,
@@ -32,59 +31,68 @@ export default function HeroSection({
   readMoreText = 'Read Full Story'
 }: HeroSectionProps) {
   return (
-    <div className="group relative mb-12 overflow-hidden rounded-2xl bg-gradient-to-br from-teal-900 via-teal-800 to-emerald-900 shadow-xl transition-transform hover:scale-[1.01]">
-      <div className="absolute inset-0 opacity-30">
+    <div className="group relative mb-8 w-full h-[379px] overflow-hidden rounded-[16px] bg-black cursor-pointer">
+      {/* Image */}
+      <div className="absolute inset-0">
         <Image
           src={imageUrl}
           alt={imageAlt}
           fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="object-cover opacity-70 transition-all duration-500 group-hover:opacity-80 group-hover:scale-105"
+          sizes="100vw"
           priority
         />
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.8)] via-[rgba(0,0,0,0.4)] to-transparent" />
       </div>
 
-      <div className="relative z-10 p-8 md:p-12">
-        <div className="mb-4 flex items-center gap-2">
+      {/* Content */}
+      <div className="absolute bottom-0 left-0 right-0 p-[20px] md:p-[40px] flex flex-col gap-4">
+        {/* Tags */}
+        <div className="flex flex-wrap items-center gap-2 md:gap-3">
           {isFeatured && (
-            <Badge className="bg-red-600 hover:bg-red-700">FEATURED</Badge>
+            <Badge className="bg-[#c10007] text-white px-3 py-1 rounded-[4px] text-[12px] font-bold tracking-tight border-none hover:bg-[#a00006]">
+              FEATURED
+            </Badge>
           )}
+          <Badge className="bg-white text-black px-3 py-1 rounded-[4px] text-[12px] font-bold tracking-tight border-none hover:bg-gray-100">
+            {category.toUpperCase()}
+          </Badge>
           {country && (
-            <Badge className="bg-blue-600 hover:bg-blue-700">
+            <Badge className="bg-transparent text-white border border-white/30 px-3 py-1 rounded-[4px] text-[12px] font-bold tracking-tight hover:bg-white/10">
               {country.toUpperCase()}
             </Badge>
           )}
-          <Badge className="bg-purple-600 hover:bg-purple-700">
-            {category.toUpperCase()}
-          </Badge>
-          <div className="flex items-center gap-1 text-sm text-white/80">
-            <Clock className="h-3 w-3" />
-            <span>{timeAgo}</span>
+          <div className="flex items-center gap-2 ml-1">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#c10007]" />
+            <span className="text-[14px] font-medium text-[#d1d5db] tracking-tight">
+              {timeAgo}
+            </span>
           </div>
         </div>
 
-        <h2 className="mb-4 text-3xl font-bold leading-tight text-white md:text-4xl lg:text-5xl">
+        {/* Title */}
+        <h2 className="text-[24px] md:text-[32px] font-bold text-white tracking-[-0.02em] leading-[1.1] max-w-5xl group-hover:text-white transition-colors">
           {title}
         </h2>
 
-        <p className="mb-6 max-w-2xl text-base text-white/90 md:text-lg">
+        {/* Description */}
+        <p className="line-clamp-2 text-[15px] md:text-[16px] font-normal text-[#e5e7eb] tracking-tight leading-[1.6] max-w-3xl opacity-90">
           {description}
         </p>
 
-        <Link href={`/article?id=${id}`}>
-          <Button
-            className="bg-red-600 hover:bg-red-700"
-            size="lg"
-            onClick={onReadMore}
-          >
-            {readMoreText}
-          </Button>
-        </Link>
+        {/* Button */}
+        <div>
+          <Link href={`/article?id=${id}`}>
+            <Button
+              className="bg-[#dc2626] text-white px-[27px] py-[14px] h-auto rounded-[8px] text-[16px] font-semibold tracking-[-0.5px] hover:bg-[#b91c1c] transition-colors"
+              onClick={onReadMore}
+            >
+              {readMoreText}
+            </Button>
+          </Link>
+        </div>
       </div>
-
-      {/* Decorative Elements */}
-      <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-white/5 blur-3xl"></div>
-      <div className="absolute -bottom-12 -left-12 h-64 w-64 rounded-full bg-white/5 blur-3xl"></div>
     </div>
   )
 }

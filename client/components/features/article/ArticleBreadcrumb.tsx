@@ -1,28 +1,30 @@
-"use client";
-
 import Link from "next/link";
-import { Fragment } from "react";
 
 interface ArticleBreadcrumbProps {
   category: string;
+  categoryId?: string;
   country: string;
+  countryId?: string;
 }
 
-export default function ArticleBreadcrumb({ category, country }: ArticleBreadcrumbProps) {
+export default function ArticleBreadcrumb({ category, categoryId, country, countryId }: ArticleBreadcrumbProps) {
   return (
-    <nav className="flex items-center text-sm text-gray-500 mb-6">
-      <Fragment>
-        <Link href="#" className="hover:text-gray-900 transition-colors">
-          {category}
-        </Link>
-      </Fragment>
-      <span className="mx-2 text-gray-400">/</span>
-      <Fragment>
-        <Link href="#" className="hover:text-gray-900 transition-colors">
-          {country}
-        </Link>
-        <span className="mx-2 text-gray-400">/</span>
-      </Fragment>
-    </nav>
+    <p className="font-normal text-[16px] text-[#4b5563] tracking-[-0.5px] leading-[24px] mb-6">
+      <Link href="/" className="hover:text-[#c10007] transition-colors">Home</Link>
+      {"  /  "}
+      <Link
+        href={categoryId ? `/?category=${categoryId}` : "/"}
+        className="hover:text-[#c10007] transition-colors"
+      >
+        {category}
+      </Link>
+      {"  /  "}
+      <Link
+        href={countryId ? `/?country=${countryId}` : "/"}
+        className="hover:text-[#c10007] transition-colors"
+      >
+        {country}
+      </Link>
+    </p>
   );
 }

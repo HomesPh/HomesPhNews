@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 
 interface ArticleFeaturedImageProps {
@@ -10,22 +8,19 @@ interface ArticleFeaturedImageProps {
 
 export default function ArticleFeaturedImage({ src, alt, caption }: ArticleFeaturedImageProps) {
   return (
-    <figure className="mb-10 w-full">
-      <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-lg">
+    <div className="my-8">
+      <div className="w-full h-[400px] md:h-[600px] rounded-[16px] overflow-hidden">
         <Image
           src={src}
           alt={alt}
-          fill
-          className="object-cover"
-          priority
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+          width={1200}
+          height={600}
+          className="w-full h-full object-cover"
         />
       </div>
       {caption && (
-        <figcaption className="mt-3 text-sm text-gray-500 text-center italic">
-          {caption}
-        </figcaption>
+        <p className="text-sm text-gray-500 mt-2 text-center italic">{caption}</p>
       )}
-    </figure>
+    </div>
   );
 }
