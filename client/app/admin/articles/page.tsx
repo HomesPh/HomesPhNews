@@ -7,11 +7,11 @@ import ArticlesFilters from "@/components/features/admin/articles/ArticlesFilter
 import ArticleListItem from "@/components/features/admin/articles/ArticleListItem";
 import Pagination from "@/components/features/admin/shared/Pagination";
 import { articlesData, Article } from "@/app/admin/articles/data";
-import { cn } from "@/lib/utils";
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useCallback, useEffect } from 'react';
 import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
+import usePagination from '@/hooks/usePagination';
 
 /**
  * ArticlesPage component for the admin dashboard
@@ -30,8 +30,10 @@ export default function ArticlesPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilterState] = useState(categoryParam || 'All Category');
     const [countryFilter, setCountryFilterState] = useState(countryParam || 'All Countries');
-    const [currentPage, setCurrentPage] = useState(1);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+    // Pagination state handler.
+    const pagination = usePagination({ totalPages: 10 });
 
     // Update URL when filters change
     const createQueryString = useCallback(
@@ -132,9 +134,9 @@ export default function ArticlesPage() {
 
                 {/* Pagination */}
                 <Pagination
-                    currentPage={currentPage}
-                    totalPages={10}
-                    onPageChange={setCurrentPage}
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    onPageChange={pagination.handlePageChange}
                 />
             </div>
 
