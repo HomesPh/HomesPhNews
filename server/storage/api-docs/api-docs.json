@@ -9,6 +9,101 @@
         "version": "1.0.0"
     },
     "paths": {
+        "/api/admin/analytics": {
+            "get": {
+                "tags": [
+                    "Admin: Analytics"
+                ],
+                "summary": "Get aggregated analytics data",
+                "description": "Returns overview stats, traffic trends, content by category, and performance by country based on a period filter.",
+                "operationId": "getAdminAnalytics",
+                "parameters": [
+                    {
+                        "name": "period",
+                        "in": "query",
+                        "description": "Filter range (7d, 30d, 3m, 6m, 1y)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "7d",
+                            "enum": [
+                                "7d",
+                                "30d",
+                                "3m",
+                                "6m",
+                                "1y"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "range": {
+                                            "type": "string",
+                                            "example": "7d"
+                                        },
+                                        "overview": {
+                                            "properties": {
+                                                "total_page_news": {
+                                                    "type": "integer",
+                                                    "example": 150
+                                                },
+                                                "unique_visitors": {
+                                                    "type": "integer",
+                                                    "example": 1200
+                                                },
+                                                "total_clicks": {
+                                                    "type": "integer",
+                                                    "example": 3500
+                                                },
+                                                "avg_engagement": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 4.52
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "traffic_trends": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "content_by_category": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "performance_by_country": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/admin/articles": {
             "get": {
                 "tags": [
@@ -369,6 +464,180 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/stats": {
+            "get": {
+                "tags": [
+                    "Admin: Dashboard"
+                ],
+                "summary": "Get general dashboard stats",
+                "description": "Returns summary counts for articles, views, distribution, and recent activity.",
+                "operationId": "getAdminDashboardStats",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/sites-analytics": {
+            "get": {
+                "tags": [
+                    "Admin: Sites"
+                ],
+                "summary": "Get site-specific analytics and article details",
+                "description": "Returns statistics about partners, performance per site, and detailed article listings with site information.",
+                "operationId": "getAdminSitesAnalytics",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by article status (all, active, suspended)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "all",
+                            "enum": [
+                                "all",
+                                "active",
+                                "suspended"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "filter": {
+                                            "type": "string",
+                                            "example": "all"
+                                        },
+                                        "stats": {
+                                            "type": "object"
+                                        },
+                                        "sites_performance": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "article_details": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/sites": {
+            "post": {
+                "tags": [
+                    "Admin: Sites"
+                ],
+                "summary": "Create a new partner site",
+                "description": "Creates a new partner site entry with contact information.",
+                "operationId": "storeAdminSite",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "site_name",
+                                    "domain",
+                                    "contact_name",
+                                    "contact_email",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "site_name": {
+                                        "type": "string",
+                                        "example": "Tech News Daily"
+                                    },
+                                    "domain": {
+                                        "type": "string",
+                                        "example": "https://technewsdaily.com"
+                                    },
+                                    "logo": {
+                                        "type": "string",
+                                        "example": "https://technewsdaily.com/logo.png"
+                                    },
+                                    "contact_name": {
+                                        "type": "string",
+                                        "example": "John Smith"
+                                    },
+                                    "contact_email": {
+                                        "type": "string",
+                                        "example": "john@technewsdaily.com"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Detailed description of the site partner."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Site created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
                     }
                 },
                 "security": [
@@ -846,8 +1115,20 @@
     },
     "tags": [
         {
+            "name": "Admin: Analytics",
+            "description": "Admin: Analytics"
+        },
+        {
             "name": "Admin: Articles",
             "description": "Admin: Articles"
+        },
+        {
+            "name": "Admin: Dashboard",
+            "description": "Admin: Dashboard"
+        },
+        {
+            "name": "Admin: Sites",
+            "description": "Admin: Sites"
         },
         {
             "name": "System",
