@@ -17,7 +17,7 @@ import json
 import os
 import webbrowser
 from PIL import Image, ImageTk
-import requests
+import requests 
 from io import BytesIO
 from dotenv import load_dotenv
 

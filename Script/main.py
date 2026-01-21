@@ -177,7 +177,7 @@ if __name__ == "__main__":
     import uvicorn
     
     parser = argparse.ArgumentParser(description="HomesPh News Service")
-    parser.add_argument("--port", type=int, default=8000, help="Port number")
+    parser.add_argument("--port", type=int, default=8001, help="Port number")
     parser.add_argument("--host", type=str, default="0.0.0.0", help="Host")
     args = parser.parse_args()
     
