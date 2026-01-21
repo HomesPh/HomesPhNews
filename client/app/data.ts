@@ -30,6 +30,10 @@ export const Countries: { id: string; label: string; }[] = [
   {
     id: "eu",
     label: "Europe"
+  },
+  {
+    id: "as",
+    label: "Asia"
   }
 ]
 
@@ -59,7 +63,7 @@ export const Categories: { id: string; label: string; }[] = [
     label: "Technology"
   },
   {
-    id: "ecnonomy",
+    id: "economy",
     label: "Economy"
   },
   {

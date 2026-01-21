@@ -1,36 +1,45 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import clsx from "clsx";
+"use client";
+
 import { Flame } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface TrendingTopicsProps {
-  title?: string;
-  items?: { id: number; label: string; }[]
-  className?: string;
+    items: { id: number; label: string; }[]
+    className?: string;
 }
 
-export default function TrendingTopicsCard({ title = "Trending Topics", items = [], className }: TrendingTopicsProps) {
+export default function TrendingTopicsCard({ items, className }: TrendingTopicsProps) {
+    const router = useRouter();
 
-  return (
-    <Card className={clsx(["shadow-sm border-none", className])}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg font-bold text-slate-900">
-          <Flame className="h-5 w-5 text-orange-500 fill-orange-500" />
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-6">
-        {items.map((item, index) => (
-          <Link href={`/search?topic=${encodeURIComponent(item.label)}`} key={item.id} className="flex items-center gap-4 group cursor-pointer">
-            <span className="flex h-8 w-6 items-center justify-center text-2xl font-bold text-slate-200 group-hover:text-red-500 transition-colors">
-              {index + 1}
-            </span>
-            <span className="text-sm font-semibold text-slate-800 group-hover:text-red-600 transition-colors">
-              {item.label}
-            </span>
-          </Link>
-        ))}
-      </CardContent>
-    </Card>
-  );
+    const handleTopicClick = (topic: string) => {
+        router.push(`/search?q=${encodeURIComponent(topic)}`);
+    };
+
+    return (
+        <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+                <Flame className="w-5 h-5 text-[#c10007]" />
+                <h3 className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">
+                    Trending Topics
+                </h3>
+            </div>
+
+            <div className="space-y-3">
+                {items.map((item, index) => (
+                    <button
+                        key={item.id}
+                        onClick={() => handleTopicClick(item.label)}
+                        className="w-full flex items-center gap-3 p-3 rounded-[8px] hover:bg-[#f3f4f6] transition-colors group text-left"
+                    >
+                        <span className="text-[16px] font-bold text-[#6b7280] group-hover:text-[#c10007]">
+                            {index + 1}
+                        </span>
+                        <span className="text-[14px] font-medium text-[#111827] tracking-[-0.5px] group-hover:text-[#c10007]">
+                            {item.label}
+                        </span>
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
 }

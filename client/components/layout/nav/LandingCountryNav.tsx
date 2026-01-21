@@ -1,8 +1,6 @@
 "use client";
 
-import clsx from "clsx";
-import { Tabs, TabsList, TabsTrigger } from "../../ui/tabs";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 export type LandingCountryNavProps = {
   countries: {
@@ -14,48 +12,49 @@ export type LandingCountryNavProps = {
 export default function LandingCountryNav({ countries }: LandingCountryNavProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const activeCountry = searchParams.get("country") || "all";
 
-  // change search parameter 'country'
   const handleChangeCountryTab = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
 
-    if (value.trim()) {
+    if (value && value !== "all") {
       params.set("country", value);
     } else {
       params.delete("country");
     }
 
-    router.push(`?${params.toString()}`, { scroll: false });
+    // Determine target path: if searching or already on search page, stay on search page
+    const q = params.get("q");
+    const targetPath = (q || pathname.startsWith("/search")) ? "/search" : "/";
+
+    const queryString = params.toString() ? `?${params.toString()}` : "";
+    router.push(`${targetPath}${queryString}`, { scroll: false });
   }
 
   return (
-    <nav className="w-full border-b sticky top-0 bg-white z-50">
-      <div className="max-w-7xl mx-auto flex flex-row justify-center items-center py-2 px-4 sm:px-6 lg:px-8">
-        <Tabs
-          defaultValue="all"
-          value={searchParams.get("country") || "all"}
-          onValueChange={(v) => handleChangeCountryTab(v)}
-        >
-          <TabsList className="w-full bg-transparent flex flex-row gap-4 sm:gap-7 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide justify-start sm:justify-start">
-            {countries.map((c) => (
-              <TabsTrigger
-                key={c.id}
-                value={c.id}
-                className={
-                  clsx([
-                    // inactive tab
-                    "shadow-none border-0 rounded-none shrink-0",
-                    // active tab
-                    "data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-red-500 data-[state=active]:text-red-500"
-                  ])
-                }
+    <div className="bg-white w-full border-y border-[#e5e7eb]">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-[110px] py-[16px]">
+        <nav className="flex gap-[30px] items-center justify-center overflow-x-auto scrollbar-hide">
+          {countries.map((country, idx) => {
+            const isActive = activeCountry === country.id;
+
+            return (
+              <button
+                key={country.id}
+                onClick={() => handleChangeCountryTab(country.id)}
+                className={`relative pb-1 shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap transition-colors ${isActive ? "text-[#c10007]" : "text-[#374151] hover:text-[#c10007]"
+                  }`}
               >
-                {c.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+                {country.label}
+                {isActive && (
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#c10007]" />
+                )}
+              </button>
+            );
+          })}
+        </nav>
       </div>
-    </nav>
-  )
+    </div>
+  );
 }
