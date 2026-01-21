@@ -3,22 +3,35 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
-use App\Models\Article;
+use App\Services\RedisArticleService;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
+/**
+ * User Article Controller
+ * 
+ * Reads articles directly from Redis (where Python scraper stores them).
+ * The Python Script is the SOURCE OF TRUTH.
+ */
 class ArticleController extends Controller
 {
+    protected RedisArticleService $redisService;
+
+    public function __construct(RedisArticleService $redisService)
+    {
+        $this->redisService = $redisService;
+    }
+
     #[OA\Get(
         path: "/api/article",
         operationId: "getUserArticleFeed",
-        summary: "Display a dynamic feed of articles",
-        description: "Returns Trending, Most Read, and Latest Global articles filtered by criteria.",
+        summary: "Display a dynamic feed of articles from Redis",
+        description: "Returns Trending, Most Read (Latest), and Latest Global articles from Redis. Optionally filter by country, category, or search term.",
         tags: ["User: Articles"],
         parameters: [
-            new OA\Parameter(name: "search", in: "query", schema: new OA\Schema(type: "string")),
-            new OA\Parameter(name: "country", in: "query", schema: new OA\Schema(type: "string")),
-            new OA\Parameter(name: "category", in: "query", schema: new OA\Schema(type: "string"))
+            new OA\Parameter(name: "search", in: "query", description: "Search term for title/content", schema: new OA\Schema(type: "string")),
+            new OA\Parameter(name: "country", in: "query", description: "Filter by country name (e.g., 'Philippines', 'United States')", schema: new OA\Schema(type: "string")),
+            new OA\Parameter(name: "category", in: "query", description: "Filter by category (e.g., 'Real Estate', 'Business')", schema: new OA\Schema(type: "string"))
         ],
         responses: [
             new OA\Response(response: 200, description: "Successful operation", content: new OA\JsonContent(type: "object"))
@@ -26,39 +39,253 @@ class ArticleController extends Controller
     )]
     public function feed(Request $request)
     {
-        // 1. Capture Inputs
         $search = $request->input('search');
         $country = $request->input('country');
         $category = $request->input('category');
 
-        $baseQuery = Article::query()->where('status', 'published');
+        // If filters are applied, return filtered results
+        if ($search || $country || $category) {
+            $articles = [];
 
-        if ($country || $category || $search) {
-             $baseQuery->where(function($q) use ($search, $country, $category) {
-                if ($country) {
-                    $q->where('country', $country);
-                }
-                if ($category) {
-                    $q->where('category', $category);
-                }
-                if ($search) {
-                     $q->where(function($subQ) use ($search) {
-                        $subQ->where('title', 'LIKE', "%{$search}%")
-                             ->orWhere('summary', 'LIKE', "%{$search}%")
-                             ->orWhere('content', 'LIKE', "%{$search}%");
-                     });
-                }
-            });
+            if ($search) {
+                $articles = $this->redisService->searchArticles($search, 20);
+            } elseif ($country) {
+                $articles = $this->redisService->getArticlesByCountry($country, 20);
+            } elseif ($category) {
+                $articles = $this->redisService->getArticlesByCategory($category, 20);
+            }
+
+            return response()->json([
+                'trending' => array_slice($articles, 0, 5),
+                'most_read' => array_slice($articles, 0, 10),
+                'latest_global' => array_slice($articles, 0, 5),
+                'filter_applied' => compact('search', 'country', 'category'),
+            ]);
         }
 
-        $trending = (clone $baseQuery)->orderBy('views_count', 'desc')->take(5)->get();
-        $mostRead = (clone $baseQuery)->orderBy('views_count', 'desc')->take(10)->get();
-        $latestGlobal = (clone $baseQuery)->latest()->take(5)->get();
+        // Default: Return unfiltered feed
+        $trending = $this->redisService->getTrendingArticles(5);
+        $latestGlobal = $this->redisService->getLatestArticles(10);
 
         return response()->json([
             'trending' => $trending,
-            'most_read' => $mostRead,
-            'latest_global' => $latestGlobal
+            'most_read' => $latestGlobal, // Same as latest since Redis doesn't track views
+            'latest_global' => array_slice($latestGlobal, 0, 5),
         ]);
+    }
+
+    #[OA\Get(
+        path: "/api/articles",
+        operationId: "getAllArticles",
+        summary: "Get all articles from Redis",
+        description: "Returns paginated list of all articles stored in Redis.",
+        tags: ["User: Articles"],
+        parameters: [
+            new OA\Parameter(name: "limit", in: "query", description: "Max articles to return (1-100)", schema: new OA\Schema(type: "integer", default: 20)),
+            new OA\Parameter(name: "offset", in: "query", description: "Offset for pagination", schema: new OA\Schema(type: "integer", default: 0))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Successful operation", content: new OA\JsonContent(type: "array", items: new OA\Items(type: "object")))
+        ]
+    )]
+    public function index(Request $request)
+    {
+        $limit = min(100, max(1, (int) $request->input('limit', 20)));
+        $offset = max(0, (int) $request->input('offset', 0));
+
+        $articles = $this->redisService->getAllArticles($limit, $offset);
+
+        return response()->json([
+            'data' => $this->redisService->formatSummaries($articles),
+            'meta' => [
+                'limit' => $limit,
+                'offset' => $offset,
+                'count' => count($articles),
+            ]
+        ]);
+    }
+
+    #[OA\Get(
+        path: "/api/articles/{id}",
+        operationId: "getArticleById",
+        summary: "Get a single article by ID",
+        description: "Returns full article data from Redis.",
+        tags: ["User: Articles"],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, description: "Article UUID", schema: new OA\Schema(type: "string"))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Successful operation", content: new OA\JsonContent(type: "object")),
+            new OA\Response(response: 404, description: "Article not found")
+        ]
+    )]
+    public function show(string $id)
+    {
+        $article = $this->redisService->getArticle($id);
+
+        if (!$article) {
+            return response()->json(['error' => 'Article not found'], 404);
+        }
+
+        return response()->json($article);
+    }
+
+    #[OA\Get(
+        path: "/api/articles/country/{country}",
+        operationId: "getArticlesByCountry",
+        summary: "Get articles by country",
+        description: "Returns articles filtered by country name (e.g., 'Philippines', 'Canada').",
+        tags: ["User: Articles"],
+        parameters: [
+            new OA\Parameter(name: "country", in: "path", required: true, description: "Country name", schema: new OA\Schema(type: "string")),
+            new OA\Parameter(name: "limit", in: "query", description: "Max articles to return", schema: new OA\Schema(type: "integer", default: 20))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Successful operation"),
+            new OA\Response(response: 404, description: "No articles found for country")
+        ]
+    )]
+    public function byCountry(string $country, Request $request)
+    {
+        $limit = min(100, max(1, (int) $request->input('limit', 20)));
+        $articles = $this->redisService->getArticlesByCountry($country, $limit);
+
+        if (empty($articles)) {
+            return response()->json(['error' => "No articles found for country: {$country}"], 404);
+        }
+
+        return response()->json([
+            'country' => $country,
+            'data' => $this->redisService->formatSummaries($articles),
+        ]);
+    }
+
+    #[OA\Get(
+        path: "/api/articles/category/{category}",
+        operationId: "getArticlesByCategory",
+        summary: "Get articles by category",
+        description: "Returns articles filtered by category (e.g., 'Real Estate', 'Business').",
+        tags: ["User: Articles"],
+        parameters: [
+            new OA\Parameter(name: "category", in: "path", required: true, description: "Category name", schema: new OA\Schema(type: "string")),
+            new OA\Parameter(name: "limit", in: "query", description: "Max articles to return", schema: new OA\Schema(type: "integer", default: 20))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Successful operation"),
+            new OA\Response(response: 404, description: "No articles found for category")
+        ]
+    )]
+    public function byCategory(string $category, Request $request)
+    {
+        $limit = min(100, max(1, (int) $request->input('limit', 20)));
+        $articles = $this->redisService->getArticlesByCategory($category, $limit);
+
+        if (empty($articles)) {
+            return response()->json(['error' => "No articles found for category: {$category}"], 404);
+        }
+
+        return response()->json([
+            'category' => $category,
+            'data' => $this->redisService->formatSummaries($articles),
+        ]);
+    }
+
+    #[OA\Get(
+        path: "/api/latest",
+        operationId: "getLatestArticles",
+        summary: "Get latest articles",
+        description: "Returns the most recent articles sorted by timestamp.",
+        tags: ["User: Articles"],
+        parameters: [
+            new OA\Parameter(name: "limit", in: "query", description: "Max articles to return (1-50)", schema: new OA\Schema(type: "integer", default: 10))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Successful operation")
+        ]
+    )]
+    public function latest(Request $request)
+    {
+        $limit = min(50, max(1, (int) $request->input('limit', 10)));
+        $articles = $this->redisService->getLatestArticles($limit);
+
+        return response()->json($this->redisService->formatSummaries($articles));
+    }
+
+    #[OA\Get(
+        path: "/api/search",
+        operationId: "searchArticles",
+        summary: "Search articles",
+        description: "Search articles by title or content.",
+        tags: ["User: Articles"],
+        parameters: [
+            new OA\Parameter(name: "q", in: "query", required: true, description: "Search query (min 2 chars)", schema: new OA\Schema(type: "string")),
+            new OA\Parameter(name: "limit", in: "query", description: "Max articles to return", schema: new OA\Schema(type: "integer", default: 20))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Successful operation"),
+            new OA\Response(response: 400, description: "Invalid query")
+        ]
+    )]
+    public function search(Request $request)
+    {
+        $query = $request->input('q', '');
+        
+        if (strlen($query) < 2) {
+            return response()->json(['error' => 'Search query must be at least 2 characters'], 400);
+        }
+
+        $limit = min(100, max(1, (int) $request->input('limit', 20)));
+        $articles = $this->redisService->searchArticles($query, $limit);
+
+        return response()->json([
+            'query' => $query,
+            'count' => count($articles),
+            'data' => $this->redisService->formatSummaries($articles),
+        ]);
+    }
+
+    #[OA\Get(
+        path: "/api/countries",
+        operationId: "getCountries",
+        summary: "Get all countries with article counts",
+        description: "Returns list of all countries that have articles.",
+        tags: ["User: Metadata"],
+        responses: [
+            new OA\Response(response: 200, description: "Successful operation")
+        ]
+    )]
+    public function countries()
+    {
+        return response()->json($this->redisService->getCountries());
+    }
+
+    #[OA\Get(
+        path: "/api/categories",
+        operationId: "getCategories",
+        summary: "Get all categories with article counts",
+        description: "Returns list of all categories that have articles.",
+        tags: ["User: Metadata"],
+        responses: [
+            new OA\Response(response: 200, description: "Successful operation")
+        ]
+    )]
+    public function categories()
+    {
+        return response()->json($this->redisService->getCategories());
+    }
+
+    #[OA\Get(
+        path: "/api/stats",
+        operationId: "getArticleStats",
+        summary: "Get article statistics",
+        description: "Returns total counts for articles, countries, and categories.",
+        tags: ["User: Metadata"],
+        responses: [
+            new OA\Response(response: 200, description: "Successful operation")
+        ]
+    )]
+    public function stats()
+    {
+        return response()->json($this->redisService->getStats());
     }
 }

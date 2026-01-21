@@ -378,18 +378,143 @@
                 ]
             }
         },
+        "/api/redis-test": {
+            "get": {
+                "tags": [
+                    "System"
+                ],
+                "summary": "Test Redis connection",
+                "description": "Pings Redis and performs a SET/GET operation to verify connectivity",
+                "operationId": "b7c9a488fc1314d5a27d660e7ddb1a2b",
+                "responses": {
+                    "200": {
+                        "description": "Redis connection successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "connected"
+                                        },
+                                        "ping": {
+                                            "type": "string",
+                                            "example": "PONG"
+                                        },
+                                        "test_value": {
+                                            "type": "string",
+                                            "example": "Hello from Laravel! 2026-01-21 10:00:00"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "✅ Redis connection successful!"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Redis connection failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "❌ Redis connection failed"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Connection refused"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/db-test": {
+            "get": {
+                "tags": [
+                    "System"
+                ],
+                "summary": "Test Database connection",
+                "description": "Checks if the database is reachable by running a simple query",
+                "operationId": "f3ce9554999d1db7fb4cda9506ee728f",
+                "responses": {
+                    "200": {
+                        "description": "Database connection successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "connected"
+                                        },
+                                        "database": {
+                                            "type": "string",
+                                            "example": "news_db"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "✅ Database connection successful!"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Database connection failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "error"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "❌ Database connection failed"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Connection refused"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/article": {
             "get": {
                 "tags": [
                     "User: Articles"
                 ],
-                "summary": "Display a dynamic feed of articles",
-                "description": "Returns Trending, Most Read, and Latest Global articles filtered by criteria.",
+                "summary": "Display a dynamic feed of articles from Redis",
+                "description": "Returns Trending, Most Read (Latest), and Latest Global articles from Redis. Optionally filter by country, category, or search term.",
                 "operationId": "getUserArticleFeed",
                 "parameters": [
                     {
                         "name": "search",
                         "in": "query",
+                        "description": "Search term for title/content",
                         "schema": {
                             "type": "string"
                         }
@@ -397,6 +522,7 @@
                     {
                         "name": "country",
                         "in": "query",
+                        "description": "Filter by country name (e.g., 'Philippines', 'United States')",
                         "schema": {
                             "type": "string"
                         }
@@ -404,6 +530,7 @@
                     {
                         "name": "category",
                         "in": "query",
+                        "description": "Filter by category (e.g., 'Real Estate', 'Business')",
                         "schema": {
                             "type": "string"
                         }
@@ -419,6 +546,272 @@
                                 }
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/api/articles": {
+            "get": {
+                "tags": [
+                    "User: Articles"
+                ],
+                "summary": "Get all articles from Redis",
+                "description": "Returns paginated list of all articles stored in Redis.",
+                "operationId": "getAllArticles",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Max articles to return (1-100)",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "description": "Offset for pagination",
+                        "schema": {
+                            "type": "integer",
+                            "default": 0
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/articles/{id}": {
+            "get": {
+                "tags": [
+                    "User: Articles"
+                ],
+                "summary": "Get a single article by ID",
+                "description": "Returns full article data from Redis.",
+                "operationId": "getArticleById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Article UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Article not found"
+                    }
+                }
+            }
+        },
+        "/api/articles/country/{country}": {
+            "get": {
+                "tags": [
+                    "User: Articles"
+                ],
+                "summary": "Get articles by country",
+                "description": "Returns articles filtered by country name (e.g., 'Philippines', 'Canada').",
+                "operationId": "getArticlesByCountry",
+                "parameters": [
+                    {
+                        "name": "country",
+                        "in": "path",
+                        "description": "Country name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Max articles to return",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "No articles found for country"
+                    }
+                }
+            }
+        },
+        "/api/articles/category/{category}": {
+            "get": {
+                "tags": [
+                    "User: Articles"
+                ],
+                "summary": "Get articles by category",
+                "description": "Returns articles filtered by category (e.g., 'Real Estate', 'Business').",
+                "operationId": "getArticlesByCategory",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "description": "Category name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Max articles to return",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "No articles found for category"
+                    }
+                }
+            }
+        },
+        "/api/latest": {
+            "get": {
+                "tags": [
+                    "User: Articles"
+                ],
+                "summary": "Get latest articles",
+                "description": "Returns the most recent articles sorted by timestamp.",
+                "operationId": "getLatestArticles",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Max articles to return (1-50)",
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            }
+        },
+        "/api/search": {
+            "get": {
+                "tags": [
+                    "User: Articles"
+                ],
+                "summary": "Search articles",
+                "description": "Search articles by title or content.",
+                "operationId": "searchArticles",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Search query (min 2 chars)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Max articles to return",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "400": {
+                        "description": "Invalid query"
+                    }
+                }
+            }
+        },
+        "/api/countries": {
+            "get": {
+                "tags": [
+                    "User: Metadata"
+                ],
+                "summary": "Get all countries with article counts",
+                "description": "Returns list of all countries that have articles.",
+                "operationId": "getCountries",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            }
+        },
+        "/api/categories": {
+            "get": {
+                "tags": [
+                    "User: Metadata"
+                ],
+                "summary": "Get all categories with article counts",
+                "description": "Returns list of all categories that have articles.",
+                "operationId": "getCategories",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            }
+        },
+        "/api/stats": {
+            "get": {
+                "tags": [
+                    "User: Metadata"
+                ],
+                "summary": "Get article statistics",
+                "description": "Returns total counts for articles, countries, and categories.",
+                "operationId": "getArticleStats",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
                     }
                 }
             }
@@ -457,8 +850,16 @@
             "description": "Admin: Articles"
         },
         {
+            "name": "System",
+            "description": "System"
+        },
+        {
             "name": "User: Articles",
             "description": "User: Articles"
+        },
+        {
+            "name": "User: Metadata",
+            "description": "User: Metadata"
         }
     ]
 }
