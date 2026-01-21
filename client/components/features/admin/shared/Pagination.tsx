@@ -1,36 +1,52 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+    Pagination as PaginationBase,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious
+} from '@/components/ui/pagination';
 
 interface PaginationProps {
+    // These are received from usePagination hook.
     currentPage: number;
     totalPages: number;
     onPageChange: (page: number) => void;
+
+    // These are configurable props.
+    maxVisiblePages?: number;
 }
 
 /**
  * Pagination component for navigation through pages of data
  */
-export default function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
+export default function Pagination({ currentPage, totalPages, onPageChange, maxVisiblePages = 5 }: PaginationProps) {
     const getPageNumbers = () => {
         const pages = [];
-        const maxVisible = 5;
 
-        if (totalPages <= maxVisible) {
+        // Few pages: show all (e.g., [1, 2, 3, 4])
+        if (totalPages <= maxVisiblePages) {
             for (let i = 1; i <= totalPages; i++) {
                 pages.push(i);
             }
         } else {
+            // Near start: show first 4 + ellipsis + last (e.g., [1, 2, 3, 4, ..., 10])
             if (currentPage <= 3) {
                 for (let i = 1; i <= 4; i++) {
                     pages.push(i);
                 }
                 pages.push('...');
                 pages.push(totalPages);
+                // Near end: show first + ellipsis + last 4 (e.g., [1, ..., 7, 8, 9, 10])
             } else if (currentPage >= totalPages - 2) {
                 pages.push(1);
                 pages.push('...');
                 for (let i = totalPages - 3; i <= totalPages; i++) {
                     pages.push(i);
                 }
+                // Middle: show first + ellipsis + neighbors + ellipsis + last (e.g., [1, ..., 4, 5, 6, ..., 10])
             } else {
                 pages.push(1);
                 pages.push('...');
@@ -45,7 +61,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
         return pages;
     };
 
-    return (
+    /*return (
         <div className="flex items-center justify-between px-5 py-6 border-t border-[#e5e7eb] bg-white">
             <p className="text-[14px] text-[#6b7280] tracking-[-0.5px]">
                 Showing page <span className="font-semibold text-[#111827]">{currentPage}</span> of <span className="font-semibold text-[#111827]">{totalPages}</span>
@@ -103,5 +119,38 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
                 </button>
             </div>
         </div>
+    );*/
+
+    return (
+        <PaginationBase>
+            <PaginationContent>
+                <PaginationItem>
+                    <PaginationPrevious />
+                </PaginationItem>
+                {getPageNumbers().map((page, index) => {
+                    if (page === '...') {
+                        return (
+                            <PaginationEllipsis key={`ellipsis-${index}`} />
+                        );
+                    }
+
+                    const isActive = currentPage === page;
+
+                    return (
+                        <PaginationItem key={page}>
+                            <PaginationLink
+                                isActive={isActive}
+                                onClick={() => onPageChange(page as number)}
+                            >
+                                {page}
+                            </PaginationLink>
+                        </PaginationItem>
+                    );
+                })}
+                <PaginationItem>
+                    <PaginationNext />
+                </PaginationItem>
+            </PaginationContent>
+        </PaginationBase>
     );
 }
