@@ -9,6 +9,9 @@ class Article extends Model
 {
     use HasFactory;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
         'title',
         'summary',
@@ -20,13 +23,14 @@ class Article extends Model
         'category', // ADDED
         // 'user_id', // REMOVED
         'country',
-        'distributed_in',
+        'site_id',
     ];
 
-    // public function category()
-    // {
-    //     return $this->belongsTo(Category::class);
-    // }
+    public function site()
+    {
+        return $this->belongsTo(sites::class, 'site_id');
+    }
+
 
     // public function author()
     // {

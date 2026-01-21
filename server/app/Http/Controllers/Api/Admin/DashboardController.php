@@ -28,22 +28,12 @@ class DashboardController extends Controller
 
         // 5. Get the number of articles distributed to users (top 5)
         $results = Article::query()
-            // Corresponds to: SELECT `distributed_in`, COUNT(...) AS published_count
-            ->select('distributed_in', DB::raw('COUNT(distributed_in) as published_count'))
-            
-            // Corresponds to: WHERE `status` = 'published'
-            ->where('status', 'published')
-            
-            // Corresponds to: GROUP BY `distributed_in`
-            ->groupBy('distributed_in')
-            
-            // Corresponds to: ORDER BY `published_count` ASC
-            ->orderBy('published_count', 'asc') // 'asc' for ascending order (smallest first)
-            
-            // Corresponds to: LIMIT 5
+            ->join('sites', 'articles.site_id', '=', 'sites.id')
+            ->select('sites.site_name as distributed_in', DB::raw('COUNT(articles.id) as published_count'))
+            ->where('articles.status', 'published')
+            ->groupBy('sites.site_name')
+            ->orderBy('published_count', 'asc')
             ->take(5)
-            
-            // Execute the query
             ->get();
 
         // 6. Get the 5 most recent articles

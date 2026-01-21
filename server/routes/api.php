@@ -5,9 +5,11 @@ use Illuminate\Support\Facades\Route;
 // ✅ CORRECT CONTROLLER: Import the Admin Article Controller
 use App\Http\Controllers\Api\Admin\ArticleController as AdminArticleController;
 use App\Http\Controllers\Api\User\ArticleController as UserArticleController;
-use App\Http\Controllers\Api\Admin\DashboardController; 
+use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\SystemController;
+use App\Http\Controllers\Api\Admin\AnalyticsController;
+use App\Http\Controllers\Api\Admin\SiteController;
 use Illuminate\Support\Facades\Redis;
 
 
@@ -24,7 +26,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/login', function (Illuminate\Http\Request $request) {
     // Check if the request has a valid token
     $user = Auth::guard('sanctum')->user();
-    
+
     if ($user) {
         return response()->json($user);
     }
@@ -85,9 +87,12 @@ Route::middleware(['auth:sanctum', 'is.admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        
+
         // Example Route: GET /api/admin/stats
         Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
+        Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
+        Route::get('/sites-analytics', [SiteController::class, 'index'])->name('sites-analytics');
+        Route::post('/sites', [SiteController::class, 'store'])->name('sites.store');
 
         Route::get('articles', [AdminArticleController::class, 'index']);
         // You can add more admin-only routes here in the future
