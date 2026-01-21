@@ -1,101 +1,74 @@
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { SiFacebook, SiLinkedin } from "react-icons/si";
-import { SlSocialTwitter } from "react-icons/sl";
+"use client";
 
-interface LinksListProps {
-  title: string;
-  items?: { label: string; url?: string; }[]
-  className?: string;
-}
-
-const LinksList = ({ title, items = [], className }: LinksListProps) => {
-  return (
-    <div className={cn(["flex flex-col", className])}>
-      <span className="mb-4 text-md font-bold">{title}</span>
-      <div className="flex flex-col gap-4">
-        {items.map((item, index) => (
-          <span key={index} className="text-sm font-light">
-            {item.label}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-const Links = [
-  {
-    title: "Countries",
-    items: [
-      { label: "Canada", url: "#" },
-      { label: "Philippines", url: "#" },
-      { label: "USA", url: "#" },
-      { label: "Dubai", url: "#" },
-      { label: "Singapore", url: "#" },
-    ]
-  },
-  {
-    title: "Categories",
-    items: [
-      { label: "Technology", url: "#" },
-      { label: "Business", url: "#" },
-      { label: "Science", url: "#" },
-      { label: "Innovation", url: "#" },
-      { label: "Research", url: "#" },
-    ]
-  },
-  {
-    title: "About",
-    items: [
-      { label: "About Us", url: "#" },
-      { label: "Contact", url: "#" },
-      { label: "Careers", url: "#" },
-      { label: "Advertise", url: "#" },
-    ]
-  },
-  {
-    title: "Legal",
-    items: [
-      { label: "Privacy Policy", url: "#" },
-      { label: "Terms of Use", url: "#" },
-      { label: "Cookie Policy", url: "#" },
-    ]
-  }
-];
-
-const FollowUs = () => {
-  return (
-    <div className="flex flex-col">
-      <span className="mb-4 text-md font-bold">Follow Us</span>
-      <div className="flex flex-row gap-4">
-        <Button size="icon" className="rounded-full bg-slate-800 hover:bg-slate-700">
-          <SlSocialTwitter />
-        </Button>
-        <Button size="icon" className="rounded-full bg-slate-800 hover:bg-slate-700">
-          <SiFacebook />
-        </Button>
-        <Button size="icon" className="rounded-full bg-slate-800 hover:bg-slate-700">
-          <SiLinkedin />
-        </Button>
-      </div>
-    </div>
-  );
-}
+import { Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
+import Link from "next/link";
 
 export default function LandingFooter() {
   return (
-    <footer className="bg-slate-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-12">
-          {Links.map((list, index) => (
-            <LinksList
-              key={index}
-              title={list.title}
-              items={list.items}
-            />
-          ))}
-          <FollowUs />
+    <footer className="bg-[#030213] text-white w-full">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-[110px] py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          {/* Countries */}
+          <div>
+            <h4 className="font-bold text-[16px] mb-4">Countries</h4>
+            <ul className="space-y-2">
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Canada</li>
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">USA</li>
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Philippines</li>
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Singapore</li>
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Europe</li>
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Asia</li>
+            </ul>
+          </div>
+
+          {/* Categories */}
+          <div>
+            <h4 className="font-bold text-[16px] mb-4">Categories</h4>
+            <ul className="space-y-2">
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Technology</li>
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Business</li>
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Politics</li>
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Economy</li>
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Tourism</li>
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Real Estate</li>
+            </ul>
+          </div>
+
+          {/* About */}
+          <div>
+            <h4 className="font-bold text-[16px] mb-4">About</h4>
+            <ul className="space-y-2">
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">About Us</li>
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Contact</li>
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Careers</li>
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Advertise</li>
+            </ul>
+          </div>
+
+          {/* Legal & Follow Us */}
+          <div>
+            <h4 className="font-bold text-[16px] mb-4">Legal</h4>
+            <ul className="space-y-2 mb-6">
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Terms & Policy</li>
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Privacy Policy</li>
+              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Cookie Policy</li>
+            </ul>
+
+            <h4 className="font-bold text-[16px] mb-4">Follow Us</h4>
+            <div className="flex gap-4">
+              <Facebook className="w-5 h-5 text-white cursor-pointer hover:text-[#9ca3af] transition-colors" />
+              <Twitter className="w-5 h-5 text-white cursor-pointer hover:text-[#9ca3af] transition-colors" />
+              <Linkedin className="w-5 h-5 text-white cursor-pointer hover:text-[#9ca3af] transition-colors" />
+              <Instagram className="w-5 h-5 text-white cursor-pointer hover:text-[#9ca3af] transition-colors" />
+            </div>
+          </div>
+        </div>
+
+        {/* Copyright */}
+        <div className="border-t border-[#374151] pt-6 flex flex-col items-center">
+          <p className="font-normal text-[12px] text-[#6b7280] text-center">
+            © 2025 Global News Network. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

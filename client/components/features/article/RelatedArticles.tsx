@@ -1,58 +1,84 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import Image from "next/image";
+import { Clock } from "lucide-react";
 
-interface Article {
+interface RelatedArticle {
   id: string;
   title: string;
   category: string;
-  image: string;
-  href?: string;
+  location?: string;
+  imageSrc: string;
+  timeAgo: string;
+  views: string;
 }
 
 interface RelatedArticlesProps {
-  articles: Article[];
+  articles: RelatedArticle[];
 }
 
 export default function RelatedArticles({ articles }: RelatedArticlesProps) {
   if (!articles || articles.length === 0) return null;
 
   return (
-    <section className="mt-12 pt-12 border-t border-gray-200">
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">Related Articles</h2>
+    <div className="flex flex-col gap-[24px] mt-[40px]">
+      <h2 className="font-bold text-[24px] text-[#111827] tracking-[-0.5px] leading-[32px]">
+        Related Articles
+      </h2>
 
-      {/* Advertisement Space */}
-      <div className="w-full bg-white border border-gray-100 rounded-lg p-4 flex flex-col items-center justify-center my-6 h-32">
-        <span className="text-gray-400 text-xs">Advertisement Space</span>
-        <span className="text-xs text-gray-300">300x500 Leaderboard Ad</span>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[20px]">
         {articles.map((article) => (
-          <Link key={article.id} href={article.href || `/article?id=${article.id}`} className="group">
-            <Card className="h-full overflow-hidden border-0 bg-transparent shadow-none hover:shadow-none">
-              <div className="relative aspect-[16/9] rounded-xl overflow-hidden mb-4">
-                <Image
-                  src={article.image}
-                  alt={article.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
+          <Link
+            key={article.id}
+            href={`/article?id=${article.id}`}
+            className="bg-white border border-[#f3f4f6] rounded-[12px] overflow-hidden cursor-pointer hover:shadow-md transition-shadow shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
+          >
+            {/* Image on top */}
+            <div className="w-full h-[160px] overflow-hidden">
+              <Image
+                src={article.imageSrc}
+                alt={article.title}
+                width={400}
+                height={160}
+                className="w-full h-full object-cover hover:scale-105 transition-transform"
+              />
+            </div>
+
+            {/* Content below */}
+            <div className="p-[16px] flex flex-col gap-[10px]">
+              <div className="flex gap-[8px] items-center">
+                <span className="bg-white border border-[#e5e7eb] px-[8px] py-[3px] rounded-[4px] font-semibold text-[11px] text-black tracking-[-0.5px]">
+                  {article.category}
+                </span>
+                {article.location && (
+                  <>
+                    <p className="font-normal text-[12px] text-black tracking-[-0.5px]">|</p>
+                    <p className="font-semibold text-[11px] text-black tracking-[-0.5px]">
+                      {article.location.toUpperCase()}
+                    </p>
+                  </>
+                )}
               </div>
-              <CardContent className="p-0">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider mb-2">
-                  <span className="bg-gray-100 px-2 py-1 rounded text-gray-700">{article.category}</span>
-                </div>
-                <h3 className="font-bold text-gray-900 text-lg leading-tight group-hover:text-blue-600 transition-colors">
-                  {article.title}
-                </h3>
-              </CardContent>
-            </Card>
+
+              <h3 className="font-bold text-[16px] text-[#111827] tracking-[-0.5px] leading-[1.3] line-clamp-2">
+                {article.title}
+              </h3>
+
+              <div className="flex items-center gap-[6px] text-[#6b7280]">
+                <Clock className="size-[12px]" />
+                <p className="font-normal text-[12px] tracking-[-0.5px]">
+                  {article.timeAgo}
+                </p>
+                <p className="font-normal text-[14px] tracking-[-0.5px]">•</p>
+                <p className="font-normal text-[12px] tracking-[-0.5px]">
+                  {article.views}
+                </p>
+              </div>
+            </div>
           </Link>
         ))}
       </div>
-    </section>
+    </div>
   );
 }
