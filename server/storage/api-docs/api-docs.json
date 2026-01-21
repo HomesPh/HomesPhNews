@@ -503,7 +503,233 @@
                 ]
             }
         },
-        "/api/admin/sites-analytics": {
+        "/api/admin/events": {
+            "get": {
+                "tags": [
+                    "Admin: Events"
+                ],
+                "summary": "List all events for the calendar",
+                "description": "Returns a list of all events, which can be used to highlight dates in the frontend calendar.",
+                "operationId": "getAdminEvents",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin: Events"
+                ],
+                "summary": "Create a new calendar event",
+                "description": "Adds a new event to the database.",
+                "operationId": "storeAdminEvent",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "event_title",
+                                    "date"
+                                ],
+                                "properties": {
+                                    "event_title": {
+                                        "type": "string",
+                                        "example": "Hackathon 2025"
+                                    },
+                                    "date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-01-25"
+                                    },
+                                    "time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "09:00:00"
+                                    },
+                                    "location": {
+                                        "type": "string",
+                                        "example": "Tech Hub, Manila"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "A 48-hour coding marathon."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Event created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/events/{id}": {
+            "get": {
+                "tags": [
+                    "Admin: Events"
+                ],
+                "summary": "Get specific event details",
+                "operationId": "getAdminEventById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Event not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin: Events"
+                ],
+                "summary": "Delete an event",
+                "operationId": "deleteAdminEvent",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Event deleted"
+                    },
+                    "404": {
+                        "description": "Event not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Admin: Events"
+                ],
+                "summary": "Update an existing event",
+                "operationId": "updateAdminEvent",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "event_title": {
+                                        "type": "string"
+                                    },
+                                    "date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "time": {
+                                        "type": "string"
+                                    },
+                                    "location": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Event updated successfully"
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/sites": {
             "get": {
                 "tags": [
                     "Admin: Sites"
@@ -569,9 +795,7 @@
                         "sanctum": []
                     }
                 ]
-            }
-        },
-        "/api/admin/sites": {
+            },
             "post": {
                 "tags": [
                     "Admin: Sites"
@@ -1125,6 +1349,10 @@
         {
             "name": "Admin: Dashboard",
             "description": "Admin: Dashboard"
+        },
+        {
+            "name": "Admin: Events",
+            "description": "Admin: Events"
         },
         {
             "name": "Admin: Sites",
