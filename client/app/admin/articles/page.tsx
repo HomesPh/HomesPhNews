@@ -1,78 +1,48 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import ArticlesHeader from "@/components/features/admin/articles/ArticlesHeader";
 import ArticlesTabs, { ArticleTab } from "@/components/features/admin/articles/ArticlesTabs";
 import ArticlesFilters from "@/components/features/admin/articles/ArticlesFilters";
 import ArticleListItem from "@/components/features/admin/articles/ArticleListItem";
 import Pagination from "@/components/features/admin/shared/Pagination";
-import { articlesData, Article } from "@/app/admin/articles/data";
-
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useCallback, useEffect } from 'react';
+import { articlesData } from "@/app/admin/articles/data";
 import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
 import usePagination from '@/hooks/usePagination';
+import useUrlFilters from '@/hooks/useUrlFilters';
+
+// Filter configuration with defaults and reset values
+const URL_FILTERS_CONFIG = {
+    status: {
+        default: 'all' as const,
+        resetValues: ['all']
+    },
+    category: {
+        default: 'All Category' as const,
+        resetValues: ['All Category']
+    },
+    country: {
+        default: 'All Countries' as const,
+        resetValues: ['All Countries']
+    },
+};
 
 /**
  * ArticlesPage component for the admin dashboard
  */
 export default function ArticlesPage() {
     const router = useRouter();
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
 
-    // Initial state from URL params
-    const statusParam = searchParams.get('status') as ArticleTab | null;
-    const categoryParam = searchParams.get('category');
-    const countryParam = searchParams.get('country');
+    // URL-synced filters (status, category, country)
+    const { filters, setFilter } = useUrlFilters(URL_FILTERS_CONFIG);
 
-    const [activeTab, setActiveTabState] = useState<ArticleTab>(statusParam || 'all');
+    // Local state (not synced to URL)
     const [searchQuery, setSearchQuery] = useState('');
-    const [categoryFilter, setCategoryFilterState] = useState(categoryParam || 'All Category');
-    const [countryFilter, setCountryFilterState] = useState(countryParam || 'All Countries');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-    // Pagination state handler.
+    // Pagination state handler
     const pagination = usePagination({ totalPages: 10 });
-
-    // Update URL when filters change
-    const createQueryString = useCallback(
-        (name: string, value: string) => {
-            const params = new URLSearchParams(searchParams.toString());
-            if (value && value !== 'all' && value !== 'All Category' && value !== 'All Countries') {
-                params.set(name, value);
-            } else {
-                params.delete(name);
-            }
-            return params.toString();
-        },
-        [searchParams]
-    );
-
-    const setActiveTab = (tab: ArticleTab) => {
-        setActiveTabState(tab);
-        const query = createQueryString('status', tab);
-        router.push(`${pathname}${query ? `?${query}` : ''}`, { scroll: false });
-    };
-
-    const setCategoryFilter = (category: string) => {
-        setCategoryFilterState(category);
-        const query = createQueryString('category', category);
-        router.push(`${pathname}${query ? `?${query}` : ''}`, { scroll: false });
-    };
-
-    const setCountryFilter = (country: string) => {
-        setCountryFilterState(country);
-        const query = createQueryString('country', country);
-        router.push(`${pathname}${query ? `?${query}` : ''}`, { scroll: false });
-    };
-
-    // Update state if URL changes (e.g. browser back button)
-    useEffect(() => {
-        if (statusParam) setActiveTabState(statusParam);
-        if (categoryParam) setCategoryFilterState(categoryParam);
-        if (countryParam) setCountryFilterState(countryParam);
-    }, [statusParam, categoryParam, countryParam]);
 
     // Calculate counts for tabs
     const counts = useMemo(() => ({
@@ -83,37 +53,43 @@ export default function ArticlesPage() {
     }), []);
 
     // Filter articles based on state
-    const filteredArticles = useMemo(() => {
-        return articlesData.filter(article => {
-            const matchesTab = activeTab === 'all' || article.status === activeTab;
-            const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    // State for articles (fetched from backend)
+    const [filteredArticles, setFilteredArticles] = useState(articlesData);
+
+    // Effect: Fetch articles when filters change
+    // In the future, replace this logic with: fetchArticles({ ...filters, query: searchQuery })
+    useEffect(() => {
+        const result = articlesData.filter(article => {
+            const matchesTab = filters.status === 'all' || article.status === filters.status;
+            const matchesCategory = filters.category === 'All Category' || article.category === filters.category;
+            const matchesCountry = filters.country === 'All Countries' || article.location === filters.country;
+            const matchesSearch = !searchQuery || article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 article.description.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesCategory = categoryFilter === 'All Category' || article.category === categoryFilter;
-            const matchesCountry = countryFilter === 'All Countries' || article.location === countryFilter;
 
             return matchesTab && matchesSearch && matchesCategory && matchesCountry;
         });
-    }, [activeTab, searchQuery, categoryFilter, countryFilter]);
+        setFilteredArticles(result);
+    }, [filters, searchQuery]);
 
     return (
         <div className="p-8 bg-[#f9fafb] min-h-screen">
             <ArticlesHeader onNewArticle={() => setIsCreateModalOpen(true)} />
 
 
-            <div className="bg-white rounded-[12px] border border-[#e5e7eb] overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
+            <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
                 <ArticlesTabs
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
+                    activeTab={filters.status as ArticleTab}
+                    setActiveTab={(tab) => setFilter('status', tab)}
                     counts={counts}
                 />
 
                 <ArticlesFilters
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
-                    categoryFilter={categoryFilter}
-                    setCategoryFilter={setCategoryFilter}
-                    countryFilter={countryFilter}
-                    setCountryFilter={setCountryFilter}
+                    categoryFilter={filters.category}
+                    setCategoryFilter={(cat) => setFilter('category', cat)}
+                    countryFilter={filters.country}
+                    setCountryFilter={(country) => setFilter('country', country)}
                 />
 
                 <div className="flex flex-col">
