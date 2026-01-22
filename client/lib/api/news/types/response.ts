@@ -6,8 +6,6 @@ export interface ArticlesFeedResponse {
   latest_global: Article[];
 }
 
-export type LandingPageArticlesResponse = ArticlesFeedResponse;
-
 export interface ArticlesListResponse {
   data: ArticleListItem[];
   meta: {
