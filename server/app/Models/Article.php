@@ -13,20 +13,21 @@ class Article extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'article_id',      // UUID from Scraper
+        'id',              // UUID from Redis (primary key)
+        'article_id',      // UUID from Scraper (legacy, keeping for compatibility)
         'title',
         'original_title',
-        'original_title',  // From Scraper
         'summary',
         'content',
         'image',
         'status',
         'views_count',
-        // 'category_id', // REMOVED
-        'category', // ADDED
-        // 'user_id', // REMOVED
+        'category',
         'country',
-        'site_id',
+        'source',
+        'original_url',
+        'keywords',
+        'published_sites', // JSON array of site names
     ];
 
     /**
@@ -36,18 +37,21 @@ class Article extends Model
         'keywords' => 'array',
         'custom_titles' => 'array',
         'topics' => 'array',
-        'distributed_in' => 'array', // Usually a string of comma-separated values, but can be array
+        'published_sites' => 'array', // ["FilipinoHomes", "Rent.ph", ...]
         'views_count' => 'integer',
-        'site_id' => 'integer',
     ];
 
-    public function site()
-    {
-        return $this->belongsTo(sites::class, 'site_id');
-    }
+    /**
+     * Append these virtual attributes to JSON responses
+     */
+    protected $appends = ['image_url'];
 
-    // public function author()
-    // {
-    //     return $this->belongsTo(User::class, 'user_id');
-    // }
+    /**
+     * Accessor: Provide image_url as alias for image column
+     * This ensures frontend compatibility (expects image_url, DB has image)
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->attributes['image'] ?? null;
+    }
 }

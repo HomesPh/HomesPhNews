@@ -89,4 +89,8 @@ Route::middleware(['auth:sanctum', 'is.admin'])
         Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
         // Edit pending (Redis) article without touching the main database
         Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
+        // Publish pending article (Redis → MySQL, then delete from Redis)
+        Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
+        // Reject pending article (Redis → MySQL with rejected status, then delete from Redis)
+        Route::post('articles/{id}/reject', [AdminArticleController::class, 'reject']);
     });
