@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Calendar, Eye, Edit, XCircle, ChevronLeft } from 'lucide-react';
-import { articlesData } from "@/app/admin/articles/data";
+import { Article } from "@/app/admin/articles/data";
+import { getAdminArticle } from "@/lib/api/admin/articles";
 import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
 import CustomizeTitlesModal from "@/components/features/admin/articles/CustomizeTitlesModal";
-import { cn } from "@/lib/utils";
 
 /**
  * Article Details Page matching Create Sign In Page design
@@ -17,8 +17,26 @@ export default function ArticleDetailsPage() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
 
-    const articleId = Number(params.id);
-    const article = useMemo(() => articlesData.find(a => a.id === articleId), [articleId]);
+    const [article, setArticle] = useState<Article | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchArticle = async () => {
+            if (!params.id) return;
+            setIsLoading(true);
+            try {
+                // Ensure ID is passed as string
+                const fetched = await getAdminArticle(Array.isArray(params.id) ? params.id[0] : params.id);
+                setArticle(fetched);
+            } catch (e) {
+                console.error("Failed to fetch article", e);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchArticle();
+    }, [params.id]);
+
 
     const [publishToSites, setPublishToSites] = useState({
         filipinoHomes: true,
@@ -27,6 +45,14 @@ export default function ArticleDetailsPage() {
         bayanihan: false,
         mainPortal: true,
     });
+
+    if (isLoading) {
+        return (
+            <div className="p-20 text-center text-[#6b7280]">
+                Loading article details...
+            </div>
+        );
+    }
 
     if (!article) {
         return (

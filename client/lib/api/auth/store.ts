@@ -21,14 +21,14 @@ export const useAuth = create<AuthStore>((set) => ({
   login: async ({ email, password }) => {
     try {
       const response = await api.post("/login", { email, password });
-      const { token } = response.data;
+      const { access_token } = response.data;
 
       if (typeof window !== "undefined") {
-        localStorage.setItem("auth_token", token);
+        localStorage.setItem("auth_token", access_token);
       }
 
       set({
-        token
+        token: access_token
       });
     } catch (error) {
       console.error("Login failed:", error);

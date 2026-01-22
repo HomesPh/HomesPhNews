@@ -4,6 +4,7 @@ import { LayoutDashboard, FileText, BarChart3, Calendar, Settings, LogOut } from
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/api/auth/store";
 
 const SidebarItems = [
   {
@@ -16,36 +17,12 @@ const SidebarItems = [
     href: "/admin/articles",
     icon: FileText
   }
-  // ,{
-  //   title: "Analytics",
-  //   href: "/admin/analytics",
-  //   icon: BarChart3
-  // },
-  // {
-  //   title: "Sites",
-  //   href: "/admin/sites",
-  //   icon: Globe
-  // },
-  // {
-  //   title: "Ads",
-  //   href: "/admin/ads",
-  //   icon: FileText // Using FileText as in reference for Ads
-  // },
-  // {
-  //   title: "Calendar",
-  //   href: "/admin/calendar",
-  //   icon: Calendar
-  // },
-  // {
-  //   title: "Settings",
-  //   href: "/admin/settings",
-  //   icon: Settings
-  // }
 ]
 
 export default function AdminSidebar() {
   const pathname = usePathname();
   const { state } = useSidebar();
+  const { logout } = useAuth();
   const isCollapsed = state === "collapsed";
 
   return (
@@ -107,6 +84,10 @@ export default function AdminSidebar() {
 
         <SidebarFooter className="px-4 py-4 border-t border-[#2a2d3e]">
           <button
+            onClick={() => {
+              logout();
+              window.location.href = '/admin/login';
+            }}
             className={cn(
               "flex items-center gap-3 px-4 py-3 text-[#9ca3af] hover:bg-[#252836] hover:text-white rounded-[8px] transition-colors w-full",
               isCollapsed ? "justify-center" : ""

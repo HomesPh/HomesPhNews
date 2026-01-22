@@ -6,21 +6,47 @@ import { cn } from "@/lib/utils";
 
 interface BaseArticleCardProps {
     article: {
-        id?: number;
-        image: string;
+        id?: string;
+        image_url?: string;
+        image?: string;           // Legacy fallback
         category: string;
-        location: string;
+        country?: string;
+        location?: string;        // Legacy fallback
         title: string;
-        description?: string;
-        date: string;
-        views: string;
+        summary?: string;
+        description?: string;     // Legacy fallback
+        created_at?: string | null;
+        date?: string;            // Legacy fallback
+        views_count?: number;
+        views?: string;           // Legacy fallback
         status: string;
-        sites?: string[];
+        topics?: string[];
+        sites?: string[];         // Legacy fallback
     };
     variant?: 'compact' | 'list';
     onClick?: () => void;
     className?: string;
 }
+
+// Helper function to format date
+const formatDate = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return 'Unknown date';
+    try {
+        return new Date(dateStr).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    } catch {
+        return dateStr;
+    }
+};
+
+// Helper function to format views
+const formatViews = (count: number | undefined): string => {
+    if (count === undefined || count === null) return '0 views';
+    return `${count.toLocaleString()} views`;
+};
 
 /**
  * Universal Article Card component exactly matching Create Sign In Page design
@@ -32,6 +58,14 @@ export default function BaseArticleCard({
     className
 }: BaseArticleCardProps) {
     const isCompact = variant === 'compact';
+
+    // Normalize field names (support both new and legacy)
+    const imageUrl = article.image_url || article.image || 'https://placehold.co/800x450?text=No+Image';
+    const location = article.country || article.location || 'Unknown';
+    const description = article.summary || article.description || '';
+    const dateStr = article.created_at || article.date || null;
+    const viewsStr = article.views ?? formatViews(article.views_count);
+    const sites = article.sites || (article.topics?.slice(0, 3)) || [];
 
     if (isCompact) {
         return (
@@ -46,7 +80,7 @@ export default function BaseArticleCard({
                     {/* Article Image Container */}
                     <div className="relative w-[80px] h-[80px] flex-shrink-0">
                         <img
-                            src={article.image}
+                            src={imageUrl}
                             alt={article.title}
                             className="w-full h-full rounded-[8px] object-cover"
                         />
@@ -61,7 +95,7 @@ export default function BaseArticleCard({
                             </span>
                             <span className="text-[14px] text-[#111827]">|</span>
                             <span className="text-[12px] font-semibold text-[#111827] tracking-[-0.5px]">
-                                {article.location}
+                                {location}
                             </span>
                         </div>
 
@@ -75,9 +109,9 @@ export default function BaseArticleCard({
                         {/* Article Metadata */}
                         <div className="flex items-center gap-2 text-[14px] text-[#6b7280] tracking-[-0.5px]">
                             <Calendar className="w-[12px] h-[13.333px]" />
-                            <span>{article.date}</span>
+                            <span>{formatDate(dateStr)}</span>
                             <span>•</span>
-                            <span>{article.views}</span>
+                            <span>{viewsStr}</span>
                         </div>
                     </div>
                 </div>
@@ -97,7 +131,7 @@ export default function BaseArticleCard({
             {/* Thumbnail */}
             <div className="w-[118px] h-[106px] rounded-[8px] overflow-hidden flex-shrink-0">
                 <img
-                    src={article.image}
+                    src={imageUrl}
                     alt={article.title}
                     className="w-full h-full object-cover"
                 />
@@ -112,7 +146,7 @@ export default function BaseArticleCard({
                     </span>
                     <span className="text-[14px] text-[#111827]">|</span>
                     <span className="text-[12px] font-semibold text-[#111827] tracking-[-0.5px] uppercase">
-                        {article.location}
+                        {location}
                     </span>
                 </div>
 
@@ -123,31 +157,31 @@ export default function BaseArticleCard({
 
                 {/* Description */}
                 <p className="text-[14px] text-[#4b5563] leading-[normal] tracking-[-0.5px] mb-2 line-clamp-1">
-                    {article.description}
+                    {description}
                 </p>
 
                 {/* Date and Views */}
                 <div className="flex items-center gap-2 text-[12px] text-[#6b7280] tracking-[-0.5px] mb-2">
                     <Calendar className="w-[11px] h-[12px]" />
-                    <span className="leading-[20px]">{article.date}</span>
+                    <span className="leading-[20px]">{formatDate(dateStr)}</span>
                     <span className="text-[16px]">•</span>
-                    <span className="leading-[20px]">{article.views}</span>
+                    <span className="leading-[20px]">{viewsStr}</span>
                 </div>
 
                 {/* Published On */}
                 <div className="flex items-center gap-2">
                     <span className="text-[12px] text-[#6b7280] leading-[20px] tracking-[-0.5px]">Published on:</span>
                     <div className="flex flex-wrap gap-2">
-                        {article.sites?.map((site, idx) => (
+                        {sites.length > 0 ? sites.map((site, idx) => (
                             <span
                                 key={idx}
                                 className="px-[14px] py-1 bg-[#f3f4f6] rounded-[4px] text-[12px] font-medium text-[#374151] tracking-[-0.5px]"
                             >
                                 {site}
                             </span>
-                        )) || (
-                                <span className="text-[12px] italic text-[#9ca3af]">None</span>
-                            )}
+                        )) : (
+                            <span className="text-[12px] italic text-[#9ca3af]">None</span>
+                        )}
                     </div>
                 </div>
             </div>

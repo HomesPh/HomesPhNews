@@ -8,10 +8,12 @@ import ArticlesTabs, { ArticleTab } from "@/components/features/admin/articles/A
 import ArticlesFilters from "@/components/features/admin/articles/ArticlesFilters";
 import ArticleListItem from "@/components/features/admin/articles/ArticleListItem";
 import Pagination from "@/components/features/admin/shared/Pagination";
-import { articlesData } from "@/app/admin/articles/data";
+import { articlesData, Article } from "@/app/admin/articles/data";
 import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
 import usePagination from '@/hooks/usePagination';
 import useUrlFilters from '@/hooks/useUrlFilters';
+import { getAdminArticles } from "@/lib/api/admin/articles";
+import ArticlesSkeleton from "@/components/features/admin/articles/ArticlesSkeleton";
 
 // Filter configuration with defaults and reset values
 const URL_FILTERS_CONFIG = {
@@ -55,22 +57,48 @@ export default function ArticlesPage() {
 
     // Filter articles based on state
     // State for articles (fetched from backend)
-    const [filteredArticles, setFilteredArticles] = useState(articlesData);
+    const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Effect: Fetch articles when filters change
-    // In the future, replace this logic with: fetchArticles({ ...filters, query: searchQuery })
     useEffect(() => {
-        const result = articlesData.filter(article => {
-            const matchesTab = filters.status === 'all' || article.status === filters.status;
-            const matchesCategory = filters.category === 'All Category' || article.category === filters.category;
-            const matchesCountry = filters.country === 'All Countries' || article.location === filters.country;
-            const matchesSearch = !searchQuery || article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                article.description.toLowerCase().includes(searchQuery.toLowerCase());
+        const fetchArticles = async () => {
+            setIsLoading(true);
+            try {
+                // Map frontend filter values to backend expected values
+                // Status 'pending' will trigger the Redis fetch on the backend
+                const apiFilters = {
+                    status: filters.status === 'all' ? undefined : filters.status,
+                    category: filters.category === 'All Category' ? undefined : filters.category,
+                    country: filters.country === 'All Countries' ? undefined : filters.country,
+                    search: searchQuery || undefined,
+                    page: pagination.currentPage
+                };
 
-            return matchesTab && matchesSearch && matchesCategory && matchesCountry;
-        });
-        setFilteredArticles(result);
-    }, [filters, searchQuery]);
+                const response = await getAdminArticles(apiFilters);
+
+                setFilteredArticles(response.data);
+
+                // Update pagination if needed (backend should return total pages)
+                // For now, roughly calculated
+                pagination.handlePageChange(response.current_page);
+
+                // You might need to update total pages in your usePagination hook
+                // pagination.setTotalPages(response.last_page); 
+
+            } catch (error) {
+                console.error("Failed to fetch articles:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        const timer = setTimeout(() => {
+            fetchArticles();
+        }, 300); // Debounce search
+
+        return () => clearTimeout(timer);
+    }, [filters, searchQuery, pagination.currentPage]);
 
     return (
         <div className="p-8 bg-[#f9fafb] min-h-screen">
@@ -100,7 +128,9 @@ export default function ArticlesPage() {
                 />
 
                 <div className="flex flex-col">
-                    {filteredArticles.length > 0 ? (
+                    {isLoading ? (
+                        <ArticlesSkeleton />
+                    ) : filteredArticles.length > 0 ? (
                         filteredArticles.map((article) => (
                             <ArticleListItem
                                 key={article.id}

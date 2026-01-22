@@ -14,28 +14,27 @@ interface SignInFormProps {
     demoCredentials: { email: string; password: string };
 }
 
+import { useAuth } from "@/lib/api/auth/store";
+
 export default function SignInForm({ fields, submitLabel, demoCredentials }: SignInFormProps) {
     const router = useRouter();
+    const login = useAuth((state) => state.login);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
-        // Simple validation against demo credentials
-        if (email === demoCredentials.email && password === demoCredentials.password) {
-            // Simulate API call
-            setTimeout(() => {
-                router.push("/admin");
-                setIsLoading(false);
-            }, 500);
-        } else {
-            setTimeout(() => {
-                alert("Invalid credentials"); // Fallback to alert for now
-                setIsLoading(false);
-            }, 500);
+        try {
+            await login({ email, password });
+            router.push("/admin/analytics"); // Redirect to dashboard
+        } catch (error) {
+            console.error(error);
+            alert("Invalid credentials or server error");
+        } finally {
+            setIsLoading(false);
         }
     };
 

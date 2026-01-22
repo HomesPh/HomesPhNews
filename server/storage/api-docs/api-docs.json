@@ -110,13 +110,13 @@
                     "Admin: Articles"
                 ],
                 "summary": "Get a filtered list of articles for the admin dashboard",
-                "description": "Returns a paginated list of all articles with extensive filtering and sorting capabilities.",
+                "description": "Returns a paginated list of all articles. For 'pending' status, articles are fetched from Redis (Python scraper source). For other statuses, articles come from the database.",
                 "operationId": "getAdminArticlesList",
                 "parameters": [
                     {
                         "name": "status",
                         "in": "query",
-                        "description": "Filter by status (published, pending review, rejected)",
+                        "description": "Filter by status (published, pending, pending review, rejected). 'pending' fetches from Redis.",
                         "schema": {
                             "type": "string"
                         }
@@ -132,7 +132,7 @@
                     {
                         "name": "country",
                         "in": "query",
-                        "description": "Filter by 2-letter country code",
+                        "description": "Filter by country name",
                         "schema": {
                             "type": "string"
                         }
@@ -191,6 +191,14 @@
                         "name": "page",
                         "in": "query",
                         "description": "The page number to retrieve",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Number of articles per page",
                         "schema": {
                             "type": "integer"
                         }
