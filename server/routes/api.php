@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\SiteController;
+use App\Http\Controllers\Api\Admin\EventController;
 use Illuminate\Support\Facades\Redis;
 
 
@@ -47,19 +48,11 @@ Route::middleware('auth:sanctum')->group(function () {
 // Main feed endpoint with filtering
 Route::get('/article', [UserArticleController::class, 'feed']);
 
-// All articles with pagination
-Route::get('/articles', [UserArticleController::class, 'index']);
-
 // Single article by ID (UUID from Python)
 Route::get('/articles/{id}', [UserArticleController::class, 'show'])
     ->where('id', '[a-f0-9\-]{36}'); // UUID pattern
 
-// Articles by country (e.g., /api/articles/country/Philippines)
-Route::get('/articles/country/{country}', [UserArticleController::class, 'byCountry']);
 
-// Articles by category (e.g., /api/articles/category/Real Estate)
-Route::get('/articles/category/{category}', [UserArticleController::class, 'byCategory'])
-    ->where('category', '[a-zA-Z0-9\s]+'); // Allow spaces
 
 // Latest articles sorted by time
 Route::get('/latest', [UserArticleController::class, 'latest']);
@@ -88,21 +81,15 @@ Route::middleware(['auth:sanctum', 'is.admin'])
     ->name('admin.')
     ->group(function () {
 
-        // Example Route: GET /api/admin/stats
+        // Reports & Dashboards (Non-CRUD)
         Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
         Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
-        Route::get('/sites-analytics', [SiteController::class, 'index'])->name('sites-analytics');
-        Route::post('/sites', [SiteController::class, 'store'])->name('sites.store');
 
-        Route::get('articles', [AdminArticleController::class, 'index']);
-        // You can add more admin-only routes here in the future
-        // For example:
-        // Route::post('/news/{news}/publish', ...);
-        // Route::get('/users', ...);
-        Route::post('articles', [AdminArticleController::class, 'store']);
+        // CRUD Resources
+        Route::apiResource('events', EventController::class);
+        Route::apiResource('sites', SiteController::class)->only(['index', 'store']);
+        Route::apiResource('articles', AdminArticleController::class)->except(['destroy']);
 
-        // The {article} wildcard name must match the variable name in the show() method
-        Route::get('articles/{article}', [AdminArticleController::class, 'show']);
-        Route::patch('articles/{article}', [AdminArticleController::class, 'update']);
+        // Custom Article Actions
         Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
     });

@@ -12,7 +12,7 @@ use OpenApi\Attributes as OA;
 class SiteController extends Controller
 {
     #[OA\Get(
-        path: "/api/admin/sites-analytics",
+        path: "/api/admin/sites",
         operationId: "getAdminSitesAnalytics",
         summary: "Get site-specific analytics and article details",
         description: "Returns statistics about partners, performance per site, and detailed article listings with site information.",

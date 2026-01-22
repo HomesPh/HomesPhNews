@@ -14,16 +14,25 @@ class Article extends Model
 
     protected $fillable = [
         'title',
+        'original_title',
         'summary',
         'content',
         'image',
+        'category',
+        'country',
+        'source',
+        'original_url',
+        'keywords',
+        'topics',
         'status',
         'views_count',
-        // 'category_id', // REMOVED
-        'category', // ADDED
-        // 'user_id', // REMOVED
-        'country',
         'site_id',
+        'custom_titles',
+    ];
+
+    protected $casts = [
+        'custom_titles' => 'array',
+        'topics' => 'array',
     ];
 
     public function site()
