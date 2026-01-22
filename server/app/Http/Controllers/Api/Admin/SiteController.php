@@ -45,7 +45,9 @@ class SiteController extends Controller
             });
         }
 
-        $sites = $query->orderBy('created_at', 'desc')->get();
+        $sites = $query->withCount('articles')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         // Transform to frontend format
         $transformed = $sites->map(function ($site) {
@@ -64,11 +66,16 @@ class SiteController extends Controller
             ];
         });
 
-        // Calculate counts
+        // Calculate counts - Single query group by is faster
+        $statusCounts = Site::selectRaw('site_status, count(*) as total')
+            ->groupBy('site_status')
+            ->pluck('total', 'site_status')
+            ->toArray();
+
         $counts = [
-            'all' => Site::count(),
-            'active' => Site::where('site_status', 'active')->count(),
-            'suspended' => Site::where('site_status', 'suspended')->count(),
+            'all' => array_sum($statusCounts),
+            'active' => $statusCounts['active'] ?? 0,
+            'suspended' => $statusCounts['suspended'] ?? 0,
         ];
 
         return response()->json([

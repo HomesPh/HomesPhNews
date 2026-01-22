@@ -54,6 +54,7 @@ class DashboardController extends Controller
 
         // 6. Get the 5 most recent articles
         $recentArticles = Article::query()
+            ->with(['publishedSites']) // Fix N+1 for recent articles list
             ->where('status', 'published')
             ->latest() // This is a shortcut for ->orderBy('created_at', 'desc')
             ->take(5)  // Limit the result to 5 articles

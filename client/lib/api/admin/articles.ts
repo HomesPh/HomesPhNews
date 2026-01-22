@@ -130,3 +130,17 @@ export async function createArticle(payload: any): Promise<Article> {
         throw error;
     }
 }
+
+/**
+ * Update an existing article in the database
+ */
+export async function updateArticle(id: string, payload: any): Promise<Article> {
+    try {
+        const response = await api.put<Article>(`/admin/articles/${id}`, payload);
+        console.log(`[API] Update Article ${id}: ${response.status} OK`);
+        return response.data;
+    } catch (error: any) {
+        console.error(`[API] Update Article ${id} Failed: ${error.response?.status || 'Unknown error'}`);
+        throw error;
+    }
+}

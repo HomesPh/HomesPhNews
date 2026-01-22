@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { X, Upload, Bold, Italic, Underline, List, ListOrdered, AlignLeft, AlignCenter, Image as ImageIcon, Link as LinkIcon, RotateCcw, RotateCw, Maximize, Info } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { getSiteNames } from "@/lib/api/admin/sites";
-import { updatePendingArticle, createArticle } from "@/lib/api/admin/articles";
+import { updatePendingArticle, createArticle, updateArticle } from "@/lib/api/admin/articles";
 
 interface ArticleEditorModalProps {
     mode: 'create' | 'edit';
@@ -115,10 +115,21 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 });
                 onClose();
                 window.location.reload();
-            } else {
-                // TODO: Wire up updateArticle for DB articles
-                alert('Editing published articles via this modal is not yet implemented (DB Update).');
+            } else if (mode === 'edit') {
+                const payload = {
+                    title,
+                    summary,
+                    content,
+                    category,
+                    country,
+                    image: featuredImage,
+                    published_sites: publishTo,
+                    topics: tags,
+                };
+                await updateArticle(initialData.id, payload);
+                alert('Article updated successfully!');
                 onClose();
+                window.location.reload();
             }
         } catch (error: any) {
             console.error("Failed to save article", error);
