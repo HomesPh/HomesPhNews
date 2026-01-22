@@ -49,6 +49,12 @@ export interface ArticlesApiResponse {
         categories: string[];
         countries: string[];
     };
+    status_counts?: {
+        all: number;
+        published: number;
+        pending: number;
+        rejected: number;
+    };
 }
 
 export const articlesData: Article[] = [

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
 import { Plus } from 'lucide-react';
@@ -8,7 +8,7 @@ import ArticlesTabs, { ArticleTab } from "@/components/features/admin/articles/A
 import ArticlesFilters from "@/components/features/admin/articles/ArticlesFilters";
 import ArticleListItem from "@/components/features/admin/articles/ArticleListItem";
 import Pagination from "@/components/features/admin/shared/Pagination";
-import { articlesData, Article } from "@/app/admin/articles/data";
+import { Article } from "@/app/admin/articles/data";
 import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
 import usePagination from '@/hooks/usePagination';
 import useUrlFilters from '@/hooks/useUrlFilters';
@@ -45,20 +45,19 @@ export default function ArticlesPage() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     // Pagination state handler
-    const pagination = usePagination({ totalPages: 10 });
+    const pagination = usePagination();
 
-    // Calculate counts for tabs
-    const counts = useMemo(() => ({
-        all: articlesData.length,
-        published: articlesData.filter(a => a.status === 'published').length,
-        pending: articlesData.filter(a => a.status === 'pending').length,
-        rejected: articlesData.filter(a => a.status === 'rejected').length,
-    }), []);
-
-    // Filter articles based on state
     // State for articles (fetched from backend)
     const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    
+    // State for status counts (from backend)
+    const [counts, setCounts] = useState({
+        all: 0,
+        published: 0,
+        pending: 0,
+        rejected: 0,
+    });
 
     // Effect: Fetch articles when filters change
     useEffect(() => {
@@ -72,19 +71,22 @@ export default function ArticlesPage() {
                     category: filters.category === 'All Category' ? undefined : filters.category,
                     country: filters.country === 'All Countries' ? undefined : filters.country,
                     search: searchQuery || undefined,
-                    page: pagination.currentPage
+                    page: pagination.currentPage,
+                    per_page: 10
                 };
 
                 const response = await getAdminArticles(apiFilters);
 
                 setFilteredArticles(response.data);
 
-                // Update pagination if needed (backend should return total pages)
-                // For now, roughly calculated
+                // Update pagination with backend data
                 pagination.handlePageChange(response.current_page);
+                pagination.setTotalPages(response.last_page);
 
-                // You might need to update total pages in your usePagination hook
-                // pagination.setTotalPages(response.last_page); 
+                // Update status counts from backend
+                if (response.status_counts) {
+                    setCounts(response.status_counts);
+                } 
 
             } catch (error) {
                 console.error("Failed to fetch articles:", error);
