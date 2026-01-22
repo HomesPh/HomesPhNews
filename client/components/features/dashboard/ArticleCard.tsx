@@ -35,12 +35,12 @@ export default function ArticleCard({
     <Link
       href={`/article?id=${id}`}
       className={cn(
-        'group flex gap-6 rounded-2xl border border-[#f3f4f6] bg-white p-6 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all hover:bg-transparent',
+        'group flex gap-6 rounded-[12px] border border-[#f3f4f6] bg-white p-6 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all hover:bg-transparent',
         className
       )}
     >
       {/* Image */}
-      <div className="relative h-48 w-72 shrink-0 overflow-hidden rounded-xl">
+      <div className="relative h-[192px] w-[288px] shrink-0 overflow-hidden rounded-[8px]">
         <Image
           src={imageSrc}
           alt={imageAlt}
@@ -56,7 +56,7 @@ export default function ArticleCard({
         <div className="flex items-center gap-2">
           <Badge
             variant="outline"
-            className="rounded-lg border border-[#e5e7eb] bg-white px-2 py-1 text-[12px] font-semibold tracking-[-0.5px] text-[#111827] shadow-none hover:bg-white"
+            className="rounded-[4px] border border-[#e5e7eb] bg-white px-2 py-1 text-[12px] font-semibold tracking-[-0.5px] text-[#111827] shadow-none hover:bg-white"
           >
             {category}
           </Badge>
@@ -76,13 +76,13 @@ export default function ArticleCard({
         </h3>
 
         {/* Description / Excerpt */}
-        <p className="line-clamp-2 text-[16px] font-normal leading-normal text-[#4b5563] tracking-[-0.5px]">
+        <p className="line-clamp-2 text-[16px] font-normal leading-[1.5] text-[#4b5563] tracking-[-0.5px]">
           {description}
         </p>
 
         {/* Meta */}
         <div className="flex items-center gap-2 text-[#6b7280] mt-1">
-          <Clock className="h-3.5 w-3.5" />
+          <Clock className="h-[14px] w-[14px]" />
           <span className="text-[14px] font-normal tracking-[-0.5px]">
             {timeAgo}
           </span>

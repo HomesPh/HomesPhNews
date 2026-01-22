@@ -1,26 +1,48 @@
 import api from "../axios";
-import { Article, ArticleFilters, ArticlesFeedResponse, ArticlesListResponse } from "./types";
+import { fake_landing_page_articles } from "./fake_data";
+import { Article, ArticleFilters, ArticlesListResponse, LandingPageArticlesResponse } from "./types";
+
+// Toggle this to true if you want to force mock data when API is down
+const FAKE = true;
 
 /**
  * Returns Trending, Most Read (Latest), and Latest Global articles from Redis. 
  * Optionally filter by country, category, or search term.
- * @param params.mode - Select either "feed" or "list".
- * @param params.search - Search term to filter by.
- * @param params.country - Country to filter by.
- * @param params.category - Category to filter by.
- * @param params.limit - Amount of articles to show per fetch.
- * @param params.offset - Pagination index
  */
-export async function getArticles(params: ArticleFilters) {
-  const response = await api.get<ArticlesFeedResponse | ArticlesListResponse>("/article", { params });
+export async function getLandingPageArticles(params?: ArticleFilters): Promise<LandingPageArticlesResponse> {
+  if (FAKE) {
+    return fake_landing_page_articles;
+  }
+  const response = await api.get<LandingPageArticlesResponse>("/article", { params });
+  return response.data;
+}
+
+/**
+ * Returns paginated list of articles stored in Redis in a mini format.
+ * @param params.limit - Number of articles to return.
+ * @param params.offset - Number of articles to skip.
+ */
+export async function getArticlesList(params?: {
+  limit: number;
+  offset: number;
+}) {
+  const response = await api.get<ArticlesListResponse>("/articles", { params });
   return response.data;
 }
 
 /**
  * Returns a single article by ID
- * @param id - ID of the article to return
  */
-export async function getArticleById(id: string): Promise<Article> {
-  const response = await api.get<Article>(`/article/${id}`);
+export async function getArticleById(id: string) {
+  if (FAKE) {
+    const allArticles = [
+      ...fake_landing_page_articles.latest_global,
+      ...fake_landing_page_articles.trending,
+      ...fake_landing_page_articles.most_read
+    ];
+    // Loose comparison for string/number id mismatch
+    return allArticles.find(a => String(a.id) === String(id)) || allArticles[0];
+  }
+  const response = await api.get<Article>(`/articles/${id}`);
   return response.data;
 }
