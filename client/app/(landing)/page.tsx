@@ -15,10 +15,15 @@ export default async function Dashboard({ searchParams }: Props) {
   const country = (Array.isArray(countryParam) ? countryParam[0] : countryParam) || "Global";
   const category = (Array.isArray(categoryParam) ? categoryParam[0] : categoryParam) || "All";
 
-  const { latest_global, trending, most_read } = await getLandingPageArticles({
-    country,
-    category,
+  const response = await getLandingPageArticles({
+    country: country !== "Global" ? country : undefined,
+    category: category !== "All" ? category : undefined,
   });
+
+  // Safely extract with fallbacks for empty responses
+  const latest_global = response?.latest_global || [];
+  const trending = response?.trending || [];
+  const most_read = response?.most_read || [];
 
   return (
     <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
