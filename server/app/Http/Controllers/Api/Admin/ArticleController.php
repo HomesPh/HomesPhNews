@@ -98,6 +98,7 @@ class ArticleController extends Controller
         $availableCountries = (clone $filterBaseQuery)->when($validated['category'] ?? null, fn($q, $category) => $q->where('category', $category))->distinct()->whereNotNull('country')->orderBy('country')->pluck('country');
 
         $articlesQuery = (clone $filterBaseQuery)
+            ->with(['publishedSites']) // Eager load to fix N+1
             ->when($validated['category'] ?? null, fn($q, $category) => $q->where('category', $category))
             ->when($validated['country'] ?? null, fn($q, $country) => $q->where('country', 'like', '%' . $country . '%'))
             ->select('id', 'title', 'summary', 'image', 'category', 'country', 'published_sites', 'status', 'created_at', 'views_count')
@@ -516,7 +517,8 @@ class ArticleController extends Controller
             'summary' => 'nullable|string|max:1000',
             'content' => 'nullable|string',
             'category' => 'nullable|string|max:50',
-            'country' => 'nullable|string|size:2',
+            'country' => 'nullable|string|max:100',
+            'image' => 'nullable|string|max:500',
             'published_sites' => 'nullable|array',
             'published_sites.*' => 'string',
             'status' => ['nullable', 'string', Rule::in(['published', 'pending review', 'rejected'])],
@@ -528,14 +530,19 @@ class ArticleController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
-        $data = $request->all();
+        $validated = $validator->validated();
+        
+        // Extract sites to sync separately
+        if (isset($validated['published_sites'])) {
+            $siteNames = $validated['published_sites'];
+            $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
+            $article->publishedSites()->sync($siteIds);
+            unset($validated['published_sites']);
+        }
 
-        // Multi-site selection is handled by the published_sites JSON column
-        // casting in the Article model automatically handles arrays.
+        $article->update($validated);
 
-        $article->update($data);
-
-        return response()->json($article);
+        return response()->json($article->fresh());
     }
 
     #[OA\Patch(
@@ -759,26 +766,30 @@ class ArticleController extends Controller
      */
     protected function getStatusCounts(): array
     {
-        // Database counts
-        $publishedCount = Article::where('status', 'published')->count();
-        $rejectedCount = Article::where('status', 'rejected')->count();
-        $pendingReviewCount = Article::where('status', 'pending review')->count();
-        $dbTotal = Article::count();
+        // Database counts - Single query group by is much faster
+        $counts = Article::selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
 
         // Redis count (all Redis articles are pending)
-        // Use the RedisArticleService's getStats method to get total
         $redisStats = $this->redisService->getStats();
         $pendingCount = $redisStats['total_articles'] ?? 0;
 
-        // All = published + rejected + pending (Redis)
-        // Now that "All Articles" tab shows merged list, the count should reflect the sum.
-        $allCount = $publishedCount + $rejectedCount + $pendingCount;
+        // Map status names to counts
+        $publishedCount = $counts['published'] ?? 0;
+        $rejectedCount = $counts['rejected'] ?? 0;
+        $pendingReviewCount = $counts['pending review'] ?? 0;
+
+        // All = published + rejected + pending (Redis) + pending review (DB)
+        $allCount = $publishedCount + $rejectedCount + $pendingCount + $pendingReviewCount;
 
         return [
             'all' => $allCount,
             'published' => $publishedCount,
             'pending' => $pendingCount,
             'rejected' => $rejectedCount,
+            'pending_review' => $pendingReviewCount,
         ];
     }
 }

@@ -94,19 +94,22 @@ class ArticleController extends Controller
 
         // 1. Dashboard Mode (feed) or default if no filters
         if ($mode === 'feed' || (!$mode && !$search && !$country && !$category)) {
-            $trending = Article::select('id', 'title', 'country', 'category', 'image', 'topics')
+            $trending = Article::with(['publishedSites']) // Fix N+1
+                ->select('id', 'title', 'country', 'category', 'image', 'topics')
                 ->where('status', 'published')
                 ->orderBy('views_count', 'desc')
                 ->limit(5)
                 ->get();
 
-            $mostRead = Article::select('id', 'title', 'country', 'category', 'image')
+            $mostRead = Article::with(['publishedSites']) // Fix N+1
+                ->select('id', 'title', 'country', 'category', 'image')
                 ->where('status', 'published')
                 ->orderBy('views_count', 'desc')
                 ->limit(10)
                 ->get();
 
-            $latestGlobal = Article::select('id', 'title', 'summary as content', 'country', 'category', 'created_at as timestamp', 'image')
+            $latestGlobal = Article::with(['publishedSites']) // Fix N+1
+                ->select('id', 'title', 'summary as content', 'country', 'category', 'created_at as timestamp', 'image')
                 ->where('status', 'published')
                 ->orderBy('created_at', 'desc')
                 ->limit(5)
@@ -150,7 +153,8 @@ class ArticleController extends Controller
 
         $total = $query->count();
 
-        $articles = $query->select('id', 'title', 'summary', 'country', 'category', 'image', 'created_at')
+        $articles = $query->with(['publishedSites']) // Fix N+1
+            ->select('id', 'title', 'summary', 'country', 'category', 'image', 'created_at')
             ->orderBy('created_at', 'desc')
             ->offset($offset)
             ->limit($limit)

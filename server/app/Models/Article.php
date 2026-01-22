@@ -69,19 +69,14 @@ class Article extends Model
      */
     public function getPublishedSitesAttribute(): array
     {
+        // Use the loaded relationship if available to avoid N+1 queries
+        // We use getRelation() directly to avoid infinite recursion with the accessor name
+        if ($this->relationLoaded('publishedSites')) {
+            return $this->getRelation('publishedSites')->pluck('site_name')->toArray();
+        }
+
+        // Fallback for single record access
         return $this->publishedSites()->pluck('site_name')->toArray();
     }
 
-    /**
-     * Ensure published_sites is always populated from relationship in JSON
-     */
-    public function toArray()
-    {
-        $attributes = parent::toArray();
-        
-        // Force override published_sites with relationship data
-        $attributes['published_sites'] = $this->getPublishedSitesAttribute();
-        
-        return $attributes;
-    }
 }
