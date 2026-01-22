@@ -1,6 +1,6 @@
 "use client";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
-import { LayoutDashboard, FileText, BarChart3, Calendar, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, FileText, BarChart3, Calendar, Settings, LogOut, Users } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -16,7 +16,32 @@ const SidebarItems = [
     title: "Articles",
     href: "/admin/articles",
     icon: FileText
-  }
+  },
+  // {
+  //   title: "Ads",
+  //   href: "/admin/ads",
+  //   icon: BarChart3
+  // },
+  // {
+  //   title: "Sites",
+  //   href: "/admin/sites",
+  //   icon: Users
+  // },
+  // {
+  //   title: "Calendar",
+  //   href: "/admin/calendar",
+  //   icon: Calendar
+  // },
+  // {
+  //   title: "Analytics",
+  //   href: "/admin/analytics",
+  //   icon: BarChart3
+  // },
+  // {
+  //   title: "Settings",
+  //   href: "/admin/settings",
+  //   icon: Settings
+  // }
 ]
 
 export default function AdminSidebar() {
