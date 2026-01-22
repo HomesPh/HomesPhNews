@@ -1,6 +1,6 @@
 import { Article, ArticleListItem } from "./model";
 
-export interface LandingPageArticlesResponse {
+export interface ArticlesFeedResponse {
   trending: Article[];
   most_read: Article[];
   latest_global: Article[];
