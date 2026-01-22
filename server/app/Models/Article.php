@@ -29,6 +29,11 @@ class Article extends Model
         'distributed_in',
         'custom_titles',   // Admin custom headlines
         'site_id',
+        'custom_titles',
+    ];
+
+    protected $casts = [
+        'custom_titles' => 'array',
     ];
 
     /**

@@ -12,7 +12,7 @@ use App\Http\Controllers\Api\SystemController;
 =======
 use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\SiteController;
->>>>>>> 3e458db86278defe7c34f434fba335bbe52f034d
+use App\Http\Controllers\Api\Admin\EventController;
 use Illuminate\Support\Facades\Redis;
 
 
@@ -91,21 +91,15 @@ Route::middleware(['auth:sanctum', 'is.admin'])
     ->name('admin.')
     ->group(function () {
 
-        // Example Route: GET /api/admin/stats
+        // Reports & Dashboards (Non-CRUD)
         Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
         Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
-        Route::get('/sites-analytics', [SiteController::class, 'index'])->name('sites-analytics');
-        Route::post('/sites', [SiteController::class, 'store'])->name('sites.store');
 
-        Route::get('articles', [AdminArticleController::class, 'index']);
-        // You can add more admin-only routes here in the future
-        // For example:
-        // Route::post('/news/{news}/publish', ...);
-        // Route::get('/users', ...);
-        Route::post('articles', [AdminArticleController::class, 'store']);
+        // CRUD Resources
+        Route::apiResource('events', EventController::class);
+        Route::apiResource('sites', SiteController::class)->only(['index', 'store']);
+        Route::apiResource('articles', AdminArticleController::class)->except(['destroy']);
 
-        // The {article} wildcard name must match the variable name in the show() method
-        Route::get('articles/{article}', [AdminArticleController::class, 'show']);
-        Route::patch('articles/{article}', [AdminArticleController::class, 'update']);
+        // Custom Article Actions
         Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
     });
