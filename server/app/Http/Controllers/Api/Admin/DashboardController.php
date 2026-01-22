@@ -5,13 +5,23 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\User;
-use Illuminate\Support\Facades\DB; // Make sure to import the DB facade
+use Illuminate\Support\Facades\DB;
+use OpenApi\Attributes as OA;
 
 class DashboardController extends Controller
 {
-    /**
-     * Get dashboard statistics for the admin panel.A
-     */
+    #[OA\Get(
+        path: "/api/admin/stats",
+        operationId: "getAdminDashboardStats",
+        summary: "Get general dashboard stats",
+        description: "Returns summary counts for articles, views, distribution, and recent activity.",
+        security: [['sanctum' => []]],
+        tags: ["Admin: Dashboard"],
+        responses: [
+            new OA\Response(response: 200, description: "Successful operation", content: new OA\JsonContent(type: "object")),
+            new OA\Response(response: 401, description: "Unauthenticated")
+        ]
+    )]
     public function getStats()
     {
         // 1. Get the total number of articles

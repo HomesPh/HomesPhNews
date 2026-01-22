@@ -67,7 +67,7 @@ export default function LandingFooter() {
         {/* Copyright */}
         <div className="border-t border-[#374151] pt-6 flex flex-col items-center">
           <p className="font-normal text-[12px] text-[#6b7280] text-center">
-            © 2025 Global News Network. All rights reserved.
+            © 2026 HomesTV. All rights reserved.
           </p>
         </div>
       </div>
