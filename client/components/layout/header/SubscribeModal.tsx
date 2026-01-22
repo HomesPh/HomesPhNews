@@ -45,7 +45,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                 {!isSubmitted ? (
                     <>
                         <h2 className="font-bold text-[28px] text-[#111827] tracking-[-0.5px] mb-[12px]">
-                            Subscribe to Global News
+                            Subscribe to HomesTV
                         </h2>
                         <p className="font-normal text-[16px] text-[#6b7280] tracking-[-0.5px] leading-[24px] mb-[32px]">
                             Get the latest news delivered to your inbox daily. Stay informed with breaking news, in-depth analysis, and exclusive stories.
@@ -93,7 +93,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                             Successfully Subscribed!
                         </h3>
                         <p className="font-normal text-[16px] text-[#6b7280] tracking-[-0.5px]">
-                            Thank you for subscribing to Global News Network.
+                            Thank you for subscribing to HomesTV.
                         </p>
                     </div>
                 )}
