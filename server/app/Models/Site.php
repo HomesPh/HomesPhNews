@@ -49,6 +49,11 @@ class Site extends Model
      */
     public function getArticlesCountAttribute(): int
     {
+        // Check if articles_count was already loaded via withCount()
+        if (isset($this->attributes['articles_count'])) {
+            return (int) $this->attributes['articles_count'];
+        }
+
         return $this->articles()->count();
     }
 }

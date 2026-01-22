@@ -218,11 +218,6 @@ export default function ArticleDetailsPage() {
         }
     };
 
-    // Handle custom titles from modal
-    const handleCustomTitlesUpdate = (titles: Record<string, string>) => {
-        setCustomTitles(titles);
-    };
-
     if (isLoading) {
         return (
             <div className="p-20 text-center text-[#6b7280]">
