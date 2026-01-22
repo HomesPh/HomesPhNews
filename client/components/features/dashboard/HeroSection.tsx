@@ -12,6 +12,7 @@ type HeroSectionProps = {
   imageUrl: string
   imageAlt?: string
   timeAgo: string
+  keywords?: string
   isFeatured?: boolean
   onReadMore?: () => void
   readMoreText?: string
@@ -26,10 +27,13 @@ export default function HeroSection({
   imageUrl,
   imageAlt = 'Hero image',
   timeAgo,
+  keywords,
   isFeatured = false,
   onReadMore,
   readMoreText = 'Read Full Story'
 }: HeroSectionProps) {
+  const keywordList = keywords ? keywords.split(',').map(s => s.trim()) : [];
+
   return (
     <div className="group relative mb-8 w-full h-[379px] overflow-hidden rounded-[16px] bg-black cursor-pointer">
       {/* Image */}
@@ -69,6 +73,16 @@ export default function HeroSection({
               {timeAgo}
             </span>
           </div>
+
+          {keywordList.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2 w-full">
+              {keywordList.slice(0, 3).map((kw, i) => (
+                <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70 border border-white/20">
+                  #{kw}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Title */}

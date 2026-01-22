@@ -69,7 +69,7 @@ export const stats: DashboardStat[] = [
 export const recentArticles: DashboardArticle[] = [
     {
         id: 1,
-        image: "/healthcare.jpg",
+        image: "https://placehold.co/800x450?text=Healthcare",
         category: 'Technology',
         location: 'USA',
         title: 'Self-Driving Cars Get Federal Approval: What This Means for the Future',
@@ -79,7 +79,7 @@ export const recentArticles: DashboardArticle[] = [
     },
     {
         id: 2,
-        image: "/healthcare.jpg",
+        image: "https://placehold.co/800x450?text=Healthcare",
         category: 'Technology',
         location: 'SINGAPORE',
         title: "Singapore Launches World's First AI-Powered Urban Management System",
@@ -89,7 +89,7 @@ export const recentArticles: DashboardArticle[] = [
     },
     {
         id: 3,
-        image: "/healthcare.jpg",
+        image: "https://placehold.co/800x450?text=Healthcare",
         category: 'Politics',
         location: 'EUROPE',
         title: 'EU Passes Landmark AI Ethics Legislation: Tech Giants Face New Restrictions',
@@ -99,7 +99,7 @@ export const recentArticles: DashboardArticle[] = [
     },
     {
         id: 4,
-        image: "/healthcare.jpg",
+        image: "https://placehold.co/800x450?text=Healthcare",
         category: 'Business',
         location: 'PHILIPPINES',
         title: "Philippines Emerges as Southeast Asia's AI Outsourcing Leader",
