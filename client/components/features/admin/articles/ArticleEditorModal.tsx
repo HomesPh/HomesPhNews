@@ -172,7 +172,7 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                                     Generate Image
                                 </button>
                             </div>
-                            <div className="border-2 border-dashed border-[#d1d5db] rounded-[8px] overflow-hidden">
+                            <div className="border-2 border-dashed border-[#d1d5db] rounded-[8px] overflow-hidden mb-4">
                                 {featuredImage ? (
                                     <div className="relative group">
                                         <img src={featuredImage} alt="Featured" className="w-full h-auto" />
@@ -195,6 +195,23 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                                         </p>
                                     </div>
                                 )}
+                            </div>
+
+                            {/* Image URL Field */}
+                            <div className="relative">
+                                <label className="block text-[14px] font-medium text-[#4b5563] mb-2 tracking-[-0.5px]">
+                                    Or enter image URL:
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={featuredImage || ''}
+                                        onChange={(e) => setFeaturedImage(e.target.value)}
+                                        placeholder="https://example.com/ad-image.jpg"
+                                        className="w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#3b82f6] focus:border-transparent tracking-[-0.5px] pr-10 transition-all font-light"
+                                    />
+                                    <ImageIcon className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9ca3af]" />
+                                </div>
                             </div>
                         </div>
 
