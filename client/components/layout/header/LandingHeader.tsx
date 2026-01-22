@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Globe, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import SubscribeModal from "./SubscribeModal";
@@ -44,20 +44,18 @@ export default function LandingHeader() {
 
       <header className="bg-white w-full border-b border-[#e5e7eb]">
         <div className="max-w-[1440px] mx-auto flex items-center justify-between px-4 md:px-[110px] py-[16px]">
-          {/* Logo */}
           <Link
             href="/"
             className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity"
           >
-            <div className="bg-[#c10007] rounded-[8px] size-[40px] flex items-center justify-center shrink-0">
-              <Globe className="w-5 h-5 text-white" />
-            </div>
-            <div>
+            <img
+              src="/images/HomesTV.png"
+              alt="HomesTV"
+              className="h-10 w-auto object-contain"
+            />
+            <div className="flex flex-col">
               <p className="font-bold text-[20px] text-[#111827] tracking-[-0.5px] leading-tight">
-                Global News
-              </p>
-              <p className="font-normal text-[12px] text-[#6b7280] tracking-[-0.5px]">
-                Network
+                HomesTV
               </p>
             </div>
           </Link>

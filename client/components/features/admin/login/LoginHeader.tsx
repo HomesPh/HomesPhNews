@@ -1,4 +1,3 @@
-import { Globe } from "lucide-react";
 
 interface LoginHeaderProps {
     logo: {
@@ -13,12 +12,16 @@ export default function LoginHeader({ logo, title, subtitle }: LoginHeaderProps)
     return (
         <div className="text-center space-y-2 pb-6">
             <div className="flex items-center justify-center gap-3 mb-2">
-                <div className="bg-[#bf0000] p-2 rounded-lg text-white">
-                    <Globe className="w-6 h-6" />
-                </div>
+                <img
+                    src="/images/HomesTV.png"
+                    alt="HomesTV"
+                    className="h-12 w-auto object-contain rounded-lg"
+                />
                 <div className="text-left leading-tight">
                     <h1 className="text-xl font-bold text-slate-900">{logo.title}</h1>
-                    <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">{logo.subtitle}</p>
+                    {logo.subtitle && (
+                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">{logo.subtitle}</p>
+                    )}
                 </div>
             </div>
 
