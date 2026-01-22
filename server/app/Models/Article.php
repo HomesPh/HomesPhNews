@@ -24,6 +24,11 @@ class Article extends Model
         // 'user_id', // REMOVED
         'country',
         'site_id',
+        'custom_titles',
+    ];
+
+    protected $casts = [
+        'custom_titles' => 'array',
     ];
 
     public function site()
