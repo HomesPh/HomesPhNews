@@ -5,7 +5,7 @@ import ArticleContent from "@/components/features/article/ArticleContent";
 import ArticleShareBox from "@/components/features/article/ArticleShareBox";
 import RelatedArticles from "@/components/features/article/RelatedArticles";
 import AdSpace from "@/components/shared/AdSpace";
-import { getArticleById, getLandingPageArticles } from "@/lib/api";
+import { ArticlesListResponse, getArticleById, getArticlesList } from "@/lib/api";
 import { Categories, Countries } from "@/app/data";
 import { notFound } from "next/navigation";
 
@@ -35,16 +35,11 @@ export default async function Article({ searchParams }: Props) {
 
   // Fetch related articles (same category)
   // We use getLandingPageArticles and filter by category
-  const relatedResponse = await getLandingPageArticles({ category: article.category });
-  const allRelated = [
-    ...relatedResponse.trending,
-    ...relatedResponse.most_read,
-    ...relatedResponse.latest_global
-  ];
+  const { data } = await getArticlesList({ mode: "list", category: article.category }) as ArticlesListResponse;
 
   // Unique articles only, excluding current one
   const seenIds = new Set();
-  const relatedArticles = allRelated
+  const relatedArticles = data
     .filter(a => {
       if (a.id === article?.id || seenIds.has(a.id)) return false;
       seenIds.add(a.id);
@@ -57,7 +52,7 @@ export default async function Article({ searchParams }: Props) {
       category: a.category,
       location: a.country,
       imageSrc: a.image_url,
-      timeAgo: new Date(a.timestamp).toLocaleDateString(),
+      timeAgo: "TBA",
       views: "0" // API doesn't provide view count yet
     }));
 

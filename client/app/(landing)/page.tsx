@@ -1,7 +1,6 @@
 import HeroSection from "@/components/features/dashboard/HeroSection";
 import ArticleCard from "@/components/features/dashboard/ArticleCard";
-import { getLandingPageArticles } from "@/lib/api";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArticlesFeedResponse, getArticlesList } from "@/lib/api";
 import TrendingTopicsCard from "@/components/features/dashboard/TrendingTopicsCard";
 import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
 import AdSpace from "@/components/shared/AdSpace";
@@ -16,10 +15,11 @@ export default async function Dashboard({ searchParams }: Props) {
   const country = (Array.isArray(countryParam) ? countryParam[0] : countryParam) || "Global";
   const category = (Array.isArray(categoryParam) ? categoryParam[0] : categoryParam) || "All";
 
-  const response = await getLandingPageArticles({
+  const response = await getArticlesList({
+    mode: "feed",
     country: country !== "Global" ? country : undefined,
     category: category !== "All" ? category : undefined,
-  });
+  }) as ArticlesFeedResponse;
 
   // Safely extract with fallbacks for empty responses
   const latest_global = response?.latest_global || [];
