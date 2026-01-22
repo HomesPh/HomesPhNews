@@ -21,7 +21,16 @@ interface ArticleCardProps {
 export default function ArticleCard(props: ArticleCardProps) {
     return (
         <BaseArticleCard
-            article={props}
+            article={{
+                id: String(props.id),
+                image: props.image,
+                category: props.category,
+                location: props.location,
+                title: props.title,
+                date: props.date,
+                views: props.views,
+                status: props.status
+            }}
             variant="compact"
         />
     );
