@@ -27,6 +27,7 @@ class Article extends Model
         'source',
         'original_url',
         'keywords',
+        'topics',          // JSON array of topics
         'published_sites', // JSON array of site names
     ];
 
@@ -53,5 +54,34 @@ class Article extends Model
     public function getImageUrlAttribute(): ?string
     {
         return $this->attributes['image'] ?? null;
+    }
+
+    /**
+     * Relationship: Sites where this article is published
+     */
+    public function publishedSites()
+    {
+        return $this->belongsToMany(Site::class, 'article_site', 'article_id', 'site_id');
+    }
+
+    /**
+     * Accessor: Overrides the JSON column to return site names from relationship
+     */
+    public function getPublishedSitesAttribute(): array
+    {
+        return $this->publishedSites()->pluck('site_name')->toArray();
+    }
+
+    /**
+     * Ensure published_sites is always populated from relationship in JSON
+     */
+    public function toArray()
+    {
+        $attributes = parent::toArray();
+        
+        // Force override published_sites with relationship data
+        $attributes['published_sites'] = $this->getPublishedSitesAttribute();
+        
+        return $attributes;
     }
 }

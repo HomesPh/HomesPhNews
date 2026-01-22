@@ -6,47 +6,33 @@ import { X } from 'lucide-react';
 interface CustomizeTitlesModalProps {
     isOpen: boolean;
     onClose: () => void;
-    publishTo: {
-        filipinoHomes: boolean;
-        rentPh: boolean;
-        homesPh: boolean;
-        bayanihan: boolean;
-        mainPortal: boolean;
-    };
+    publishTo: string[];
     originalTitle: string;
+    onSave?: (titles: Record<string, string>) => void;
 }
 
 export default function CustomizeTitlesModal({
     isOpen,
     onClose,
     publishTo,
-    originalTitle
+    originalTitle,
+    onSave
 }: CustomizeTitlesModalProps) {
-    const [titles, setTitles] = useState({
-        filipinoHomes: originalTitle,
-        rentPh: originalTitle,
-        homesPh: originalTitle,
-        bayanihan: originalTitle,
-        mainPortal: originalTitle,
-    });
+    // Initialize titles with original title for all selected sites
+    // We use a state initialization function to avoid re-calculating on every render,
+    // but we also need to sync when publishTo changes.
+    // For simplicity, we'll start empty/default and let the user override.
+    const [titles, setTitles] = useState<Record<string, string>>({});
 
     if (!isOpen) return null;
 
     const handleSave = () => {
-        alert('Titles saved!');
+        if (onSave) onSave(titles);
         onClose();
     };
 
-    const updateTitle = (site: keyof typeof titles, value: string) => {
+    const updateTitle = (site: string, value: string) => {
         setTitles({ ...titles, [site]: value });
-    };
-
-    const siteLabels = {
-        filipinoHomes: 'FilipinoHomes',
-        rentPh: 'Rent.ph',
-        homesPh: 'HomesPh',
-        bayanihan: 'Bayanihan',
-        mainPortal: 'Main News Portal',
     };
 
     return (
@@ -88,24 +74,23 @@ export default function CustomizeTitlesModal({
 
                     {/* Site-specific Titles */}
                     <div className="flex flex-col gap-6 pb-4">
-                        {(Object.keys(publishTo) as Array<keyof typeof publishTo>).map((site) => {
-                            if (!publishTo[site]) return null;
-
-                            return (
-                                <div key={site}>
-                                    <label className="block font-bold text-[16px] leading-[24px] text-[#111827] tracking-[-0.5px] mb-2">
-                                        {siteLabels[site]}
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={titles[site]}
-                                        onChange={(e) => updateTitle(site, e.target.value)}
-                                        placeholder={originalTitle}
-                                        className="w-full h-[48px] px-4 bg-white border border-[#d1d5db] rounded-[6px] font-normal text-[15px] leading-[23px] text-[#111827] placeholder:text-[#adaebc] tracking-[-0.5px] focus:outline-none focus:ring-2 focus:ring-[#3b82f6] focus:border-transparent transition-all"
-                                    />
-                                </div>
-                            );
-                        })}
+                        {publishTo.map((site) => (
+                            <div key={site}>
+                                <label className="block font-bold text-[16px] leading-[24px] text-[#111827] tracking-[-0.5px] mb-2">
+                                    {site}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={titles[site] || ''}
+                                    onChange={(e) => updateTitle(site, e.target.value)}
+                                    placeholder={originalTitle}
+                                    className="w-full h-[48px] px-4 bg-white border border-[#d1d5db] rounded-[6px] font-normal text-[15px] leading-[23px] text-[#111827] placeholder:text-[#adaebc] tracking-[-0.5px] focus:outline-none focus:ring-2 focus:ring-[#3b82f6] focus:border-transparent transition-all"
+                                />
+                            </div>
+                        ))}
+                        {publishTo.length === 0 && (
+                            <p className="text-gray-500 italic text-center">No sites selected.</p>
+                        )}
                     </div>
                 </div>
 

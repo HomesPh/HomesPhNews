@@ -29,6 +29,7 @@ export interface Article {
     date?: string;                 // Alias for created_at
     views?: string;                // Formatted views_count
     sites?: string[];              // Alias for distributed_in
+    published_sites?: string[];    // Array of site names (new pivot source)
     tags?: string[];               // Alias for topics
     author?: string;
     slug?: string;

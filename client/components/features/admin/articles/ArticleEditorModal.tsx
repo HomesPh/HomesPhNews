@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { X, Upload, Bold, Italic, Underline, List, ListOrdered, AlignLeft, AlignCenter, Image as ImageIcon, Link as LinkIcon, RotateCcw, RotateCw, Maximize, Info } from 'lucide-react';
 import { cn } from "@/lib/utils";
-import { updatePendingArticle } from "@/lib/api/admin/articles";
+import { getSiteNames } from "@/lib/api/admin/sites";
+import { updatePendingArticle, createArticle } from "@/lib/api/admin/articles";
 
 interface ArticleEditorModalProps {
     mode: 'create' | 'edit';
@@ -23,49 +24,33 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
     const [author, setAuthor] = useState(initialData?.author || 'Maria Santos');
     const [publishDate, setPublishDate] = useState(initialData?.date || '2026-01-15');
     const [publishTime, setPublishTime] = useState('14:30');
-    const [publishTo, setPublishTo] = useState(initialData?.sites?.reduce((acc: any, site: string) => {
-        if (site === 'Filipino Homes') acc.filipinoHomes = true;
-        if (site === 'Rent.ph') acc.rentPh = true;
-        if (site === 'HomesPh') acc.homesPh = true;
-        if (site === 'Bayanihan') acc.bayanihan = true;
-        if (site === 'Main Portal') acc.mainNewsPortal = true;
-        return acc;
-    }, {
-        filipinoHomes: true,
-        rentPh: true,
-        homesPh: false,
-        bayanihan: false,
-        mainNewsPortal: true,
-    }) || {
-        filipinoHomes: true,
-        rentPh: true,
-        homesPh: false,
-        bayanihan: false,
-        mainNewsPortal: true,
-    });
+
+    // Dynamic Sites
+    const [availableSites, setAvailableSites] = useState<string[]>([]);
+
+    // Support both 'sites' (Redis/Pending) and 'published_sites' (MySQL/DB)
+    const [publishTo, setPublishTo] = useState<string[]>(initialData?.sites || initialData?.published_sites || []);
 
     const [featuredImage, setFeaturedImage] = useState<string | null>(initialData?.image || null);
+
+    useEffect(() => {
+        // Fetch available sites on mount
+        getSiteNames().then(setAvailableSites).catch(console.error);
+    }, []);
 
     useEffect(() => {
         if (isOpen && initialData) {
             setTitle(initialData.title || '');
             setSlug(initialData.slug || '');
             setSummary(initialData.description || '');
+            setContent(initialData.content || '');
             setCategory(initialData.category || '');
             setCountry(initialData.location || 'Philippines');
             setTags(initialData.tags || []);
             setAuthor(initialData.author || 'Maria Santos');
             setPublishDate(initialData.date || '2026-01-15');
             setFeaturedImage(initialData.image || null);
-
-            const sitesObj = {
-                filipinoHomes: initialData.sites?.includes('Filipino Homes') || false,
-                rentPh: initialData.sites?.includes('Rent.ph') || false,
-                homesPh: initialData.sites?.includes('HomesPh') || false,
-                bayanihan: initialData.sites?.includes('Bayanihan') || false,
-                mainNewsPortal: initialData.sites?.includes('Main Portal') || false,
-            };
-            setPublishTo(sitesObj);
+            setPublishTo(initialData.sites || initialData.published_sites || []);
         }
     }, [isOpen, initialData]);
 
@@ -85,8 +70,12 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
         }
     };
 
-    const toggleSite = (site: keyof typeof publishTo) => {
-        setPublishTo({ ...publishTo, [site]: !publishTo[site] });
+    const toggleSite = (site: string) => {
+        if (publishTo.includes(site)) {
+            setPublishTo(publishTo.filter(s => s !== site));
+        } else {
+            setPublishTo([...publishTo, site]);
+        }
     };
 
     const removeTag = (tagToRemove: string) => {
@@ -94,9 +83,27 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
     };
 
     const handleSave = async () => {
-        // For now, only wire real saving for pending (Redis) articles.
-        if (mode === 'edit' && initialData?.status === 'pending') {
-            try {
+        try {
+            if (mode === 'create') {
+                const payload = {
+                    title,
+                    slug: slug || generateSlug(title),
+                    summary,
+                    content,
+                    category,
+                    country,
+                    image: featuredImage, // backend expects 'image' column map? Or 'image_url'? Check store.
+                    // Store method doesn't validation 'image' but Article::create fillable?
+                    // Migration has 'image'.
+                    published_sites: publishTo,
+                    status: 'published', // Assume published immediately
+                    topics: tags
+                };
+                await createArticle(payload);
+                alert('Article created successfully!');
+                onClose();
+                window.location.reload();
+            } else if (mode === 'edit' && initialData?.status === 'pending') {
                 await updatePendingArticle(initialData.id, {
                     title,
                     summary,
@@ -105,24 +112,19 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                     country,
                     image_url: featuredImage || undefined,
                     topics: tags,
-                    // keywords could be derived later; keep optional
                 });
-                // Simple UX: reload the page so details + list reflect updated data
                 onClose();
-                if (typeof window !== "undefined") {
-                    window.location.reload();
-                }
-                return;
-            } catch (e) {
-                console.error("Failed to update pending article", e);
-                alert("Failed to save changes. Please try again.");
-                return;
+                window.location.reload();
+            } else {
+                // TODO: Wire up updateArticle for DB articles
+                alert('Editing published articles via this modal is not yet implemented (DB Update).');
+                onClose();
             }
+        } catch (error: any) {
+            console.error("Failed to save article", error);
+            const msg = error.response?.data?.message || "Failed to save changes. Please try again.";
+            alert(`Error: ${msg}`);
         }
-
-        // Fallback: existing dummy behavior for non-pending / create flow
-        alert(mode === 'create' ? 'Article published!' : 'Changes saved');
-        onClose();
     };
 
     return (
@@ -412,21 +414,15 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                                 Publish To:
                             </label>
                             <div className="space-y-3">
-                                {[
-                                    { id: 'filipinoHomes', label: 'FilipinoHomes' },
-                                    { id: 'rentPh', label: 'Rent.ph' },
-                                    { id: 'homesPh', label: 'HomesPh' },
-                                    { id: 'bayanihan', label: 'Bayanihan' },
-                                    { id: 'mainNewsPortal', label: 'Main News Portal' },
-                                ].map((site) => (
-                                    <label key={site.id} className="flex items-center gap-3 cursor-pointer group">
+                                {availableSites.map((site) => (
+                                    <label key={site} className="flex items-center gap-3 cursor-pointer group">
                                         <input
                                             type="checkbox"
-                                            checked={publishTo[site.id as keyof typeof publishTo]}
-                                            onChange={() => toggleSite(site.id as keyof typeof publishTo)}
+                                            checked={publishTo.includes(site)}
+                                            onChange={() => toggleSite(site)}
                                             className="w-5 h-5 rounded border-[#d1d5db] text-[#3b82f6] focus:ring-2 focus:ring-[#3b82f6] focus:ring-offset-0 cursor-pointer"
                                         />
-                                        <span className="text-[14px] text-[#111827] group-hover:text-[#3b82f6] transition-colors tracking-[-0.5px]">{site.label}</span>
+                                        <span className="text-[14px] text-[#111827] group-hover:text-[#3b82f6] transition-colors tracking-[-0.5px]">{site}</span>
                                     </label>
                                 ))}
                             </div>
