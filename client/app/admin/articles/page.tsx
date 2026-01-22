@@ -146,8 +146,10 @@ export default function ArticlesPage() {
                         </div>
                     )}
                 </div>
+            </div>
 
-                {/* Pagination */}
+            {/* Pagination Component */}
+            <div className="mt-8">
                 <Pagination
                     currentPage={pagination.currentPage}
                     totalPages={pagination.totalPages}
