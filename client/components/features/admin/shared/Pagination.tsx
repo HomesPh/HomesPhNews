@@ -121,11 +121,29 @@ export default function Pagination({ currentPage, totalPages, onPageChange, maxV
         </div>
     );*/
 
+    const handlePrevious = (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (currentPage > 1) {
+            onPageChange(currentPage - 1);
+        }
+    };
+
+    const handleNext = (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (currentPage < totalPages) {
+            onPageChange(currentPage + 1);
+        }
+    };
+
     return (
         <PaginationBase>
             <PaginationContent>
                 <PaginationItem>
-                    <PaginationPrevious />
+                    <PaginationPrevious 
+                        onClick={handlePrevious}
+                        href="#"
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
                 </PaginationItem>
                 {getPageNumbers().map((page, index) => {
                     if (page === '...') {
@@ -140,7 +158,12 @@ export default function Pagination({ currentPage, totalPages, onPageChange, maxV
                         <PaginationItem key={page}>
                             <PaginationLink
                                 isActive={isActive}
-                                onClick={() => onPageChange(page as number)}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    onPageChange(page as number);
+                                }}
+                                href="#"
+                                className="cursor-pointer"
                             >
                                 {page}
                             </PaginationLink>
@@ -148,7 +171,11 @@ export default function Pagination({ currentPage, totalPages, onPageChange, maxV
                     );
                 })}
                 <PaginationItem>
-                    <PaginationNext />
+                    <PaginationNext 
+                        onClick={handleNext}
+                        href="#"
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
                 </PaginationItem>
             </PaginationContent>
         </PaginationBase>

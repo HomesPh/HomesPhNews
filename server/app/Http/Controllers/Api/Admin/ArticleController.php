@@ -66,7 +66,7 @@ class ArticleController extends Controller
 
         $validated = $validator->validated();
         $status = $validated['status'] ?? null;
-        $perPage = $validated['per_page'] ?? 15;
+        $perPage = $validated['per_page'] ?? 10;
         $page = $request->input('page', 1);
 
         // ═══════════════════════════════════════════════════════════════
@@ -106,7 +106,14 @@ class ArticleController extends Controller
         $articles = $articlesQuery->paginate($perPage)->withQueryString();
         $articles->appends(['available_filters' => ['categories' => $availableCategories, 'countries' => $availableCountries]]);
 
-        return response()->json($articles);
+        // Calculate status counts
+        $statusCounts = $this->getStatusCounts();
+
+        // Add status counts to response
+        $response = $articles->toArray();
+        $response['status_counts'] = $statusCounts;
+
+        return response()->json($response);
     }
 
     /**
@@ -180,33 +187,15 @@ class ArticleController extends Controller
             ];
         }, $paginatedArticles);
 
-        // Format for admin display (add status field)
-        $formattedArticles = array_map(function ($article) {
-            return [
-                'id' => $article['id'] ?? '',
-                'title' => $article['title'] ?? '',
-                'summary' => substr($article['content'] ?? '', 0, 200) . '...',
-                'category' => $article['category'] ?? '',
-                'country' => $article['country'] ?? '',
-                'topics' => $article['topics'] ?? [],
-                'keywords' => $article['keywords'] ?? '',
-                'image_url' => $article['image_url'] ?? '',
-                'original_url' => $article['original_url'] ?? '',
-                'source' => $article['source'] ?? '',
-                'status' => 'pending', // All Redis articles are pending
-                'created_at' => isset($article['timestamp']) 
-                    ? date('Y-m-d H:i:s', (int)$article['timestamp']) 
-                    : null,
-                'views_count' => 0,
-            ];
-        }, $paginatedArticles);
-
         // Optimization: Avoid Redis::keys() as it is slow. 
         // For now, return empty or common filters.
         $availableCountries = ['Global', 'Philippines', 'USA', 'Australia', 'Canada'];
         $availableCategories = ['Real Estate', 'Business', 'Technology', 'Economy', 'Tourism'];
 
         \Illuminate\Support\Facades\Log::info("Admin API: Fetched " . count($formattedArticles) . " pending articles from Redis.");
+
+        // Calculate status counts
+        $statusCounts = $this->getStatusCounts();
 
         return response()->json([
             'data' => $formattedArticles,
@@ -220,6 +209,7 @@ class ArticleController extends Controller
                 'categories' => $availableCategories,
                 'countries' => $availableCountries,
             ],
+            'status_counts' => $statusCounts,
         ]);
     }
 
@@ -451,5 +441,37 @@ class ArticleController extends Controller
         $article->update($validated);
 
         return response()->json($article);
+    }
+
+    /**
+     * Get counts for all article statuses
+     * - all: total from database + pending from Redis
+     * - published: from database
+     * - pending: from Redis (all articles in Redis are pending)
+     * - rejected: from database
+     */
+    protected function getStatusCounts(): array
+    {
+        // Database counts
+        $publishedCount = Article::where('status', 'published')->count();
+        $rejectedCount = Article::where('status', 'rejected')->count();
+        $pendingReviewCount = Article::where('status', 'pending review')->count();
+        $dbTotal = Article::count();
+
+        // Redis count (all Redis articles are pending)
+        // Use the RedisArticleService's getStats method to get total
+        $redisStats = $this->redisService->getStats();
+        $pendingCount = $redisStats['total_articles'] ?? 0;
+
+        // All = published + rejected (NOT including pending)
+        // Pending articles are separate and shown in "Pending Review" tab
+        $allCount = $publishedCount + $rejectedCount;
+
+        return [
+            'all' => $allCount,
+            'published' => $publishedCount,
+            'pending' => $pendingCount,
+            'rejected' => $rejectedCount,
+        ];
     }
 }

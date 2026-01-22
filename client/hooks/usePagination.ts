@@ -1,16 +1,17 @@
 import { useState } from "react";
 
 interface UsePaginationProps {
-  totalPages: number;
+  totalPages?: number;
 }
 
 /**
  * Hook for handling pagination state and logic
- * @param totalPages - Maximum number of pages
+ * @param totalPages - Initial maximum number of pages (can be updated later)
  * @returns Data for Pagination component
  */
-export default function usePagination({ totalPages }: UsePaginationProps) {
+export default function usePagination({ totalPages: initialTotalPages = 1 }: UsePaginationProps = {}) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
 
   /**
    * Handles page change
@@ -21,13 +22,12 @@ export default function usePagination({ totalPages }: UsePaginationProps) {
   };
 
   return {
-    // Constants
-    totalPages,
-
     // State
+    totalPages,
     currentPage,
 
     // Actions
     handlePageChange,
+    setTotalPages,
   };
 }
