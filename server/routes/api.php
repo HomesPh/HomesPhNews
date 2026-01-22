@@ -54,11 +54,6 @@ Route::get('/articles/{id}', [UserArticleController::class, 'show'])
 
 
 
-// Latest articles sorted by time
-Route::get('/latest', [UserArticleController::class, 'latest']);
-
-// Search articles
-Route::get('/search', [UserArticleController::class, 'search']);
 
 // Metadata: List all countries
 Route::get('/countries', [UserArticleController::class, 'countries']);

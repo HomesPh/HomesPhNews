@@ -1158,14 +1158,26 @@
                 "tags": [
                     "User: Articles"
                 ],
-                "summary": "Display a dynamic feed of articles from Redis",
-                "description": "Returns Trending, Most Read (Latest), and Latest Global articles from Redis. Optionally filter by country, category, or search term.",
+                "summary": "Display a dynamic feed or list of articles",
+                "description": "Returns articles in two modes: 'feed' (structured dashboard with Trending, Most Read, Latest Global) or 'list' (filtered, paginated list with metadata). Performance is optimized via Database lookups.",
                 "operationId": "getUserArticleFeed",
                 "parameters": [
                     {
+                        "name": "mode",
+                        "in": "query",
+                        "description": "Operational mode. Defaults to 'feed' if no filters are present, or 'list' if search is provided.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "feed",
+                                "list"
+                            ]
+                        }
+                    },
+                    {
                         "name": "search",
                         "in": "query",
-                        "description": "Search term for title/content",
+                        "description": "Keyword search in titles and summaries. Forces mode=list if mode is not specified.",
                         "schema": {
                             "type": "string"
                         }
@@ -1173,7 +1185,7 @@
                     {
                         "name": "country",
                         "in": "query",
-                        "description": "Filter by country name (e.g., 'Philippines', 'United States')",
+                        "description": "Filter results by country name (e.g., 'PH', 'Canada')",
                         "schema": {
                             "type": "string"
                         }
@@ -1181,7 +1193,7 @@
                     {
                         "name": "category",
                         "in": "query",
-                        "description": "Filter by category (e.g., 'Real Estate', 'Business')",
+                        "description": "Filter results by category name (e.g., 'Real Estate', 'Business')",
                         "schema": {
                             "type": "string"
                         }
