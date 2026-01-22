@@ -190,6 +190,54 @@ class RedisArticleService
     }
 
     /**
+     * Update an existing pending article stored in Redis.
+     * This is used by the admin panel to edit AI-generated (pending) articles
+     * before they are published to the main database.
+     */
+    public function updateArticle(string $articleId, array $data): ?array
+    {
+        $existing = $this->getArticle($articleId);
+        if (!$existing) {
+            return null;
+        }
+
+        $oldCountry = $existing['country'] ?? null;
+        $oldCategory = $existing['category'] ?? null;
+
+        // Merge incoming data on top of existing article
+        $updated = array_merge($existing, $data);
+
+        // Persist updated article
+        $key = "{$this->prefix}article:{$articleId}";
+        Redis::set($key, json_encode($updated));
+
+        // Re-index country if it changed
+        $newCountry = $updated['country'] ?? $oldCountry;
+        if ($oldCountry && $newCountry && $oldCountry !== $newCountry) {
+            $oldCountryKey = "{$this->prefix}country:".$this->slugify($oldCountry);
+            $newCountryKey = "{$this->prefix}country:".$this->slugify($newCountry);
+            Redis::srem($oldCountryKey, $articleId);
+            Redis::sadd($newCountryKey, $articleId);
+        }
+
+        // Re-index category if it changed
+        $newCategory = $updated['category'] ?? $oldCategory;
+        if ($oldCategory && $newCategory && $oldCategory !== $newCategory) {
+            $oldCategoryKey = "{$this->prefix}category:".$this->slugify($oldCategory);
+            $newCategoryKey = "{$this->prefix}category:".$this->slugify($newCategory);
+            Redis::srem($oldCategoryKey, $articleId);
+            Redis::sadd($newCategoryKey, $articleId);
+        }
+
+        // Keep timestamp ordering as-is; if timestamp is changed, zset will be updated
+        if (isset($updated['timestamp'])) {
+            Redis::zadd("{$this->prefix}articles_by_time", [$articleId => $updated['timestamp']]);
+        }
+
+        return $updated;
+    }
+
+    /**
      * Fetch multiple articles by their IDs
      */
     protected function fetchArticlesByIds(array $articleIds): array

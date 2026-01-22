@@ -87,4 +87,6 @@ Route::middleware(['auth:sanctum', 'is.admin'])
 
         // Custom Article Actions
         Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
+        // Edit pending (Redis) article without touching the main database
+        Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
     });

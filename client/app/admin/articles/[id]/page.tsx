@@ -73,99 +73,149 @@ export default function ArticleDetailsPage() {
     };
 
     return (
-        <div className="p-8 bg-[#f9fafb] min-h-screen">
-            {/* Breadcrumb */}
-            <div className="flex items-center gap-2 mb-6">
-                <button
-                    onClick={() => router.push('/admin/articles')}
-                    className="text-[14px] text-[#6b7280] hover:text-[#C10007] transition-colors tracking-[-0.5px] flex items-center gap-1 group"
-                >
-                    <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                    Articles
-                </button>
-                <span className="text-[14px] text-[#6b7280]">/</span>
-                <span className="text-[14px] text-[#111827] tracking-[-0.5px]">Details</span>
+        <div className="min-h-screen bg-white">
+            {/* Top Navigation Bar */}
+            <div className="bg-white border-b border-[#e5e7eb] sticky top-0 z-50">
+                <div className="max-w-[1400px] mx-auto px-6 py-4">
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => router.push('/admin/articles')}
+                            className="text-[14px] text-[#666] hover:text-[#C10007] transition-colors flex items-center gap-1.5 group font-medium"
+                        >
+                            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                            Back to Articles
+                        </button>
+                        <span className="text-[#ddd]">|</span>
+                        <span className="text-[14px] text-[#666]">Admin Panel</span>
+                    </div>
+                </div>
             </div>
 
-            <div className="flex gap-6">
-                {/* Main Content */}
-                <div className="flex-1">
-                    <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-8 shadow-sm">
-                        {/* Category and Location */}
-                        <div className="flex items-center gap-2 mb-4">
-                            <span className="px-3 py-1 bg-white border border-[#e5e7eb] rounded-[4px] text-[12px] font-semibold text-[#111827] tracking-[-0.5px] uppercase">
+            {/* Main Content Container */}
+            <div className="max-w-[1400px] mx-auto px-6 py-8">
+
+            <div className="flex gap-8 max-w-[1400px] mx-auto">
+                {/* Main Content - CNN Style Article */}
+                <div className="flex-1 max-w-[800px]">
+                    <article className="bg-white">
+                        {/* Category Badge */}
+                        <div className="mb-4">
+                            <span className="inline-block px-4 py-1.5 bg-[#C10007] text-white text-[11px] font-bold uppercase tracking-wider">
                                 {article.category}
-                            </span>
-                            <span className="text-[14px] text-[#111827]">|</span>
-                            <span className="text-[12px] font-semibold text-[#111827] tracking-[-0.5px] uppercase">
-                                {article.location}
                             </span>
                         </div>
 
-                        {/* Title */}
-                        <h1 className="text-[32px] font-bold text-[#111827] leading-[44px] tracking-[-0.5px] mb-3">
+                        {/* Main Headline - CNN Style */}
+                        <h1 className="text-[42px] md:text-[48px] font-bold text-[#0c0c0c] leading-[1.1] mb-6 tracking-tight">
                             {article.title}
                         </h1>
 
-                        {/* Description */}
-                        <p className="text-[16px] text-[#6b7280] leading-[24px] tracking-[-0.5px] mb-6">
-                            {article.description}
-                        </p>
-
-                        {/* Metadata */}
-                        <div className="flex items-center gap-4 mb-6 text-[14px] text-[#6b7280] tracking-[-0.5px]">
-                            <span>By {article.author || 'Author'}</span>
-                            <div className="flex items-center gap-1.5">
-                                <Calendar className="w-4 h-4" />
-                                <span>{article.date}</span>
+                        {/* Byline - Professional News Style */}
+                        <div className="mb-6 pb-6 border-b border-[#e5e7eb]">
+                            <div className="flex items-center gap-4 text-[14px] text-[#666]">
+                                <span className="font-semibold text-[#0c0c0c]">
+                                    By {article.author || 'HomesPh News'}
+                                </span>
+                                <span className="text-[#999]">•</span>
+                                <div className="flex items-center gap-1.5">
+                                    <Calendar className="w-4 h-4" />
+                                    <time>{article.date || new Date().toLocaleDateString()}</time>
+                                </div>
+                                <span className="text-[#999]">•</span>
+                                <div className="flex items-center gap-1.5">
+                                    <Eye className="w-4 h-4" />
+                                    <span>{article.views || '0'} views</span>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-1.5">
-                                <Eye className="w-4 h-4" />
-                                <span>{article.views}</span>
+                        </div>
+
+                        {/* Featured Image - Large, Professional */}
+                        <figure className="mb-8">
+                            <div className="w-full aspect-[16/9] overflow-hidden bg-gray-100 mb-3">
+                                <img
+                                    src={article.image || article.image_url}
+                                    alt={article.title}
+                                    className="w-full h-full object-cover"
+                                />
                             </div>
+                            <figcaption className="text-[13px] text-[#666] italic leading-relaxed">
+                                {article.title} — {article.location || article.country}
+                            </figcaption>
+                        </figure>
+
+                        {/* Article Body - Professional Typography */}
+                        <div className="prose prose-lg max-w-none">
+                            {/* First Paragraph - Drop Cap Style */}
+                            {(() => {
+                                const content = article.content || article.summary || '';
+                                const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim());
+                                
+                                return paragraphs.map((para, idx) => {
+                                    const trimmed = para.trim();
+                                    if (!trimmed) return null;
+                                    
+                                    // First paragraph gets special styling with drop cap
+                                    if (idx === 0) {
+                                        const firstChar = trimmed.charAt(0);
+                                        const restOfText = trimmed.slice(1);
+                                        return (
+                                            <p 
+                                                key={idx}
+                                                className="text-[19px] leading-[32px] text-[#0c0c0c] mb-6 font-normal"
+                                            >
+                                                <span className="float-left text-[72px] leading-[64px] mr-2 mt-1 font-bold text-[#0c0c0c]">
+                                                    {firstChar}
+                                                </span>
+                                                {restOfText}
+                                            </p>
+                                        );
+                                    }
+                                    
+                                    // Regular paragraphs
+                                    return (
+                                        <p 
+                                            key={idx}
+                                            className="text-[18px] leading-[32px] text-[#0c0c0c] mb-6 font-normal"
+                                        >
+                                            {trimmed}
+                                        </p>
+                                    );
+                                });
+                            })()}
                         </div>
 
-                        {/* Article Image */}
-                        <div className="w-full aspect-video rounded-[8px] overflow-hidden mb-6 relative border border-[#e5e7eb]">
-                            <img
-                                src={article.image}
-                                alt={article.title}
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
-
-                        {/* Article Body */}
-                        <div className="space-y-4 text-[16px] text-[#374151] leading-[28px] tracking-[-0.5px]">
-                            <p>
-                                The city-state has integrated AI platform that manages traffic, energy, and public services with unprecedented efficiency.
-                            </p>
-                            <p>
-                                Singapore has launched the world's most advanced AI-powered urban management system, representing a quantum leap in smart city technology. The comprehensive platform integrates traffic management, energy distribution, waste collection, and emergency services into a single, intelligent network.
-                            </p>
-                            <p>
-                                Prime Minister Lee Hsien Yang unveiled the system at a ceremony in Marina Bay, describing it as "the future of urban living." The AI system processes data from millions of sensors throughout the city, making real-time decisions to optimize urban operations.
-                            </p>
-                        </div>
-
-                        {/* Topics */}
-                        <div className="mt-8 pt-6 border-t border-[#e5e7eb]">
-                            <p className="text-[14px] font-semibold text-[#111827] mb-3 tracking-[-0.5px]">Topics:</p>
-                            <div className="flex flex-wrap gap-2">
-                                {article.tags?.map((topic, idx) => (
-                                    <span
-                                        key={idx}
-                                        className="px-3 py-1.5 bg-[#f3f4f6] rounded-[4px] text-[12px] text-[#374151] tracking-[-0.5px]"
-                                    >
-                                        {topic}
+                        {/* Tags/Keywords - Bottom of Article */}
+                        {article.tags && article.tags.length > 0 && (
+                            <div className="mt-12 pt-8 border-t border-[#e5e7eb]">
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <span className="text-[12px] font-semibold text-[#666] uppercase tracking-wider">
+                                        Topics:
                                     </span>
-                                ))}
+                                    {article.tags.map((topic, idx) => (
+                                        <a
+                                            key={idx}
+                                            href="#"
+                                            className="px-3 py-1.5 bg-[#f5f5f5] hover:bg-[#e5e5e5] text-[13px] text-[#0c0c0c] rounded transition-colors font-medium"
+                                        >
+                                            {topic}
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Article Footer - Location Info */}
+                        <div className="mt-8 pt-6 border-t border-[#e5e7eb]">
+                            <div className="flex items-center gap-2 text-[13px] text-[#666]">
+                                <span className="font-medium text-[#0c0c0c]">Location:</span>
+                                <span>{article.location || article.country || 'Global'}</span>
                             </div>
                         </div>
-                    </div>
+                    </article>
                 </div>
 
-                {/* Right Sidebar */}
-                <div className="w-[320px] space-y-6">
+                {/* Right Sidebar - Admin Controls */}
+                <aside className="w-[320px] flex-shrink-0 space-y-6">
                     {/* Publish Section */}
                     <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-sm">
                         <h3 className="text-[16px] font-semibold text-[#111827] mb-4 tracking-[-0.5px]">
@@ -254,7 +304,8 @@ export default function ArticleDetailsPage() {
                             </button>
                         </div>
                     </div>
-                </div>
+                </aside>
+            </div>
             </div>
 
             {/* Editor Modal */}

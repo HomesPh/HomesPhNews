@@ -46,3 +46,29 @@ export async function getAdminArticle(id: string | number): Promise<Article> {
         throw error;
     }
 }
+
+/**
+ * Update a pending (Redis) article without touching the main database.
+ */
+export async function updatePendingArticle(
+    id: string,
+    payload: {
+        title?: string;
+        summary?: string;
+        content?: string;
+        category?: string;
+        country?: string;
+        image_url?: string;
+        topics?: string[];
+        keywords?: string;
+    }
+): Promise<Article> {
+    try {
+        const response = await api.patch<Article>(`/admin/articles/${id}/pending`, payload);
+        console.log(`[API] Update Pending Article ${id}: ${response.status} OK`);
+        return response.data;
+    } catch (error: any) {
+        console.error(`[API] Update Pending Article ${id} Failed: ${error.response?.status || 'Unknown error'}`);
+        throw error;
+    }
+}

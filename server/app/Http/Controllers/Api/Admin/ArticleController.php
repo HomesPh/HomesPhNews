@@ -336,6 +336,103 @@ class ArticleController extends Controller
     }
 
     #[OA\Patch(
+        path: "/api/admin/articles/{id}/pending",
+        operationId: "updatePendingAdminArticle",
+        summary: "Update a pending (Redis) article",
+        description: "Updates an AI-generated pending article stored in Redis before it is published to the main database.",
+        security: [['sanctum' => []]],
+        tags: ["Admin: Articles"],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "string"))
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "title", type: "string"),
+                    new OA\Property(property: "summary", type: "string"),
+                    new OA\Property(property: "content", type: "string"),
+                    new OA\Property(property: "category", type: "string"),
+                    new OA\Property(property: "country", type: "string"),
+                    new OA\Property(property: "image_url", type: "string"),
+                    new OA\Property(property: "topics", type: "array", items: new OA\Items(type: "string")),
+                    new OA\Property(property: "keywords", type: "string"),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: "Pending article updated successfully", content: new OA\JsonContent(type: "object")),
+            new OA\Response(response: 404, description: "Article not found"),
+            new OA\Response(response: 422, description: "Validation error")
+        ]
+    )]
+    public function updatePending(Request $request, string $id)
+    {
+        // Only allow editing Redis-backed pending articles (UUID IDs)
+        if (!\Illuminate\Support\Str::isUuid($id)) {
+            return response()->json(['message' => 'Only pending Redis articles can be edited via this endpoint'], 400);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'title' => 'nullable|string|max:255',
+            'summary' => 'nullable|string|max:1000',
+            'content' => 'nullable|string',
+            'category' => 'nullable|string|max:50',
+            'country' => 'nullable|string|max:50',
+            'image_url' => 'nullable|string|max:255',
+            'topics' => 'nullable|array',
+            'keywords' => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $payload = $validator->validated();
+
+        // Map summary into content if content not provided
+        if (!isset($payload['content']) && isset($payload['summary'])) {
+            $payload['content'] = $payload['summary'];
+        }
+
+        $updated = $this->redisService->updateArticle($id, $payload);
+
+        if (!$updated) {
+            return response()->json(['message' => 'Article not found'], 404);
+        }
+
+        // Normalize to match the response from show()
+        $normalized = [
+            'id' => $updated['id'] ?? $id,
+            'title' => $updated['title'] ?? '',
+            'summary' => $updated['summary'] ?? ($updated['content'] ?? ''),
+            'content' => $updated['content'] ?? '',
+            'category' => $updated['category'] ?? '',
+            'location' => $updated['country'] ?? '',
+            'country' => $updated['country'] ?? '',
+            'image' => $updated['image_url'] ?? '',
+            'image_url' => $updated['image_url'] ?? '',
+            'status' => 'pending',
+            'views' => 0,
+            'views_count' => 0,
+            'topics' => $updated['topics'] ?? [],
+            'tags' => $updated['topics'] ?? [],
+            'keywords' => $updated['keywords'] ?? '',
+            'original_url' => $updated['original_url'] ?? '',
+            'source' => $updated['source'] ?? '',
+            'date' => isset($updated['timestamp'])
+                ? date('Y-m-d', (int) $updated['timestamp'])
+                : null,
+            'created_at' => isset($updated['timestamp'])
+                ? date('Y-m-d H:i:s', (int) $updated['timestamp'])
+                : null,
+            'sites' => [],
+        ];
+
+        return response()->json($normalized);
+    }
+
+    #[OA\Patch(
         path: "/api/admin/articles/{id}",
         operationId: "updateAdminArticle",
         summary: "Update an existing article",

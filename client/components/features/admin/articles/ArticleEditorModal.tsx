@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X, Upload, Bold, Italic, Underline, List, ListOrdered, AlignLeft, AlignCenter, Image as ImageIcon, Link as LinkIcon, RotateCcw, RotateCw, Maximize, Info } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { updatePendingArticle } from "@/lib/api/admin/articles";
 
 interface ArticleEditorModalProps {
     mode: 'create' | 'edit';
@@ -92,7 +93,34 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
         setTags(tags.filter(tag => tag !== tagToRemove));
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        // For now, only wire real saving for pending (Redis) articles.
+        if (mode === 'edit' && initialData?.status === 'pending') {
+            try {
+                await updatePendingArticle(initialData.id, {
+                    title,
+                    summary,
+                    content,
+                    category,
+                    country,
+                    image_url: featuredImage || undefined,
+                    topics: tags,
+                    // keywords could be derived later; keep optional
+                });
+                // Simple UX: reload the page so details + list reflect updated data
+                onClose();
+                if (typeof window !== "undefined") {
+                    window.location.reload();
+                }
+                return;
+            } catch (e) {
+                console.error("Failed to update pending article", e);
+                alert("Failed to save changes. Please try again.");
+                return;
+            }
+        }
+
+        // Fallback: existing dummy behavior for non-pending / create flow
         alert(mode === 'create' ? 'Article published!' : 'Changes saved');
         onClose();
     };
