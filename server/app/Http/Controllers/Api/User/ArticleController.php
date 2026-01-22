@@ -26,52 +26,144 @@ class ArticleController extends Controller
     #[OA\Get(
         path: "/api/article",
         operationId: "getUserArticleFeed",
-        summary: "Display a dynamic feed of articles from Redis",
-        description: "Returns Trending, Most Read (Latest), and Latest Global articles from Redis. Optionally filter by country, category, or search term.",
+        summary: "Display a dynamic feed or list of articles",
+        description: "Returns articles in two modes: 'feed' (structured dashboard with Trending, Most Read, Latest Global) or 'list' (filtered, paginated list with metadata). Performance is optimized via Database lookups.",
         tags: ["User: Articles"],
         parameters: [
-            new OA\Parameter(name: "search", in: "query", description: "Search term for title/content", schema: new OA\Schema(type: "string")),
-            new OA\Parameter(name: "country", in: "query", description: "Filter by country name (e.g., 'Philippines', 'United States')", schema: new OA\Schema(type: "string")),
-            new OA\Parameter(name: "category", in: "query", description: "Filter by category (e.g., 'Real Estate', 'Business')", schema: new OA\Schema(type: "string"))
+            new OA\Parameter(
+                name: "mode",
+                in: "query",
+                description: "Operational mode. Defaults to 'feed' if no filters are present, or 'list' if search is provided.",
+                schema: new OA\Schema(type: "string", enum: ["feed", "list"])
+            ),
+            new OA\Parameter(name: "search", in: "query", description: "Keyword search in titles and summaries. Forces mode=list if mode is not specified.", schema: new OA\Schema(type: "string")),
+            new OA\Parameter(name: "country", in: "query", description: "Filter results by country name (e.g., 'PH', 'Canada')", schema: new OA\Schema(type: "string")),
+            new OA\Parameter(name: "category", in: "query", description: "Filter results by category name (e.g., 'Real Estate', 'Business')", schema: new OA\Schema(type: "string")),
+            new OA\Parameter(name: "limit", in: "query", description: "Max results per page (used in 'list' mode)", schema: new OA\Schema(type: "integer", default: 10)),
+            new OA\Parameter(name: "offset", in: "query", description: "Pagination offset (used in 'list' mode)", schema: new OA\Schema(type: "integer", default: 0))
         ],
         responses: [
-            new OA\Response(response: 200, description: "Successful operation", content: new OA\JsonContent(type: "object"))
+            new OA\Response(
+                response: 200,
+                description: "Successful operation",
+                content: new OA\JsonContent(
+                    oneOf: [
+                        new OA\Schema(
+                            title: "FeedModeResponse",
+                            properties: [
+                                new OA\Property(property: "trending", type: "array", items: new OA\Items(type: "object")),
+                                new OA\Property(property: "most_read", type: "array", items: new OA\Items(type: "object")),
+                                new OA\Property(property: "latest_global", type: "array", items: new OA\Items(type: "object"))
+                            ]
+                        ),
+                        new OA\Schema(
+                            title: "ListModeResponse",
+                            properties: [
+                                new OA\Property(property: "data", type: "array", items: new OA\Items(type: "object")),
+                                new OA\Property(
+                                    property: "meta",
+                                    type: "object",
+                                    properties: [
+                                        new OA\Property(property: "total", type: "integer"),
+                                        new OA\Property(property: "limit", type: "integer"),
+                                        new OA\Property(property: "offset", type: "integer"),
+                                        new OA\Property(property: "filters", type: "object")
+                                    ]
+                                )
+                            ]
+                        )
+                    ]
+                )
+            )
         ]
     )]
     public function feed(Request $request)
     {
+        $mode = $request->input('mode');
         $search = $request->input('search');
         $country = $request->input('country');
         $category = $request->input('category');
+        $limit = min(100, max(1, (int) $request->input('limit', 10)));
+        $offset = max(0, (int) $request->input('offset', 0));
 
-        // If filters are applied, return filtered results
-        if ($search || $country || $category) {
-            $articles = [];
+        // Default to list mode if search is provided
+        if ($search && !$mode) {
+            $mode = 'list';
+        }
 
-            if ($search) {
-                $articles = $this->redisService->searchArticles($search, 20);
-            } elseif ($country) {
-                $articles = $this->redisService->getArticlesByCountry($country, 20);
-            } elseif ($category) {
-                $articles = $this->redisService->getArticlesByCategory($category, 20);
-            }
+        // 1. Dashboard Mode (feed) or default if no filters
+        if ($mode === 'feed' || (!$mode && !$search && !$country && !$category)) {
+            $trending = Article::select('id', 'title', 'country', 'category', 'image as image_url')
+                ->orderBy('views_count', 'desc')
+                ->limit(5)
+                ->get();
+
+            $mostRead = Article::select('id', 'title', 'country', 'category', 'image as image_url')
+                ->orderBy('views_count', 'desc')
+                ->limit(10)
+                ->get();
+
+            $latestGlobal = Article::select('id', 'title', 'created_at as timestamp', 'image as image_url')
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get();
 
             return response()->json([
-                'trending' => array_slice($articles, 0, 5),
-                'most_read' => array_slice($articles, 0, 10),
-                'latest_global' => array_slice($articles, 0, 5),
-                'filter_applied' => compact('search', 'country', 'category'),
+                'trending' => $trending,
+                'most_read' => $mostRead,
+                'latest_global' => $latestGlobal,
             ]);
         }
 
-        // Default: Return unfiltered feed
-        $trending = $this->redisService->getTrendingArticles(5);
-        $latestGlobal = $this->redisService->getLatestArticles(10);
+        // 2. List Mode or Filtered Mode
+        $query = Article::query();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'LIKE', "%{$search}%")
+                    ->orWhere('summary', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if ($country) {
+            $query->where('country', $country);
+        }
+
+        if ($category) {
+            $query->where('category', $category);
+        }
+
+        if ($mode === 'list') {
+            $total = $query->count();
+            $articles = $query->select('id', 'title', 'country', 'category', 'created_at as timestamp', 'image as image_url')
+                ->orderBy('created_at', 'desc')
+                ->skip($offset)
+                ->take($limit)
+                ->get();
+
+            return response()->json([
+                'data' => $articles,
+                'meta' => [
+                    'total' => $total,
+                    'limit' => $limit,
+                    'offset' => $offset,
+                    'filters' => [
+                        'country' => $country,
+                        'category' => $category,
+                        'search' => $search,
+                    ]
+                ]
+            ]);
+        }
+
+        // 3. Fallback (Basic Filtering without meta)
+        $articles = $query->limit($limit)->offset($offset)->get();
 
         return response()->json([
-            'trending' => $trending,
-            'most_read' => $latestGlobal, // Same as latest since Redis doesn't track views
-            'latest_global' => array_slice($latestGlobal, 0, 5),
+            'trending' => $articles->slice(0, 5),
+            'most_read' => $articles->slice(0, 10),
+            'latest_global' => $articles->slice(0, 5),
+            'filter_applied' => compact('search', 'country', 'category'),
         ]);
     }
 
@@ -106,59 +198,6 @@ class ArticleController extends Controller
     }
 
 
-    #[OA\Get(
-        path: "/api/latest",
-        operationId: "getLatestArticles",
-        summary: "Get latest articles",
-        description: "Returns the most recent articles sorted by timestamp.",
-        tags: ["User: Articles"],
-        parameters: [
-            new OA\Parameter(name: "limit", in: "query", description: "Max articles to return (1-50)", schema: new OA\Schema(type: "integer", default: 10))
-        ],
-        responses: [
-            new OA\Response(response: 200, description: "Successful operation")
-        ]
-    )]
-    public function latest(Request $request)
-    {
-        $limit = min(50, max(1, (int) $request->input('limit', 10)));
-        $articles = $this->redisService->getLatestArticles($limit);
-
-        return response()->json($this->redisService->formatSummaries($articles));
-    }
-
-    #[OA\Get(
-        path: "/api/search",
-        operationId: "searchArticles",
-        summary: "Search articles",
-        description: "Search articles by title or content.",
-        tags: ["User: Articles"],
-        parameters: [
-            new OA\Parameter(name: "q", in: "query", required: true, description: "Search query (min 2 chars)", schema: new OA\Schema(type: "string")),
-            new OA\Parameter(name: "limit", in: "query", description: "Max articles to return", schema: new OA\Schema(type: "integer", default: 20))
-        ],
-        responses: [
-            new OA\Response(response: 200, description: "Successful operation"),
-            new OA\Response(response: 400, description: "Invalid query")
-        ]
-    )]
-    public function search(Request $request)
-    {
-        $query = $request->input('q', '');
-
-        if (strlen($query) < 2) {
-            return response()->json(['error' => 'Search query must be at least 2 characters'], 400);
-        }
-
-        $limit = min(100, max(1, (int) $request->input('limit', 20)));
-        $articles = $this->redisService->searchArticles($query, $limit);
-
-        return response()->json([
-            'query' => $query,
-            'count' => count($articles),
-            'data' => $this->redisService->formatSummaries($articles),
-        ]);
-    }
 
     #[OA\Get(
         path: "/api/countries",

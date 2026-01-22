@@ -1158,14 +1158,26 @@
                 "tags": [
                     "User: Articles"
                 ],
-                "summary": "Display a dynamic feed of articles from Redis",
-                "description": "Returns Trending, Most Read (Latest), and Latest Global articles from Redis. Optionally filter by country, category, or search term.",
+                "summary": "Display a dynamic feed or list of articles",
+                "description": "Returns articles in two modes: 'feed' (structured dashboard with Trending, Most Read, Latest Global) or 'list' (filtered, paginated list with metadata). Performance is optimized via Database lookups.",
                 "operationId": "getUserArticleFeed",
                 "parameters": [
                     {
+                        "name": "mode",
+                        "in": "query",
+                        "description": "Operational mode. Defaults to 'feed' if no filters are present, or 'list' if search is provided.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "feed",
+                                "list"
+                            ]
+                        }
+                    },
+                    {
                         "name": "search",
                         "in": "query",
-                        "description": "Search term for title/content",
+                        "description": "Keyword search in titles and summaries. Forces mode=list if mode is not specified.",
                         "schema": {
                             "type": "string"
                         }
@@ -1173,7 +1185,7 @@
                     {
                         "name": "country",
                         "in": "query",
-                        "description": "Filter by country name (e.g., 'Philippines', 'United States')",
+                        "description": "Filter results by country name (e.g., 'PH', 'Canada')",
                         "schema": {
                             "type": "string"
                         }
@@ -1181,9 +1193,27 @@
                     {
                         "name": "category",
                         "in": "query",
-                        "description": "Filter by category (e.g., 'Real Estate', 'Business')",
+                        "description": "Filter results by category name (e.g., 'Real Estate', 'Business')",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Max results per page (used in 'list' mode)",
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "description": "Pagination offset (used in 'list' mode)",
+                        "schema": {
+                            "type": "integer",
+                            "default": 0
                         }
                     }
                 ],
@@ -1193,7 +1223,61 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "oneOf": [
+                                        {
+                                            "title": "FeedModeResponse",
+                                            "properties": {
+                                                "trending": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "most_read": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "latest_global": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        {
+                                            "title": "ListModeResponse",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "meta": {
+                                                    "properties": {
+                                                        "total": {
+                                                            "type": "integer"
+                                                        },
+                                                        "limit": {
+                                                            "type": "integer"
+                                                        },
+                                                        "offset": {
+                                                            "type": "integer"
+                                                        },
+                                                        "filters": {
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -1233,70 +1317,6 @@
                     },
                     "404": {
                         "description": "Article not found"
-                    }
-                }
-            }
-        },
-        "/api/latest": {
-            "get": {
-                "tags": [
-                    "User: Articles"
-                ],
-                "summary": "Get latest articles",
-                "description": "Returns the most recent articles sorted by timestamp.",
-                "operationId": "getLatestArticles",
-                "parameters": [
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "description": "Max articles to return (1-50)",
-                        "schema": {
-                            "type": "integer",
-                            "default": 10
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation"
-                    }
-                }
-            }
-        },
-        "/api/search": {
-            "get": {
-                "tags": [
-                    "User: Articles"
-                ],
-                "summary": "Search articles",
-                "description": "Search articles by title or content.",
-                "operationId": "searchArticles",
-                "parameters": [
-                    {
-                        "name": "q",
-                        "in": "query",
-                        "description": "Search query (min 2 chars)",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "description": "Max articles to return",
-                        "schema": {
-                            "type": "integer",
-                            "default": 20
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation"
-                    },
-                    "400": {
-                        "description": "Invalid query"
                     }
                 }
             }
