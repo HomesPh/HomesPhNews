@@ -1,8 +1,8 @@
+import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
 import StatCard from "@/components/features/admin/shared/StatCard";
 import ArticleCard from "@/components/features/admin/dashboard/ArticleCard";
 import ArticleDistribution from "@/components/features/admin/dashboard/ArticleDistribution";
 import QuickActions from "@/components/features/admin/dashboard/QuickActions";
-import DashboardHeader from "@/components/features/admin/dashboard/DashboardHeader";
 import Link from 'next/link';
 import { stats, recentArticles, sites } from "./data";
 
@@ -10,10 +10,15 @@ import { stats, recentArticles, sites } from "./data";
  * AdminDashboard - Main overview page for administrative operations
  */
 export default function AdminDashboard() {
+    const userName = "John";
+
     return (
         <div className="p-8">
             {/* Header: User Welcome and Title */}
-            <DashboardHeader userName="John" />
+            <AdminPageHeader
+                title="Dashboard"
+                description={`Welcome back, ${userName}. Here's what's happening today.`}
+            />
 
             {/* Stats Grid: Summary metrics across the platform */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

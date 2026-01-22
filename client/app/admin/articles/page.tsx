@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import ArticlesHeader from "@/components/features/admin/articles/ArticlesHeader";
+import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
+import { Plus } from 'lucide-react';
 import ArticlesTabs, { ArticleTab } from "@/components/features/admin/articles/ArticlesTabs";
 import ArticlesFilters from "@/components/features/admin/articles/ArticlesFilters";
 import ArticleListItem from "@/components/features/admin/articles/ArticleListItem";
@@ -73,7 +74,13 @@ export default function ArticlesPage() {
 
     return (
         <div className="p-8 bg-[#f9fafb] min-h-screen">
-            <ArticlesHeader onNewArticle={() => setIsCreateModalOpen(true)} />
+            <AdminPageHeader
+                title="Article Management"
+                description="Manage and review all articles across the platform"
+                actionLabel="New Article"
+                onAction={() => setIsCreateModalOpen(true)}
+                actionIcon={Plus}
+            />
 
 
             <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">

@@ -1,17 +1,18 @@
 "use client";
 
-import { Eye, Calendar } from "lucide-react";
-import { FaFacebookF, FaTwitter, FaLinkedinIn, FaShareAlt } from "react-icons/fa";
+import { Eye, Calendar, Facebook, Twitter, Linkedin, Link2 } from "lucide-react";
 import Link from "next/link";
 
 interface ArticleHeaderProps {
   category: string;
+  categoryId?: string;
   location: string;
+  countryId?: string;
   title: string;
   subtitle: string;
   author: {
     name: string;
-    image?: string; // Optional for now
+    image?: string;
   };
   date: string;
   views: number;
@@ -19,58 +20,125 @@ interface ArticleHeaderProps {
 
 export default function ArticleHeader({
   category,
+  categoryId,
   location,
+  countryId,
   title,
   subtitle,
   author,
   date,
   views,
 }: ArticleHeaderProps) {
+  const handleShare = (platform: 'facebook' | 'twitter' | 'linkedin' | 'copy') => {
+    const url = window.location.href;
+    const articleTitle = title;
+
+    switch (platform) {
+      case 'facebook':
+        window.open(
+          `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+          '_blank',
+          'width=600,height=400'
+        );
+        break;
+      case 'twitter':
+        window.open(
+          `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(articleTitle)}`,
+          '_blank',
+          'width=600,height=400'
+        );
+        break;
+      case 'linkedin':
+        window.open(
+          `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+          '_blank',
+          'width=600,height=400'
+        );
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard!');
+        break;
+    }
+  };
+
   return (
     <header className="mb-8">
       {/* Category | Location */}
-      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider mb-4">
-        <span className="bg-gray-100 px-2 py-1 rounded text-gray-700">{category}</span>
-        <span className="text-gray-400">|</span>
-        <span className="text-gray-900">{location}</span>
+      <div className="flex gap-[16px] items-center mb-6">
+        <Link
+          href={categoryId ? `/?category=${categoryId}` : "/"}
+          className="bg-white border border-[#e5e7eb] px-[10px] py-[6px] rounded-[6px] font-semibold text-[14px] text-black tracking-[-0.5px] hover:bg-gray-50 hover:text-[#c10007] transition-all"
+        >
+          {category}
+        </Link>
+        <p className="font-normal text-[14px] text-black tracking-[-0.5px] leading-[20px]">|</p>
+        <Link
+          href={countryId ? `/?country=${countryId}` : "/"}
+          className="font-semibold text-[14px] text-black tracking-[-0.5px] hover:text-[#c10007] transition-colors"
+        >
+          {location.toUpperCase()}
+        </Link>
       </div>
 
-      {/* Title */}
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
-        {title}
-      </h1>
+      {/* Title and Subtitle */}
+      <div className="flex flex-col gap-[20px] mb-6">
+        <h1 className="font-bold text-[35px] text-[#111827] tracking-[-0.5px] leading-[1.15]">
+          {title}
+        </h1>
+        <p className="font-normal text-[20px] text-[#4b5563] tracking-[-0.5px] leading-[1.2]">
+          {subtitle}
+        </p>
+      </div>
 
-      {/* Subtitle */}
-      <p className="text-xl text-gray-600 mb-6 font-light">
-        {subtitle}
-      </p>
-
-      {/* Metadata & Share */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-b border-gray-200 py-4 gap-4">
-
-        {/* Author & Date */}
-        <div className="flex items-center gap-6 text-sm text-gray-600">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-gray-900">By {author.name}</span>
+      {/* Author and Meta / Social Share Row */}
+      <div className="flex items-center justify-between border-y border-[#e5e7eb] py-[20px]">
+        {/* Left: Author and Meta Info */}
+        <div className="flex gap-[34px] items-center">
+          <p className="font-semibold text-[14px] text-[#6b7280] tracking-[-0.5px] leading-[20px]">
+            By {author.name}
+          </p>
+          <div className="flex items-center gap-[9px]">
+            <Calendar className="size-[14px] text-[#6b7280]" />
+            <p className="font-normal text-[14px] text-[#6b7280] tracking-[-0.5px] leading-[20px]">
+              {date}
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
-            <span>{date}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Eye className="w-4 h-4" />
-            <span>{views} views</span>
+          <div className="flex items-center gap-[9px]">
+            <Eye className="size-[14px] text-[#6b7280]" />
+            <p className="font-normal text-[14px] text-[#6b7280] tracking-[-0.5px] leading-[20px]">
+              {views} views
+            </p>
           </div>
         </div>
 
-        {/* Social Share */}
-        <div className="flex items-center gap-4">
-          <Link href="#" className="text-gray-400 hover:text-[#1877F2] transition-colors"><FaFacebookF /></Link>
-          <Link href="#" className="text-gray-400 hover:text-[#1DA1F2] transition-colors"><FaTwitter /></Link>
-          <Link href="#" className="text-gray-400 hover:text-[#0A66C2] transition-colors"><FaLinkedinIn /></Link>
-          <Link href="#" className="text-gray-400 hover:text-gray-700 transition-colors"><FaShareAlt /></Link>
+        {/* Right: Social Share Icons */}
+        <div className="flex items-center justify-between w-[141px]">
+          <button
+            onClick={() => handleShare('facebook')}
+            className="size-[18px] cursor-pointer hover:opacity-80 transition-opacity"
+          >
+            <Facebook className="w-full h-full text-[#155DFC]" />
+          </button>
+          <button
+            onClick={() => handleShare('twitter')}
+            className="size-[18px] cursor-pointer hover:opacity-80 transition-opacity"
+          >
+            <Twitter className="w-full h-full text-[#50A2FF]" />
+          </button>
+          <button
+            onClick={() => handleShare('linkedin')}
+            className="size-[18px] cursor-pointer hover:opacity-80 transition-opacity"
+          >
+            <Linkedin className="w-full h-full text-[#1447E6]" />
+          </button>
+          <button
+            onClick={() => handleShare('copy')}
+            className="size-[18px] cursor-pointer hover:opacity-80 transition-opacity"
+          >
+            <Link2 className="w-full h-full text-[#4A5565]" />
+          </button>
         </div>
-
       </div>
     </header>
   );

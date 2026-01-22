@@ -1,6 +1,6 @@
-import ArticleCard from "@/components/features/dashboard/ArticleCard";
 import HeroSection from "@/components/features/dashboard/HeroSection";
-import { articles } from "./data";
+import ArticleCard from "@/components/features/dashboard/ArticleCard";
+import { getArticlesList, getLandingPageArticles } from "@/lib/api";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import TrendingTopicsCard from "@/components/features/dashboard/TrendingTopicsCard";
 import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
@@ -10,38 +10,48 @@ type Props = {
 };
 
 export default async function Dashboard({ searchParams }: Props) {
-  const { country, category } = await searchParams;
+  const { country: countryParam, category: categoryParam } = await searchParams;
+
+  const country = (Array.isArray(countryParam) ? countryParam[0] : countryParam) || "Global";
+  const category = (Array.isArray(categoryParam) ? categoryParam[0] : categoryParam) || "All";
+
+  const { latest_global, trending, most_read } = await getLandingPageArticles({
+    country,
+    category,
+  });
 
   return (
     <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* main - takes 2 columns on lg */}
       <div className="lg:col-span-2 space-y-8">
-        <HeroSection
-          id="detect-cancer-ai"
-          title="AI Revolution: How Machine Learning is Transforming Healthcare in North America"
-          description="Canadian researchers develop groundbreaking AI system that can detect early signs of cancer with 86% accuracy, potentially saving thousands of lives annually."
-          category="Technology"
-          country="Canada"
-          imageUrl="/healthcare.jpg"
-          imageAlt="AI Healthcare Technology"
-          timeAgo="12 mins ago"
-          isFeatured={true}
-        />
+        {latest_global.length > 0 && (
+          <HeroSection
+            id={latest_global[0].id}
+            title={latest_global[0].title}
+            description={latest_global[0].content}
+            category={latest_global[0].category}
+            country={latest_global[0].country}
+            imageUrl={latest_global[0].image_url}
+            imageAlt="latest global"
+            timeAgo={new Date(latest_global[0].timestamp).toLocaleDateString()}
+            keywords={latest_global[0].keywords}
+            isFeatured={true}
+          />
+        )}
 
         <div className="space-y-6">
           <h1 className="text-2xl font-bold">Latest Global News</h1>
 
-          {articles.map((article, index) => (
+          {latest_global.map((article) => (
             <ArticleCard
               key={article.id}
               id={article.id}
               category={article.category}
-              location={article.location}
+              location={article.country}
               title={article.title}
-              description={article.description}
-              timeAgo={article.timeAgo}
-              views={article.views}
-              imageSrc={article.imageSrc}
+              // description={article.content.split('\n')[0].substring(0, 150) + "..."} // TODO: there's something wrong with the API today.
+              timeAgo={new Date(article.timestamp).toLocaleDateString()}
+              imageSrc={article.image_url}
             />
           ))}
         </div>
@@ -50,29 +60,18 @@ export default async function Dashboard({ searchParams }: Props) {
       {/* aside */}
       <div className="flex flex-col gap-6">
         <TrendingTopicsCard
-          items={[
-            { id: 1, label: "GPT-5 Launch" },
-            { id: 2, label: "Quantum Computing" },
-            { id: 3, label: "AI Ethics Debate" },
-            { id: 4, label: "Robotics Revolution" },
-            { id: 5, label: "Neural Interfaces" },
-          ]}
+          items={trending.slice(0, 5).map((article) => ({
+            id: article.id,
+            label: article.title,
+          }))}
         />
         <MostReadTodayCard
-          items={[
-            {
-              id: 1,
-              title: "How AI is Changing Education Forever",
-              views: 24000,
-              imageUrl: "/healthcare.jpg"
-            },
-            {
-              id: 2,
-              title: "Blockchain meets AI: The Future of Finance",
-              views: 19800,
-              imageUrl: "/healthcare.jpg"
-            }
-          ]}
+          items={most_read.slice(0, 5).map((article) => ({
+            id: article.id,
+            title: article.title,
+            imageUrl: article.image_url,
+            views: 0
+          }))}
         />
       </div>
     </div>

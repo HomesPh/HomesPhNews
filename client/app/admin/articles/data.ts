@@ -18,7 +18,7 @@ export interface Article {
 export const articlesData: Article[] = [
     {
         id: 1,
-        image: "/healthcare.jpg",
+        image: "https://placehold.co/800x450?text=Healthcare",
         category: 'Technology',
         location: 'USA',
         title: 'AI Revolution: How Machine Learning is Transforming Healthcare in North America',
@@ -33,7 +33,7 @@ export const articlesData: Article[] = [
     },
     {
         id: 2,
-        image: "/healthcare.jpg",
+        image: "https://placehold.co/800x450?text=Healthcare",
         category: 'Technology',
         location: 'SINGAPORE',
         title: "Singapore Launches World's First AI-Powered Urban Management System",
@@ -48,7 +48,7 @@ export const articlesData: Article[] = [
     },
     {
         id: 3,
-        image: "/healthcare.jpg",
+        image: "https://placehold.co/800x450?text=Healthcare",
         category: 'Politics',
         location: 'EUROPE',
         title: 'EU Passes Landmark AI Ethics Legislation: Tech Giants Face New Restrictions',
@@ -63,7 +63,7 @@ export const articlesData: Article[] = [
     },
     {
         id: 4,
-        image: "/healthcare.jpg",
+        image: "https://placehold.co/800x450?text=Healthcare",
         category: 'Business',
         location: 'PHILIPPINES',
         title: "Philippines Emerges as Southeast Asia's AI Outsourcing Leader",
@@ -78,7 +78,7 @@ export const articlesData: Article[] = [
     },
     {
         id: 5,
-        image: "/healthcare.jpg",
+        image: "https://placehold.co/800x450?text=Healthcare",
         category: 'Economy',
         location: 'GLOBAL',
         title: 'Global Markets Volatile Amidst Shift in AI Investment Strategies',

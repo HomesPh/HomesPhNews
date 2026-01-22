@@ -1,8 +1,8 @@
 import { Article } from "@/lib/api/news/types";
 
 // dummy data, should be replaced with actual data from API
-export const articleData: Article = {
-  id: 1,
+export const articleData: any = { // Changed to any for now to allow extra properties in dummy data
+  id: "1",
   country: "sg",
   category: "tech",
   title: "Singapore Unveils World's First AI-Powered Urban Management System",
@@ -31,7 +31,7 @@ export const articleData: Article = {
       id: "1",
       title: "Self-Driving Cars Get Federal Approval: What This Means for the Future",
       category: "Technology | USA",
-      image: "/images/healthcare.jpg", // Using existing placeholder
+      image: "https://placehold.co/800x450?text=Healthcare", // Using existing placeholder
       href: "#",
     },
     {
@@ -42,4 +42,8 @@ export const articleData: Article = {
       href: "#",
     },
   ],
+  timestamp: "2026-01-14T00:00:00.000Z", // Adding missing property
+  image_url: "/images/singapore_mbs.png", // Adding missing property
+  keywords: "Singapore, smart city, urban management, AI technology", // Adding missing property
+  original_url: "#" // Adding missing property
 }
