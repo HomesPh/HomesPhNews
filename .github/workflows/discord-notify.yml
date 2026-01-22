@@ -1,0 +1,228 @@
+name: Discord PR Notification
+
+on:
+  pull_request_target:
+    branches: ['**']
+    types: [opened, closed, reopened, synchronize]
+
+env:
+  DISCORD_PR_NOTIFICATION: ${{ secrets.DISCORD_PR_NOTIFICATION }}
+
+jobs:
+  notify-discord:
+    name: Send Discord Notification
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout base branch (SECURITY)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          fetch-depth: 0
+
+      - name: Detect affected services
+        id: detect-services
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const prNumber = pr.number;
+            
+            let changedFiles = [];
+            try {
+              const files = await github.rest.pulls.listFiles({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                per_page: 100
+              });
+              
+              changedFiles = files.data.map(file => file.filename);
+              
+              // Detect affected services
+              const services = {
+                client: false,
+                server: false,
+                script: false,
+                global: false
+              };
+              
+              changedFiles.forEach(file => {
+                if (file.startsWith('client/')) {
+                  services.client = true;
+                } else if (file.startsWith('server/')) {
+                  services.server = true;
+                } else if (file.startsWith('Script/')) {
+                  services.script = true;
+                } else {
+                  services.global = true;
+                }
+              });
+              
+              // Build affected services string
+              const affectedList = [];
+              if (services.client) affectedList.push('🖥️ Client');
+              if (services.server) affectedList.push('⚙️ Server');
+              if (services.script) affectedList.push('🐍 Script');
+              if (services.global) affectedList.push('🌐 Global/Config');
+              
+              const affectedServices = affectedList.length > 0 
+                ? affectedList.join(' • ') 
+                : '❓ Unknown';
+              
+              core.setOutput('affected_services', affectedServices);
+              core.setOutput('total_files', changedFiles.length.toString());
+              core.setOutput('has_client', services.client.toString());
+              core.setOutput('has_server', services.server.toString());
+              core.setOutput('has_script', services.script.toString());
+              core.setOutput('has_global', services.global.toString());
+              
+            } catch (error) {
+              core.warning(`Failed to get changed files: ${error.message}`);
+              core.setOutput('affected_services', '❓ Unable to detect');
+              core.setOutput('total_files', '0');
+              core.setOutput('has_client', 'false');
+              core.setOutput('has_server', 'false');
+              core.setOutput('has_script', 'false');
+              core.setOutput('has_global', 'false');
+            }
+
+      - name: Send Discord notification
+        if: env.DISCORD_PR_NOTIFICATION != ''
+        run: |
+          # Prepare PR information
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+          PR_AUTHOR_AVATAR="${{ github.event.pull_request.user.avatar_url }}"
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          HEAD_BRANCH="${{ github.event.pull_request.head.ref }}"
+          HEAD_REPO="${{ github.event.pull_request.head.repo.full_name }}"
+          BASE_REPO="${{ github.event.pull_request.base.repo.full_name }}"
+          ADDITIONS="${{ github.event.pull_request.additions }}"
+          DELETIONS="${{ github.event.pull_request.deletions }}"
+          CHANGED_FILES="${{ github.event.pull_request.changed_files }}"
+          COMMITS="${{ github.event.pull_request.commits }}"
+          AFFECTED_SERVICES="${{ steps.detect-services.outputs.affected_services }}"
+          
+          # Detect if PR is from a fork
+          IS_FORK="false"
+          if [ "$HEAD_REPO" != "$BASE_REPO" ]; then
+            IS_FORK="true"
+            BRANCH_DISPLAY="🔀 FORK \`$HEAD_BRANCH\` → \`$BASE_BRANCH\`"
+          else
+            BRANCH_DISPLAY="\`$HEAD_BRANCH\` → \`$BASE_BRANCH\`"
+          fi
+          
+          # Set defaults
+          PR_AUTHOR_AVATAR="${PR_AUTHOR_AVATAR:-https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png}"
+          COMMITS="${COMMITS:-0}"
+          
+          # Determine event type and color
+          EVENT_TYPE="${{ github.event.action }}"
+          MERGED="${{ github.event.pull_request.merged }}"
+          MERGED_BY="${{ github.event.pull_request.merged_by.login }}"
+          
+          if [ "$EVENT_TYPE" = "opened" ]; then
+            COLOR="3447003"
+            TITLE="🆕 New Pull Request Opened"
+            DESCRIPTION="$PR_AUTHOR created a new pull request"
+          elif [ "$EVENT_TYPE" = "reopened" ]; then
+            COLOR="10181046"
+            TITLE="🔄 Pull Request Reopened"
+            DESCRIPTION="$PR_AUTHOR reopened this pull request"
+          elif [ "$EVENT_TYPE" = "closed" ] && [ "$MERGED" = "true" ]; then
+            COLOR="5763719"
+            TITLE="✅ Pull Request Merged"
+            DESCRIPTION="${MERGED_BY:-$PR_AUTHOR} merged this pull request"
+          elif [ "$EVENT_TYPE" = "closed" ] && [ "$MERGED" = "false" ]; then
+            COLOR="15158332"
+            TITLE="❌ Pull Request Closed"
+            DESCRIPTION="$PR_AUTHOR closed this pull request without merging"
+          elif [ "$EVENT_TYPE" = "synchronize" ]; then
+            COLOR="16776960"
+            TITLE="📝 Pull Request Updated"
+            DESCRIPTION="$PR_AUTHOR pushed new commits"
+          else
+            COLOR="9807270"
+            TITLE="📋 Pull Request Event"
+            DESCRIPTION="Pull request event: $EVENT_TYPE"
+          fi
+          
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          
+          # Escape special characters for JSON
+          PR_TITLE_ESCAPED=$(echo "$PR_TITLE" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+          DESCRIPTION_ESCAPED=$(echo "$DESCRIPTION" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+          
+          # Build Discord webhook payload
+          cat > discord_payload.json <<EOF
+          {
+            "username": "GitHub CI/CD",
+            "avatar_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
+            "embeds": [
+              {
+                "title": "$TITLE",
+                "description": "$DESCRIPTION_ESCAPED",
+                "url": "$PR_URL",
+                "color": $COLOR,
+                "fields": [
+                  {
+                    "name": "📋 Pull Request",
+                    "value": "[#$PR_NUMBER - $PR_TITLE_ESCAPED]($PR_URL)",
+                    "inline": false
+                  },
+                  {
+                    "name": "👤 Author",
+                    "value": "[$PR_AUTHOR](https://github.com/$PR_AUTHOR)",
+                    "inline": true
+                  },
+                  {
+                    "name": "🌿 Branch",
+                    "value": "$BRANCH_DISPLAY",
+                    "inline": true
+                  },
+                  {
+                    "name": "📊 Changes",
+                    "value": "**$CHANGED_FILES** files • **$COMMITS** commits\n✅ **+$ADDITIONS** lines • ❌ **-$DELETIONS** lines",
+                    "inline": false
+                  },
+                  {
+                    "name": "🎯 Affected Services",
+                    "value": "$AFFECTED_SERVICES",
+                    "inline": false
+                  }
+                ],
+                "thumbnail": {
+                  "url": "$PR_AUTHOR_AVATAR"
+                },
+                "footer": {
+                  "text": "GitHub Actions • PR Notification",
+                  "icon_url": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+                },
+                "timestamp": "$TIMESTAMP"
+              }
+            ]
+          }
+          EOF
+          
+          # Send to Discord
+          echo "Sending notification to Discord..."
+          
+          RESPONSE=$(curl -X POST "$DISCORD_PR_NOTIFICATION" \
+            -H "Content-Type: application/json" \
+            -d @discord_payload.json \
+            -w "\n%{http_code}" \
+            -s)
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          
+          if [ "$HTTP_CODE" = "204" ] || [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Successfully sent Discord notification (HTTP $HTTP_CODE)"
+          else
+            echo "⚠️ Discord webhook returned HTTP $HTTP_CODE"
+            echo "Response: $RESPONSE"
+          fi

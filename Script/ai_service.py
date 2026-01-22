@@ -4,6 +4,7 @@ Handles: CNN-style rewriting, SEO optimization, country detection, image generat
 """
 
 import os
+import re
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 import google.generativeai as genai
@@ -13,6 +14,23 @@ from config import AI_WRITING_STYLE, COUNTRIES
 
 load_dotenv()
 
+def clean_markdown(text):
+    """Remove markdown formatting characters from text."""
+    if not text:
+        return ""
+    # Remove headers (###, ##, #)
+    text = re.sub(r'^#{1,6}\s*', '', text, flags=re.MULTILINE)
+    # Remove bold/italic markers (**, *, __, _)
+    text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)
+    text = re.sub(r'\*([^*]+)\*', r'\1', text)
+    text = re.sub(r'__([^_]+)__', r'\1', text)
+    text = re.sub(r'_([^_]+)_', r'\1', text)
+    # Remove any remaining asterisks at the start
+    text = re.sub(r'^\*+\s*', '', text)
+    # Clean extra whitespace
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
 class AIProcessor:
     def __init__(self):
         api_key = os.getenv("GOOGLE_AI_API_KEY")
@@ -21,6 +39,7 @@ class AIProcessor:
             self.text_model = self._init_text_model()
         else:
             print("⚠️ GOOGLE_AI_API_KEY not found.")
+            print("   💡 Please set GOOGLE_AI_API_KEY in your .env file.")
             self.text_model = None
 
     def _init_text_model(self):
@@ -32,9 +51,14 @@ class AIProcessor:
                 model.generate_content("test", generation_config={"max_output_tokens": 1})
                 print(f"✅ AI Service: Using model {model_name}")
                 return model
-            except:
+            except Exception as e:
                 continue
         print("⚠️ Could not initialize any text model.")
+        print("   ❌ Possible causes:")
+        print("      • API key invalid, no billing linked, or quota exhausted")
+        print("      • Model failed to initialize, so it's None")
+        print("   💡 Fix: Link a billing account at https://console.cloud.google.com/billing")
+        print("   💡 Check quota at: https://aistudio.google.com/app/apikey")
         return None
 
     def detect_country(self, title, content):
@@ -57,6 +81,55 @@ class AIProcessor:
             return "Global"
         except:
             return "Global"
+
+    def detect_topics(self, title, content, category):
+        """
+        Uses AI to detect specific sub-topics/tags from article content.
+        Returns a list of 2-4 relevant topics based on the article's actual content.
+        """
+        prompt = f"""
+        Analyze this {category} news article and identify 2-4 specific sub-topics or tags.
+        
+        Guidelines:
+        - Be specific (e.g., "AI & PropTech" not just "Technology")
+        - Focus on the main themes discussed in the article
+        - Return topics that would help readers find similar articles
+        - Keep each topic short (1-3 words)
+        
+        Example topics for Real Estate: AI & PropTech, Luxury Properties, Commercial, Residential, 
+        Finance & Mortgages, Healthcare Real Estate, Sustainability, Smart Homes, Market Trends, 
+        Investment, Rental Market, Construction, Architecture, Legal & Regulations
+        
+        Example topics for Business: Startups, Corporate, M&A, Stock Market, Leadership, 
+        Banking, Insurance, Retail, E-commerce, Supply Chain
+        
+        Example topics for Technology: AI & ML, Fintech, Blockchain, Cybersecurity, 
+        Cloud Computing, IoT, Robotics, 5G, Software, Hardware
+        
+        Title: {title}
+        Content: {content[:800]}
+        Category: {category}
+        
+        Return ONLY the topics as a comma-separated list. No explanation.
+        Example output: AI & PropTech, Smart Homes, Investment
+        """
+        try:
+            response = self.text_model.generate_content(prompt)
+            topics_text = response.text.strip()
+            
+            # Parse comma-separated topics
+            topics = [t.strip() for t in topics_text.split(',') if t.strip()]
+            
+            # Limit to 4 topics max
+            topics = topics[:4]
+            
+            if topics:
+                return topics
+            return [category]  # Fallback to main category
+            
+        except Exception as e:
+            print(f"⚠️ Topic detection failed: {e}")
+            return [category]  # Fallback to main category
 
     def rewrite_cnn_style(self, original_title, original_content, country, category):
         """
@@ -95,10 +168,18 @@ class AIProcessor:
             if "ARTICLE:" in text:
                 new_content = text.split("ARTICLE:")[1].strip()
             
+            # Clean markdown formatting from AI response
+            new_title = clean_markdown(new_title)
+            new_content = clean_markdown(new_content)
+            keywords = clean_markdown(keywords)
+            
             return new_title, new_content, keywords
             
         except Exception as e:
             print(f"❌ Rewrite Error: {e}")
+            if "'NoneType'" in str(e):
+                print("   ❌ Text model is None - Model failed to initialize")
+                print("   💡 API key invalid, no billing linked, or quota exhausted")
             return f"AI: {original_title}", original_content, category
 
     def generate_image_prompt(self, title, content, country, category):
@@ -161,6 +242,7 @@ class AIProcessor:
                 continue
         
         print("⚠️ Image generation failed. Using placeholder.")
+        print("   💡 Image generation uses different quota (Imagen) - might have separate limits")
         return "https://placehold.co/800x450?text=News+Image"
 
 

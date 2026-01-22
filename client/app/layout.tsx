@@ -19,9 +19,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Newsletter",
-  description: "add something here",
+  title: "HomesTV",
+  description: "Stay informed with HomesTV - Your trusted source for global news.",
 };
+
+import { AuthProvider } from "@/components/providers/AuthProvider";
 
 export default function RootLayout({
   children,

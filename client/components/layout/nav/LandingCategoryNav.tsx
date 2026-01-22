@@ -1,8 +1,6 @@
 "use client";
 
-import clsx from "clsx";
-import { Tabs, TabsList, TabsTrigger } from "../../ui/tabs";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 export type LandingCategoryNavProps = {
   categories: {
@@ -14,48 +12,48 @@ export type LandingCategoryNavProps = {
 export default function LandingCategoryNav({ categories }: LandingCategoryNavProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const activeCategory = searchParams.get("category") || "all";
 
-  // TODO: Supposed to change URL parameter 'country'
   const handleChangeCategoryTab = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
 
-    if (value.trim()) {
+    if (value && value !== "all") {
       params.set("category", value);
     } else {
       params.delete("category");
     }
 
-    router.push(`?${params.toString()}`, { scroll: false });
+    // Determine target path: if searching or already on search page, stay on search page
+    const q = params.get("q");
+    const targetPath = (q || pathname.startsWith("/search")) ? "/search" : "/";
+
+    const queryString = params.toString() ? `?${params.toString()}` : "";
+    router.push(`${targetPath}${queryString}`, { scroll: false });
   }
 
   return (
-    <nav className="w-full border-b sticky top-0 bg-white z-50">
-      <div className="max-w-7xl mx-auto flex flex-row justify-center items-center py-2 px-4 sm:px-6 lg:px-8">
-        <Tabs
-          defaultValue="all"
-          //value={ }
-          onValueChange={(v) => handleChangeCategoryTab(v)}
-        >
-          <TabsList className="w-full bg-transparent flex flex-row gap-7">
-            {categories.map((c) => (
-              <TabsTrigger
-                key={c.id}
-                value={c.id}
-                className={
-                  clsx([
-                    // inactive tab
-                    "shadow-none border-0 rounded-none py-4",
-                    // active tab
-                    "data-[state=active]:shadow-none data-[state=active]:rounded-md data-[state=active]:bg-foreground data-[state=active]:text-white"
-                  ])
-                }
+    <div className="bg-white w-full border-b border-[#e5e7eb]">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-[110px] py-[16px]">
+        <nav className="flex gap-[30px] items-center justify-center overflow-x-auto scrollbar-hide">
+          {categories.map((category, idx) => {
+            const isActive = activeCategory === category.id;
+
+            return (
+              <button
+                key={category.id}
+                onClick={() => handleChangeCategoryTab(category.id)}
+                className={`shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap transition-colors ${isActive
+                  ? "bg-[#030213] text-white px-[10px] py-[5px] rounded-[6px]"
+                  : "text-[#374151] hover:text-[#c10007] px-0 py-px"
+                  }`}
               >
-                {c.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+                {category.label}
+              </button>
+            );
+          })}
+        </nav>
       </div>
-    </nav>
-  )
+    </div>
+  );
 }

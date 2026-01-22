@@ -69,11 +69,12 @@ class StorageHandler:
     def save_article(self, article_data):
         """
         Saves an article to Redis with proper indexing.
-        Organizes by: country, category, and global list.
+        Organizes by: country, category, topics, and global list.
         """
         article_id = article_data.get("id")
         country = article_data.get("country", "Global")
         category = article_data.get("category", "General")
+        topics = article_data.get("topics", [])
         
         # Save the full article
         main_key = f"{self.prefix}article:{article_id}"
@@ -86,6 +87,15 @@ class StorageHandler:
         # Index by category
         category_key = f"{self.prefix}category:{category.lower().replace(' ', '_')}"
         self.redis_client.sadd(category_key, article_id)
+        
+        # Index by topics (NEW: AI-detected sub-topics)
+        for topic in topics:
+            topic_key = f"{self.prefix}topic:{topic.lower().replace(' ', '_').replace('&', 'and')}"
+            self.redis_client.sadd(topic_key, article_id)
+        
+        # Track all unique topics
+        for topic in topics:
+            self.redis_client.sadd(f"{self.prefix}all_topics", topic)
         
         # Global index
         self.redis_client.sadd(f"{self.prefix}all_articles", article_id)
@@ -118,6 +128,22 @@ class StorageHandler:
             if data:
                 articles.append(json.loads(data))
         return articles
+
+    def get_articles_by_topic(self, topic, limit=20):
+        """Retrieves articles for a specific AI-detected topic."""
+        topic_key = f"{self.prefix}topic:{topic.lower().replace(' ', '_').replace('&', 'and')}"
+        article_ids = self.redis_client.smembers(topic_key)
+        
+        articles = []
+        for aid in list(article_ids)[:limit]:
+            data = self.redis_client.get(f"{self.prefix}article:{aid}")
+            if data:
+                articles.append(json.loads(data))
+        return articles
+
+    def get_all_topics(self):
+        """Returns all unique topics discovered by the AI."""
+        return list(self.redis_client.smembers(f"{self.prefix}all_topics"))
 
     def get_latest_articles(self, limit=50):
         """Retrieves the most recent articles across all countries."""
