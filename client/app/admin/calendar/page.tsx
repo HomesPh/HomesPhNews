@@ -1,42 +1,42 @@
 "use client";
 
-import { useState, useCallback, useEffect } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Globe } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import CalendarHeader from "@/components/features/admin/calendar/CalendarHeader";
+import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
 import CalendarViewSelector from "../../../components/features/admin/calendar/CalendarViewSelector";
 import CalendarGrid from "../../../components/features/admin/calendar/CalendarGrid";
 import CreateEventModal from "../../../components/features/admin/calendar/CreateEventModal";
 import EventDetailModal from "../../../components/features/admin/calendar/EventDetailModal";
 import { ViewMode, CalendarEvent } from "@/components/features/admin/calendar/event-types";
 import { mockEvents } from "./data";
+import useUrlFilters from '@/hooks/useUrlFilters';
+
+// Filter configuration for Calendar
+const CALENDAR_FILTERS_CONFIG = {
+    view: {
+        default: 'day' as string,
+    },
+    country: {
+        default: 'All Countries',
+        resetValues: ['All Countries']
+    },
+    date: {
+        default: '2026-01-21',
+    }
+};
 
 export default function CalendarPage() {
-    const router = useRouter();
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
+    const { filters, setFilters, setFilter } = useUrlFilters(CALENDAR_FILTERS_CONFIG);
 
-    // Initial state from URL params
-    const viewParam = searchParams.get('view') as ViewMode | null;
-    const countryParam = searchParams.get('country');
-    const dateParam = searchParams.get('date');
+    // View state from URL
+    const viewMode = filters.view as ViewMode;
+    const selectedCountry = filters.country;
+    const currentDate = new Date(filters.date);
 
-    const initializeDate = () => {
-        if (dateParam) {
-            const parsedDate = new Date(dateParam);
-            if (!isNaN(parsedDate.getTime())) {
-                return parsedDate;
-            }
-        }
-        return new Date(2026, 0, 21);
-    };
-
-    const [viewMode, setViewModeState] = useState<ViewMode>(viewParam || 'day');
-    const [currentDate, setCurrentDateState] = useState(initializeDate());
-    const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+    const [selectedYear, setSelectedYearState] = useState(currentDate.getFullYear());
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [selectedCountry, setSelectedCountryState] = useState(countryParam || 'All Countries');
 
     // Event State
     const [events, setEvents] = useState<CalendarEvent[]>(mockEvents);
@@ -44,60 +44,22 @@ export default function CalendarPage() {
     const [showEventDetail, setShowEventDetail] = useState(false);
     const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
 
-    // Update URL helper
-    const createQueryString = useCallback(
-        (params: Record<string, string | number | null>) => {
-            const newParams = new URLSearchParams(searchParams.toString());
-            Object.entries(params).forEach(([key, value]) => {
-                if (value === null || value === 'All Countries') {
-                    newParams.delete(key);
-                } else {
-                    newParams.set(key, String(value));
-                }
-            });
-            return newParams.toString();
-        },
-        [searchParams]
-    );
-
-    // State setters with URL sync
-    const setViewMode = (mode: ViewMode) => {
-        setViewModeState(mode);
-        const query = createQueryString({ view: mode });
-        router.push(`${pathname}?${query}`, { scroll: false });
-    };
-
-    const setSelectedCountry = (country: string) => {
-        setSelectedCountryState(country);
-        const query = createQueryString({ country: country });
-        router.push(`${pathname}?${query}`, { scroll: false });
-    };
-
+    // Navigation and state helpers
+    const setViewMode = (mode: ViewMode) => setFilter('view', mode);
+    const setSelectedCountry = (country: string) => setFilter('country', country);
     const setCurrentDate = (date: Date) => {
-        setCurrentDateState(date);
-        const dateStr = date.toISOString().split('T')[0];
-        const query = createQueryString({ date: dateStr });
-        router.push(`${pathname}?${query}`, { scroll: false });
-
-        // Sync selectedYear if needed
+        setFilter('date', date.toISOString().split('T')[0]);
         if (date.getFullYear() !== selectedYear) {
-            setSelectedYear(date.getFullYear());
+            setSelectedYearState(date.getFullYear());
         }
     };
 
-    // Sync state with URL changes (handling browser back/forward)
-    useEffect(() => {
-        if (viewParam && viewParam !== viewMode) setViewModeState(viewParam);
-        if (countryParam && countryParam !== selectedCountry) setSelectedCountryState(countryParam);
-        if (dateParam) {
-            const parsedDate = new Date(dateParam);
-            if (!isNaN(parsedDate.getTime()) && parsedDate.getTime() !== currentDate.getTime()) {
-                setCurrentDateState(parsedDate);
-                setSelectedYear(parsedDate.getFullYear());
-            }
-        }
-    }, [viewParam, countryParam, dateParam]);
-
+    const setSelectedYear = (year: number) => {
+        setSelectedYearState(year);
+        const newDate = new Date(currentDate);
+        newDate.setFullYear(year);
+        setFilter('date', newDate.toISOString().split('T')[0]);
+    };
 
     const navigateDate = (direction: 'prev' | 'next') => {
         const newDate = new Date(currentDate);
@@ -153,8 +115,12 @@ export default function CalendarPage() {
 
     return (
         <div className="p-8 bg-[#f9fafb] min-h-screen">
-            <CalendarHeader
-                onCreateEvent={() => setShowCreateModal(true)}
+            <AdminPageHeader
+                title="Event Calendar"
+                description="Manage events and view public holidays across all countries"
+                actionLabel="Create Event"
+                onAction={() => setShowCreateModal(true)}
+                actionIcon={Plus}
             />
 
             <div className="mt-8">
