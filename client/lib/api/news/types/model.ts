@@ -10,6 +10,7 @@ export interface Article {
   original_url: string;
   image_url: string;
   timestamp: ISOString;
+  topics?: string[];
 }
 
 export interface ArticleListItem {
@@ -17,12 +18,17 @@ export interface ArticleListItem {
   country: string;
   category: string;
   title: string;
-  image_url: string;
+  summary: string;
+  image: string;
+  image_url?: string;
+  created_at: ISOString;
+  views_count?: number;
 }
 
 export interface ArticleFilters {
   mode: "feed" | "list";
   search?: string;
+  topic?: string;
   country?: string;
   category?: string;
   limit?: number;

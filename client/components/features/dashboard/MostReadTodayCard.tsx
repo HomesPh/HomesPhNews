@@ -33,7 +33,7 @@ export default function MostReadTodayCard({ title = "Most Read Today", items = [
             {/* Image */}
             <div className="relative w-[80px] h-[80px] rounded-[8px] overflow-hidden shrink-0">
               <Image
-                src={article.imageUrl}
+                src={article.imageUrl || 'https://placehold.co/800x450?text=No+Image'}
                 alt={article.title}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-300"

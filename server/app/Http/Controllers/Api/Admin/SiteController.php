@@ -3,158 +3,318 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Site;
 use App\Models\Article;
-use App\Models\sites;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
 
 class SiteController extends Controller
 {
     #[OA\Get(
         path: "/api/admin/sites",
-        operationId: "getAdminSitesAnalytics",
-        summary: "Get site-specific analytics and article details",
-        description: "Returns statistics about partners, performance per site, and detailed article listings with site information.",
+        operationId: "getAdminSites",
+        summary: "List all partner sites",
+        description: "Returns a list of all partner sites with article counts.",
         security: [['sanctum' => []]],
         tags: ["Admin: Sites"],
         parameters: [
-            new OA\Parameter(
-                name: "status",
-                in: "query",
-                description: "Filter by article status (all, active, suspended)",
-                required: false,
-                schema: new OA\Schema(type: "string", default: "all", enum: ["all", "active", "suspended"])
-            )
+            new OA\Parameter(name: "status", in: "query", description: "Filter by status (active, suspended)", schema: new OA\Schema(type: "string")),
+            new OA\Parameter(name: "search", in: "query", description: "Search by name or domain", schema: new OA\Schema(type: "string"))
         ],
         responses: [
-            new OA\Response(
-                response: 200,
-                description: "Successful operation",
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: "filter", type: "string", example: "all"),
-                        new OA\Property(property: "stats", type: "object"),
-                        new OA\Property(property: "sites_performance", type: "array", items: new OA\Items(type: "object")),
-                        new OA\Property(property: "article_details", type: "array", items: new OA\Items(type: "object"))
-                    ]
-                )
-            ),
+            new OA\Response(response: 200, description: "Successful operation"),
             new OA\Response(response: 401, description: "Unauthenticated")
         ]
     )]
     public function index(Request $request)
     {
-        $statusFilter = $request->query('status', 'all'); // Default to 'all'
+        $query = Site::query();
 
-        // 1. Overview Stats (Global)
-        $activePartnersCount = sites::where('site_status', 'active')->count();
-        $suspendedArticlesCount = Article::where('status', 'suspended')->count();
-        $totalArticleShared = Article::where('status', 'published')->count();
-        $totalMonthlyReached = Article::sum('views_count');
-
-        // 2. Sites with Aggregated Data (Filtered by status if not 'all')
-        $sitesPerformanceQuery = sites::leftJoin('articles', 'sites.id', '=', 'articles.site_id')
-            ->select(
-                'sites.*',
-                DB::raw('COUNT(articles.id) as total_articles'),
-                DB::raw('SUM(articles.views_count) as total_site_views')
-            );
-
-        if ($statusFilter !== 'all') {
-            $sitesPerformanceQuery->where('articles.status', $statusFilter);
+        // Filter by status
+        if ($request->has('status') && $request->status !== 'all') {
+            $query->where('site_status', $request->status);
         }
 
-        $sitesPerformance = $sitesPerformanceQuery->groupBy('sites.id')->get();
-
-        // 3. Detailed Articles List with Site Info (Filtered by status if not 'all')
-        $articleDetailsQuery = Article::join('sites', 'articles.site_id', '=', 'sites.id')
-            ->select(
-                'articles.title',
-                'articles.status',
-                'articles.category',
-                'articles.created_at',
-                'articles.views_count',
-                'sites.site_name',
-                'sites.site_url',
-                'sites.site_contact',
-                'sites.site_description',
-                'sites.id as site_id'
-            );
-
-        if ($statusFilter !== 'all') {
-            $articleDetailsQuery->where('articles.status', $statusFilter);
+        // Search
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('site_name', 'LIKE', "%{$search}%")
+                  ->orWhere('site_url', 'LIKE', "%{$search}%")
+                  ->orWhere('contact_name', 'LIKE', "%{$search}%");
+            });
         }
 
-        $articleDetails = $articleDetailsQuery->orderBy('articles.created_at', 'desc')->get();
+        $sites = $query->orderBy('created_at', 'desc')->get();
+
+        // Transform to frontend format
+        $transformed = $sites->map(function ($site) {
+            return [
+                'id' => $site->id,
+                'name' => $site->site_name,
+                'domain' => $site->site_url,
+                'status' => $site->site_status,
+                'image' => $site->site_logo ?? '/images/HomesTV.png',
+                'contact' => $site->contact,
+                'description' => $site->site_description ?? '',
+                'categories' => $site->site_keywords ?? [],
+                'requested' => $site->created_at?->format('Y-m-d') ?? '',
+                'articles' => $site->articles_count,
+                'monthlyViews' => '0', // Placeholder for future analytics
+            ];
+        });
+
+        // Calculate counts
+        $counts = [
+            'all' => Site::count(),
+            'active' => Site::where('site_status', 'active')->count(),
+            'suspended' => Site::where('site_status', 'suspended')->count(),
+        ];
 
         return response()->json([
-            'filter' => $statusFilter,
-            'stats' => [
-                'active_partners_count' => $activePartnersCount,
-                'suspended_articles_count' => $suspendedArticlesCount,
-                'total_articles_shared' => $totalArticleShared,
-                'total_monthly_reached' => $totalMonthlyReached,
-            ],
-            'sites_performance' => $sitesPerformance,
-            'article_details' => $articleDetails
+            'data' => $transformed,
+            'counts' => $counts,
         ]);
     }
 
-    /**
-     * Store a newly created site in storage.
-     */
+    #[OA\Get(
+        path: "/api/admin/sites/{id}",
+        operationId: "getAdminSite",
+        summary: "Get a single site",
+        description: "Returns details of a specific partner site.",
+        security: [['sanctum' => []]],
+        tags: ["Admin: Sites"],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, description: "Site ID", schema: new OA\Schema(type: "integer"))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Successful operation"),
+            new OA\Response(response: 404, description: "Site not found")
+        ]
+    )]
+    public function show(int $id)
+    {
+        $site = Site::find($id);
+
+        if (!$site) {
+            return response()->json(['error' => 'Site not found'], 404);
+        }
+
+        return response()->json([
+            'id' => $site->id,
+            'name' => $site->site_name,
+            'domain' => $site->site_url,
+            'status' => $site->site_status,
+            'image' => $site->site_logo ?? '/images/HomesTV.png',
+            'contact_name' => $site->contact_name,
+            'contact_email' => $site->contact_email,
+            'description' => $site->site_description ?? '',
+            'categories' => $site->site_keywords ?? [],
+            'created_at' => $site->created_at,
+        ]);
+    }
+
     #[OA\Post(
         path: "/api/admin/sites",
-        operationId: "storeAdminSite",
+        operationId: "createAdminSite",
         summary: "Create a new partner site",
-        description: "Creates a new partner site entry with contact information.",
+        description: "Creates a new partner site entry.",
         security: [['sanctum' => []]],
         tags: ["Admin: Sites"],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["site_name", "domain", "contact_name", "contact_email", "description"],
+                required: ["name", "domain"],
                 properties: [
-                    new OA\Property(property: "site_name", type: "string", example: "Tech News Daily"),
-                    new OA\Property(property: "domain", type: "string", example: "https://technewsdaily.com"),
-                    new OA\Property(property: "logo", type: "string", example: "https://technewsdaily.com/logo.png"),
-                    new OA\Property(property: "contact_name", type: "string", example: "John Smith"),
-                    new OA\Property(property: "contact_email", type: "string", example: "john@technewsdaily.com"),
-                    new OA\Property(property: "description", type: "string", example: "Detailed description of the site partner.")
+                    new OA\Property(property: "name", type: "string"),
+                    new OA\Property(property: "domain", type: "string"),
+                    new OA\Property(property: "contact_name", type: "string"),
+                    new OA\Property(property: "contact_email", type: "string"),
+                    new OA\Property(property: "description", type: "string"),
+                    new OA\Property(property: "categories", type: "array", items: new OA\Items(type: "string")),
+                    new OA\Property(property: "image", type: "string"),
                 ]
             )
         ),
         responses: [
-            new OA\Response(response: 201, description: "Site created successfully", content: new OA\JsonContent(type: "object")),
-            new OA\Response(response: 422, description: "Validation Error"),
-            new OA\Response(response: 401, description: "Unauthenticated")
+            new OA\Response(response: 201, description: "Site created successfully"),
+            new OA\Response(response: 422, description: "Validation error")
         ]
     )]
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'site_name' => 'required|string|max:255',
-            'domain' => 'required|string|url|max:255',
-            'logo' => 'nullable|string', // URL or base64
-            'contact_name' => 'required|string|max:255',
-            'contact_email' => 'required|email|max:255',
-            'description' => 'required|string',
+            'name' => 'required|string|max:255',
+            'domain' => 'required|string|max:255',
+            'contact_name' => 'nullable|string|max:255',
+            'contact_email' => 'nullable|email|max:255',
+            'description' => 'nullable|string',
+            'categories' => 'nullable|array',
+            'image' => 'nullable|string',
         ]);
 
-        $site = sites::create([
-            'site_name' => $validated['site_name'],
+        $site = Site::create([
+            'site_name' => $validated['name'],
             'site_url' => $validated['domain'],
-            'site_logo' => $validated['logo'] ?? null,
-            'contact_name' => $validated['contact_name'],
-            'contact_email' => $validated['contact_email'],
-            'site_description' => $validated['description'],
-            'site_status' => 'active', // Default to active
+            'site_logo' => $validated['image'] ?? null,
+            'site_description' => $validated['description'] ?? null,
+            'site_keywords' => $validated['categories'] ?? [],
+            'site_status' => 'active',
+            'contact_name' => $validated['contact_name'] ?? null,
+            'contact_email' => $validated['contact_email'] ?? null,
         ]);
 
         return response()->json([
             'message' => 'Site created successfully',
-            'site' => $site
+            'site' => $site,
         ], 201);
+    }
+
+    #[OA\Put(
+        path: "/api/admin/sites/{id}",
+        operationId: "updateAdminSite",
+        summary: "Update a partner site",
+        description: "Updates an existing partner site.",
+        security: [['sanctum' => []]],
+        tags: ["Admin: Sites"],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, description: "Site ID", schema: new OA\Schema(type: "integer"))
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "name", type: "string"),
+                    new OA\Property(property: "domain", type: "string"),
+                    new OA\Property(property: "contact_name", type: "string"),
+                    new OA\Property(property: "contact_email", type: "string"),
+                    new OA\Property(property: "description", type: "string"),
+                    new OA\Property(property: "categories", type: "array", items: new OA\Items(type: "string")),
+                    new OA\Property(property: "image", type: "string"),
+                    new OA\Property(property: "status", type: "string", enum: ["active", "suspended"]),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: "Site updated successfully"),
+            new OA\Response(response: 404, description: "Site not found")
+        ]
+    )]
+    public function update(Request $request, int $id)
+    {
+        $site = Site::find($id);
+
+        if (!$site) {
+            return response()->json(['error' => 'Site not found'], 404);
+        }
+
+        $validated = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'domain' => 'sometimes|string|max:255',
+            'contact_name' => 'nullable|string|max:255',
+            'contact_email' => 'nullable|email|max:255',
+            'description' => 'nullable|string',
+            'categories' => 'nullable|array',
+            'image' => 'nullable|string',
+            'status' => 'sometimes|in:active,suspended',
+        ]);
+
+        $site->update([
+            'site_name' => $validated['name'] ?? $site->site_name,
+            'site_url' => $validated['domain'] ?? $site->site_url,
+            'site_logo' => $validated['image'] ?? $site->site_logo,
+            'site_description' => $validated['description'] ?? $site->site_description,
+            'site_keywords' => $validated['categories'] ?? $site->site_keywords,
+            'site_status' => $validated['status'] ?? $site->site_status,
+            'contact_name' => $validated['contact_name'] ?? $site->contact_name,
+            'contact_email' => $validated['contact_email'] ?? $site->contact_email,
+        ]);
+
+        return response()->json([
+            'message' => 'Site updated successfully',
+            'site' => $site->fresh(),
+        ]);
+    }
+
+    #[OA\Delete(
+        path: "/api/admin/sites/{id}",
+        operationId: "deleteAdminSite",
+        summary: "Delete a partner site",
+        description: "Deletes a partner site.",
+        security: [['sanctum' => []]],
+        tags: ["Admin: Sites"],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, description: "Site ID", schema: new OA\Schema(type: "integer"))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Site deleted successfully"),
+            new OA\Response(response: 404, description: "Site not found")
+        ]
+    )]
+    public function destroy(int $id)
+    {
+        $site = Site::find($id);
+
+        if (!$site) {
+            return response()->json(['error' => 'Site not found'], 404);
+        }
+
+        $site->delete();
+
+        return response()->json([
+            'message' => 'Site deleted successfully',
+        ]);
+    }
+
+    #[OA\Patch(
+        path: "/api/admin/sites/{id}/toggle-status",
+        operationId: "toggleSiteStatus",
+        summary: "Toggle site status",
+        description: "Toggles a site between active and suspended status.",
+        security: [['sanctum' => []]],
+        tags: ["Admin: Sites"],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, description: "Site ID", schema: new OA\Schema(type: "integer"))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Status toggled successfully"),
+            new OA\Response(response: 404, description: "Site not found")
+        ]
+    )]
+    public function toggleStatus(int $id)
+    {
+        $site = Site::find($id);
+
+        if (!$site) {
+            return response()->json(['error' => 'Site not found'], 404);
+        }
+
+        $site->site_status = $site->site_status === 'active' ? 'suspended' : 'active';
+        $site->save();
+
+        return response()->json([
+            'message' => 'Site status toggled successfully',
+            'site' => $site,
+        ]);
+    }
+
+    #[OA\Get(
+        path: "/api/admin/sites/names",
+        operationId: "getSiteNames",
+        summary: "Get list of site names for publishing",
+        description: "Returns a simple list of active site names for the article publish modal.",
+        security: [['sanctum' => []]],
+        tags: ["Admin: Sites"],
+        responses: [
+            new OA\Response(response: 200, description: "Successful operation")
+        ]
+    )]
+    public function names()
+    {
+        $sites = Site::where('site_status', 'active')
+            ->orderBy('site_name')
+            ->pluck('site_name');
+
+        return response()->json($sites);
     }
 }

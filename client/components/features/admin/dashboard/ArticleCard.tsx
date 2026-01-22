@@ -5,7 +5,7 @@ import StatusBadge, { StatusType } from '@/components/features/admin/shared/Stat
 import BaseArticleCard from "@/components/features/admin/shared/BaseArticleCard";
 
 interface ArticleCardProps {
-    id: number;
+    id: number | string;
     image: string;
     category: string;
     location: string;
@@ -13,6 +13,7 @@ interface ArticleCardProps {
     date: string;
     views: string;
     status: StatusType;
+    onClick?: () => void;
 }
 
 /**
@@ -32,6 +33,7 @@ export default function ArticleCard(props: ArticleCardProps) {
                 status: props.status
             }}
             variant="compact"
+            onClick={props.onClick}
         />
     );
 }

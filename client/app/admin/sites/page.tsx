@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
 import StatCard from "@/components/features/admin/shared/StatCard";
 import SitesFilters from "@/components/features/admin/sites/SitesFilters";
 import SiteListItem from "@/components/features/admin/sites/SiteListItem";
 import SiteEditorModal from "@/components/features/admin/sites/SiteEditorModal";
 import Pagination from "@/components/features/admin/shared/Pagination";
-import { sitesData, Site } from "@/app/admin/sites/data";
+import { getSites, createSite, updateSite, deleteSite, toggleSiteStatus, Site } from "@/lib/api/admin/sites";
 import useUrlFilters from '@/hooks/useUrlFilters';
 import usePagination from '@/hooks/usePagination';
-import { Plus, CheckCircle, XCircle, Link as LinkIcon, Users } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, Link as LinkIcon, Users, Loader2 } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton";
 
 // URL Filter configuration
 const URL_FILTERS_CONFIG = {
@@ -29,76 +30,85 @@ export default function SitesPage() {
     const activeTab = filters.status as 'all' | 'active' | 'suspended';
 
     // Local state
+    const [isLoading, setIsLoading] = useState(true);
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [editingSite, setEditingSite] = useState<Site | undefined>(undefined);
-    const [sitesList, setSitesList] = useState<Site[]>(sitesData);
+    const [sitesList, setSitesList] = useState<Site[]>([]);
+    const [counts, setCounts] = useState({ all: 0, active: 0, suspended: 0 });
 
     // Pagination
     const pagination = usePagination({ totalPages: 1 });
 
-    // Counts for tabs
-    const counts = useMemo(() => ({
-        all: sitesList.length,
-        active: sitesList.filter(site => site.status === 'active').length,
-        suspended: sitesList.filter(site => site.status === 'suspended').length,
-    }), [sitesList]);
+    // Fetch Data
+    const fetchData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const response = await getSites({
+                status: activeTab,
+                search: filters.search
+            });
+            setSitesList(response.data);
+            setCounts(response.counts);
+            // In a real paginated API, we'd update totalPages here from response meta
+        } catch (error) {
+            console.error("Failed to fetch sites:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [activeTab, filters.search]);
 
-    // Calculate total articles and monthly views
-    const totalArticles = useMemo(() => {
-        return sitesList.reduce((sum, site) => sum + site.articles, 0);
-    }, [sitesList]);
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
-    const totalMonthlyViews = useMemo(() => {
-        return sitesList.reduce((sum, site) => {
-            const views = parseInt(site.monthlyViews.replace(/,/g, '')) || 0;
-            return sum + views;
-        }, 0);
-    }, [sitesList]);
+    // Calculate total articles and monthly views (client-side aggregation for now)
+    const totalArticles = sitesList.reduce((sum, site) => sum + site.articles, 0);
+    const totalMonthlyViews = sitesList.reduce((sum, site) => {
+        const views = parseInt(site.monthlyViews.replace(/,/g, '')) || 0;
+        return sum + views;
+    }, 0);
 
-    // Filter logic
-    const filteredSites = useMemo(() => {
-        return sitesList.filter(site => {
-            const matchesTab = activeTab === 'all' || 
-                               (activeTab === 'active' && site.status === 'active') ||
-                               (activeTab === 'suspended' && site.status === 'suspended');
-            const matchesSearch = !filters.search ||
-                site.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-                site.domain.toLowerCase().includes(filters.search.toLowerCase()) ||
-                site.contact.toLowerCase().includes(filters.search.toLowerCase());
-            return matchesTab && matchesSearch;
-        });
-    }, [sitesList, activeTab, filters.search]);
-
-    const handleToggleStatus = (id: number) => {
+    const handleToggleStatus = async (id: number) => {
         const site = sitesList.find(s => s.id === id);
         if (site) {
             const action = site.status === 'active' ? 'suspend' : 'activate';
             if (confirm(`Are you sure you want to ${action} ${site.name}?`)) {
-                setSitesList(prev => prev.map(s =>
-                    s.id === id ? { ...s, status: s.status === 'active' ? 'suspended' : 'active' } : s
-                ));
+                try {
+                    await toggleSiteStatus(id);
+                    fetchData(); // Refresh list
+                } catch (error) {
+                    console.error("Failed to toggle status:", error);
+                    alert("Failed to update status. Please try again.");
+                }
             }
         }
     };
 
-    const handleDeleteSite = (id: number) => {
+    const handleDeleteSite = async (id: number) => {
         const site = sitesList.find(s => s.id === id);
         if (site && confirm(`Are you sure you want to delete ${site.name}? This action cannot be undone.`)) {
-            setSitesList(prev => prev.filter(s => s.id !== id));
+            try {
+                await deleteSite(id);
+                fetchData(); // Refresh
+            } catch (error) {
+                console.error("Failed to delete site:", error);
+                alert("Failed to delete site.");
+            }
         }
     };
 
-    const handleSaveSite = (data: any) => {
-        if (editingSite) {
-            setSitesList(prev => prev.map(site => 
-                site.id === editingSite.id ? { ...site, ...data, id: editingSite.id } : site
-            ));
-        } else {
-            const newSite: Site = {
-                ...data,
-                id: Date.now(),
-            };
-            setSitesList(prev => [newSite, ...prev]);
+    const handleSaveSite = async (data: any) => {
+        try {
+            if (editingSite) {
+                await updateSite(editingSite.id, data);
+            } else {
+                await createSite(data);
+            }
+            setIsEditorOpen(false);
+            fetchData(); // Refresh
+        } catch (error) {
+            console.error("Failed to save site:", error);
+            alert("Failed to save site details.");
         }
     };
 
@@ -116,35 +126,43 @@ export default function SitesPage() {
             />
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-4 gap-6 mb-8">
-                <StatCard
-                    title="Active Partners"
-                    value={counts.active}
-                    trend="Connected & Publishing"
-                    iconName="CheckCircle"
-                    iconColor="text-[#10b981]"
-                />
-                <StatCard
-                    title="Suspended"
-                    value={counts.suspended}
-                    trend="Temporarily Inactive"
-                    iconName="XCircle"
-                    iconColor="text-[#ef4444]"
-                />
-                <StatCard
-                    title="Total Articles Shared"
-                    value={totalArticles.toLocaleString()}
-                    trend="Across all partners"
-                    iconName="Link"
-                    iconColor="text-[#3b82f6]"
-                />
-                <StatCard
-                    title="Total Monthly Reach"
-                    value={`${(totalMonthlyViews / 1000000).toFixed(1)}M`}
-                    trend="Combined views/month"
-                    iconName="Users"
-                    iconColor="text-[#8b5cf6]"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {isLoading ? (
+                    Array(4).fill(0).map((_, i) => (
+                        <Skeleton key={i} className="h-[120px] rounded-xl bg-white" />
+                    ))
+                ) : (
+                    <>
+                        <StatCard
+                            title="Active Partners"
+                            value={counts.active}
+                            trend="Connected & Publishing"
+                            iconName="CheckCircle"
+                            iconColor="text-[#10b981]"
+                        />
+                        <StatCard
+                            title="Suspended"
+                            value={counts.suspended}
+                            trend="Temporarily Inactive"
+                            iconName="XCircle"
+                            iconColor="text-[#ef4444]"
+                        />
+                        <StatCard
+                            title="Total Articles Shared"
+                            value={totalArticles.toLocaleString()}
+                            trend="Across all partners"
+                            iconName="Link"
+                            iconColor="text-[#3b82f6]"
+                        />
+                        <StatCard
+                            title="Total Monthly Reach"
+                            value={`${(totalMonthlyViews / 1000000).toFixed(1)}M`}
+                            trend="Combined views/month"
+                            iconName="Users"
+                            iconColor="text-[#8b5cf6]"
+                        />
+                    </>
+                )}
             </div>
 
             {/* Filters and Search */}
@@ -158,15 +176,19 @@ export default function SitesPage() {
 
             {/* Sites List */}
             <div className="space-y-4">
-                {filteredSites.length > 0 ? (
-                    filteredSites.map((site) => (
+                {isLoading ? (
+                    Array(3).fill(0).map((_, i) => (
+                        <Skeleton key={i} className="h-[100px] rounded-lg bg-white" />
+                    ))
+                ) : sitesList.length > 0 ? (
+                    sitesList.map((site) => (
                         <SiteListItem
                             key={site.id}
                             site={site}
                             onToggleStatus={handleToggleStatus}
                             onDelete={handleDeleteSite}
-                            onEdit={(site) => {
-                                setEditingSite(site);
+                            onEdit={(site: any) => {
+                                setEditingSite(site as Site);
                                 setIsEditorOpen(true);
                             }}
                         />

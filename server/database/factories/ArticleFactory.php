@@ -17,6 +17,8 @@ class ArticleFactory extends Factory
         $categories = ['Real Estate', 'Business', 'Politics', 'Technology', 'Economy', 'Tourism'];
 
         return [
+            'id' => $articleId = $this->faker->uuid(),
+            'article_id' => $articleId,
             'title' => $this->faker->sentence(),
             'summary' => $this->faker->paragraph(),
             'content' => $this->faker->paragraphs(3, true),
@@ -25,7 +27,7 @@ class ArticleFactory extends Factory
             'views_count' => $this->faker->numberBetween(0, 1000),
             'country' => $this->faker->randomElement($countries),
             'category' => $this->faker->randomElement($categories), // ADDED string
-            'distributed_in' => $this->faker->randomElement(['Main Portal', 'Filipino Homes', 'Rent.ph', 'HomesPh', 'Bayanihan']),
+            'published_sites' => [$this->faker->randomElement(['Main News Portal', 'FilipinoHomes', 'Rent.ph', 'Homes', 'Bayanihan'])],
             // 'category_id' => Category::inRandomOrder()->first()->id ?? 1, // REMOVED
             // 'user_id' => User::inRandomOrder()->first()->id ?? User::factory(), // REMOVED
             'created_at' => $this->faker->dateTimeBetween('-1 year', 'now'),

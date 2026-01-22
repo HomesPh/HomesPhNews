@@ -83,7 +83,7 @@ export default function ArticleHeader({
 
       {/* Title and Subtitle */}
       <div className="flex flex-col gap-[20px] mb-6">
-        <h1 className="font-bold text-[35px] text-[#111827] tracking-[-0.5px] leading-[1.15]">
+        <h1 className="font-bold text-[42px] md:text-[48px] text-[#111827] tracking-tight leading-[1.1]">
           {title}
         </h1>
         <p className="font-normal text-[20px] text-[#4b5563] tracking-[-0.5px] leading-[1.2]">

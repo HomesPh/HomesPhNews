@@ -72,3 +72,61 @@ export async function updatePendingArticle(
         throw error;
     }
 }
+
+/**
+ * Publish a pending article (moves from Redis to MySQL database)
+ */
+export async function publishArticle(
+    id: string,
+    publishedSites: string[],
+    customTitles?: Record<string, string>
+): Promise<{ message: string; article: Article }> {
+    try {
+        const response = await api.post<{ message: string; article: Article }>(
+            `/admin/articles/${id}/publish`,
+            {
+                published_sites: publishedSites,
+                custom_titles: customTitles,
+            }
+        );
+        console.log(`[API] Publish Article ${id}: ${response.status} OK`);
+        return response.data;
+    } catch (error: any) {
+        console.error(`[API] Publish Article ${id} Failed: ${error.response?.status || 'Unknown error'}`);
+        throw error;
+    }
+}
+
+/**
+ * Reject a pending article (moves from Redis to MySQL with rejected status)
+ */
+export async function rejectArticle(
+    id: string,
+    reason?: string
+): Promise<{ message: string; article: Article }> {
+    try {
+        const response = await api.post<{ message: string; article: Article }>(
+            `/admin/articles/${id}/reject`,
+            { reason }
+        );
+        console.log(`[API] Reject Article ${id}: ${response.status} OK`);
+        return response.data;
+    } catch (error: any) {
+        console.error(`[API] Reject Article ${id} Failed: ${error.response?.status || 'Unknown error'}`);
+        throw error;
+    }
+}
+
+/**
+ * Create a new article directly in the database
+ */
+export async function createArticle(payload: any): Promise<Article> {
+    try {
+        const response = await api.post<Article>('/admin/articles', payload);
+        console.log(`[API] Create Article: ${response.status} OK`);
+        return response.data;
+    } catch (error: any) {
+        console.error(`[API] Create Article Failed: ${error.response?.status || 'Unknown error'}`);
+        throw error;
+    }
+}

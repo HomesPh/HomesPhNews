@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { Calendar, Eye, MapPin } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 
 interface BaseArticleCardProps {
     article: {
@@ -139,15 +140,18 @@ export default function BaseArticleCard({
 
             {/* Content */}
             <div className="flex-1 flex flex-col justify-between min-h-[106px]">
-                {/* Category and Location */}
-                <div className="flex items-center gap-2 mb-2">
-                    <span className="px-3 py-1 bg-white border border-[#e5e7eb] rounded-[4px] text-[12px] font-semibold text-[#111827] tracking-[-0.5px] uppercase">
-                        {article.category}
-                    </span>
-                    <span className="text-[14px] text-[#111827]">|</span>
-                    <span className="text-[12px] font-semibold text-[#111827] tracking-[-0.5px] uppercase">
-                        {location}
-                    </span>
+                {/* Category, Location, and Status */}
+                <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                        <span className="px-3 py-1 bg-white border border-[#e5e7eb] rounded-[4px] text-[12px] font-semibold text-[#111827] tracking-[-0.5px] uppercase">
+                            {article.category}
+                        </span>
+                        <span className="text-[14px] text-[#111827]">|</span>
+                        <span className="text-[12px] font-semibold text-[#111827] tracking-[-0.5px] uppercase">
+                            {location}
+                        </span>
+                    </div>
+                    <StatusBadge status={article.status as any} />
                 </div>
 
                 {/* Title */}

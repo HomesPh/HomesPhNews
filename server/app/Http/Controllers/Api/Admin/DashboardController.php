@@ -10,6 +10,13 @@ use OpenApi\Attributes as OA;
 
 class DashboardController extends Controller
 {
+    protected $redisService;
+
+    public function __construct(\App\Services\RedisArticleService $redisService)
+    {
+        $this->redisService = $redisService;
+    }
+
     #[OA\Get(
         path: "/api/admin/stats",
         operationId: "getAdminDashboardStats",
@@ -24,33 +31,33 @@ class DashboardController extends Controller
     )]
     public function getStats()
     {
-        // 1. Get the total number of articles
-        $totalArticles = Article::count();
-
-        // 2. Get the number of articles with 'published' status
+        // 1. Get the number of articles with 'published' status (MySQL)
         $totalPublished = Article::where('status', 'published')->count();
 
-        // 3. Get the number of articles with 'pending review' status
-        $pendingReview = Article::where('status', 'pending review')->count();
+        // 2. Get the number of articles pending in Redis (Pending Review)
+        // Redis holds the raw scraper data which is considered 'Pending Review' until published
+        $redisStats = $this->redisService->getStats();
+        $pendingReview = $redisStats['total_articles'] ?? 0;
+
+        // 3. Total Articles = Published (DB) + Pending (Redis)
+        $totalArticles = $totalPublished + $pendingReview;
 
         // 4. Get the sum of all views from the 'views_count' column
         $totalViews = Article::sum('views_count');
 
-        // 5. Get the number of articles distributed to users (top 5)
-        $results = Article::query()
-            ->join('sites', 'articles.site_id', '=', 'sites.id')
-            ->select('sites.site_name as distributed_in', DB::raw('COUNT(articles.id) as published_count'))
-            ->where('articles.status', 'published')
-            ->groupBy('sites.site_name')
-            ->orderBy('published_count', 'asc')
-            ->take(5)
-            ->get();
+        // 5. Calculate distribution counts using Site relationship
+        $sitesWithCounts = \App\Models\Site::withCount('articles')->get();
+        
+        $results = $sitesWithCounts->map(function ($site) {
+             return ['distributed_in' => $site->site_name, 'published_count' => $site->articles_count];
+        })->sortByDesc('published_count')->take(5)->values();
 
         // 6. Get the 5 most recent articles
         $recentArticles = Article::query()
+            ->where('status', 'published')
             ->latest() // This is a shortcut for ->orderBy('created_at', 'desc')
             ->take(5)  // Limit the result to 5 articles
-            ->get(['id', 'content', 'category', 'created_at', 'views_count']); // Only get the columns you need
+            ->get(['id', 'title', 'image', 'category', 'country', 'created_at', 'views_count', 'status']); // Only get the columns you need
 
         // Return all statistics in a single JSON response
         return response()->json([
