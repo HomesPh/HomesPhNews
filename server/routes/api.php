@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\User\ArticleController as UserArticleController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\SystemController;
+<<<<<<< HEAD
+=======
 use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\SiteController;
 use App\Http\Controllers\Api\Admin\EventController;

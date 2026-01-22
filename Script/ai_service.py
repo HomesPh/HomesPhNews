@@ -21,6 +21,7 @@ class AIProcessor:
             self.text_model = self._init_text_model()
         else:
             print("⚠️ GOOGLE_AI_API_KEY not found.")
+            print("   💡 Please set GOOGLE_AI_API_KEY in your .env file.")
             self.text_model = None
 
     def _init_text_model(self):
@@ -32,9 +33,14 @@ class AIProcessor:
                 model.generate_content("test", generation_config={"max_output_tokens": 1})
                 print(f"✅ AI Service: Using model {model_name}")
                 return model
-            except:
+            except Exception as e:
                 continue
         print("⚠️ Could not initialize any text model.")
+        print("   ❌ Possible causes:")
+        print("      • API key invalid, no billing linked, or quota exhausted")
+        print("      • Model failed to initialize, so it's None")
+        print("   💡 Fix: Link a billing account at https://console.cloud.google.com/billing")
+        print("   💡 Check quota at: https://aistudio.google.com/app/apikey")
         return None
 
     def detect_country(self, title, content):
@@ -99,6 +105,9 @@ class AIProcessor:
             
         except Exception as e:
             print(f"❌ Rewrite Error: {e}")
+            if "'NoneType'" in str(e):
+                print("   ❌ Text model is None - Model failed to initialize")
+                print("   💡 API key invalid, no billing linked, or quota exhausted")
             return f"AI: {original_title}", original_content, category
 
     def generate_image_prompt(self, title, content, country, category):
@@ -161,6 +170,7 @@ class AIProcessor:
                 continue
         
         print("⚠️ Image generation failed. Using placeholder.")
+        print("   💡 Image generation uses different quota (Imagen) - might have separate limits")
         return "https://placehold.co/800x450?text=News+Image"
 
 
