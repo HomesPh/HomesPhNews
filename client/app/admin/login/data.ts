@@ -21,7 +21,7 @@ export const loginData = {
     },
     submitButtonLabel: "Sign In",
     logo: {
-        title: "Global News",
-        subtitle: "Network"
+        title: "HomesTV",
+        subtitle: ""
     }
 }

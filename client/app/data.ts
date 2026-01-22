@@ -4,32 +4,36 @@
  */
 export const Countries: { id: string; label: string; }[] = [
   {
-    id: "all",
+    id: "Global",
     label: "All Countries"
   },
   {
-    id: "ca",
+    id: "Canada",
     label: "Canada"
   },
   {
-    id: "ph",
+    id: "Philippines",
     label: "Philippines"
   },
   {
-    id: "us",
+    id: "USA",
     label: "USA"
   },
   {
-    id: "ae",
+    id: "Dubai",
     label: "Dubai"
   },
   {
-    id: "sg",
+    id: "Singapore",
     label: "Singapore"
   },
   {
-    id: "eu",
+    id: "Europe",
     label: "Europe"
+  },
+  {
+    id: "as",
+    label: "Asia"
   }
 ]
 
@@ -39,31 +43,31 @@ export const Countries: { id: string; label: string; }[] = [
  */
 export const Categories: { id: string; label: string; }[] = [
   {
-    id: "all",
+    id: "All",
     label: "All News"
   },
   {
-    id: "real-estate",
+    id: "Real Estate",
     label: "Real Estate"
   },
   {
-    id: "business",
+    id: "Business",
     label: "Business"
   },
   {
-    id: "politics",
+    id: "Politics",
     label: "Politics"
   },
   {
-    id: "tech",
+    id: "Technology",
     label: "Technology"
   },
   {
-    id: "ecnonomy",
+    id: "Economy",
     label: "Economy"
   },
   {
-    id: "tourism",
+    id: "Tourism",
     label: "Tourism"
   }
 ];

@@ -1,71 +1,94 @@
 "use client";
 
-import { Globe } from "lucide-react";
-import { Button } from "../../ui/button";
-import { Input } from "../../ui/input";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { Search } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import SubscribeModal from "./SubscribeModal";
+import BreakingNewsTicker from "./BreakingNewsTicker";
 
 export default function LandingHeader() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+  const [isSubscribeModalOpen, setIsSubscribeModalOpen] = useState(false);
 
-  // this changes search parameter 'q' 
-  // this changes search parameter 'q' 
-  const handleSearch = (value: string) => {
-    // We want to navigate to /search page with ?q=value
-    // If empty, navigate back to home or the search page without query
+  const breakingNews = [
+    "AI Revolution: How Machine Learning is Transforming Healthcare in North America",
+    "Canada researchers develop groundbreaking AI system for early cancer detection",
+    "Global markets react to new tech regulations in major economies",
+    "Future of smart cities: Singapore unveils integrated AI management platform"
+  ];
 
-    if (value.trim()) {
-      router.push(`/search?q=${encodeURIComponent(value)}`);
+  // Sync state with URL parameter if it changes externally
+  useEffect(() => {
+    setSearchQuery(searchParams.get("q") || "");
+  }, [searchParams]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
     } else {
-      // If cleared, go back to home or just plain search page
-      router.push('/');
+      router.push("/");
     }
-  }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
 
   return (
-    <header className="w-full border-b bg-white z-50">
-      <div className="max-w-7xl mx-auto flex flex-row justify-between items-center py-4 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-            {/* Logo */}
-            <div className="bg-red-600 text-white rounded-2xl flex justify-center items-center w-12 h-12 sm:w-14 sm:h-14 shrink-0 transition-transform hover:scale-105">
-              <Globe className="w-6 h-6 sm:w-7 sm:h-7" />
-            </div>
+    <>
+      <BreakingNewsTicker items={breakingNews} />
 
-            {/* Text container */}
+      <header className="bg-white w-full border-b border-[#e5e7eb]">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between px-4 md:px-[110px] py-[16px]">
+          <Link
+            href="/"
+            className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity"
+          >
+            <img
+              src="/images/HomesTV.png"
+              alt="HomesTV"
+              className="h-10 w-auto object-contain"
+            />
             <div className="flex flex-col">
-              <h1 className="text-lg sm:text-xl font-bold leading-tight">Global News</h1>
-              <p className="text-xs text-gray-500 leading-tight">Network</p>
+              <p className="font-bold text-[20px] text-[#111827] tracking-[-0.5px] leading-tight">
+                HomesTV
+              </p>
             </div>
           </Link>
-        </div>
 
-        <div className="flex flex-row items-center gap-2 sm:gap-3">
-          {/* Subscribe button - Outline on mobile, default on desktop */}
-          <Button
-            variant="default"
-            className="hidden sm:inline-flex hover:bg-red-700 transition-colors"
-          >
-            Subscribe
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="sm:hidden"
-          >
-            Subscribe
-          </Button>
+          {/* Search and Subscribe */}
+          <div className="flex gap-[20px] items-center">
+            <button
+              onClick={() => setIsSubscribeModalOpen(true)}
+              className="hidden md:flex bg-[#030213] text-white px-[10px] py-[5px] rounded-[6px] font-semibold text-[14px] tracking-[-0.5px] hover:bg-[#1a1829] transition-colors"
+            >
+              Subscribe
+            </button>
 
-          {/* Search input - Hidden on mobile, visible on tablet+ */}
-          <Input
-            className="hidden md:inline-flex w-48 lg:w-64 focus:ring-2 focus:ring-red-500 transition-all"
-            placeholder="Search news..."
-            onChange={(e) => handleSearch(e.target.value)}
-          />
+            <form onSubmit={handleSearch} className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleInputChange}
+                placeholder="Search News"
+                className="bg-white border border-[#c10007] rounded-[8px] px-[10px] py-[7px] pl-[35px] w-[200px] md:w-[272px] font-medium text-[14px] text-[#374151] tracking-[-0.5px] focus:outline-none focus:ring-2 focus:ring-[#c10007]"
+              />
+              <div className="absolute left-[10px] top-1/2 -translate-y-1/2 size-[18px]">
+                <Search className="w-full h-full text-[#4B5563]" />
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      <SubscribeModal
+        isOpen={isSubscribeModalOpen}
+        onClose={() => setIsSubscribeModalOpen(false)}
+      />
+    </>
   );
 }

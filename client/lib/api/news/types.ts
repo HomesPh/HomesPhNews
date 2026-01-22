@@ -1,37 +1,51 @@
-export interface Author {
-  name: string;
-  imageUrl: string;
-}
-
-export interface RelatedArticle {
-  id: string;
-  title: string;
-  category: string;
-  image: string;
-  href: string;
-}
+export type ISOString = string;
 
 export interface Article {
-  id: string | number;
+  id: string;
   country: string;
   category: string;
   title: string;
-  subtitle: string;
-  author: Author;
-  featuredImageUrl: string;
-  createdAt: string; // ISO Date string
-  views: number;
   content: string;
-  topics: string[];
-  relatedArticles: RelatedArticle[];
+  keywords: string;
+  original_url: string;
+  image_url: string;
+  timestamp: ISOString;
 }
 
-export interface NewsState {
-  articles: Article[];
+export interface ArticleMini {
+  id: string;
+  country: string;
+  category: string;
+  title: string;
+  image_url: string;
 }
 
-export interface NewsActions {
-  fetchArticles: () => Promise<void>;
+export interface ArticleFilters {
+  search?: string;
+  country?: string;
+  category?: string;
 }
 
-export interface NewsStore extends NewsState, NewsActions { }
+//
+// Responses
+//
+
+export interface LandingPageArticlesResponse {
+  trending: Article[];
+  most_read: Article[];
+  latest_global: Article[];
+  filter_applied: {
+    search?: string | null;
+    country?: string | null;
+    category?: string | null;
+  };
+}
+
+export interface ArticlesListResponse {
+  data: ArticleMini[];
+  meta: {
+    limit: number;
+    offset: number;
+    count: number;
+  };
+}

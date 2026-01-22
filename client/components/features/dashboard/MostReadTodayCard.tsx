@@ -1,6 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 interface MostReadTodayProps {
   title?: string;
@@ -9,37 +11,47 @@ interface MostReadTodayProps {
     title: string;
     views: number;
     imageUrl: string;
+    timeAgo?: string;
   }[];
+  className?: string;
 }
 
-export default function MostReadTodayCard({ title = "Most Read Today", items = [] }: MostReadTodayProps) {
+export default function MostReadTodayCard({ title = "Most Read Today", items = [], className }: MostReadTodayProps) {
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-lg font-bold text-slate-900">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-6">
-        {/* article list */}
+    <div className={cn("bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-sm flex flex-col gap-4", className)}>
+      <h3 className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">
+        {title}
+      </h3>
+
+      <div className="flex flex-col gap-4">
         {items.map((article) => (
-          /* article */
-          <Link key={article.id} href={`/article?id=${article.id}`} className="grid grid-cols-[72px_1fr] gap-4 items-center group hover:bg-slate-50 p-2 rounded-lg transition-colors">
-            {/* image */}
-            <div className="relative w-full aspect-square">
+          <Link
+            key={article.id}
+            href={`/article?id=${article.id}`}
+            className="flex gap-3 cursor-pointer group"
+          >
+            {/* Image */}
+            <div className="relative w-[80px] h-[80px] rounded-[8px] overflow-hidden shrink-0">
               <Image
                 src={article.imageUrl}
-                alt="article image"
+                alt={article.title}
                 fill
-                className="object-cover rounded-md"
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
             </div>
-            {/* everything else */}
-            <div className="flex flex-col">
-              <span className="font-semibold leading-tight group-hover:text-blue-600 transition-colors">{article.title}</span>
-              <span className="text-sm text-gray-500">{article.views.toLocaleString()}</span>
+
+            {/* Content */}
+            <div className="flex-1 flex flex-col gap-1">
+              <h4 className="line-clamp-2 text-[14px] font-bold leading-tight text-black tracking-[-0.5px] transition-colors group-hover:text-[#c10007]">
+                {article.title}
+              </h4>
+              <p className="text-[12px] font-normal text-[#6b7280] tracking-[-0.5px]">
+                {article.views.toLocaleString()} views
+              </p>
             </div>
           </Link>
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

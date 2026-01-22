@@ -1,14 +1,13 @@
-import Link from "next/link";
 import ArticleBreadcrumb from "@/components/features/article/ArticleBreadcrumb";
 import ArticleHeader from "@/components/features/article/ArticleHeader";
 import ArticleFeaturedImage from "@/components/features/article/ArticleFeaturedImage";
 import ArticleContent from "@/components/features/article/ArticleContent";
 import ArticleShareBox from "@/components/features/article/ArticleShareBox";
 import RelatedArticles from "@/components/features/article/RelatedArticles";
-
-// dummy article data
-import { articleData } from "./data";
-import { getArticleById } from "../data";
+import AdSpace from "@/components/shared/AdSpace";
+import { getArticleById, getLandingPageArticles } from "@/lib/api";
+import { Categories, Countries } from "@/app/data";
+import { notFound } from "next/navigation";
 
 interface Props {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -17,67 +16,94 @@ interface Props {
 export default async function Article({ searchParams }: Props) {
   const { id } = await searchParams;
   const articleId = Array.isArray(id) ? id[0] : id;
-  const foundArticle = articleId ? getArticleById(articleId) : undefined;
 
-  // Use found article or fallback to dummy data
-  // detailed mapping to handle data structure differences
-  const displayData = foundArticle ? {
-    category: foundArticle.category,
-    location: foundArticle.location,
-    country: foundArticle.location, // breadcrumb uses country, header uses location
-    title: foundArticle.title,
-    subtitle: foundArticle.subtitle || foundArticle.description,
-    author: {
-      name: foundArticle.author?.name || "Unknown Author",
-      image: foundArticle.author?.avatar, // Map avatar to image
-    },
-    date: foundArticle.createdAt || foundArticle.timeAgo,
-    views: parseInt(foundArticle.views) || 0,
-    featuredImageUrl: foundArticle.featuredImageUrl || foundArticle.imageSrc,
-    content: foundArticle.content || foundArticle.description,
-    topics: foundArticle.topics || [],
-    relatedArticles: [], // Todo: implement related articles logic
-  } : {
-    // Adapter for existing dummy data
-    category: articleData.category,
-    location: articleData.country,
-    country: articleData.country,
-    title: articleData.title,
-    subtitle: articleData.subtitle,
-    author: {
-      name: articleData.author.name,
-      image: articleData.author.imageUrl
-    },
-    date: articleData.createdAt,
-    views: articleData.views,
-    featuredImageUrl: articleData.featuredImageUrl,
-    content: articleData.content,
-    topics: articleData.topics,
-    relatedArticles: articleData.relatedArticles
-  };
+  if (!articleId) {
+    notFound();
+  }
+
+  let article;
+  try {
+    article = await getArticleById(articleId);
+  } catch (error) {
+    console.error("Error fetching article:", error);
+    notFound();
+  }
+
+  if (!article) {
+    notFound();
+  }
+
+  // Fetch related articles (same category)
+  // We use getLandingPageArticles and filter by category
+  const relatedResponse = await getLandingPageArticles({ category: article.category });
+  const allRelated = [
+    ...relatedResponse.trending,
+    ...relatedResponse.most_read,
+    ...relatedResponse.latest_global
+  ];
+
+  // Unique articles only, excluding current one
+  const seenIds = new Set();
+  const relatedArticles = allRelated
+    .filter(a => {
+      if (a.id === article?.id || seenIds.has(a.id)) return false;
+      seenIds.add(a.id);
+      return true;
+    })
+    .slice(0, 4)
+    .map(a => ({
+      id: a.id,
+      title: a.title,
+      category: a.category,
+      location: a.country,
+      imageSrc: a.image_url,
+      timeAgo: new Date(a.timestamp).toLocaleDateString(),
+      views: "0" // API doesn't provide view count yet
+    }));
+
+  const getCategoryLabel = (cat: string) => Categories.find(c => c.id.toLowerCase() === cat.toLowerCase() || c.label.toLowerCase() === cat.toLowerCase())?.label || cat;
+  const getCountryLabel = (country: string) => Countries.find(c => c.id.toLowerCase() === country.toLowerCase() || c.label.toLowerCase() === country.toLowerCase())?.label || country;
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <ArticleBreadcrumb category={displayData.category} country={displayData.country} />
-      <ArticleHeader
-        category={displayData.category}
-        location={displayData.location}
-        title={displayData.title}
-        subtitle={displayData.subtitle || ""}
-        author={displayData.author}
-        date={displayData.date}
-        views={displayData.views}
+    <div className="max-w-[1440px] mx-auto px-4 md:px-[110px] py-12">
+      <ArticleBreadcrumb
+        category={getCategoryLabel(article.category)}
+        categoryId={article.category}
+        country={getCountryLabel(article.country)}
+        countryId={article.country}
       />
-      {displayData.featuredImageUrl && (
+      <ArticleHeader
+        category={getCategoryLabel(article.category)}
+        categoryId={article.category}
+        location={getCountryLabel(article.country)}
+        countryId={article.country}
+        title={article.title}
+        subtitle={article.content.replace(/<[^>]*>/g, '').substring(0, 160) + "..."}
+        author={{ name: "HomesPh News" }}
+        date={new Date(article.timestamp).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })}
+        views={0}
+      />
+      {article.image_url && (
         <ArticleFeaturedImage
-          src={displayData.featuredImageUrl}
-          alt={displayData.title}
+          src={article.image_url}
+          alt={article.title}
           caption=""
         />
       )}
-      <ArticleContent content={displayData.content} topics={displayData.topics} />
+
+      <ArticleContent
+        content={article.content}
+        topics={article.keywords ? article.keywords.split(',').map(t => t.trim()) : []}
+      />
       <ArticleShareBox />
-      <RelatedArticles articles={displayData.relatedArticles as any} />
+
+      <AdSpace className="my-8" label="Advertisement Space" width="300x600" height="Leader board Ad" />
+
+      <RelatedArticles articles={relatedArticles} />
     </div>
   );
 }

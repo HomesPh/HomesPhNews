@@ -1,21 +1,23 @@
 import LandingHeader from "@/components/layout/header/LandingHeader";
 import LandingCountryNav from "@/components/layout/nav/LandingCountryNav";
 import LandingCategoryNav from "@/components/layout/nav/LandingCategoryNav";
-import { Categories, Countries } from "../data";
 import LandingFooter from "@/components/layout/footer/LandingFooter";
+import { Categories, Countries } from "@/app/data";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode; }) {
+export default function LandingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <>
+    <div className="min-h-screen bg-[#f9fafb] flex flex-col">
       <LandingHeader />
       <LandingCountryNav countries={Countries} />
       <LandingCategoryNav categories={Categories} />
-      <main className="flex-1 w-full bg-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-          {children}
-        </div>
+      <main className="flex-1">
+        {children}
       </main>
       <LandingFooter />
-    </>
+    </div>
   );
 }
