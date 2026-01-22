@@ -9,14 +9,12 @@ export interface User {
  * It is how the authentication state is stored in the global state.
  */
 export interface AuthState {
-  user: User | null;
   token: string | null;
-  isAuthenticated: boolean;
 }
 
 export interface AuthActions {
-  login: ({ email, password }: { email: string; password: string }) => void;
-  logout: () => void;
+  login: ({ email, password }: { email: string; password: string }) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export interface AuthStore extends AuthState, AuthActions { }
