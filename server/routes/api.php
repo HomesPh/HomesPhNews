@@ -48,19 +48,11 @@ Route::middleware('auth:sanctum')->group(function () {
 // Main feed endpoint with filtering
 Route::get('/article', [UserArticleController::class, 'feed']);
 
-// All articles with pagination
-Route::get('/articles', [UserArticleController::class, 'index']);
-
 // Single article by ID (UUID from Python)
 Route::get('/articles/{id}', [UserArticleController::class, 'show'])
     ->where('id', '[a-f0-9\-]{36}'); // UUID pattern
 
-// Articles by country (e.g., /api/articles/country/Philippines)
-Route::get('/articles/country/{country}', [UserArticleController::class, 'byCountry']);
 
-// Articles by category (e.g., /api/articles/category/Real Estate)
-Route::get('/articles/category/{category}', [UserArticleController::class, 'byCategory'])
-    ->where('category', '[a-zA-Z0-9\s]+'); // Allow spaces
 
 // Latest articles sorted by time
 Route::get('/latest', [UserArticleController::class, 'latest']);

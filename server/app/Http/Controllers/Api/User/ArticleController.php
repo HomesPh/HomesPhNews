@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Article;
 use App\Services\RedisArticleService;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
@@ -75,44 +76,13 @@ class ArticleController extends Controller
     }
 
     #[OA\Get(
-        path: "/api/articles",
-        operationId: "getAllArticles",
-        summary: "Get all articles from Redis",
-        description: "Returns paginated list of all articles stored in Redis.",
-        tags: ["User: Articles"],
-        parameters: [
-            new OA\Parameter(name: "limit", in: "query", description: "Max articles to return (1-100)", schema: new OA\Schema(type: "integer", default: 20)),
-            new OA\Parameter(name: "offset", in: "query", description: "Offset for pagination", schema: new OA\Schema(type: "integer", default: 0))
-        ],
-        responses: [
-            new OA\Response(response: 200, description: "Successful operation", content: new OA\JsonContent(type: "array", items: new OA\Items(type: "object")))
-        ]
-    )]
-    public function index(Request $request)
-    {
-        $limit = min(100, max(1, (int) $request->input('limit', 20)));
-        $offset = max(0, (int) $request->input('offset', 0));
-
-        $articles = $this->redisService->getAllArticles($limit, $offset);
-
-        return response()->json([
-            'data' => $this->redisService->formatSummaries($articles),
-            'meta' => [
-                'limit' => $limit,
-                'offset' => $offset,
-                'count' => count($articles),
-            ]
-        ]);
-    }
-
-    #[OA\Get(
         path: "/api/articles/{id}",
         operationId: "getArticleById",
         summary: "Get a single article by ID",
-        description: "Returns full article data from Redis.",
+        description: "Returns full article data from the database.",
         tags: ["User: Articles"],
         parameters: [
-            new OA\Parameter(name: "id", in: "path", required: true, description: "Article UUID", schema: new OA\Schema(type: "string"))
+            new OA\Parameter(name: "id", in: "path", required: true, description: "Article ID (UUID)", schema: new OA\Schema(type: "string"))
         ],
         responses: [
             new OA\Response(response: 200, description: "Successful operation", content: new OA\JsonContent(type: "object")),
@@ -121,74 +91,20 @@ class ArticleController extends Controller
     )]
     public function show(string $id)
     {
-        $article = $this->redisService->getArticle($id);
+        $article = Article::find($id);
 
         if (!$article) {
-            return response()->json(['error' => 'Article not found'], 404);
+            // Fallback to Redis if not found in DB (useful during migration/transition)
+            $articleData = $this->redisService->getArticle($id);
+            if (!$articleData) {
+                return response()->json(['error' => 'Article not found'], 404);
+            }
+            return response()->json($articleData);
         }
 
         return response()->json($article);
     }
 
-    #[OA\Get(
-        path: "/api/articles/country/{country}",
-        operationId: "getArticlesByCountry",
-        summary: "Get articles by country",
-        description: "Returns articles filtered by country name (e.g., 'Philippines', 'Canada').",
-        tags: ["User: Articles"],
-        parameters: [
-            new OA\Parameter(name: "country", in: "path", required: true, description: "Country name", schema: new OA\Schema(type: "string")),
-            new OA\Parameter(name: "limit", in: "query", description: "Max articles to return", schema: new OA\Schema(type: "integer", default: 20))
-        ],
-        responses: [
-            new OA\Response(response: 200, description: "Successful operation"),
-            new OA\Response(response: 404, description: "No articles found for country")
-        ]
-    )]
-    public function byCountry(string $country, Request $request)
-    {
-        $limit = min(100, max(1, (int) $request->input('limit', 20)));
-        $articles = $this->redisService->getArticlesByCountry($country, $limit);
-
-        if (empty($articles)) {
-            return response()->json(['error' => "No articles found for country: {$country}"], 404);
-        }
-
-        return response()->json([
-            'country' => $country,
-            'data' => $this->redisService->formatSummaries($articles),
-        ]);
-    }
-
-    #[OA\Get(
-        path: "/api/articles/category/{category}",
-        operationId: "getArticlesByCategory",
-        summary: "Get articles by category",
-        description: "Returns articles filtered by category (e.g., 'Real Estate', 'Business').",
-        tags: ["User: Articles"],
-        parameters: [
-            new OA\Parameter(name: "category", in: "path", required: true, description: "Category name", schema: new OA\Schema(type: "string")),
-            new OA\Parameter(name: "limit", in: "query", description: "Max articles to return", schema: new OA\Schema(type: "integer", default: 20))
-        ],
-        responses: [
-            new OA\Response(response: 200, description: "Successful operation"),
-            new OA\Response(response: 404, description: "No articles found for category")
-        ]
-    )]
-    public function byCategory(string $category, Request $request)
-    {
-        $limit = min(100, max(1, (int) $request->input('limit', 20)));
-        $articles = $this->redisService->getArticlesByCategory($category, $limit);
-
-        if (empty($articles)) {
-            return response()->json(['error' => "No articles found for category: {$category}"], 404);
-        }
-
-        return response()->json([
-            'category' => $category,
-            'data' => $this->redisService->formatSummaries($articles),
-        ]);
-    }
 
     #[OA\Get(
         path: "/api/latest",
@@ -229,7 +145,7 @@ class ArticleController extends Controller
     public function search(Request $request)
     {
         $query = $request->input('q', '');
-        
+
         if (strlen($query) < 2) {
             return response()->json(['error' => 'Search query must be at least 2 characters'], 400);
         }

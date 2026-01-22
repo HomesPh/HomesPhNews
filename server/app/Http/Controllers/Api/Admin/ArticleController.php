@@ -27,6 +27,7 @@ class ArticleController extends Controller
             new OA\Parameter(name: "end_date", in: "query", description: "End date for filtering (YYYY-MM-DD)", schema: new OA\Schema(type: "string", format: "date")),
             new OA\Parameter(name: "sort_by", in: "query", description: "Column to sort by (created_at, views_count, title)", schema: new OA\Schema(type: "string")),
             new OA\Parameter(name: "sort_direction", in: "query", description: "Sort direction (asc, desc)", schema: new OA\Schema(type: "string")),
+            new OA\Parameter(name: "topics", in: "query", description: "Filter by topics (comma-separated)", schema: new OA\Schema(type: "string")),
             new OA\Parameter(name: "page", in: "query", description: "The page number to retrieve", schema: new OA\Schema(type: "integer"))
         ],
         responses: [
@@ -38,31 +39,40 @@ class ArticleController extends Controller
     public function index(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'status'       => ['nullable', 'string', Rule::in(['published', 'pending review', 'rejected'])],
-            'category'     => 'nullable|string|max:50',
-            'country'      => 'nullable|string|size:2',
-            'search'       => 'nullable|string|max:100',
-            'start_date'   => 'nullable|date',
-            'end_date'     => 'nullable|date|after_or_equal:start_date',
-            'sort_by'      => ['nullable', 'string', Rule::in(['created_at', 'views_count', 'title'])],
+            'status' => ['nullable', 'string', Rule::in(['published', 'pending review', 'rejected'])],
+            'category' => 'nullable|string|max:50',
+            'country' => 'nullable|string|size:2',
+            'search' => 'nullable|string|max:100',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'sort_by' => ['nullable', 'string', Rule::in(['created_at', 'views_count', 'title'])],
             'sort_direction' => ['nullable', 'string', Rule::in(['asc', 'desc'])],
-            'per_page'     => 'nullable|integer|min:5|max:100',
+            'per_page' => 'nullable|integer|min:5|max:100',
+            'topics' => 'nullable|string',
         ]);
-        if ($validator->fails()) { return response()->json($validator->errors(), 422); }
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
         $validated = $validator->validated();
         $perPage = $validated['per_page'] ?? 15;
         $sortBy = $validated['sort_by'] ?? 'created_at';
         $sortDirection = $validated['sort_direction'] ?? 'desc';
         $filterBaseQuery = Article::query()
-            ->when($validated['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
-            ->when($validated['search'] ?? null, fn ($q, $search) => $q->where(fn ($subQ) => $subQ->where('title', 'LIKE', "%{$search}%")->orWhere('summary', 'LIKE', "%{$search}%")))
-            ->when($validated['start_date'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '>=', $date))
-            ->when($validated['end_date'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '<=', $date));
-        $availableCategories = (clone $filterBaseQuery)->when($validated['country'] ?? null, fn ($q, $country) => $q->where('country', $country))->distinct()->whereNotNull('category')->orderBy('category')->pluck('category');
-        $availableCountries = (clone $filterBaseQuery)->when($validated['category'] ?? null, fn ($q, $category) => $q->where('category', $category))->distinct()->whereNotNull('country')->orderBy('country')->pluck('country');
+            ->when($validated['status'] ?? null, fn($q, $status) => $q->where('status', $status))
+            ->when($validated['search'] ?? null, fn($q, $search) => $q->where(fn($subQ) => $subQ->where('title', 'LIKE', "%{$search}%")->orWhere('summary', 'LIKE', "%{$search}%")))
+            ->when($validated['start_date'] ?? null, fn($q, $date) => $q->whereDate('created_at', '>=', $date))
+            ->when($validated['end_date'] ?? null, fn($q, $date) => $q->whereDate('created_at', '<=', $date))
+            ->when($validated['topics'] ?? null, function ($q, $topics) {
+                $topicArray = explode(',', $topics);
+                foreach ($topicArray as $topic) {
+                    $q->whereJsonContains('topics', trim($topic));
+                }
+            });
+        $availableCategories = (clone $filterBaseQuery)->when($validated['country'] ?? null, fn($q, $country) => $q->where('country', $country))->distinct()->whereNotNull('category')->orderBy('category')->pluck('category');
+        $availableCountries = (clone $filterBaseQuery)->when($validated['category'] ?? null, fn($q, $category) => $q->where('category', $category))->distinct()->whereNotNull('country')->orderBy('country')->pluck('country');
         $articlesQuery = (clone $filterBaseQuery)
-            ->when($validated['category'] ?? null, fn ($q, $category) => $q->where('category', $category))
-            ->when($validated['country'] ?? null, fn ($q, $country) => $q->where('country', 'like', '%' . $country . '%'))
+            ->when($validated['category'] ?? null, fn($q, $category) => $q->where('category', $category))
+            ->when($validated['country'] ?? null, fn($q, $country) => $q->where('country', 'like', '%' . $country . '%'))
             ->select('id', 'title', 'summary', 'category', 'country', 'distributed_in', 'status', 'created_at', 'views_count')
             ->orderBy($sortBy, $sortDirection);
         $articles = $articlesQuery->paginate($perPage)->withQueryString();
@@ -88,7 +98,8 @@ class ArticleController extends Controller
                     new OA\Property(property: "content", type: "string", example: "The full content of the article goes here..."),
                     new OA\Property(property: "category", type: "string", example: "tech"),
                     new OA\Property(property: "country", type: "string", example: "US"),
-                    new OA\Property(property: "status", type: "string", example: "pending review", description: "Default is 'pending review'")
+                    new OA\Property(property: "status", type: "string", example: "pending review", description: "Default is 'pending review'"),
+                    new OA\Property(property: "topics", type: "array", items: new OA\Items(type: "string"), example: ["real-estate", "business"])
                 ]
             )
         ),
@@ -108,8 +119,11 @@ class ArticleController extends Controller
             'country' => 'required|string|size:2',
             'distributed_in' => 'nullable|string',
             'status' => ['nullable', 'string', Rule::in(['published', 'pending review'])],
+            'topics' => 'nullable|array',
         ]);
-        if ($validator->fails()) { return response()->json($validator->errors(), 422); }
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
         $validated = $validator->validated();
         $validated['status'] = $validated['status'] ?? 'pending review';
         $article = Article::create($validated);
@@ -159,11 +173,12 @@ class ArticleController extends Controller
                     new OA\Property(property: "distributed_in", type: "string"),
                     new OA\Property(property: "status", type: "string"),
                     new OA\Property(
-                        property: "custom_titles", 
+                        property: "custom_titles",
                         type: "object",
                         description: "JSON object mapping platform names to custom titles",
                         example: '{"FilipinoHomes": "Custom Title 1", "Rent.ph": "Custom Title 2"}'
-                    )
+                    ),
+                    new OA\Property(property: "topics", type: "array", items: new OA\Items(type: "string"), example: ["real-estate", "luxury"])
                 ]
             )
         ),
@@ -184,6 +199,7 @@ class ArticleController extends Controller
             'distributed_in' => 'nullable', // Can be string or array
             'status' => ['nullable', 'string', Rule::in(['published', 'pending review', 'rejected'])],
             'custom_titles' => 'nullable|array',
+            'topics' => 'nullable|array',
         ]);
 
         if ($validator->fails()) {
@@ -218,7 +234,7 @@ class ArticleController extends Controller
                 properties: [
                     new OA\Property(property: "title", type: "string", description: "The original/main title"),
                     new OA\Property(
-                        property: "custom_titles", 
+                        property: "custom_titles",
                         type: "object",
                         description: "JSON mapping of platforms to titles",
                         example: '{"FilipinoHomes": "Custom Headline", "Rent.ph": "Another Headline"}'

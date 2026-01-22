@@ -180,6 +180,14 @@
                         }
                     },
                     {
+                        "name": "topics",
+                        "in": "query",
+                        "description": "Filter by topics (comma-separated)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "page",
                         "in": "query",
                         "description": "The page number to retrieve",
@@ -257,6 +265,16 @@
                                         "description": "Default is 'pending review'",
                                         "type": "string",
                                         "example": "pending review"
+                                    },
+                                    "topics": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "real-estate",
+                                            "business"
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -380,6 +398,16 @@
                                         "description": "JSON object mapping platform names to custom titles",
                                         "type": "object",
                                         "example": "{\"FilipinoHomes\": \"Custom Title 1\", \"Rent.ph\": \"Custom Title 2\"}"
+                                    },
+                                    "topics": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "real-estate",
+                                            "luxury"
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -871,6 +899,136 @@
                 ]
             }
         },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Log in a user",
+                "description": "Authenticates a user with email and password and returns a Sanctum token.",
+                "operationId": "authLogin",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "admin@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful login",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "access_token": {
+                                            "type": "string",
+                                            "example": "1|abcdef12345..."
+                                        },
+                                        "token_type": {
+                                            "type": "string",
+                                            "example": "Bearer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid login details"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Log out the authenticated user",
+                "description": "Revokes the current user's access token.",
+                "operationId": "authLogout",
+                "responses": {
+                    "200": {
+                        "description": "Successfully logged out",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logged out successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/user": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Get authenticated user details",
+                "description": "Returns the details of the currently authenticated user.",
+                "operationId": "getAuthenticatedUser",
+                "responses": {
+                    "200": {
+                        "description": "User details retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/redis-test": {
             "get": {
                 "tags": [
@@ -1043,64 +1201,19 @@
                 }
             }
         },
-        "/api/articles": {
-            "get": {
-                "tags": [
-                    "User: Articles"
-                ],
-                "summary": "Get all articles from Redis",
-                "description": "Returns paginated list of all articles stored in Redis.",
-                "operationId": "getAllArticles",
-                "parameters": [
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "description": "Max articles to return (1-100)",
-                        "schema": {
-                            "type": "integer",
-                            "default": 20
-                        }
-                    },
-                    {
-                        "name": "offset",
-                        "in": "query",
-                        "description": "Offset for pagination",
-                        "schema": {
-                            "type": "integer",
-                            "default": 0
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/articles/{id}": {
             "get": {
                 "tags": [
                     "User: Articles"
                 ],
                 "summary": "Get a single article by ID",
-                "description": "Returns full article data from Redis.",
+                "description": "Returns full article data from the database.",
                 "operationId": "getArticleById",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "Article UUID",
+                        "description": "Article ID (UUID)",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -1120,82 +1233,6 @@
                     },
                     "404": {
                         "description": "Article not found"
-                    }
-                }
-            }
-        },
-        "/api/articles/country/{country}": {
-            "get": {
-                "tags": [
-                    "User: Articles"
-                ],
-                "summary": "Get articles by country",
-                "description": "Returns articles filtered by country name (e.g., 'Philippines', 'Canada').",
-                "operationId": "getArticlesByCountry",
-                "parameters": [
-                    {
-                        "name": "country",
-                        "in": "path",
-                        "description": "Country name",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "description": "Max articles to return",
-                        "schema": {
-                            "type": "integer",
-                            "default": 20
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation"
-                    },
-                    "404": {
-                        "description": "No articles found for country"
-                    }
-                }
-            }
-        },
-        "/api/articles/category/{category}": {
-            "get": {
-                "tags": [
-                    "User: Articles"
-                ],
-                "summary": "Get articles by category",
-                "description": "Returns articles filtered by category (e.g., 'Real Estate', 'Business').",
-                "operationId": "getArticlesByCategory",
-                "parameters": [
-                    {
-                        "name": "category",
-                        "in": "path",
-                        "description": "Category name",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "description": "Max articles to return",
-                        "schema": {
-                            "type": "integer",
-                            "default": 20
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation"
-                    },
-                    "404": {
-                        "description": "No articles found for category"
                     }
                 }
             }
@@ -1357,6 +1394,10 @@
         {
             "name": "Admin: Sites",
             "description": "Admin: Sites"
+        },
+        {
+            "name": "Authentication",
+            "description": "Authentication"
         },
         {
             "name": "System",
