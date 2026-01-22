@@ -5,8 +5,8 @@ Professional news management interface with CNN design aesthetics.
 
 import tkinter as tk
 from tkinter import ttk, messagebox
-from scraper import NewsScraper
-from ai_service import AIProcessor
+from scraper import NewsScraper, clean_html
+from ai_service import AIProcessor, clean_markdown
 from storage import StorageHandler
 from config import COUNTRIES, CATEGORIES
 import threading
@@ -566,6 +566,14 @@ class HomesPhDashboard:
                 full_text = article.get('description', 'No content.')
             
             detected_country = self.ai.detect_country(article['title'], full_text)
+            
+            # Detect sub-topics (AI-powered)
+            detected_topics = self.ai.detect_topics(
+                article['title'],
+                full_text,
+                article.get('category', 'General')
+            )
+            
             new_title, new_content, keywords = self.ai.rewrite_cnn_style(
                 article['title'], full_text, detected_country, article.get('category', 'General')
             )
@@ -578,13 +586,15 @@ class HomesPhDashboard:
             else:
                 img_url = img_path
             
+            # Clean HTML and Markdown from text
             article_data = {
                 "id": article_id,
                 "country": detected_country,
                 "category": article.get('category', 'General'),
-                "title": new_title,
-                "content": new_content,
-                "keywords": keywords,
+                "topics": detected_topics,  # AI-detected sub-topics
+                "title": clean_markdown(clean_html(new_title)),
+                "content": clean_markdown(clean_html(new_content)),
+                "keywords": clean_markdown(clean_html(keywords)),
                 "original_url": article['link'],
                 "image_url": img_url,
                 "timestamp": time.time(),
@@ -672,12 +682,17 @@ class HomesPhDashboard:
         title = data.get("title", data.get("paraphrased_title", "No Title"))
         self.reader_title_var.set(title)
         
-        # Meta (Country + Keywords)
+        # Meta (Country + Keywords + Topics)
         country = data.get("country", "Global")
         keywords = data.get("keywords", "")
+        topics = data.get("topics", [])
+        
         meta_text = f"📍 {country}"
         if keywords:
             meta_text += f"  •  🏷️ {keywords}"
+        if topics:
+            topics_str = ", ".join(topics) if isinstance(topics, list) else topics
+            meta_text += f"\n🔖 Topics: {topics_str}"
         self.reader_meta_label.config(text=meta_text)
         
         # Content

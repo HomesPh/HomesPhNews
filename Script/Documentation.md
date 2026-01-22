@@ -98,6 +98,7 @@ Script/
 | `rewrite_cnn_style(title, content, country, category)` | Rewrites article in CNN journalism style |
 | `generate_image_prompt(title, content, country, category)` | Creates visual prompt for image generation |
 | `generate_image(prompt, article_id)` | Generates image using Nano Banana / Gemini Imagen |
+| `detect_topics(title, content, category)` | **[NEW]** Detects 2-4 specific sub-topics/tags (e.g., AI, PropTech) |
 
 **🔄 Image Generation Fallback Strategy:**
 
@@ -139,6 +140,8 @@ This ensures the pipeline **never crashes** due to image generation issues. The 
 | `save_article(article_data)` | Saves article to Redis with country/category indexing |
 | `get_articles_by_country(country)` | Retrieves articles for a specific country |
 | `get_articles_by_category(category)` | Retrieves articles for a specific category |
+| `get_articles_by_topic(topic)` | **[NEW]** Retrieves articles for a specific AI-detected topic |
+| `get_all_topics()` | **[NEW]** Returns list of all unique topics discovered by AI |
 | `get_latest_articles(limit)` | Retrieves most recent articles (sorted by timestamp) |
 | `get_article(article_id)` | Retrieves single article by ID |
 | `upload_image(local_path, destination)` | Uploads image to GCP Cloud Storage |
@@ -149,9 +152,14 @@ This ensures the pipeline **never crashes** due to image generation issues. The 
 homesph:article:{article_id}     → Full article JSON
 homesph:country:{country_name}   → Set of article IDs for country
 homesph:category:{category_name} → Set of article IDs for category
+homesph:topic:{topic_name}       → **[NEW]** Set of article IDs for sub-topic
+homesph:all_topics               → **[NEW]** Set of all unique discovered topics
 homesph:all_articles             → Set of all article IDs
 homesph:articles_by_time         → Sorted set by timestamp
 ```
+
+**Topic Key Format:** Topics are slugified (lowercase, spaces to underscores, `&` to `and`). 
+*Example:* `AI & PropTech` → `homesph:topic:ai_and_proptech`
 
 ---
 

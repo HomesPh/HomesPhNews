@@ -6,7 +6,7 @@ Handles: Full crawl → AI Processing → Storage
 
 import uuid
 import time
-from scraper import NewsScraper
+from scraper import NewsScraper, clean_html
 from ai_service import AIProcessor
 from storage import StorageHandler
 from config import COUNTRIES, CATEGORIES
@@ -47,7 +47,15 @@ class NewsPipeline:
             # 2. Detect country (AI verification)
             detected_country = self.ai.detect_country(raw_article['title'], full_text)
             
-            # 3. Rewrite in CNN style
+            # 3. Detect sub-topics (AI-powered)
+            detected_topics = self.ai.detect_topics(
+                raw_article['title'],
+                full_text,
+                raw_article.get('category', 'General')
+            )
+            print(f"   🏷️ Detected topics: {detected_topics}")
+            
+            # 4. Rewrite in CNN style
             new_title, new_content, keywords = self.ai.rewrite_cnn_style(
                 raw_article['title'],
                 full_text,
@@ -55,7 +63,7 @@ class NewsPipeline:
                 raw_article.get('category', 'General')
             )
             
-            # 4. Generate image
+            # 5. Generate image
             img_prompt = self.ai.generate_image_prompt(
                 new_title, 
                 new_content, 
@@ -64,7 +72,7 @@ class NewsPipeline:
             )
             img_path = self.ai.generate_image(img_prompt, article_id)
             
-            # 5. Upload image to GCP if local
+            # 6. Upload image to GCP if local
             if img_path and not img_path.startswith("http"):
                 img_url = self.storage.upload_image(
                     img_path, 
@@ -73,22 +81,23 @@ class NewsPipeline:
             else:
                 img_url = img_path
             
-            # 6. Prepare final data
+            # 7. Prepare final data (Clean any remaining HTML tags)
             article_data = {
                 "id": article_id,
                 "country": detected_country,
                 "category": raw_article.get('category', 'General'),
-                "original_title": raw_article['title'],
-                "title": new_title,
-                "content": new_content,
-                "keywords": keywords,
+                "topics": detected_topics,  # NEW: AI-detected sub-topics
+                "original_title": clean_html(raw_article['title']),
+                "title": clean_html(new_title),
+                "content": clean_html(new_content),
+                "keywords": clean_html(keywords),
                 "original_url": raw_article['link'],
                 "source": raw_article.get('source', 'Unknown'),
                 "image_url": img_url,
                 "timestamp": time.time(),
             }
             
-            # 7. Save to Redis
+            # 8. Save to Redis
             self.storage.save_article(article_data)
             
             print(f"   ✅ Processed: [{detected_country}] {new_title[:50]}...")

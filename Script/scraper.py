@@ -4,6 +4,7 @@ Enterprise-grade multi-country, multi-category news crawler using Google News RS
 """
 
 import os
+import re
 import time
 import feedparser
 import urllib.parse
@@ -12,6 +13,16 @@ from dotenv import load_dotenv
 from config import COUNTRIES, CATEGORIES, SCRAPER_SETTINGS
 
 load_dotenv()
+
+def clean_html(raw_html):
+    """Remove HTML tags and return clean text."""
+    if not raw_html:
+        return ""
+    # Remove HTML tags
+    clean_text = re.sub(r'<[^>]+>', '', raw_html)
+    # Clean up extra whitespace
+    clean_text = re.sub(r'\s+', ' ', clean_text).strip()
+    return clean_text
 
 class NewsScraper:
     def __init__(self):
@@ -43,7 +54,7 @@ class NewsScraper:
                     "link": entry.link,
                     "published": getattr(entry, 'published', 'Unknown'),
                     "source": getattr(entry, 'source', {}).get('title', 'Unknown'),
-                    "description": getattr(entry, 'summary', ''),
+                    "description": clean_html(getattr(entry, 'summary', '')),
                     "country": country,
                     "category": keyword,
                 })

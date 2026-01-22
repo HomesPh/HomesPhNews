@@ -40,11 +40,13 @@ async def lifespan(app: FastAPI):
     """Handle startup and shutdown events."""
     
     # ─── Startup ───
+    # Schedule: 10 runs per day = 10 articles per country
+    # Hours: 0, 2, 5, 7, 10, 12, 14, 17, 19, 22 (roughly every 2.4 hours)
     scheduler.add_job(
         run_hourly_job,
-        CronTrigger(minute=0),  # Every hour at :00
+        CronTrigger(hour='0,2,5,7,10,12,14,17,19,22', minute=0),
         id='hourly_job',
-        name='Hourly News Scraper',
+        name='News Scraper (10x/day)',
         replace_existing=True
     )
     scheduler.start()
@@ -68,7 +70,8 @@ async def lifespan(app: FastAPI):
     print(f"📡 API:      http://localhost:8000")
     print(f"📖 Docs:     http://localhost:8000/docs")
     print("-" * 60)
-    print(f"⏰ Schedule: Every hour at :00")
+    print(f"⏰ Schedule: 10 times/day (every ~2.5 hours)")
+    print(f"📊 Target:   80 articles/day (10 per country)")
     print(f"📅 Next run: {next_run.strftime('%Y-%m-%d %H:%M:%S') if next_run else 'N/A'}")
     print(f"⏳ In:       {minutes_until} minutes")
     print("=" * 60)
