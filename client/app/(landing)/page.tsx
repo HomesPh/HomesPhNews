@@ -1,6 +1,6 @@
 import HeroSection from "@/components/features/dashboard/HeroSection";
 import ArticleCard from "@/components/features/dashboard/ArticleCard";
-import { getArticlesList, getLandingPageArticles } from "@/lib/api";
+import { getLandingPageArticles } from "@/lib/api";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import TrendingTopicsCard from "@/components/features/dashboard/TrendingTopicsCard";
 import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
