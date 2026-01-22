@@ -29,8 +29,8 @@ export const articles: Article[] = [
     description: 'The US Department of Transportation has approved...',
     timeAgo: '5 mins ago',
     views: '100 views',
-    imageSrc: '/healthcare.jpg',
-    featuredImageUrl: '/healthcare.jpg',
+    imageSrc: 'https://placehold.co/800x450?text=Healthcare',
+    featuredImageUrl: 'https://placehold.co/800x450?text=Healthcare',
     subtitle: 'A major milestone for autonomous vehicle technology as new regulations pave the way for widespread adoption.',
     author: {
       name: 'Sarah Jenkins',
@@ -53,8 +53,8 @@ export const articles: Article[] = [
     description: 'Singapore unveils an integrated platform...',
     timeAgo: '1h ago',
     views: '250 views',
-    imageSrc: '/healthcare.jpg',
-    featuredImageUrl: '/healthcare.jpg',
+    imageSrc: 'https://placehold.co/800x450?text=Healthcare',
+    featuredImageUrl: 'https://placehold.co/800x450?text=Healthcare',
     subtitle: 'The city-state continues to lead in smart city innovation with a new integrated platform for business operations.',
     author: {
       name: 'Wei Chen',

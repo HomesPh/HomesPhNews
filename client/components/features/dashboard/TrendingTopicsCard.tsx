@@ -4,7 +4,7 @@ import { Flame } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface TrendingTopicsProps {
-    items: { id: number; label: string; }[]
+    items: { id: number | string; label: string; }[]
     className?: string;
 }
 
