@@ -100,11 +100,34 @@ class ArticleController extends Controller
         $articlesQuery = (clone $filterBaseQuery)
             ->when($validated['category'] ?? null, fn($q, $category) => $q->where('category', $category))
             ->when($validated['country'] ?? null, fn($q, $country) => $q->where('country', 'like', '%' . $country . '%'))
-            ->select('id', 'title', 'summary', 'category', 'country', 'distributed_in', 'status', 'created_at', 'views_count')
+            ->select('id', 'title', 'summary', 'image', 'category', 'country', 'published_sites', 'status', 'created_at', 'views_count')
             ->orderBy($sortBy, $sortDirection);
 
         $articles = $articlesQuery->paginate($perPage)->withQueryString();
         $articles->appends(['available_filters' => ['categories' => $availableCategories, 'countries' => $availableCountries]]);
+
+        // MERGE REDIS ARTICLES IF STATUS IS 'ALL' (First Page Only)
+        if ((!$status || $status === 'all') && $page == 1) {
+            $redisArticlesRaw = $this->redisService->getLatestArticles(5);
+            $redisArticles = collect($redisArticlesRaw)->map(function ($a) {
+                return [
+                    'id' => $a['id'],
+                    'title' => $a['title'] ?? 'Untitled',
+                    'summary' => isset($a['content']) ? substr($a['content'], 0, 100) : '',
+                    'image' => $a['image_url'] ?? null,
+                    'category' => $a['category'] ?? 'Uncategorized',
+                    'country' => $a['country'] ?? 'Global',
+                    'published_sites' => [],
+                    'status' => 'pending', // Explicitly set status
+                    'created_at' => $a['timestamp'] ?? now()->toIso8601String(),
+                    'views_count' => 0,
+                ];
+            });
+
+            // Prepend Redis articles to the DB collection
+            $mergedCollection = $redisArticles->merge($articles->getCollection());
+            $articles->setCollection($mergedCollection);
+        }
 
         // Calculate status counts
         $statusCounts = $this->getStatusCounts();
@@ -250,7 +273,8 @@ class ArticleController extends Controller
             'content' => 'required|string',
             'category' => 'required|string|max:50',
             'country' => 'required|string|size:2',
-            'distributed_in' => 'nullable|string',
+            'published_sites' => 'nullable|array',
+            'published_sites.*' => 'string',
             'status' => ['nullable', 'string', Rule::in(['published', 'pending review'])],
             'topics' => 'nullable|array',
         ]);
@@ -451,7 +475,7 @@ class ArticleController extends Controller
                     new OA\Property(property: "content", type: "string"),
                     new OA\Property(property: "category", type: "string"),
                     new OA\Property(property: "country", type: "string"),
-                    new OA\Property(property: "distributed_in", type: "string"),
+                    new OA\Property(property: "published_sites", type: "array", items: new OA\Items(type: "string")),
                     new OA\Property(property: "status", type: "string"),
                     new OA\Property(
                         property: "custom_titles",
@@ -477,7 +501,8 @@ class ArticleController extends Controller
             'content' => 'nullable|string',
             'category' => 'nullable|string|max:50',
             'country' => 'nullable|string|size:2',
-            'distributed_in' => 'nullable', // Can be string or array
+            'published_sites' => 'nullable|array',
+            'published_sites.*' => 'string',
             'status' => ['nullable', 'string', Rule::in(['published', 'pending review', 'rejected'])],
             'custom_titles' => 'nullable|array',
             'topics' => 'nullable|array',
@@ -489,10 +514,8 @@ class ArticleController extends Controller
 
         $data = $request->all();
 
-        // Handle distributed_in array from checkboxes
-        if (isset($data['distributed_in']) && is_array($data['distributed_in'])) {
-            $data['distributed_in'] = implode(', ', $data['distributed_in']);
-        }
+        // Multi-site selection is handled by the published_sites JSON column
+        // casting in the Article model automatically handles arrays.
 
         $article->update($data);
 
@@ -540,6 +563,169 @@ class ArticleController extends Controller
         return response()->json($article);
     }
 
+    #[OA\Post(
+        path: "/api/admin/articles/{id}/publish",
+        operationId: "publishAdminArticle",
+        summary: "Publish a pending article",
+        description: "Moves a pending article from Redis to the MySQL database with 'published' status, then removes it from Redis.",
+        security: [['sanctum' => []]],
+        tags: ["Admin: Articles"],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, description: "UUID of the pending article", schema: new OA\Schema(type: "string"))
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["published_sites"],
+                properties: [
+                    new OA\Property(property: "published_sites", type: "array", items: new OA\Items(type: "string"), example: ["FilipinoHomes", "Rent.ph", "Homes"]),
+                    new OA\Property(property: "custom_titles", type: "object", description: "Optional custom titles per site")
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: "Article published successfully"),
+            new OA\Response(response: 404, description: "Pending article not found in Redis"),
+            new OA\Response(response: 422, description: "Validation error")
+        ]
+    )]
+    public function publish(Request $request, string $id)
+    {
+        // Validate UUID format
+        if (!\Illuminate\Support\Str::isUuid($id)) {
+            return response()->json(['message' => 'Invalid article ID format'], 400);
+        }
+
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'published_sites' => 'required|array|min:1',
+            'published_sites.*' => 'string',
+            'custom_titles' => 'nullable|array',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        // Get article from Redis
+        $redisArticle = $this->redisService->getArticle($id);
+        if (!$redisArticle) {
+            return response()->json(['message' => 'Pending article not found in Redis'], 404);
+        }
+
+        // Check if article already exists in database (prevent duplicates)
+        if (Article::where('id', $id)->exists()) {
+            return response()->json(['message' => 'Article already exists in database'], 409);
+        }
+
+        // Create article in MySQL database
+        $article = Article::create([
+            'id' => $id,
+            'article_id' => $id, // Keep for legacy compatibility
+            'title' => $redisArticle['title'] ?? '',
+            'original_title' => $redisArticle['title'] ?? '',
+            'summary' => substr($redisArticle['content'] ?? '', 0, 500),
+            'content' => $redisArticle['content'] ?? '',
+            'image' => $redisArticle['image_url'] ?? '',
+            'category' => $redisArticle['category'] ?? '',
+            'country' => $redisArticle['country'] ?? '',
+            'source' => $redisArticle['source'] ?? '',
+            'original_url' => $redisArticle['original_url'] ?? '',
+            'keywords' => $redisArticle['keywords'] ?? '',
+            'status' => 'published',
+            'published_sites' => $request->input('published_sites'),
+            'views_count' => 0,
+        ]);
+
+        // Handle custom titles if provided
+        if ($request->has('custom_titles')) {
+            $article->custom_titles = $request->input('custom_titles');
+            $article->save();
+        }
+
+        // Delete from Redis
+        $this->redisService->deleteArticle($id);
+
+        \Illuminate\Support\Facades\Log::info("Article {$id} published to sites: " . implode(', ', $request->input('published_sites')));
+
+        return response()->json([
+            'message' => 'Article published successfully',
+            'article' => $article,
+        ], 201);
+    }
+
+    #[OA\Post(
+        path: "/api/admin/articles/{id}/reject",
+        operationId: "rejectAdminArticle",
+        summary: "Reject a pending article",
+        description: "Moves a pending article from Redis to the MySQL database with 'rejected' status for record-keeping, then removes it from Redis.",
+        security: [['sanctum' => []]],
+        tags: ["Admin: Articles"],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, description: "UUID of the pending article", schema: new OA\Schema(type: "string"))
+        ],
+        requestBody: new OA\RequestBody(
+            required: false,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "reason", type: "string", description: "Optional reason for rejection")
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: "Article rejected successfully"),
+            new OA\Response(response: 404, description: "Pending article not found in Redis")
+        ]
+    )]
+    public function reject(Request $request, string $id)
+    {
+        // Validate UUID format
+        if (!\Illuminate\Support\Str::isUuid($id)) {
+            return response()->json(['message' => 'Invalid article ID format'], 400);
+        }
+
+        // Get article from Redis
+        $redisArticle = $this->redisService->getArticle($id);
+        if (!$redisArticle) {
+            return response()->json(['message' => 'Pending article not found in Redis'], 404);
+        }
+
+        // Check if article already exists in database
+        if (Article::where('id', $id)->exists()) {
+            return response()->json(['message' => 'Article already exists in database'], 409);
+        }
+
+        // Create article in MySQL with rejected status (for record keeping)
+        $article = Article::create([
+            'id' => $id,
+            'article_id' => $id,
+            'title' => $redisArticle['title'] ?? '',
+            'original_title' => $redisArticle['title'] ?? '',
+            'summary' => substr($redisArticle['content'] ?? '', 0, 500),
+            'content' => $redisArticle['content'] ?? '',
+            'image' => $redisArticle['image_url'] ?? '',
+            'category' => $redisArticle['category'] ?? '',
+            'country' => $redisArticle['country'] ?? '',
+            'source' => $redisArticle['source'] ?? '',
+            'original_url' => $redisArticle['original_url'] ?? '',
+            'keywords' => $redisArticle['keywords'] ?? '',
+            'status' => 'rejected',
+            'published_sites' => null,
+            'views_count' => 0,
+        ]);
+
+        // Delete from Redis
+        $this->redisService->deleteArticle($id);
+
+        $reason = $request->input('reason', 'No reason provided');
+        \Illuminate\Support\Facades\Log::info("Article {$id} rejected. Reason: {$reason}");
+
+        return response()->json([
+            'message' => 'Article rejected successfully',
+            'article' => $article,
+        ]);
+    }
+
     /**
      * Get counts for all article statuses
      * - all: total from database + pending from Redis
@@ -560,9 +746,9 @@ class ArticleController extends Controller
         $redisStats = $this->redisService->getStats();
         $pendingCount = $redisStats['total_articles'] ?? 0;
 
-        // All = published + rejected (NOT including pending)
-        // Pending articles are separate and shown in "Pending Review" tab
-        $allCount = $publishedCount + $rejectedCount;
+        // All = published + rejected + pending (Redis)
+        // Now that "All Articles" tab shows merged list, the count should reflect the sum.
+        $allCount = $publishedCount + $rejectedCount + $pendingCount;
 
         return [
             'all' => $allCount,

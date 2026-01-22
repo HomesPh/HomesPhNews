@@ -39,7 +39,7 @@ export default function HeroSection({
       {/* Image */}
       <div className="absolute inset-0">
         <Image
-          src={imageUrl}
+          src={imageUrl || 'https://placehold.co/800x450?text=No+Image'}
           alt={imageAlt}
           fill
           className="object-cover opacity-70 transition-all duration-500 group-hover:opacity-80 group-hover:scale-105"
@@ -60,7 +60,7 @@ export default function HeroSection({
             </Badge>
           )}
           <Badge className="bg-white text-black px-3 py-1 rounded-[4px] text-[12px] font-bold tracking-tight border-none hover:bg-gray-100">
-            {category.toUpperCase()}
+            {(category || 'NEWS').toUpperCase()}
           </Badge>
           {country && (
             <Badge className="bg-transparent text-white border border-white/30 px-3 py-1 rounded-[4px] text-[12px] font-bold tracking-tight hover:bg-white/10">

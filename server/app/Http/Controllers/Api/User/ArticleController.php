@@ -93,17 +93,20 @@ class ArticleController extends Controller
 
         // 1. Dashboard Mode (feed) or default if no filters
         if ($mode === 'feed' || (!$mode && !$search && !$country && !$category)) {
-            $trending = Article::select('id', 'title', 'country', 'category', 'image as image_url')
+            $trending = Article::select('id', 'title', 'country', 'category', 'image')
+                ->where('status', 'published')
                 ->orderBy('views_count', 'desc')
                 ->limit(5)
                 ->get();
 
-            $mostRead = Article::select('id', 'title', 'country', 'category', 'image as image_url')
+            $mostRead = Article::select('id', 'title', 'country', 'category', 'image')
+                ->where('status', 'published')
                 ->orderBy('views_count', 'desc')
                 ->limit(10)
                 ->get();
 
-            $latestGlobal = Article::select('id', 'title', 'created_at as timestamp', 'image as image_url')
+            $latestGlobal = Article::select('id', 'title', 'summary as content', 'country', 'category', 'created_at as timestamp', 'image')
+                ->where('status', 'published')
                 ->orderBy('created_at', 'desc')
                 ->limit(5)
                 ->get();
@@ -117,6 +120,9 @@ class ArticleController extends Controller
 
         // 2. List Mode or Filtered Mode
         $query = Article::query();
+
+        // Always filter by published status for public feed
+        $query->where('status', 'published');
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -135,7 +141,7 @@ class ArticleController extends Controller
 
         $total = $query->count();
 
-        $articles = $query->select('id', 'title', 'summary', 'country', 'category', 'image as image_url', 'created_at')
+        $articles = $query->select('id', 'title', 'summary', 'country', 'category', 'image', 'created_at')
             ->orderBy('created_at', 'desc')
             ->offset($offset)
             ->limit($limit)

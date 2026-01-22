@@ -42,7 +42,7 @@ export default function ArticleCard({
       {/* Image */}
       <div className="relative h-[192px] w-[288px] shrink-0 overflow-hidden rounded-[8px]">
         <Image
-          src={imageSrc}
+          src={imageSrc || 'https://placehold.co/800x450?text=No+Image'}
           alt={imageAlt}
           fill
           sizes="(max-width: 768px) 100vw, 288px"

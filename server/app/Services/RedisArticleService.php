@@ -238,6 +238,43 @@ class RedisArticleService
     }
 
     /**
+     * Delete an article from Redis.
+     * Called after an article is published or rejected to clean up the cache.
+     */
+    public function deleteArticle(string $articleId): bool
+    {
+        $existing = $this->getArticle($articleId);
+        if (!$existing) {
+            return false;
+        }
+
+        // Remove from main article key
+        Redis::del("{$this->prefix}article:{$articleId}");
+
+        // Remove from all_articles set
+        Redis::srem("{$this->prefix}all_articles", $articleId);
+
+        // Remove from articles_by_time sorted set
+        Redis::zrem("{$this->prefix}articles_by_time", $articleId);
+
+        // Remove from country index
+        if (!empty($existing['country'])) {
+            $countryKey = "{$this->prefix}country:" . $this->slugify($existing['country']);
+            Redis::srem($countryKey, $articleId);
+        }
+
+        // Remove from category index
+        if (!empty($existing['category'])) {
+            $categoryKey = "{$this->prefix}category:" . $this->slugify($existing['category']);
+            Redis::srem($categoryKey, $articleId);
+        }
+
+        \Illuminate\Support\Facades\Log::info("Redis: Deleted article {$articleId}");
+
+        return true;
+    }
+
+    /**
      * Fetch multiple articles by their IDs
      */
     protected function fetchArticlesByIds(array $articleIds): array
