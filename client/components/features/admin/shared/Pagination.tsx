@@ -23,6 +23,11 @@ interface PaginationProps {
  * Pagination component for navigation through pages of data
  */
 export default function Pagination({ currentPage, totalPages, onPageChange, maxVisiblePages = 5 }: PaginationProps) {
+    // Guard against invalid pagination values
+    if (!Number.isFinite(totalPages) || totalPages < 1 || !Number.isFinite(currentPage) || currentPage < 1) {
+        return null;
+    }
+
     const getPageNumbers = () => {
         const pages = [];
 
@@ -139,7 +144,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange, maxV
         <PaginationBase>
             <PaginationContent>
                 <PaginationItem>
-                    <PaginationPrevious 
+                    <PaginationPrevious
                         onClick={handlePrevious}
                         href="#"
                         className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
@@ -171,7 +176,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange, maxV
                     );
                 })}
                 <PaginationItem>
-                    <PaginationNext 
+                    <PaginationNext
                         onClick={handleNext}
                         href="#"
                         className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
