@@ -14,8 +14,8 @@ from datetime import datetime
 from typing import List, Dict
 
 from config import COUNTRIES, CATEGORIES
-from scraper import NewsScraper
-from ai_service import AIProcessor
+from scraper import NewsScraper, clean_html
+from ai_service import AIProcessor, clean_markdown
 from storage import StorageHandler
 from database import redis_client, PREFIX
 
@@ -187,6 +187,14 @@ def process_single_country(country: str) -> Dict:
         
         # Step 4: AI Processing
         detected_country = ai.detect_country(article['title'], full_text)
+        
+        # Detect sub-topics (AI-powered)
+        detected_topics = ai.detect_topics(
+            article['title'],
+            full_text,
+            category
+        )
+        
         new_title, new_content, keywords = ai.rewrite_cnn_style(
             article['title'], 
             full_text, 
@@ -207,14 +215,15 @@ def process_single_country(country: str) -> Dict:
         else:
             img_url = img_path
         
-        # Step 7: Save to Redis
+        # Step 7: Save to Redis (Clean HTML and Markdown)
         article_data = {
             "id": article_id,
             "country": detected_country,
             "category": category,
-            "title": new_title,
-            "content": new_content,
-            "keywords": keywords,
+            "topics": detected_topics,  # NEW: AI-detected sub-topics
+            "title": clean_markdown(clean_html(new_title)),
+            "content": clean_markdown(clean_html(new_content)),
+            "keywords": clean_markdown(clean_html(keywords)),
             "original_url": article['link'],
             "image_url": img_url,
             "timestamp": time.time(),
