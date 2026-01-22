@@ -21,7 +21,10 @@ export interface ArticleListItem {
 }
 
 export interface ArticleFilters {
+  mode: "feed" | "list";
   search?: string;
   country?: string;
   category?: string;
+  limit: number;
+  offset: number;
 }
