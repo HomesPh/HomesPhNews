@@ -28,6 +28,15 @@ import {
 } from "@/components/ui/dialog";
 import { getSiteNames } from "@/lib/api/admin/sites";
 
+// Site name mapping (internal key -> display name for API)
+const SITE_NAMES: Record<string, string> = {
+    filipinoHomes: 'FilipinoHomes',
+    rentPh: 'Rent.ph',
+    homesPh: 'Homes',
+    bayanihan: 'Bayanihan',
+    mainPortal: 'Main News Portal',
+};
+
 /**
  * Article Details Page matching Create Sign In Page design
  */
@@ -150,6 +159,64 @@ export default function ArticleDetailsPage() {
         }
     };
 
+
+    // Handle custom titles from modal
+    const handleCustomTitlesUpdate = (titles: Record<string, string>) => {
+        setCustomTitles(titles);
+    };
+
+    // Get selected site names for API
+    const getSelectedSiteNames = (): string[] => {
+        return Object.entries(publishToSites)
+            .filter(([_, isSelected]) => isSelected)
+            .map(([key]) => SITE_NAMES[key]);
+    };
+
+    // Handle Publish
+    const handlePublish = async () => {
+        if (!article || !params.id) return;
+
+        const selectedSites = getSelectedSiteNames();
+        if (selectedSites.length === 0) {
+            alert('Please select at least one site to publish to.');
+            return;
+        }
+
+        setIsPublishing(true);
+        try {
+            const articleId = Array.isArray(params.id) ? params.id[0] : params.id;
+            const result = await publishArticle(articleId, selectedSites, customTitles);
+            alert(result.message);
+            // Redirect back to articles list after successful publish
+            router.push('/admin/articles?status=published');
+        } catch (error: any) {
+            const message = error.response?.data?.message || 'Failed to publish article';
+            alert(`Error: ${message}`);
+        } finally {
+            setIsPublishing(false);
+        }
+    };
+
+    // Handle Reject
+    const handleReject = async () => {
+        if (!article || !params.id) return;
+
+        const reason = prompt('Enter reason for rejection (optional):');
+
+        setIsRejecting(true);
+        try {
+            const articleId = Array.isArray(params.id) ? params.id[0] : params.id;
+            const result = await rejectArticle(articleId, reason || undefined);
+            alert(result.message);
+            // Redirect back to articles list after successful reject
+            router.push('/admin/articles?status=rejected');
+        } catch (error: any) {
+            const message = error.response?.data?.message || 'Failed to reject article';
+            alert(`Error: ${message}`);
+        } finally {
+            setIsRejecting(false);
+        }
+    };
 
     // Handle custom titles from modal
     const handleCustomTitlesUpdate = (titles: Record<string, string>) => {
