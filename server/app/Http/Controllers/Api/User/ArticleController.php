@@ -125,48 +125,6 @@ class ArticleController extends Controller
             });
         }
 
-        if ($country) {
-            $query->where('country', $country);
-        }
-
-        if ($category) {
-            $query->where('category', $category);
-        }
-
-        if ($mode === 'list') {
-            $total = $query->count();
-            $articles = $query->select('id', 'title', 'country', 'category', 'created_at as timestamp', 'image as image_url')
-                ->orderBy('created_at', 'desc')
-                ->skip($offset)
-                ->take($limit)
-                ->get();
-
-            return response()->json([
-                'data' => $articles,
-                'meta' => [
-                    'total' => $total,
-                    'limit' => $limit,
-                    'offset' => $offset,
-                    'filters' => [
-                        'country' => $country,
-                        'category' => $category,
-                        'search' => $search,
-                    ]
-                ]
-            ]);
-        }
-
-        // 3. Fallback (Basic Filtering without meta)
-        $articles = $query->limit($limit)->offset($offset)->get();
-
-        return response()->json([
-            'trending' => $articles->slice(0, 5),
-            'most_read' => $articles->slice(0, 10),
-            'latest_global' => $articles->slice(0, 5),
-            'filter_applied' => compact('search', 'country', 'category'),
-        ]);
-    }
-
     #[OA\Get(
         path: "/api/articles/{id}",
         operationId: "getArticleById",
@@ -198,6 +156,59 @@ class ArticleController extends Controller
     }
 
 
+    #[OA\Get(
+        path: "/api/latest",
+        operationId: "getLatestArticles",
+        summary: "Get latest articles",
+        description: "Returns the most recent articles sorted by timestamp.",
+        tags: ["User: Articles"],
+        parameters: [
+            new OA\Parameter(name: "limit", in: "query", description: "Max articles to return (1-50)", schema: new OA\Schema(type: "integer", default: 10))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Successful operation")
+        ]
+    )]
+    public function latest(Request $request)
+    {
+        $limit = min(50, max(1, (int) $request->input('limit', 10)));
+        $articles = $this->redisService->getLatestArticles($limit);
+
+        return response()->json($this->redisService->formatSummaries($articles));
+    }
+
+    #[OA\Get(
+        path: "/api/search",
+        operationId: "searchArticles",
+        summary: "Search articles",
+        description: "Search articles by title or content.",
+        tags: ["User: Articles"],
+        parameters: [
+            new OA\Parameter(name: "q", in: "query", required: true, description: "Search query (min 2 chars)", schema: new OA\Schema(type: "string")),
+            new OA\Parameter(name: "limit", in: "query", description: "Max articles to return", schema: new OA\Schema(type: "integer", default: 20))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Successful operation"),
+            new OA\Response(response: 400, description: "Invalid query")
+        ]
+    )]
+    public function search(Request $request)
+    {
+        $query = $request->input('q', '');
+
+        if (strlen($query) < 2) {
+            return response()->json(['error' => 'Search query must be at least 2 characters'], 400);
+        }
+
+        $limit = min(100, max(1, (int) $request->input('limit', 20)));
+        $articles = $this->redisService->searchArticles($query, $limit);
+
+        return response()->json([
+            'query' => $query,
+            'count' => count($articles),
+            'data' => $this->redisService->formatSummaries($articles),
+        ]);
+    }
 
     #[OA\Get(
         path: "/api/countries",

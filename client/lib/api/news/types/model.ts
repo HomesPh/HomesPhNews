@@ -12,7 +12,7 @@ export interface Article {
   timestamp: ISOString;
 }
 
-export interface ArticleMini {
+export interface ArticleListItem {
   id: string;
   country: string;
   category: string;
@@ -24,28 +24,4 @@ export interface ArticleFilters {
   search?: string;
   country?: string;
   category?: string;
-}
-
-//
-// Responses
-//
-
-export interface LandingPageArticlesResponse {
-  trending: Article[];
-  most_read: Article[];
-  latest_global: Article[];
-  filter_applied: {
-    search?: string | null;
-    country?: string | null;
-    category?: string | null;
-  };
-}
-
-export interface ArticlesListResponse {
-  data: ArticleMini[];
-  meta: {
-    limit: number;
-    offset: number;
-    count: number;
-  };
 }

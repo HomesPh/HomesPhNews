@@ -1197,24 +1197,6 @@
                         "schema": {
                             "type": "string"
                         }
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "description": "Max results per page (used in 'list' mode)",
-                        "schema": {
-                            "type": "integer",
-                            "default": 10
-                        }
-                    },
-                    {
-                        "name": "offset",
-                        "in": "query",
-                        "description": "Pagination offset (used in 'list' mode)",
-                        "schema": {
-                            "type": "integer",
-                            "default": 0
-                        }
                     }
                 ],
                 "responses": {
@@ -1223,61 +1205,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "oneOf": [
-                                        {
-                                            "title": "FeedModeResponse",
-                                            "properties": {
-                                                "trending": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
-                                                },
-                                                "most_read": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
-                                                },
-                                                "latest_global": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
-                                                }
-                                            },
-                                            "type": "object"
-                                        },
-                                        {
-                                            "title": "ListModeResponse",
-                                            "properties": {
-                                                "data": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
-                                                },
-                                                "meta": {
-                                                    "properties": {
-                                                        "total": {
-                                                            "type": "integer"
-                                                        },
-                                                        "limit": {
-                                                            "type": "integer"
-                                                        },
-                                                        "offset": {
-                                                            "type": "integer"
-                                                        },
-                                                        "filters": {
-                                                            "type": "object"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    ]
+                                    "type": "object"
                                 }
                             }
                         }
@@ -1317,6 +1245,70 @@
                     },
                     "404": {
                         "description": "Article not found"
+                    }
+                }
+            }
+        },
+        "/api/latest": {
+            "get": {
+                "tags": [
+                    "User: Articles"
+                ],
+                "summary": "Get latest articles",
+                "description": "Returns the most recent articles sorted by timestamp.",
+                "operationId": "getLatestArticles",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Max articles to return (1-50)",
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            }
+        },
+        "/api/search": {
+            "get": {
+                "tags": [
+                    "User: Articles"
+                ],
+                "summary": "Search articles",
+                "description": "Search articles by title or content.",
+                "operationId": "searchArticles",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Search query (min 2 chars)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Max articles to return",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "400": {
+                        "description": "Invalid query"
                     }
                 }
             }

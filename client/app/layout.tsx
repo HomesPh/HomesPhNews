@@ -23,6 +23,8 @@ export const metadata: Metadata = {
   description: "Stay informed with HomesTV - Your trusted source for global news.",
 };
 
+import { AuthProvider } from "@/components/providers/AuthProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
