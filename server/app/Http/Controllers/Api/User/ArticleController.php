@@ -125,6 +125,37 @@ class ArticleController extends Controller
             });
         }
 
+        if ($country) {
+            $query->where('country', $country);
+        }
+
+        if ($category) {
+            $query->where('category', $category);
+        }
+
+        $total = $query->count();
+
+        $articles = $query->select('id', 'title', 'summary', 'country', 'category', 'image as image_url', 'created_at')
+            ->orderBy('created_at', 'desc')
+            ->offset($offset)
+            ->limit($limit)
+            ->get();
+
+        return response()->json([
+            'data' => $articles,
+            'meta' => [
+                'total' => $total,
+                'limit' => $limit,
+                'offset' => $offset,
+                'filters' => array_filter([
+                    'search' => $search,
+                    'country' => $country,
+                    'category' => $category,
+                ]),
+            ],
+        ]);
+    }
+
     #[OA\Get(
         path: "/api/articles/{id}",
         operationId: "getArticleById",
