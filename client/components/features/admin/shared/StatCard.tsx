@@ -1,4 +1,4 @@
-import { FileText, CheckCircle2, AlertCircle, Eye, Users, MousePointerClick, TrendingUp, DollarSign, SquareStack, ToggleRight } from 'lucide-react';
+import { FileText, CheckCircle2, AlertCircle, Eye, Users, MousePointerClick, TrendingUp, DollarSign, SquareStack, ToggleRight, XCircle, Link as LinkIcon, CheckCircle } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 /**
@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 const ICONS = {
     FileText,
     CheckCircle2,
+    CheckCircle,
     AlertCircle,
     Eye,
     Users,
@@ -15,6 +16,8 @@ const ICONS = {
     DollarSign,
     SquareStack,
     ToggleRight,
+    XCircle,
+    Link: LinkIcon,
 };
 
 interface StatCardProps {
