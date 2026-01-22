@@ -50,7 +50,7 @@ export default function ArticlesPage() {
     // State for articles (fetched from backend)
     const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    
+
     // State for status counts (from backend)
     const [counts, setCounts] = useState({
         all: 0,
@@ -77,19 +77,24 @@ export default function ArticlesPage() {
 
                 const response = await getAdminArticles(apiFilters);
 
-                setFilteredArticles(response.data);
+                // Ensure we always have an array, even if API returns unexpected data
+                setFilteredArticles(response.data ?? []);
 
-                // Update pagination with backend data
-                pagination.handlePageChange(response.current_page);
-                pagination.setTotalPages(response.last_page);
+                // Update pagination with backend data (with fallbacks to prevent NaN)
+                pagination.handlePageChange(response.current_page ?? 1);
+                pagination.setTotalPages(response.last_page ?? 1);
 
                 // Update status counts from backend
                 if (response.status_counts) {
                     setCounts(response.status_counts);
-                } 
+                }
 
             } catch (error) {
                 console.error("Failed to fetch articles:", error);
+                // Reset to safe defaults on error to prevent undefined/NaN issues
+                setFilteredArticles([]);
+                pagination.setTotalPages(1);
+                pagination.handlePageChange(1);
             } finally {
                 setIsLoading(false);
             }
