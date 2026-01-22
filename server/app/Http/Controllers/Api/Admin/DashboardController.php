@@ -45,25 +45,12 @@ class DashboardController extends Controller
         // 4. Get the sum of all views from the 'views_count' column
         $totalViews = Article::sum('views_count');
 
-        // 5. Calculate distribution counts from the published_sites JSON column
-        // This is a bit more complex with JSON, so we'll fetch and process or use a simpler count for now.
-        $articlesWithSites = Article::where('status', 'published')
-            ->whereNotNull('published_sites')
-            ->get(['published_sites']);
-
-        $siteCounts = [];
-        foreach ($articlesWithSites as $art) {
-            $sites = $art->published_sites;
-            if (is_array($sites)) {
-                foreach ($sites as $site) {
-                    $siteCounts[$site] = ($siteCounts[$site] ?? 0) + 1;
-                }
-            }
-        }
-
-        $results = collect($siteCounts)->map(function ($count, $name) {
-            return ['distributed_in' => $name, 'published_count' => $count];
-        })->values()->sortByDesc('published_count')->take(5)->values();
+        // 5. Calculate distribution counts using Site relationship
+        $sitesWithCounts = \App\Models\Site::withCount('articles')->get();
+        
+        $results = $sitesWithCounts->map(function ($site) {
+             return ['distributed_in' => $site->site_name, 'published_count' => $site->articles_count];
+        })->sortByDesc('published_count')->take(5)->values();
 
         // 6. Get the 5 most recent articles
         $recentArticles = Article::query()

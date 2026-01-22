@@ -85,7 +85,7 @@ export default async function Dashboard({ searchParams }: Props) {
           <TrendingTopicsCard
             items={trending.slice(0, 5).map((article) => ({
               id: article.id,
-              label: article.title,
+              label: (article.topics && article.topics.length > 0) ? article.topics[0] : article.title,
             }))}
           />
 

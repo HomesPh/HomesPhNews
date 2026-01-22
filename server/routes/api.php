@@ -82,7 +82,10 @@ Route::middleware(['auth:sanctum', 'is.admin'])
 
         // CRUD Resources
         Route::apiResource('events', EventController::class);
-        Route::apiResource('sites', SiteController::class)->only(['index', 'store']);
+
+        Route::get('sites/names', [SiteController::class, 'names']);
+        Route::patch('sites/{id}/toggle-status', [SiteController::class, 'toggleStatus']);
+        Route::apiResource('sites', SiteController::class);
         Route::apiResource('articles', AdminArticleController::class)->except(['destroy']);
 
         // Custom Article Actions

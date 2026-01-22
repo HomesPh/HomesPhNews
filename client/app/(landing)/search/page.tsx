@@ -1,5 +1,6 @@
 import VerticalArticleCard from "@/components/features/dashboard/VerticalArticleCard";
-import { articles } from "../data";
+import { getArticlesList } from "@/lib/api/news/service";
+import { ArticlesListResponse } from "@/lib/api/news/types";
 import { Categories, Countries } from "@/app/data";
 
 type Props = {
@@ -8,10 +9,22 @@ type Props = {
 
 export default async function SearchPage({ searchParams }: Props) {
     const params = await searchParams;
-    const q = (params.q as string) || "";
+    const q = (params.q as string) || (params.search as string) || "";
     const topic = (params.topic as string) || "";
     const country = (params.country as string) || "all";
     const category = (params.category as string) || "all";
+
+    // Fetch articles from API
+    const response = await getArticlesList({
+        mode: "list",
+        search: q || undefined,
+        topic: topic || undefined,
+        country: country !== "all" ? country : undefined,
+        category: category !== "all" ? category : undefined,
+        limit: 20
+    }) as ArticlesListResponse;
+
+    const filteredArticles = response?.data || [];
 
     // Helper lookup for labels
     const getLabel = (list: any[], val: string) =>
@@ -19,29 +32,6 @@ export default async function SearchPage({ searchParams }: Props) {
 
     const countryLabel = getLabel(Countries, country);
     const categoryLabel = getLabel(Categories, category);
-
-    // Filter Logic
-    const query = (q || topic).toLowerCase();
-    const filteredArticles = articles.filter((article) => {
-        const matchesQuery = !query || (
-            article.title.toLowerCase().includes(query) ||
-            article.description.toLowerCase().includes(query) ||
-            article.category.toLowerCase().includes(query) ||
-            article.location.toLowerCase().includes(query) ||
-            (article.subtitle && article.subtitle.toLowerCase().includes(query)) ||
-            (article.topics && article.topics.some(t => t.toLowerCase().includes(query)))
-        );
-
-        const matchesCountry = country === "all" ||
-            article.location.toLowerCase() === country.toLowerCase() ||
-            article.location.toLowerCase() === countryLabel.toLowerCase();
-
-        const matchesCategory = category === "all" ||
-            article.category.toLowerCase() === category.toLowerCase() ||
-            article.category.toLowerCase() === categoryLabel.toLowerCase();
-
-        return matchesQuery && matchesCountry && matchesCategory;
-    });
 
     const heading = q ? `Search Results for "${q}"` : topic ? `Topic: ${topic}` : "All Articles";
     const filterText = (country !== "all" || category !== "all")
@@ -61,12 +51,16 @@ export default async function SearchPage({ searchParams }: Props) {
                             key={article.id}
                             id={article.id}
                             category={article.category}
-                            location={article.location}
+                            location={article.country}
                             title={article.title}
-                            description={article.subtitle || article.description}
-                            timeAgo={article.timeAgo}
-                            views={article.views}
-                            imageSrc={article.imageSrc}
+                            description={article.summary}
+                            timeAgo={new Date(article.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                            })}
+                            views={`${article.views_count || 0} views`}
+                            imageSrc={article.image || article.image_url || "/images/placeholder.png"}
                         />
                     ))}
                 </div>

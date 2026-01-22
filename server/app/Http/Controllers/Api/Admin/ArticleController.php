@@ -269,21 +269,37 @@ class ArticleController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
+            // 'slug' column doesn't exist yet, remove this rule to avoid 500
             'summary' => 'required|string|max:1000',
             'content' => 'required|string',
             'category' => 'required|string|max:50',
-            'country' => 'required|string|size:2',
+            'country' => 'required|string|max:100', // Relaxed from size:2
+            'image' => 'nullable|string|max:500',
             'published_sites' => 'nullable|array',
             'published_sites.*' => 'string',
             'status' => ['nullable', 'string', Rule::in(['published', 'pending review'])],
             'topics' => 'nullable|array',
         ]);
+
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
+
         $validated = $validator->validated();
         $validated['status'] = $validated['status'] ?? 'pending review';
+        
+        // Extract sites to sync separately
+        $siteNames = $validated['published_sites'] ?? [];
+        unset($validated['published_sites']);
+
         $article = Article::create($validated);
+
+        // Sync sites
+        if (!empty($siteNames)) {
+            $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
+            $article->publishedSites()->sync($siteIds);
+        }
+
         return response()->json($article, 201);
     }
 
@@ -632,10 +648,18 @@ class ArticleController extends Controller
             'source' => $redisArticle['source'] ?? '',
             'original_url' => $redisArticle['original_url'] ?? '',
             'keywords' => $redisArticle['keywords'] ?? '',
+            'topics' => $redisArticle['topics'] ?? [],
             'status' => 'published',
-            'published_sites' => $request->input('published_sites'),
+            // 'published_sites' is accessed via relationship now
             'views_count' => 0,
         ]);
+
+        // Sync Published Sites (Pivot)
+        $siteNames = $request->input('published_sites', []);
+        if (!empty($siteNames)) {
+            $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
+            $article->publishedSites()->sync($siteIds);
+        }
 
         // Handle custom titles if provided
         if ($request->has('custom_titles')) {
@@ -646,7 +670,7 @@ class ArticleController extends Controller
         // Delete from Redis
         $this->redisService->deleteArticle($id);
 
-        \Illuminate\Support\Facades\Log::info("Article {$id} published to sites: " . implode(', ', $request->input('published_sites')));
+        \Illuminate\Support\Facades\Log::info("Article {$id} published to sites: " . implode(', ', $siteNames));
 
         return response()->json([
             'message' => 'Article published successfully',

@@ -80,9 +80,10 @@ class ArticleController extends Controller
     public function feed(Request $request)
     {
         $mode = $request->input('mode');
-        $search = $request->input('search');
+        $search = $request->input('search') ?? $request->input('q'); // Support both 'search' and 'q'
         $country = $request->input('country');
         $category = $request->input('category');
+        $topic = $request->input('topic'); // Support topic filtering
         $limit = min(100, max(1, (int) $request->input('limit', 10)));
         $offset = max(0, (int) $request->input('offset', 0));
 
@@ -93,7 +94,7 @@ class ArticleController extends Controller
 
         // 1. Dashboard Mode (feed) or default if no filters
         if ($mode === 'feed' || (!$mode && !$search && !$country && !$category)) {
-            $trending = Article::select('id', 'title', 'country', 'category', 'image')
+            $trending = Article::select('id', 'title', 'country', 'category', 'image', 'topics')
                 ->where('status', 'published')
                 ->orderBy('views_count', 'desc')
                 ->limit(5)
@@ -127,7 +128,10 @@ class ArticleController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'LIKE', "%{$search}%")
-                    ->orWhere('summary', 'LIKE', "%{$search}%");
+                    ->orWhere('summary', 'LIKE', "%{$search}%")
+                    ->orWhere('content', 'LIKE', "%{$search}%")
+                    ->orWhere('keywords', 'LIKE', "%{$search}%")
+                    ->orWhere('topics', 'LIKE', "%{$search}%");
             });
         }
 
@@ -137,6 +141,11 @@ class ArticleController extends Controller
 
         if ($category) {
             $query->where('category', $category);
+        }
+
+        if ($topic) {
+            // Filter by topic using JSON search
+            $query->whereRaw('JSON_CONTAINS(topics, ?)', [json_encode($topic)]);
         }
 
         $total = $query->count();
@@ -259,7 +268,15 @@ class ArticleController extends Controller
     )]
     public function countries()
     {
-        return response()->json($this->redisService->getCountries());
+        $countries = Article::select('country as name', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
+            ->where('status', 'published')
+            ->groupBy('country')
+            ->orderBy('count', 'desc')
+            ->get();
+
+        return response()->json([
+            'data' => $countries
+        ]);
     }
 
     #[OA\Get(
@@ -274,7 +291,15 @@ class ArticleController extends Controller
     )]
     public function categories()
     {
-        return response()->json($this->redisService->getCategories());
+        $categories = Article::select('category as name', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
+            ->where('status', 'published')
+            ->groupBy('category')
+            ->orderBy('count', 'desc')
+            ->get();
+
+        return response()->json([
+            'data' => $categories
+        ]);
     }
 
     #[OA\Get(

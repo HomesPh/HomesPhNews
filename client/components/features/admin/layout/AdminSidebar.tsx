@@ -17,31 +17,31 @@ const SidebarItems = [
     href: "/admin/articles",
     icon: FileText
   },
-  // {
-  //   title: "Ads",
-  //   href: "/admin/ads",
-  //   icon: BarChart3
-  // },
-  // {
-  //   title: "Sites",
-  //   href: "/admin/sites",
-  //   icon: Users
-  // },
-  // {
-  //   title: "Calendar",
-  //   href: "/admin/calendar",
-  //   icon: Calendar
-  // },
-  // {
-  //   title: "Analytics",
-  //   href: "/admin/analytics",
-  //   icon: BarChart3
-  // },
-  // {
-  //   title: "Settings",
-  //   href: "/admin/settings",
-  //   icon: Settings
-  // }
+  /* {
+    title: "Ads",
+    href: "/admin/ads",
+    icon: BarChart3
+  }, */
+  {
+    title: "Sites",
+    href: "/admin/sites",
+    icon: Users
+  },
+  /* {
+    title: "Calendar",
+    href: "/admin/calendar",
+    icon: Calendar
+  },
+  {
+    title: "Analytics",
+    href: "/admin/analytics",
+    icon: BarChart3
+  },
+  {
+    title: "Settings",
+    href: "/admin/settings",
+    icon: Settings
+  } */
 ]
 
 export default function AdminSidebar() {

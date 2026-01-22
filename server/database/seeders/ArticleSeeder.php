@@ -17,16 +17,19 @@ class ArticleSeeder extends Seeder
             $users = User::factory(5)->create();
         }
         
-        // $categories = Category::all();
+        $sites = \App\Models\Site::all();
 
-        // if ($categories->isEmpty()) {
-        //    return; // Should run CategorySeeder first
-        // }
-
-        // Create 50 articles distributed across categories and countries (handled by Factory)
+        // Create 50 articles
         Article::factory()
             ->count(50)
-            // ->recycle($categories) // Randomly assign one of existing categories
-            ->create();
+            ->create()
+            ->each(function ($article) use ($sites) {
+                // Attach random 1-3 sites if sites exist
+                if ($sites->isNotEmpty()) {
+                    $article->publishedSites()->attach(
+                        $sites->random(rand(1, 3))->pluck('id')
+                    );
+                }
+            });
     }
 }

@@ -116,3 +116,17 @@ export async function rejectArticle(
         throw error;
     }
 }
+
+/**
+ * Create a new article directly in the database
+ */
+export async function createArticle(payload: any): Promise<Article> {
+    try {
+        const response = await api.post<Article>('/admin/articles', payload);
+        console.log(`[API] Create Article: ${response.status} OK`);
+        return response.data;
+    } catch (error: any) {
+        console.error(`[API] Create Article Failed: ${error.response?.status || 'Unknown error'}`);
+        throw error;
+    }
+}

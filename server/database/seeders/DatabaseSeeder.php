@@ -36,6 +36,7 @@ class DatabaseSeeder extends Seeder
         // We call the CategorySeeder first to populate the categories table.
         $this->call([
             CategorySeeder::class,
+            SiteSeeder::class,
         ]);
 
         // Now that we have categories, we can call the ArticleSeeder
