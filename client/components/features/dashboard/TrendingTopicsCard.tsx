@@ -11,8 +11,8 @@ interface TrendingTopicsProps {
 export default function TrendingTopicsCard({ items, className }: TrendingTopicsProps) {
     const router = useRouter();
 
-    const handleItemClick = (id: string | number) => {
-        router.push(`/article?id=${id}`);
+    const handleItemClick = (label: string) => {
+        router.push(`/search?q=${encodeURIComponent(label)}`);
     };
 
     return (
@@ -28,7 +28,7 @@ export default function TrendingTopicsCard({ items, className }: TrendingTopicsP
                 {items.map((item, index) => (
                     <button
                         key={item.id}
-                        onClick={() => handleItemClick(item.id)}
+                        onClick={() => handleItemClick(item.label)}
                         className="w-full flex items-center gap-3 p-3 rounded-[8px] hover:bg-[#f3f4f6] transition-colors group text-left"
                     >
                         <span className="text-[16px] font-bold text-[#6b7280] group-hover:text-[#c10007]">
