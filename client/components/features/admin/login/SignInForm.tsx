@@ -29,7 +29,7 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
 
         try {
             await login({ email, password });
-            router.push("/admin/analytics"); // Redirect to dashboard
+            router.push("/admin"); // Redirect to dashboard
         } catch (error) {
             console.error(error);
             alert("Invalid credentials or server error");
