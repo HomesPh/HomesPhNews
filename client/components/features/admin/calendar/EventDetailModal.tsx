@@ -70,12 +70,15 @@ export default function EventDetailModal({ event, onClose, onEdit, onDelete }: E
                             <div>
                                 <p className="text-[14px] font-medium text-[#111827] tracking-[-0.5px]">Date & Time</p>
                                 <p className="text-[14px] text-[#6b7280] tracking-[-0.5px] mt-1">
-                                    {new Date(event.date).toLocaleDateString('en-US', {
-                                        weekday: 'long',
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric'
-                                    })}
+                                    {(() => {
+                                        const [y, mm, dd] = event.date.split('-').map(Number);
+                                        return new Date(y, mm - 1, dd).toLocaleDateString('en-US', {
+                                            weekday: 'long',
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                        });
+                                    })()}
                                 </p>
                                 {event.time && (
                                     <p className="text-[14px] tracking-[-0.5px] mt-0.5" style={{ color: event.color }}>

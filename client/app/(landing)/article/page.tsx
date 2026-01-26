@@ -4,6 +4,7 @@ import ArticleFeaturedImage from "@/components/features/article/ArticleFeaturedI
 import ArticleContent from "@/components/features/article/ArticleContent";
 import ArticleShareBox from "@/components/features/article/ArticleShareBox";
 import RelatedArticles from "@/components/features/article/RelatedArticles";
+import ArticleViewCounter from "@/components/features/article/ArticleViewCounter";
 import AdSpace from "@/components/shared/AdSpace";
 import { ArticlesListResponse, getArticleById, getArticlesList } from "@/lib/api";
 import { Categories, Countries } from "@/app/data";
@@ -51,9 +52,9 @@ export default async function Article({ searchParams }: Props) {
       title: a.title,
       category: a.category,
       location: a.country,
-      imageSrc: a.image_url,
-      timeAgo: "TBA",
-      views: "0" // API doesn't provide view count yet
+      imageSrc: a.image_url || "/healthcare.jpg",
+      timeAgo: new Date(a.created_at || Date.now()).toLocaleDateString(),
+      views: a.views_count?.toLocaleString() + " views"
     }));
 
   const getCategoryLabel = (cat: string) => Categories.find(c => c.id.toLowerCase() === cat.toLowerCase() || c.label.toLowerCase() === cat.toLowerCase())?.label || cat;
@@ -61,6 +62,7 @@ export default async function Article({ searchParams }: Props) {
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-[110px] py-12">
+      <ArticleViewCounter articleId={articleId} />
       <ArticleBreadcrumb
         category={getCategoryLabel(article.category)}
         categoryId={article.category}
@@ -80,7 +82,7 @@ export default async function Article({ searchParams }: Props) {
           month: 'long',
           day: 'numeric'
         })}
-        views={0}
+        views={article.views_count}
       />
       {article.image_url && (
         <ArticleFeaturedImage
