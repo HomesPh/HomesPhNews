@@ -1,11 +1,13 @@
 """
 HomesPh Global News Engine - Storage Handler
-Handles: Redis metadata storage (organized by country/category), GCP image uploads.
+Handles: Redis metadata storage (organized by country/category), Cloud image uploads (GCP or AWS S3).
 """
 
 import os
 import redis
 import json
+import boto3
+from concurrent.futures import ThreadPoolExecutor
 from google.cloud import storage
 from google.oauth2 import service_account
 from dotenv import load_dotenv
@@ -20,10 +22,43 @@ class StorageHandler:
         self.redis_client = redis.from_url(redis_url, decode_responses=True)
         self.prefix = os.getenv("REDIS_PREFIX", "homesph:")
 
+        # Storage Provider Setup
+        self.storage_provider = os.getenv("STORAGE_PROVIDER", "gcp").lower()
+        
         # GCP Storage Setup
-        self.bucket_name = os.getenv("GCP_BUCKET_NAME")
+        self.gcp_bucket_name = os.getenv("GCP_BUCKET_NAME")
         self.gcs_client = None
-        self._init_gcp()
+        
+        # AWS S3 Setup
+        self.s3_bucket_name = os.getenv("AWS_BUCKET")
+        self.s3_folder = os.getenv("AWS_FOLDER", "")
+        self.s3_client = None
+
+        if self.storage_provider == "aws":
+            self._init_s3()
+        else:
+            self._init_gcp()
+
+    def _init_s3(self):
+        """Initialize AWS S3 client."""
+        aws_access_key = os.getenv("AWS_ACCESS_KEY_ID")
+        aws_secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+        aws_region = os.getenv("AWS_DEFAULT_REGION", "ap-southeast-1")
+
+        if not aws_access_key or not aws_secret_key:
+            print("ℹ️ AWS credentials not provided. S3 uploads disabled.")
+            return
+
+        try:
+            self.s3_client = boto3.client(
+                's3',
+                aws_access_key_id=aws_access_key,
+                aws_secret_access_key=aws_secret_key,
+                region_name=aws_region
+            )
+            print(f"✅ AWS S3 Initialized (Bucket: {self.s3_bucket_name})")
+        except Exception as e:
+            print(f"⚠️ AWS S3 Init Error: {e}")
 
     def _init_gcp(self):
         """Initialize GCP Cloud Storage client."""
@@ -163,14 +198,55 @@ class StorageHandler:
 
     def upload_image(self, local_path, destination_path):
         """
-        Uploads an image to GCP Cloud Storage.
+        Uploads an image to the configured cloud storage (GCP or AWS).
         Returns the public URL or the local path if upload fails.
         """
-        if not self.gcs_client or not self.bucket_name:
+        if self.storage_provider == "aws":
+            return self._upload_to_s3(local_path, destination_path)
+        else:
+            return self._upload_to_gcp(local_path, destination_path)
+
+    def _upload_to_s3(self, local_path, destination_path):
+        """Uploads an image to AWS S3."""
+        if not self.s3_client or not self.s3_bucket_name:
+            return local_path
+
+        try:
+            # prefix with folder if provided
+            if self.s3_folder:
+                # Ensure the folder ends with a slash and the destination doesn't start with one
+                folder = self.s3_folder.strip('/')
+                destination = destination_path.lstrip('/')
+                s3_path = f"{folder}/{destination}"
+            else:
+                s3_path = destination_path
+
+            self.s3_client.upload_file(
+                local_path, 
+                self.s3_bucket_name, 
+                s3_path,
+                ExtraArgs={'ACL': 'public-read', 'ContentType': 'image/jpeg'}
+            )
+            
+            region = os.getenv("AWS_DEFAULT_REGION", "ap-southeast-1")
+            public_url = f"https://{self.s3_bucket_name}.s3.{region}.amazonaws.com/{s3_path}"
+            
+            # Clean up local file after successful upload
+            if os.path.exists(local_path):
+                os.remove(local_path)
+                
+            return public_url
+        except Exception as e:
+            print(f"❌ AWS S3 Upload Error: {e}")
+            return local_path
+
+    def _upload_to_gcp(self, local_path, destination_path):
+        """Uploads an image to GCP Cloud Storage."""
+        if not self.gcs_client or not self.gcp_bucket_name:
             return local_path
             
         try:
-            bucket = self.gcs_client.bucket(self.bucket_name)
+            bucket = self.gcs_client.bucket(self.gcp_bucket_name)
             blob = bucket.blob(destination_path)
             blob.upload_from_filename(local_path)
             
@@ -182,6 +258,125 @@ class StorageHandler:
         except Exception as e:
             print(f"❌ GCP Upload Error: {e}")
             return local_path
+
+    def delete_article(self, article_id):
+        """
+        Deletes an article from Redis and its associated image from Cloud Storage.
+        Returns True if successful, False otherwise.
+        """
+        try:
+            # 1. Get article data to find image URL
+            article_key = f"{self.prefix}article:{article_id}"
+            data = self.redis_client.get(article_key)
+            if not data:
+                print(f"⚠️ Article {article_id} not found in Redis.")
+                return False
+                
+            article = json.loads(data)
+            image_url = article.get("image_url")
+            country = article.get("country", "Global")
+            category = article.get("category", "General")
+            topics = article.get("topics", [])
+            
+            # 2. Delete image from Cloud Storage
+            if image_url and not image_url.startswith("https://placehold.co"):
+                self._delete_cloud_image(image_url)
+                
+            # 3. Remove from all Redis indexes
+            # Main article data
+            self.redis_client.delete(article_key)
+            
+            # Global index
+            self.redis_client.srem(f"{self.prefix}all_articles", article_id)
+            
+            # Time-based index
+            self.redis_client.zrem(f"{self.prefix}articles_by_time", article_id)
+            
+            # Country index
+            country_key = f"{self.prefix}country:{country.lower().replace(' ', '_')}"
+            self.redis_client.srem(country_key, article_id)
+            
+            # Category index
+            category_key = f"{self.prefix}category:{category.lower().replace(' ', '_')}"
+            self.redis_client.srem(category_key, article_id)
+            
+            # Topic indexes
+            for topic in topics:
+                topic_key = f"{self.prefix}topic:{topic.lower().replace(' ', '_').replace('&', 'and')}"
+                self.redis_client.srem(topic_key, article_id)
+                
+            print(f"🗑️ Article {article_id} and its assets deleted successfully.")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Deletion Error: {e}")
+            return False
+
+    def _delete_cloud_image(self, image_url):
+        """Extracts the path from the URL and deletes the file from Cloud Storage."""
+        try:
+            if self.storage_provider == "aws" and self.s3_client:
+                # Extract S3 Key from URL: https://bucket.s3.region.amazonaws.com/path/to/image.png
+                # We need: path/to/image.png
+                parts = image_url.split(".amazonaws.com/")
+                if len(parts) > 1:
+                    s3_path = parts[1]
+                    self.s3_client.delete_object(Bucket=self.s3_bucket_name, Key=s3_path)
+                    print(f"🧹 S3 Image Deleted: {s3_path}")
+                    
+            elif self.storage_provider == "gcp" and self.gcs_client:
+                # Extract blob name from GCP URL: https://storage.googleapis.com/bucket/path/to/image.png
+                parts = image_url.split(f"{self.gcp_bucket_name}/")
+                if len(parts) > 1:
+                    blob_name = parts[1]
+                    bucket = self.gcs_client.bucket(self.gcp_bucket_name)
+                    blob = bucket.blob(blob_name)
+                    blob.delete()
+                    print(f"🧹 GCP Image Deleted: {blob_name}")
+                    
+        except Exception as e:
+            print(f"⚠️ Cloud Cleanup Warning: {e}")
+
+    def clear_all_articles(self):
+        """
+        Deletes ALL articles from Redis and their associated images from Cloud Storage.
+        Uses parallel threads to speed up cloud image deletions.
+        """
+        try:
+            # 1. Get all article IDs
+            article_ids = list(self.redis_client.smembers(f"{self.prefix}all_articles"))
+            if not article_ids:
+                return 0
+                
+            print(f"🧹 Starting parallel purge of {len(article_ids)} articles...")
+            
+            # 2. Use ThreadPoolExecutor for parallel deletion (especially for S3/GCP)
+            # Parallelizing this makes it much faster for large datasets
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                results = list(executor.map(self.delete_article, article_ids))
+            
+            count = sum(1 for r in results if r)
+            
+            # 3. Final cleanup of global metadata sets
+            self.redis_client.delete(f"{self.prefix}all_articles")
+            self.redis_client.delete(f"{self.prefix}articles_by_time")
+            self.redis_client.delete(f"{self.prefix}all_topics")
+            self.redis_client.delete(f"{self.prefix}scraped_urls")
+            self.redis_client.delete(f"{self.prefix}title_hashes")
+            
+            # Additional keys that might exist
+            keys_to_clear = self.redis_client.keys(f"{self.prefix}country:*")
+            keys_to_clear += self.redis_client.keys(f"{self.prefix}category:*")
+            keys_to_clear += self.redis_client.keys(f"{self.prefix}topic:*")
+            
+            if keys_to_clear:
+                self.redis_client.delete(*keys_to_clear)
+            
+            print(f"💥 DATABASE PURGED: {count} articles and images deleted.")
+            return count
+        except Exception as e:
+            print(f"❌ Clear All Error: {e}")
+            return 0
 
     def get_stats(self):
         """Returns statistics about stored articles."""

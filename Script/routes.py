@@ -69,6 +69,29 @@ async def get_article(article_id: str):
     return json.loads(data)
 
 
+@router.delete("/articles/{article_id}", tags=["Articles"])
+async def delete_article(article_id: str):
+    """Delete an article and its associated cloud storage image."""
+    from storage import StorageHandler
+    storage = StorageHandler()
+    
+    success = storage.delete_article(article_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Article not found or could not be deleted")
+        
+    return {"message": f"Article {article_id} deleted successfully"}
+
+
+@router.post("/articles/clear-all", tags=["Articles"])
+async def clear_all_articles():
+    """Wipe ALL articles from Redis and Cloud Storage."""
+    from storage import StorageHandler
+    storage = StorageHandler()
+    
+    deleted_count = storage.clear_all_articles()
+    return {"message": f"Successfully deleted {deleted_count} articles and images. Database is clean."}
+
+
 @router.get("/articles/country/{country}", response_model=List[ArticleSummary], tags=["Articles"])
 async def get_articles_by_country(
     country: str,
