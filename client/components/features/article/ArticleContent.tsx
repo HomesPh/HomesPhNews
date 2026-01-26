@@ -1,5 +1,7 @@
 "use client";
 
+import { cn } from "@/lib/utils";
+
 interface ArticleContentProps {
   content: string;
   topics: string[];
@@ -19,17 +21,26 @@ const AdPlaceholder = ({ label }: { label: string }) => (
 export default function ArticleContent({ content, topics }: ArticleContentProps) {
   return (
     <article className="my-8">
+      <style jsx global>{`
+        .drop-cap::first-letter {
+          float: left;
+          font-size: 72px;
+          line-height: 64px;
+          margin-right: 12px;
+          margin-top: 4px;
+          font-weight: bold;
+          color: #0c0c0c;
+        }
+      `}</style>
       {/* Advertisement Top */}
       <AdPlaceholder label="300x600 Leaderboard Ad" />
 
       {/* Main Content */}
       {/* Main Content - CNN Style */}
       <div className="prose prose-lg max-w-none mb-12">
-        {content.includes('<p>') ? (
-          // If content is already HTML, use it directly but style the first paragraph via CSS if possible, 
-          // or just render it. For now, let's render standard HTML with updated typography.
+        {content.includes('<') ? (
           <div
-            className="text-[18px] leading-[32px] text-[#0c0c0c] [&>p]:mb-6 [&>p:first-of-type]:first-letter:float-left [&>p:first-of-type]:first-letter:text-[72px] [&>p:first-of-type]:first-letter:leading-[64px] [&>p:first-of-type]:first-letter:mr-3 [&>p:first-of-type]:first-letter:mt-1 [&>p:first-of-type]:first-letter:font-bold"
+            className="text-[18px] leading-[32px] text-[#0c0c0c] drop-cap [&>p]:mb-6 [&>b]:font-bold [&>i]:italic [&>u]:underline [&>h1]:text-3xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mb-3"
             dangerouslySetInnerHTML={{ __html: content }}
           />
         ) : (
@@ -42,27 +53,13 @@ export default function ArticleContent({ content, topics }: ArticleContentProps)
               if (!trimmed) return null;
 
               // First paragraph gets special styling with drop cap
-              if (idx === 0) {
-                const firstChar = trimmed.charAt(0);
-                const restOfText = trimmed.slice(1);
-                return (
-                  <p
-                    key={idx}
-                    className="text-[19px] leading-[32px] text-[#0c0c0c] mb-6 font-normal"
-                  >
-                    <span className="float-left text-[72px] leading-[64px] mr-3 mt-1 font-bold text-[#0c0c0c]">
-                      {firstChar}
-                    </span>
-                    {restOfText}
-                  </p>
-                );
-              }
-
-              // Regular paragraphs
               return (
                 <p
                   key={idx}
-                  className="text-[18px] leading-[32px] text-[#0c0c0c] mb-6 font-normal"
+                  className={cn(
+                    "text-[18px] leading-[32px] text-[#0c0c0c] mb-6 font-normal",
+                    idx === 0 && "drop-cap"
+                  )}
                 >
                   {trimmed}
                 </p>

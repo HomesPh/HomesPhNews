@@ -82,13 +82,20 @@ export default function ArticleHeader({
       </div>
 
       {/* Title and Subtitle */}
-      <div className="flex flex-col gap-[20px] mb-6">
+      <div className="prose prose-lg max-w-none mb-12">
         <h1 className="font-bold text-[42px] md:text-[48px] text-[#111827] tracking-tight leading-[1.1]">
           {title}
         </h1>
-        <p className="font-normal text-[20px] text-[#4b5563] tracking-[-0.5px] leading-[1.2]">
-          {subtitle}
-        </p>
+        {subtitle.includes('<') ? (
+          <div
+            className="font-normal text-[20px] text-[#4b5563] tracking-[-0.5px] leading-[1.2]"
+            dangerouslySetInnerHTML={{ __html: subtitle }}
+          />
+        ) : (
+          <p className="font-normal text-[20px] text-[#4b5563] tracking-[-0.5px] leading-[1.2]">
+            {subtitle}
+          </p>
+        )}
       </div>
 
       {/* Author and Meta / Social Share Row */}
