@@ -40,7 +40,7 @@ export default function ArticleContent({ content, topics }: ArticleContentProps)
       <div className="prose prose-lg max-w-none mb-12">
         {content.includes('<') ? (
           <div
-            className="text-[18px] leading-[32px] text-[#0c0c0c] drop-cap [&>p]:mb-6 [&>b]:font-bold [&>i]:italic [&>u]:underline [&>h1]:text-3xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mb-3"
+            className="text-[18px] leading-[32px] text-[#0c0c0c] drop-cap break-words [&>p]:mb-6 [&>b]:font-bold [&>i]:italic [&>u]:underline [&>h1]:text-3xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mb-3"
             dangerouslySetInnerHTML={{ __html: content }}
           />
         ) : (
@@ -57,7 +57,7 @@ export default function ArticleContent({ content, topics }: ArticleContentProps)
                 <p
                   key={idx}
                   className={cn(
-                    "text-[18px] leading-[32px] text-[#0c0c0c] mb-6 font-normal",
+                    "text-[18px] leading-[32px] text-[#0c0c0c] mb-6 font-normal break-words",
                     idx === 0 && "drop-cap"
                   )}
                 >
