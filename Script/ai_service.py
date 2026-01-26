@@ -8,7 +8,7 @@ import re
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 import google.generativeai as genai
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from dotenv import load_dotenv
 from config import AI_WRITING_STYLE, COUNTRIES
 
@@ -186,9 +186,14 @@ class AIProcessor:
         """Generates a visual prompt for image generation."""
         prompt = f"""
         Create a SHORT visual prompt (1-2 sentences) for an AI image generator.
-        The image should represent a news story about {category} in {country}.
+        The image should represent a news story about {category} in {country}, specifically focusing on the Filipino community or OFWs if applicable.
         
         News: {title}
+        
+        Style Guidelines:
+        - Professional photojournalism style
+        - Realistic and culturally sensitive
+        - If humans are featured, they should look like Filipinos
         
         Return ONLY the prompt text. No explanation. Be specific and visual.
         """
@@ -235,7 +240,9 @@ class AIProcessor:
                         img.save(temp_path)
                 
                 if os.path.exists(temp_path):
-                    print(f"✅ Image generated using {model_name}")
+                    # Add Watermark before returning
+                    self.add_ai_watermark(temp_path)
+                    print(f"✅ Image generated using {model_name} (Watermark added)")
                     return temp_path
 
             except Exception as e:
@@ -244,6 +251,52 @@ class AIProcessor:
         print("⚠️ Image generation failed. Using placeholder.")
         print("   💡 Image generation uses different quota (Imagen) - might have separate limits")
         return "https://placehold.co/800x450?text=News+Image"
+
+    def add_ai_watermark(self, image_path):
+        """Adds only the Gemini sparkle logo as a watermark."""
+        try:
+            img = Image.open(image_path).convert("RGBA")
+            overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+            draw = ImageDraw.Draw(overlay)
+            
+            width, height = img.size
+            margin = 30 # Increased margin for a cleaner look
+            
+            # 1. Draw Gemini-style Sparkle Logo
+            logo_size = max(32, int(height * 0.06)) # Slightly larger since it's now the only element
+            logo_x = width - logo_size - margin
+            logo_y = height - logo_size - margin
+            
+            # Coordinates for a 4-pointed sparkle
+            center_x = logo_x + logo_size // 2
+            center_y = logo_y + logo_size // 2
+            radius = logo_size // 2
+            
+            # Points for the sparkle (star)
+            p1 = (center_x, center_y - radius) # Top
+            p2 = (center_x + radius * 0.25, center_y - radius * 0.25)
+            p3 = (center_x + radius, center_y) # Right
+            p4 = (center_x + radius * 0.25, center_y + radius * 0.25)
+            p5 = (center_x, center_y + radius) # Bottom
+            p6 = (center_x - radius * 0.25, center_y + radius * 0.25)
+            p7 = (center_x - radius, center_y) # Left
+            p8 = (center_x - radius * 0.25, center_y - radius * 0.25)
+            
+            # Draw the sparkle with shadow for better visibility
+            # Shadow
+            shadow_offset = 2
+            s_pts = [(p[0] + shadow_offset, p[1] + shadow_offset) for p in [p1, p2, p3, p4, p5, p6, p7, p8]]
+            draw.polygon(s_pts, fill=(0, 0, 0, 100))
+            
+            # Main logo
+            draw.polygon([p1, p2, p3, p4, p5, p6, p7, p8], fill=(255, 255, 255, 200))
+            
+            # Combine
+            watermarked = Image.alpha_composite(img, overlay)
+            watermarked.convert("RGB").save(image_path)
+            
+        except Exception as e:
+            print(f"⚠️ Could not add Gemini watermark: {e}")
 
 
 if __name__ == "__main__":

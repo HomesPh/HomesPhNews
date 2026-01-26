@@ -72,7 +72,7 @@ class NewsPipeline:
             )
             img_path = self.ai.generate_image(img_prompt, article_id)
             
-            # 6. Upload image to GCP if local
+            # 6. Upload image to Cloud Storage (GCP or AWS) if local
             if img_path and not img_path.startswith("http"):
                 img_url = self.storage.upload_image(
                     img_path, 
