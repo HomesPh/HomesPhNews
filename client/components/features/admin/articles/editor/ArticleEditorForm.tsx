@@ -500,7 +500,7 @@ export default function ArticleEditorForm({
                                                 <button
                                                     onClick={() => {
                                                         const newId = Math.max(0, ...data.contentBlocks.map(b => b.id)) + 1;
-                                                        onDataChange('contentBlocks', [...data.contentBlocks, { id: newId, type: 'text', content: '' }]);
+                                                        onDataChange('contentBlocks', [...data.contentBlocks, { id: newId, type: 'text', content: '', image: '', caption: '' }]);
                                                     }}
                                                     className="flex-1 py-3 border-2 border-dashed border-[#e5e7eb] rounded-[8px] text-[13px] text-[#6b7280] font-bold hover:border-[#3b82f6] hover:text-[#3b82f6] hover:bg-blue-50 transition-all flex items-center justify-center gap-2"
                                                 >
@@ -509,8 +509,9 @@ export default function ArticleEditorForm({
                                                 <button
                                                     onClick={() => {
                                                         const newId = Math.max(0, ...data.contentBlocks.map(b => b.id)) + 1;
-                                                        const blockType = template === 'fullwidth' ? 'image-caption' : 'image';
-                                                        onDataChange('contentBlocks', [...data.contentBlocks, { id: newId, type: blockType, image: '', caption: '', content: '' }]);
+                                                        // Always default to 'image' type for the Image Section button. 
+                                                        // 'image-caption' remains supported for existing data but new additions are cleaner.
+                                                        onDataChange('contentBlocks', [...data.contentBlocks, { id: newId, type: 'image', image: '', caption: '', content: '' }]);
                                                     }}
                                                     className="flex-1 py-3 border-2 border-dashed border-[#e5e7eb] rounded-[8px] text-[13px] text-[#6b7280] font-bold hover:border-[#3b82f6] hover:text-[#3b82f6] hover:bg-blue-50 transition-all flex items-center justify-center gap-2"
                                                 >

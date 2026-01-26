@@ -226,7 +226,7 @@ export default function ArticleRichTextEditor({
                 contentEditable
                 onInput={handleInput}
                 onFocus={handleFocus}
-                className="w-full px-4 py-3 text-[15px] text-[#111827] focus:outline-none overflow-y-auto prose prose-sm max-w-none prose-p:mb-6 [&_b]:font-bold [&_i]:italic [&_u]:underline [&_a]:text-blue-600 [&_a]:underline"
+                className="w-full px-4 py-3 text-[15px] text-[#111827] focus:outline-none overflow-y-auto prose prose-sm max-w-none break-words prose-p:mb-6 [&_b]:font-bold [&_i]:italic [&_u]:underline [&_a]:text-blue-600 [&_a]:underline"
                 style={heightStyle}
             />
 
