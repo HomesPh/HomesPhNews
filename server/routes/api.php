@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\SiteController;
 use App\Http\Controllers\Api\Admin\EventController;
+use App\Http\Controllers\Api\UploadController;
 use Illuminate\Support\Facades\Redis;
 
 
@@ -100,4 +101,7 @@ Route::middleware(['auth:sanctum', 'is.admin'])
         Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
         // Reject pending article (Redis → MySQL with rejected status, then delete from Redis)
         Route::post('articles/{id}/reject', [AdminArticleController::class, 'reject']);
+
+        // Upload Routes
+        Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
     });
