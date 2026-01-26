@@ -94,7 +94,7 @@ export default function EventCard({ event, variant, onClick }: EventCardProps) {
             >
                 {variant === 'year' && (
                     <p className="text-[12px] font-semibold text-[#111827] tracking-[-0.5px] leading-[normal] mr-1">
-                        {new Date(event.date).getDate()}
+                        {Number(event.date.split('-')[2])}
                     </p>
                 )}
                 <span className="text-[12px]">{event.category === 'Holiday' ? '🎊' : '🎉'}</span>

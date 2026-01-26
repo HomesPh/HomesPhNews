@@ -62,8 +62,11 @@ export default function CalendarViewSelector({
                 {viewMode !== 'year' && (
                     <input
                         type="date"
-                        value={currentDate.toISOString().split('T')[0]}
-                        onChange={(e) => setCurrentDate(new Date(e.target.value))}
+                        value={`${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`}
+                        onChange={(e) => {
+                            const [y, m, d] = e.target.value.split('-').map(Number);
+                            setCurrentDate(new Date(y, m - 1, d));
+                        }}
                         className="px-4 py-2 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent cursor-pointer"
                     />
                 )}

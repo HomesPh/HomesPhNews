@@ -11,6 +11,7 @@ export interface Article {
   image_url: string;
   timestamp: ISOString;
   topics?: string[];
+  views_count: number;
 }
 
 export interface ArticleListItem {
