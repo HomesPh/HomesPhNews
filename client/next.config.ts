@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "via.placeholder.com",
       },
+      {
+        protocol: "https",
+        hostname: "filipinohomes123.s3.ap-southeast-1.amazonaws.com",
+      },
     ],
   },
 };

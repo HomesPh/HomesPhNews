@@ -144,3 +144,23 @@ export async function updateArticle(id: string, payload: any): Promise<Article> 
         throw error;
     }
 }
+/**
+ * Upload an image for an article
+ */
+export async function uploadArticleImage(file: File): Promise<{ url: string }> {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+        const response = await api.post<{ url: string }>('/admin/upload/image', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        console.log(`[API] Upload Image: ${response.status} OK`);
+        return response.data;
+    } catch (error: any) {
+        console.error(`[API] Upload Image Failed: ${error.response?.status || 'Unknown error'}`);
+        throw error;
+    }
+}
