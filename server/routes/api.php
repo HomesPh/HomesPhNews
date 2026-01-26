@@ -52,6 +52,10 @@ Route::get('/article', [UserArticleController::class, 'feed']);
 Route::get('/articles/{id}', [UserArticleController::class, 'show'])
     ->where('id', '[a-f0-9\-]{36}'); // UUID pattern
 
+// Increment article view count
+Route::post('/articles/{id}/view', [UserArticleController::class, 'incrementViews'])
+    ->where('id', '[a-f0-9\-]{36}');
+
 
 
 

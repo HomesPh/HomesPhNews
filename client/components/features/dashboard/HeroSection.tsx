@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import Link from 'next/link'
+import { Eye } from 'lucide-react'
 
 type HeroSectionProps = {
   id?: string
@@ -13,6 +14,7 @@ type HeroSectionProps = {
   imageUrl: string
   imageAlt?: string
   timeAgo: string
+  views?: number
   keywords?: string
   isFeatured?: boolean
   onReadMore?: () => void
@@ -28,6 +30,7 @@ export default function HeroSection({
   imageUrl,
   imageAlt = 'Hero image',
   timeAgo,
+  views = 0,
   keywords,
   isFeatured = false,
   onReadMore,
@@ -73,6 +76,13 @@ export default function HeroSection({
               <div className="w-1.5 h-1.5 rounded-full bg-[#c10007]" />
               <span className="text-[14px] font-medium text-[#d1d5db] tracking-tight">
                 {timeAgo}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 ml-1">
+              <Eye className="h-[14px] w-[14px] text-[#d1d5db]" />
+              <span className="text-[14px] font-medium text-[#d1d5db] tracking-tight">
+                {views.toLocaleString()} views
               </span>
             </div>
 

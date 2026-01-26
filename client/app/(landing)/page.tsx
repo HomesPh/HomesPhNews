@@ -42,6 +42,7 @@ export default async function Dashboard({ searchParams }: Props) {
               imageAlt="latest global"
               timeAgo={new Date(latest_global[0].timestamp).toLocaleDateString()}
               keywords={latest_global[0].keywords}
+              views={latest_global[0].views_count}
               isFeatured={true}
             />
           )}
@@ -71,7 +72,7 @@ export default async function Dashboard({ searchParams }: Props) {
                   description={article.content}
                   timeAgo={new Date(article.timestamp).toLocaleDateString()}
                   imageSrc={article.image_url}
-                  views="0"
+                  views={article.views_count?.toLocaleString() + " views"}
                 />
               ))}
             </div>
@@ -94,7 +95,7 @@ export default async function Dashboard({ searchParams }: Props) {
               id: article.id,
               title: article.title,
               imageUrl: article.image_url,
-              views: 0,
+              views: article.views_count,
               timeAgo: new Date(article.timestamp).toLocaleDateString()
             }))}
           />

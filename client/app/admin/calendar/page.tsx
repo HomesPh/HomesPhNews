@@ -87,6 +87,12 @@ export default function CalendarPage() {
         }
     };
 
+    const handleMonthClick = (year: number, month: number) => {
+        const newDate = new Date(year, month, 1);
+        setCurrentDate(newDate);
+        setViewMode('month');
+    };
+
     const handleCreateEvent = (newEvent: any) => {
         setEvents([...events, { ...newEvent, id: Date.now() }]);
         setCurrentDate(new Date(newEvent.date));
@@ -145,6 +151,7 @@ export default function CalendarPage() {
                         selectedCountry={selectedCountry}
                         onEventClick={handleEventClick}
                         onDateClick={handleDateClick}
+                        onMonthClick={handleMonthClick}
                     />
                 </div>
             </div>

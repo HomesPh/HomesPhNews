@@ -95,21 +95,21 @@ class ArticleController extends Controller
         // 1. Dashboard Mode (feed) or default if no filters
         if ($mode === 'feed' || (!$mode && !$search && !$country && !$category)) {
             $trending = Article::with(['publishedSites']) // Fix N+1
-                ->select('id', 'title', 'country', 'category', 'image', 'topics')
+                ->select('id', 'title', 'country', 'category', 'image', 'topics', 'views_count')
                 ->where('status', 'published')
                 ->orderBy('views_count', 'desc')
                 ->limit(5)
                 ->get();
 
             $mostRead = Article::with(['publishedSites']) // Fix N+1
-                ->select('id', 'title', 'country', 'category', 'image')
+                ->select('id', 'title', 'country', 'category', 'image', 'views_count', 'created_at as timestamp')
                 ->where('status', 'published')
                 ->orderBy('views_count', 'desc')
                 ->limit(10)
                 ->get();
 
             $latestGlobal = Article::with(['publishedSites']) // Fix N+1
-                ->select('id', 'title', 'summary as content', 'country', 'category', 'created_at as timestamp', 'image')
+                ->select('id', 'title', 'summary as content', 'country', 'category', 'created_at as timestamp', 'image', 'views_count', 'keywords')
                 ->where('status', 'published')
                 ->orderBy('created_at', 'desc')
                 ->limit(5)
@@ -154,7 +154,7 @@ class ArticleController extends Controller
         $total = $query->count();
 
         $articles = $query->with(['publishedSites']) // Fix N+1
-            ->select('id', 'title', 'summary', 'country', 'category', 'image', 'created_at')
+            ->select('id', 'title', 'summary', 'country', 'category', 'image', 'created_at as timestamp', 'views_count')
             ->orderBy('created_at', 'desc')
             ->offset($offset)
             ->limit($limit)
@@ -203,6 +203,39 @@ class ArticleController extends Controller
         }
 
         return response()->json($article);
+    }
+
+    /**
+     * Increment article view count
+     */
+    #[OA\Post(
+        path: "/api/articles/{id}/view",
+        operationId: "incrementArticleViews",
+        summary: "Increment article view count",
+        description: "Increments the views_count for a specific article.",
+        tags: ["User: Articles"],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, description: "Article ID (UUID)", schema: new OA\Schema(type: "string"))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Successful operation"),
+            new OA\Response(response: 404, description: "Article not found")
+        ]
+    )]
+    public function incrementViews(string $id)
+    {
+        $article = Article::find($id);
+
+        if (!$article) {
+            return response()->json(['error' => 'Article not found'], 404);
+        }
+
+        $article->increment('views_count');
+
+        return response()->json([
+            'message' => 'View count incremented',
+            'views_count' => $article->views_count
+        ]);
     }
 
 

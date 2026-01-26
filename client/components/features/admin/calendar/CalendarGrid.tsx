@@ -12,6 +12,7 @@ interface CalendarGridProps {
     selectedCountry: string;
     onEventClick: (event: CalendarEvent) => void;
     onDateClick: (date: Date) => void;
+    onMonthClick: (year: number, month: number) => void;
 }
 
 export default function CalendarGrid({
@@ -21,7 +22,8 @@ export default function CalendarGrid({
     events: allEvents,
     selectedCountry,
     onEventClick,
-    onDateClick
+    onDateClick,
+    onMonthClick
 }: CalendarGridProps) {
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -81,7 +83,7 @@ export default function CalendarGrid({
                     ) : (
                         <div className="space-y-4">
                             {dayEvents.map((event) => (
-                                <EventCard key={event.id} event={event} variant="day" onClick={() => onEventClick(event)} />
+                                <EventCard key={`${event.isPublicHoliday ? 'holiday' : 'event'}-${event.id}`} event={event} variant="day" onClick={() => onEventClick(event)} />
                             ))}
                         </div>
                     )}
@@ -123,7 +125,7 @@ export default function CalendarGrid({
                                 {/* Events */}
                                 <div className="bg-white min-h-[500px] p-3 space-y-2">
                                     {dayEvents.map((event) => (
-                                        <EventCard key={event.id} event={event} variant="week" onClick={() => onEventClick(event)} />
+                                        <EventCard key={`${event.isPublicHoliday ? 'holiday' : 'event'}-${event.id}`} event={event} variant="week" onClick={() => onEventClick(event)} />
                                     ))}
                                 </div>
                             </div>
@@ -216,7 +218,7 @@ export default function CalendarGrid({
                                 {/* Events */}
                                 <div className="space-y-1">
                                     {dayEvents.slice(0, 3).map((event) => (
-                                        <EventCard key={event.id} event={event} variant="month" onClick={() => onEventClick(event)} />
+                                        <EventCard key={`${event.isPublicHoliday ? 'holiday' : 'event'}-${event.id}`} event={event} variant="month" onClick={() => onEventClick(event)} />
                                     ))}
                                     {dayEvents.length > 3 && (
                                         <p className="text-[10px] text-[#3b82f6] tracking-[-0.5px] pl-1">
@@ -252,8 +254,8 @@ export default function CalendarGrid({
                     }
 
                     const monthEvents = events.filter(event => {
-                        const eventDate = new Date(event.date);
-                        return eventDate.getFullYear() === selectedYear && eventDate.getMonth() === monthIdx;
+                        const [y, m] = event.date.split('-').map(Number);
+                        return y === selectedYear && (m - 1) === monthIdx;
                     });
 
                     const today = new Date();
@@ -263,7 +265,10 @@ export default function CalendarGrid({
                     return (
                         <div key={monthIdx} className="bg-white rounded-[8px] border border-[#e5e7eb] overflow-hidden shadow-sm">
                             {/* Red Header Bar */}
-                            <div className="bg-[#C10007] px-4 py-[11px] flex items-center justify-between">
+                            <div
+                                className="bg-[#C10007] px-4 py-[11px] flex items-center justify-between cursor-pointer hover:bg-[#a10006] transition-colors"
+                                onClick={() => onMonthClick(selectedYear, monthIdx)}
+                            >
                                 <p className="text-[16px] font-bold text-white tracking-[-0.5px] leading-[24px]">
                                     {monthName}
                                 </p>
@@ -292,7 +297,10 @@ export default function CalendarGrid({
                                             return <div key={idx} className="aspect-square" />;
                                         }
 
-                                        const hasEvents = monthEvents.some(e => new Date(e.date).getDate() === day);
+                                        const hasEvents = monthEvents.some(e => {
+                                            const [y, m, d] = e.date.split('-').map(Number);
+                                            return d === day;
+                                        });
                                         const isTodayCell = isCurrentMonth && day === todayDate;
 
                                         return (
@@ -321,10 +329,13 @@ export default function CalendarGrid({
                                 ) : (
                                     <div className="space-y-[6px]">
                                         {monthEvents.slice(0, 2).map((event) => (
-                                            <EventCard key={event.id} event={event} variant="year" onClick={() => onEventClick(event)} />
+                                            <EventCard key={`${event.isPublicHoliday ? 'holiday' : 'event'}-${event.id}`} event={event} variant="year" onClick={() => onEventClick(event)} />
                                         ))}
                                         {monthEvents.length > 2 && (
-                                            <p className="text-[11px] text-[#3b82f6] tracking-[-0.5px] cursor-pointer hover:underline">
+                                            <p
+                                                className="text-[11px] text-[#3b82f6] tracking-[-0.5px] cursor-pointer hover:underline"
+                                                onClick={() => onMonthClick(selectedYear, monthIdx)}
+                                            >
                                                 +{monthEvents.length - 2} more event{monthEvents.length - 2 !== 1 ? 's' : ''}
                                             </p>
                                         )}
