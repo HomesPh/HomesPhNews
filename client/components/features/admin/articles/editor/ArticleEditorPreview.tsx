@@ -192,7 +192,7 @@ export default function ArticleEditorPreview({ data, template, onDataChange }: A
                                             {block.type === 'text' ? (
                                                 <div
                                                     className={cn(
-                                                        "prose max-w-none text-gray-700 leading-relaxed",
+                                                        "prose max-w-none text-gray-700 leading-relaxed break-words",
                                                         idx === 0 && "drop-cap"
                                                     )}
                                                     dangerouslySetInnerHTML={{ __html: block.content || 'Text section content...' }}
@@ -206,9 +206,7 @@ export default function ArticleEditorPreview({ data, template, onDataChange }: A
                                                             <ImageIcon className="w-8 h-8 text-gray-300" />
                                                         </div>
                                                     )}
-                                                    {block.caption && (
-                                                        <p className="text-sm text-center text-gray-500 mt-2 italic">{block.caption}</p>
-                                                    )}
+                                                    <p className="text-sm text-center text-gray-500 mt-2 italic break-words">{block.caption}</p>
                                                 </div>
                                             )}
                                         </DraggableBlock>
@@ -243,7 +241,7 @@ export default function ArticleEditorPreview({ data, template, onDataChange }: A
                                                 )}
                                                 <div
                                                     className={cn(
-                                                        "prose max-w-none text-gray-700 leading-relaxed",
+                                                        "prose max-w-none text-gray-700 leading-relaxed break-words",
                                                         idx === 0 && "drop-cap"
                                                     )}
                                                     dangerouslySetInnerHTML={{ __html: block.content || "Content flowing around image..." }}
@@ -263,25 +261,30 @@ export default function ArticleEditorPreview({ data, template, onDataChange }: A
                                     {data.contentBlocks?.map((block, idx) => (
                                         <DraggableBlock key={block.id} block={block} index={idx} moveBlock={moveBlock}>
                                             <div className="space-y-4">
-                                                <div className="-mx-8 md:-mx-12">
-                                                    {block.image ? (
-                                                        <img src={block.image} alt="" className="w-full h-[500px] object-cover shadow-sm" />
-                                                    ) : (
-                                                        <div className="w-full h-[300px] bg-gray-100 flex items-center justify-center border-y-2 border-dashed border-gray-200">
-                                                            <ImageIcon className="w-10 h-10 text-gray-300" />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                {block.caption && (
-                                                    <p className="text-sm text-center text-gray-500 italic">{block.caption}</p>
+                                                {(block.type === 'image' || block.type === 'image-caption') && (
+                                                    <div className="-mx-8 md:-mx-12">
+                                                        {block.image ? (
+                                                            <img src={block.image} alt="" className="w-full h-[500px] object-cover shadow-sm" />
+                                                        ) : (
+                                                            <div className="w-full h-[300px] bg-gray-100 flex items-center justify-center border-y-2 border-dashed border-gray-200">
+                                                                <ImageIcon className="w-10 h-10 text-gray-300" />
+                                                            </div>
+                                                        )}
+                                                        {block.caption && (
+                                                            <p className="text-sm text-center text-gray-500 italic mt-4 break-words">{block.caption}</p>
+                                                        )}
+                                                    </div>
                                                 )}
-                                                <div
-                                                    className={cn(
-                                                        "prose max-w-none text-gray-700 leading-relaxed",
-                                                        idx === 0 && "drop-cap"
-                                                    )}
-                                                    dangerouslySetInnerHTML={{ __html: block.content || 'Content section...' }}
-                                                />
+
+                                                {(block.type === 'text' || block.type === 'image-caption') && (
+                                                    <div
+                                                        className={cn(
+                                                            "prose max-w-none text-gray-700 leading-relaxed break-words",
+                                                            idx === 0 && "drop-cap"
+                                                        )}
+                                                        dangerouslySetInnerHTML={{ __html: block.content || (block.type === 'text' ? 'Content section...' : 'Content after image...') }}
+                                                    />
+                                                )}
                                             </div>
                                         </DraggableBlock>
                                     ))}
