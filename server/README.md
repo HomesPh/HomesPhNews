@@ -1,5 +1,52 @@
+# HomesPhNews API Server
+
 So, What Did I Build? The Brains of Our News App
 Basically, I built the entire engine that works behind the scenes for our news website. It handles all the data, figures out what's popular, and serves it up to the frontend (the part users actually see).
+
+## API Documentation
+
+### Auto-Generated OpenAPI Documentation
+
+This project uses [Scramble](https://scramble.dedoc.co/) to automatically generate OpenAPI 3.1.0 documentation from your code. No manual annotations needed!
+
+- **View Documentation UI**: Visit `/docs/api` when your server is running
+- **OpenAPI JSON**: Available at `/docs/api.json`
+- **Auto-Generated**: Documentation updates automatically when you change your code
+
+### Generating Client SDKs
+
+You can automatically generate TypeScript (or other language) client SDKs from the OpenAPI specification:
+
+#### Using npm script:
+```bash
+npm run generate-sdk
+```
+
+#### Using the shell script:
+```bash
+./scripts/generate-sdk.sh [output-directory]
+```
+
+The script will:
+1. Fetch the OpenAPI JSON from your running server
+2. Generate a TypeScript Axios client SDK
+3. Output to `../client-sdk` (or your specified directory)
+
+**Note**: Make sure your Laravel server is running (`php artisan serve`) before generating the SDK.
+
+#### Exporting OpenAPI JSON for CI/CD:
+```bash
+php artisan scramble:export
+```
+
+This generates a static `api.json` file that can be used in CI/CD pipelines or version control.
+
+## Migration Notes
+
+This project was migrated from `l5-swagger` to `Scramble` for better auto-generation capabilities:
+- Removed all manual OpenAPI annotations (`#[OA\...]` attributes)
+- Documentation now auto-generates from validation rules and return types
+- Better suited for automated SDK generation workflows
 
     Think of it in three main parts:
 

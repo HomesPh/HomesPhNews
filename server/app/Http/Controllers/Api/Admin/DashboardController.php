@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use OpenApi\Attributes as OA;
 
 class DashboardController extends Controller
 {
@@ -16,19 +15,7 @@ class DashboardController extends Controller
     {
         $this->redisService = $redisService;
     }
-
-    #[OA\Get(
-        path: "/api/admin/stats",
-        operationId: "getAdminDashboardStats",
-        summary: "Get general dashboard stats",
-        description: "Returns summary counts for articles, views, distribution, and recent activity.",
-        security: [['sanctum' => []]],
-        tags: ["Admin: Dashboard"],
-        responses: [
-            new OA\Response(response: 200, description: "Successful operation", content: new OA\JsonContent(type: "object")),
-            new OA\Response(response: 401, description: "Unauthenticated")
-        ]
-    )]
+    
     public function getStats()
     {
         // 1. Get the number of articles with 'published' status (MySQL)

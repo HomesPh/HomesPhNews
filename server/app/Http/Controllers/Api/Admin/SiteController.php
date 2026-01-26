@@ -6,27 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Site;
 use App\Models\Article;
 use Illuminate\Http\Request;
-use OpenApi\Attributes as OA;
 
 class SiteController extends Controller
 {
-    #[OA\Get(
-        path: "/api/admin/sites",
-        operationId: "getAdminSites",
-        summary: "List all partner sites",
-        description: "Returns a list of all partner sites with article counts.",
-        security: [['sanctum' => []]],
-        tags: ["Admin: Sites"],
-        parameters: [
-            new OA\Parameter(name: "status", in: "query", description: "Filter by status (active, suspended)", schema: new OA\Schema(type: "string")),
-            new OA\Parameter(name: "search", in: "query", description: "Search by name or domain", schema: new OA\Schema(type: "string"))
-        ],
-        responses: [
-            new OA\Response(response: 200, description: "Successful operation"),
-            new OA\Response(response: 401, description: "Unauthenticated")
-        ]
-    )]
-    public function index(Request $request)
+        public function index(Request $request)
     {
         $query = Site::query();
 
@@ -84,22 +67,7 @@ class SiteController extends Controller
         ]);
     }
 
-    #[OA\Get(
-        path: "/api/admin/sites/{id}",
-        operationId: "getAdminSite",
-        summary: "Get a single site",
-        description: "Returns details of a specific partner site.",
-        security: [['sanctum' => []]],
-        tags: ["Admin: Sites"],
-        parameters: [
-            new OA\Parameter(name: "id", in: "path", required: true, description: "Site ID", schema: new OA\Schema(type: "integer"))
-        ],
-        responses: [
-            new OA\Response(response: 200, description: "Successful operation"),
-            new OA\Response(response: 404, description: "Site not found")
-        ]
-    )]
-    public function show(int $id)
+        public function show(int $id)
     {
         $site = Site::find($id);
 
@@ -121,34 +89,7 @@ class SiteController extends Controller
         ]);
     }
 
-    #[OA\Post(
-        path: "/api/admin/sites",
-        operationId: "createAdminSite",
-        summary: "Create a new partner site",
-        description: "Creates a new partner site entry.",
-        security: [['sanctum' => []]],
-        tags: ["Admin: Sites"],
-        requestBody: new OA\RequestBody(
-            required: true,
-            content: new OA\JsonContent(
-                required: ["name", "domain"],
-                properties: [
-                    new OA\Property(property: "name", type: "string"),
-                    new OA\Property(property: "domain", type: "string"),
-                    new OA\Property(property: "contact_name", type: "string"),
-                    new OA\Property(property: "contact_email", type: "string"),
-                    new OA\Property(property: "description", type: "string"),
-                    new OA\Property(property: "categories", type: "array", items: new OA\Items(type: "string")),
-                    new OA\Property(property: "image", type: "string"),
-                ]
-            )
-        ),
-        responses: [
-            new OA\Response(response: 201, description: "Site created successfully"),
-            new OA\Response(response: 422, description: "Validation error")
-        ]
-    )]
-    public function store(Request $request)
+        public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -177,37 +118,7 @@ class SiteController extends Controller
         ], 201);
     }
 
-    #[OA\Put(
-        path: "/api/admin/sites/{id}",
-        operationId: "updateAdminSite",
-        summary: "Update a partner site",
-        description: "Updates an existing partner site.",
-        security: [['sanctum' => []]],
-        tags: ["Admin: Sites"],
-        parameters: [
-            new OA\Parameter(name: "id", in: "path", required: true, description: "Site ID", schema: new OA\Schema(type: "integer"))
-        ],
-        requestBody: new OA\RequestBody(
-            required: true,
-            content: new OA\JsonContent(
-                properties: [
-                    new OA\Property(property: "name", type: "string"),
-                    new OA\Property(property: "domain", type: "string"),
-                    new OA\Property(property: "contact_name", type: "string"),
-                    new OA\Property(property: "contact_email", type: "string"),
-                    new OA\Property(property: "description", type: "string"),
-                    new OA\Property(property: "categories", type: "array", items: new OA\Items(type: "string")),
-                    new OA\Property(property: "image", type: "string"),
-                    new OA\Property(property: "status", type: "string", enum: ["active", "suspended"]),
-                ]
-            )
-        ),
-        responses: [
-            new OA\Response(response: 200, description: "Site updated successfully"),
-            new OA\Response(response: 404, description: "Site not found")
-        ]
-    )]
-    public function update(Request $request, int $id)
+        public function update(Request $request, int $id)
     {
         $site = Site::find($id);
 
@@ -243,22 +154,7 @@ class SiteController extends Controller
         ]);
     }
 
-    #[OA\Delete(
-        path: "/api/admin/sites/{id}",
-        operationId: "deleteAdminSite",
-        summary: "Delete a partner site",
-        description: "Deletes a partner site.",
-        security: [['sanctum' => []]],
-        tags: ["Admin: Sites"],
-        parameters: [
-            new OA\Parameter(name: "id", in: "path", required: true, description: "Site ID", schema: new OA\Schema(type: "integer"))
-        ],
-        responses: [
-            new OA\Response(response: 200, description: "Site deleted successfully"),
-            new OA\Response(response: 404, description: "Site not found")
-        ]
-    )]
-    public function destroy(int $id)
+        public function destroy(int $id)
     {
         $site = Site::find($id);
 
@@ -273,22 +169,7 @@ class SiteController extends Controller
         ]);
     }
 
-    #[OA\Patch(
-        path: "/api/admin/sites/{id}/toggle-status",
-        operationId: "toggleSiteStatus",
-        summary: "Toggle site status",
-        description: "Toggles a site between active and suspended status.",
-        security: [['sanctum' => []]],
-        tags: ["Admin: Sites"],
-        parameters: [
-            new OA\Parameter(name: "id", in: "path", required: true, description: "Site ID", schema: new OA\Schema(type: "integer"))
-        ],
-        responses: [
-            new OA\Response(response: 200, description: "Status toggled successfully"),
-            new OA\Response(response: 404, description: "Site not found")
-        ]
-    )]
-    public function toggleStatus(int $id)
+        public function toggleStatus(int $id)
     {
         $site = Site::find($id);
 
@@ -305,18 +186,7 @@ class SiteController extends Controller
         ]);
     }
 
-    #[OA\Get(
-        path: "/api/admin/sites/names",
-        operationId: "getSiteNames",
-        summary: "Get list of site names for publishing",
-        description: "Returns a simple list of active site names for the article publish modal.",
-        security: [['sanctum' => []]],
-        tags: ["Admin: Sites"],
-        responses: [
-            new OA\Response(response: 200, description: "Successful operation")
-        ]
-    )]
-    public function names()
+        public function names()
     {
         $sites = Site::where('site_status', 'active')
             ->orderBy('site_name')
