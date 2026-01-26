@@ -8,52 +8,9 @@ use App\Models\Article;
 use App\Models\Analytics;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use OpenApi\Attributes as OA;
 
 class AnalyticsController extends Controller
 {
-    #[OA\Get(
-        path: "/api/admin/analytics",
-        operationId: "getAdminAnalytics",
-        summary: "Get aggregated analytics data",
-        description: "Returns overview stats, traffic trends, content by category, and performance by country based on a period filter.",
-        security: [['sanctum' => []]],
-        tags: ["Admin: Analytics"],
-        parameters: [
-            new OA\Parameter(
-                name: "period",
-                in: "query",
-                description: "Filter range (7d, 30d, 3m, 6m, 1y)",
-                required: false,
-                schema: new OA\Schema(type: "string", default: "7d", enum: ["7d", "30d", "3m", "6m", "1y"])
-            )
-        ],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: "Successful operation",
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: "range", type: "string", example: "7d"),
-                        new OA\Property(
-                            property: "overview",
-                            type: "object",
-                            properties: [
-                                new OA\Property(property: "total_page_news", type: "integer", example: 150),
-                                new OA\Property(property: "unique_visitors", type: "integer", example: 1200),
-                                new OA\Property(property: "total_clicks", type: "integer", example: 3500),
-                                new OA\Property(property: "avg_engagement", type: "number", format: "float", example: 4.52)
-                            ]
-                        ),
-                        new OA\Property(property: "traffic_trends", type: "array", items: new OA\Items(type: "object")),
-                        new OA\Property(property: "content_by_category", type: "array", items: new OA\Items(type: "object")),
-                        new OA\Property(property: "performance_by_country", type: "array", items: new OA\Items(type: "object"))
-                    ]
-                )
-            ),
-            new OA\Response(response: 401, description: "Unauthenticated")
-        ]
-    )]
     public function index(Request $request)
     {
         // Determine filter range

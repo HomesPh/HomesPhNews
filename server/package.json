@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "generate-sdk": "npx @openapitools/openapi-generator-cli generate -i http://localhost:8000/docs/api.json -g typescript-axios -o ../client-sdk --additional-properties=npmName=@homesphnews/api-client,withInterfaces=true,withSeparateModelsAndApi=true"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
