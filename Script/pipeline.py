@@ -56,11 +56,12 @@ class NewsPipeline:
             print(f"   🏷️ Detected topics: {detected_topics}")
             
             # 4. Rewrite in CNN style
-            new_title, new_content, keywords = self.ai.rewrite_cnn_style(
+            new_title, new_content, keywords, summary, citations = self.ai.rewrite_cnn_style(
                 raw_article['title'],
                 full_text,
                 detected_country,
-                raw_article.get('category', 'General')
+                raw_article.get('category', 'General'),
+                raw_article['link']
             )
             
             # 5. Generate image
@@ -89,8 +90,10 @@ class NewsPipeline:
                 "topics": detected_topics,  # NEW: AI-detected sub-topics
                 "original_title": clean_html(raw_article['title']),
                 "title": clean_html(new_title),
+                "summary": clean_html(summary),
                 "content": clean_html(new_content),
                 "keywords": clean_html(keywords),
+                "citations": citations,
                 "original_url": raw_article['link'],
                 "source": raw_article.get('source', 'Unknown'),
                 "image_url": img_url,

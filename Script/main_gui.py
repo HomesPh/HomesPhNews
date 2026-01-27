@@ -574,8 +574,8 @@ class HomesPhDashboard:
                 article.get('category', 'General')
             )
             
-            new_title, new_content, keywords = self.ai.rewrite_cnn_style(
-                article['title'], full_text, detected_country, article.get('category', 'General')
+            new_title, new_content, keywords, summary, citations = self.ai.rewrite_cnn_style(
+                article['title'], full_text, detected_country, article.get('category', 'General'), article['link']
             )
             
             img_prompt = self.ai.generate_image_prompt(new_title, new_content, detected_country, article.get('category'))
@@ -593,8 +593,10 @@ class HomesPhDashboard:
                 "category": article.get('category', 'General'),
                 "topics": detected_topics,  # AI-detected sub-topics
                 "title": clean_markdown(clean_html(new_title)),
+                "summary": clean_markdown(clean_html(summary)),
                 "content": clean_markdown(clean_html(new_content)),
                 "keywords": clean_markdown(clean_html(keywords)),
+                "citations": citations,
                 "original_url": article['link'],
                 "image_url": img_url,
                 "timestamp": time.time(),
@@ -697,9 +699,19 @@ class HomesPhDashboard:
         
         # Content
         content = data.get("content", "No content available.")
+        summary = data.get("summary", "")
+        citations = data.get("citations", [])
+        
         self.reader_content_text.config(state="normal")
         self.reader_content_text.delete("1.0", tk.END)
+        
+        if summary:
+            self.reader_content_text.insert(tk.END, f"📌 EXECUTIVE SUMMARY\n{summary}\n\n{'─'*40}\n\n", "bold")
+            
         self.reader_content_text.insert(tk.END, content)
+        
+        if citations:
+            self.reader_content_text.insert(tk.END, "\n\nREFERENCES:\n" + "\n".join(citations))
         self.reader_content_text.config(state="disabled")
 
         # Link
