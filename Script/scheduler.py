@@ -195,11 +195,12 @@ def process_single_country(country: str) -> Dict:
             category
         )
         
-        new_title, new_content, keywords = ai.rewrite_cnn_style(
+        new_title, new_content, keywords, summary, citations = ai.rewrite_cnn_style(
             article['title'], 
             full_text, 
             detected_country, 
-            category
+            category,
+            article['link']
         )
         
         # Step 5: Generate Image
@@ -222,8 +223,10 @@ def process_single_country(country: str) -> Dict:
             "category": category,
             "topics": detected_topics,  # NEW: AI-detected sub-topics
             "title": clean_markdown(clean_html(new_title)),
+            "summary": clean_markdown(clean_html(summary)),
             "content": clean_markdown(clean_html(new_content)),
             "keywords": clean_markdown(clean_html(keywords)),
+            "citations": citations,
             "original_url": article['link'],
             "image_url": img_url,
             "timestamp": time.time(),
@@ -277,10 +280,18 @@ async def run_hourly_job():
     print(f"📅 Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 70)
     
-    countries = list(COUNTRIES.keys())
+    # countries = list(COUNTRIES.keys())
+    
+    # ⚠️ COST SAVING MODE: Process only 1 random country ⚠️
+    # To revert to full production:
+    # 1. Uncomment: countries = list(COUNTRIES.keys())
+    # 2. Comment out the lines below
+    selected_country = random.choice(list(COUNTRIES.keys()))
+    countries = [selected_country]
+
     dedup_stats = get_dedup_stats()
     
-    print(f"📋 Countries: {len(countries)} | Workers: {MAX_WORKERS}")
+    print(f"📋 Countries: {len(countries)} (TEST MODE: {countries[0]}) | Workers: {MAX_WORKERS}")
     print(f"🔍 Dedup: {dedup_stats['urls_tracked']} URLs | {dedup_stats['titles_tracked']} titles tracked")
     print("-" * 70)
     
