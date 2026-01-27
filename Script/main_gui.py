@@ -15,6 +15,7 @@ import time
 import redis
 import json
 import os
+import re
 import webbrowser
 from PIL import Image, ImageTk
 import requests 
@@ -402,16 +403,21 @@ class HomesPhDashboard:
         main_pane.add(right_panel, minsize=600)
 
         # Scrollable Content
-        canvas = tk.Canvas(right_panel, bg=self.CNN_WHITE, highlightthickness=0)
-        scrollbar_right = ttk.Scrollbar(right_panel, orient="vertical", command=canvas.yview)
-        self.reader_content_frame = tk.Frame(canvas, bg=self.CNN_WHITE)
+        self.canvas = tk.Canvas(right_panel, bg=self.CNN_WHITE, highlightthickness=0)
+        scrollbar_right = ttk.Scrollbar(right_panel, orient="vertical", command=self.canvas.yview)
+        self.reader_content_frame = tk.Frame(self.canvas, bg=self.CNN_WHITE)
 
-        self.reader_content_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        canvas.create_window((0, 0), window=self.reader_content_frame, anchor="nw", width=720)
-        canvas.configure(yscrollcommand=scrollbar_right.set)
+        self.reader_content_frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        self.canvas.create_window((0, 0), window=self.reader_content_frame, anchor="nw", width=720)
+        self.canvas.configure(yscrollcommand=scrollbar_right.set)
 
-        canvas.pack(side="left", fill="both", expand=True)
+        self.canvas.pack(side="left", fill="both", expand=True)
         scrollbar_right.pack(side="right", fill="y")
+        
+        # Bind Mouse Wheel to Canvas
+        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+        self.canvas.bind_all("<Button-4>", self._on_mousewheel)
+        self.canvas.bind_all("<Button-5>", self._on_mousewheel)
 
         # Article Content Elements
         content_inner = tk.Frame(self.reader_content_frame, bg=self.CNN_WHITE, padx=35, pady=25)
@@ -471,9 +477,9 @@ class HomesPhDashboard:
             relief="flat",
             padx=0,
             pady=0,
-            spacing1=8,
-            spacing2=4,
-            spacing3=12,
+            spacing1=4,
+            spacing2=2,
+            spacing3=6,
             highlightthickness=0,
             bd=0
         )
@@ -545,20 +551,56 @@ class HomesPhDashboard:
         self.ticker_text.config(text=f"✅ Found {len(self.articles)} articles from global sources")
 
     def start_processing(self):
-        selected = self.tree.selection()
-        if not selected:
-            messagebox.showwarning("Selection Required", "Please select an article to process!")
+        selected_items = self.tree.selection()
+        if not selected_items:
+            messagebox.showwarning("Selection Required", "Please select at least one article to process!")
             return
         
         self.btn_process.config(state="disabled", bg="#555555")
-        self.status_label.config(text="🤖 PROCESSING...", fg="#ff6600")
+        count = len(selected_items)
+        self.status_label.config(text=f"🤖 PROCESSING {count} ARTICLES...", fg="#ff6600")
         
-        thread = threading.Thread(target=self.run_processing, args=(selected[0],))
+        def batch_process():
+            # Use limited workers to prevent hitting AI API rate limits too fast
+            max_workers = 3 
+            
+            from concurrent.futures import ThreadPoolExecutor
+            
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                # Submit all tasks
+                futures = [executor.submit(self.run_processing_task, iid) for iid in selected_items]
+                
+                # Wait for all to complete
+                for future in futures:
+                    try:
+                        future.result()
+                    except Exception as e:
+                        print(f"Processing error: {e}")
+
+            # All done
+            self.root.after(0, lambda: self.status_label.config(text="● LIVE", fg=self.CNN_RED))
+            self.root.after(0, lambda: self.btn_process.config(state="normal", bg=self.CNN_BLACK))
+            self.root.after(0, lambda: messagebox.showinfo("Completed", f"Processed {count} articles successfully!"))
+
+        thread = threading.Thread(target=batch_process)
         thread.start()
 
-    def run_processing(self, item_iid):
+    def run_processing_task(self, item_iid):
+        """Worker function for processing a single article."""
         try:
-            article = self.articles[int(item_iid)]
+            # Get article data
+            # NOTE: self.articles is a list, but item_iid might be a string index from Treeview
+            # Treeview IIDs are usually 'I001', etc. unless we set them explicitly.
+            # In update_table, we set iid=str(idx). So we can cast back to int.
+            idx = int(item_iid)
+            if idx >= len(self.articles):
+                return
+                
+            article = self.articles[idx]
+            
+            # Update status to Processing
+            self.root.after(0, lambda: self.tree.set(item_iid, "status", "⏳ AI..."))
+            
             article_id = str(uuid.uuid4())
             
             full_text = self.scraper.extract_article_content(article['link'])
@@ -591,7 +633,7 @@ class HomesPhDashboard:
                 "id": article_id,
                 "country": detected_country,
                 "category": article.get('category', 'General'),
-                "topics": detected_topics,  # AI-detected sub-topics
+                "topics": detected_topics,
                 "title": clean_markdown(clean_html(new_title)),
                 "summary": clean_markdown(clean_html(summary)),
                 "content": clean_markdown(clean_html(new_content)),
@@ -611,15 +653,13 @@ class HomesPhDashboard:
                     article.get('source', 'Unknown')[:20],
                     "✅ DONE"
                 ))
-                self.status_label.config(text="● LIVE", fg=self.CNN_RED)
-                self.btn_process.config(state="normal", bg=self.CNN_BLACK)
                 self.ticker_text.config(text=f"✅ Published: {new_title[:60]}...")
             
             self.root.after(0, update_ui)
             
         except Exception as e:
-            self.root.after(0, lambda: messagebox.showerror("Error", f"Processing failed: {e}"))
-            self.root.after(0, lambda: self.btn_process.config(state="normal", bg=self.CNN_BLACK))
+            print(f"Error processing {item_iid}: {e}")
+            self.root.after(0, lambda: self.tree.set(item_iid, "status", "❌ ERROR"))
 
     # ═══════════════════════════════════════════════════════════════
     # READER METHODS
@@ -704,15 +744,53 @@ class HomesPhDashboard:
         
         self.reader_content_text.config(state="normal")
         self.reader_content_text.delete("1.0", tk.END)
-        
+        self.reader_content_text.tag_configure("bold", font=("Helvetica", 11, "bold"))
+        self.reader_content_text.tag_configure("link", foreground="#0066cc", underline=1)
+        self.reader_content_text.tag_bind("link", "<Button-1>", lambda e: self.open_citation_link(e))
+        self.reader_content_text.tag_bind("link", "<Enter>", lambda e: self.reader_content_text.config(cursor="hand2"))
+        self.reader_content_text.tag_bind("link", "<Leave>", lambda e: self.reader_content_text.config(cursor=""))
+
         if summary:
-            self.reader_content_text.insert(tk.END, f"📌 EXECUTIVE SUMMARY\n{summary}\n\n{'─'*40}\n\n", "bold")
+            self.reader_content_text.insert(tk.END, "📌 EXECUTIVE SUMMARY\n", "bold")
+            self.reader_content_text.insert(tk.END, f"{summary}\n\n")
+            self.reader_content_text.insert(tk.END, f"{'─'*40}\n\n")
             
         self.reader_content_text.insert(tk.END, content)
         
         if citations:
-            self.reader_content_text.insert(tk.END, "\n\nREFERENCES:\n" + "\n".join(citations))
+            self.reader_content_text.insert(tk.END, "\n\nREFERENCES:\n", "bold")
+            for cit in citations:
+                # Find URL in citation
+                url_match = re.search(r'(https?://[^\s\)]+)', cit)
+                if url_match:
+                    url = url_match.group(1)
+                    text_before = cit.split(url)[0]
+                    text_after = cit.split(url)[1] if len(cit.split(url)) > 1 else ""
+                    self.reader_content_text.insert(tk.END, "• ") # Bullet point
+                    self.reader_content_text.insert(tk.END, text_before)
+                    start_index = self.reader_content_text.index(tk.INSERT)
+                    self.reader_content_text.insert(tk.END, url, "link")
+                    end_index = self.reader_content_text.index(tk.INSERT)
+                    self.reader_content_text.tag_add(f"url_{url}", start_index, end_index)
+                    self.reader_content_text.tag_bind(f"url_{url}", "<Button-1>", lambda e, u=url: webbrowser.open(u))
+                    self.reader_content_text.insert(tk.END, text_after.strip() + "\n")
+                else:
+                    self.reader_content_text.insert(tk.END, f"• {cit.strip()}\n")
+
+        # Adjust height to fit content (including wrapped visual lines)
+        self.reader_content_text.update_idletasks()
+        
+        # This counts the actual visual lines seen on screen, not just \n characters
+        visual_lines = self.reader_content_text.count("1.0", "end", "displaylines")[0]
+        
+        self.reader_content_text.config(height=visual_lines)
         self.reader_content_text.config(state="disabled")
+        
+        # REFRESH CANVAS SCROLL REGION
+        # This is critical so the main scrollbar knows the content got longer
+        self.reader_content_frame.update_idletasks()
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.canvas.yview_moveto(0) # Back to top for new article
 
         # Link
         self.full_url = data.get("original_url", "")
@@ -765,6 +843,19 @@ class HomesPhDashboard:
     def open_reader_link(self, event):
         if self.full_url:
             webbrowser.open(self.full_url)
+
+    def _on_mousewheel(self, event):
+        """Handle mouse wheel scrolling for the canvas."""
+        if event.num == 4: # Linux
+            self.canvas.yview_scroll(-1, "units")
+        elif event.num == 5: # Linux
+            self.canvas.yview_scroll(1, "units")
+        else: # Windows/MacOS
+            self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+    def open_citation_link(self, event):
+        """Fallback for tag-based links if needed, but per-URL binding is better."""
+        pass
 
 
 if __name__ == "__main__":
