@@ -1,34 +1,26 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import HeroSection from "@/components/features/dashboard/HeroSection";
 import ArticleCard from "@/components/features/dashboard/ArticleCard";
-import { getArticlesList } from "@/lib/api/news/service";
-import { ArticlesFeedResponse } from "@/lib/api/news/types";
+import { ArticleFeedResponse } from "@/lib/api-new/types";
 import TrendingTopicsCard from "@/components/features/dashboard/TrendingTopicsCard";
 import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
 import AdSpace from "@/components/shared/AdSpace";
+import { use } from "react";
 
 type DashboardFeedProps = {
   country: string;
   category: string;
+  feed: Promise<ArticleFeedResponse>;
 };
 
-export default function DashboardFeed({ country, category }: DashboardFeedProps) {
-  const { data: response } = useQuery<ArticlesFeedResponse>({
-    queryKey: ["articles", country, category],
-    queryFn: () =>
-      getArticlesList({
-        mode: "feed",
-        country: country !== "Global" ? country : undefined,
-        category: category !== "All" ? category : undefined,
-      }) as Promise<ArticlesFeedResponse>,
-  });
+export default function DashboardFeed({ country, category, feed }: DashboardFeedProps) {
+  const feedData = use(feed);
 
   // Safely extract with fallbacks for empty responses
-  const latest_global = response?.latest_global || [];
-  const trending = response?.trending || [];
-  const most_read = response?.most_read || [];
+  const latest_global = feedData?.latest_global || [];
+  const trending = feedData?.trending || [];
+  const most_read = feedData?.most_read || [];
 
   return (
     <div className="w-full max-w-[1440px] mx-auto px-4 md:px-[110px] py-8">
@@ -37,14 +29,14 @@ export default function DashboardFeed({ country, category }: DashboardFeedProps)
         <div className="lg:col-span-2 space-y-8">
           {latest_global.length > 0 && (
             <HeroSection
-              id={latest_global[0].id}
+              id={latest_global[0].id || undefined}
               title={latest_global[0].title}
               description={latest_global[0].content}
               category={latest_global[0].category}
               country={latest_global[0].country}
-              imageUrl={latest_global[0].image_url}
+              imageUrl={latest_global[0].image}
               imageAlt="latest global"
-              timeAgo={new Date(latest_global[0].timestamp).toLocaleDateString()}
+              timeAgo={latest_global[0].created_at ? new Date(latest_global[0].created_at).toLocaleDateString() : 'Recently'}
               keywords={latest_global[0].keywords}
               views={latest_global[0].views_count}
               isFeatured={true}
@@ -74,13 +66,13 @@ export default function DashboardFeed({ country, category }: DashboardFeedProps)
               {latest_global.slice(1).map((article) => (
                 <ArticleCard
                   key={article.id}
-                  id={article.id}
+                  id={article.id || ''}
                   category={article.category}
                   location={article.country}
                   title={article.title}
                   description={article.content}
-                  timeAgo={new Date(article.timestamp).toLocaleDateString()}
-                  imageSrc={article.image_url}
+                  timeAgo={article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}
+                  imageSrc={article.image}
                   views={article.views_count?.toLocaleString() + " views"}
                 />
               ))}
@@ -98,21 +90,21 @@ export default function DashboardFeed({ country, category }: DashboardFeedProps)
 
           <TrendingTopicsCard
             items={trending.slice(0, 5).map((article) => ({
-              id: article.id,
+              id: article.id || '',
               label:
-                article.topics && article.topics.length > 0
-                  ? article.topics[0]
+                article.topics && Array.isArray(article.topics) && article.topics.length > 0
+                  ? String(article.topics[0])
                   : article.title,
             }))}
           />
 
           <MostReadTodayCard
             items={most_read.slice(0, 5).map((article) => ({
-              id: article.id,
+              id: article.id || '',
               title: article.title,
-              imageUrl: article.image_url,
+              imageUrl: article.image,
               views: article.views_count,
-              timeAgo: new Date(article.timestamp).toLocaleDateString(),
+              timeAgo: article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently',
             }))}
           />
 
