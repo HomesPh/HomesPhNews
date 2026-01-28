@@ -21,6 +21,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
         countries: [] as string[]
     });
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     if (!isOpen) return null;
 
