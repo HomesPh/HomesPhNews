@@ -142,7 +142,10 @@ export default function ArticlesPage() {
                             <ArticleListItem
                                 key={article.id}
                                 article={article}
-                                onClick={() => router.push(`/admin/articles/${article.id}`)}
+                                onClick={() => {
+                                    const currentPath = window.location.pathname + window.location.search;
+                                    router.push(`/admin/articles/${article.id}?from=${encodeURIComponent(currentPath)}`);
+                                }}
                             />
                         ))
                     ) : (
