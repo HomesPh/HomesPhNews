@@ -16,33 +16,30 @@ export default function TrendingTopicsCard({ items, className }: TrendingTopicsP
     };
 
     return (
-        <section className={className}>
-            <div className="bg-[#cc0000] px-4 py-1 mb-6">
-                <h3 className="text-white text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                    <Flame className="w-3 h-3" />
+        <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+                <Flame className="w-5 h-5 text-[#c10007]" />
+                <h3 className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">
                     Trending Topics
                 </h3>
             </div>
 
-            <div className="flex flex-col divide-y divide-gray-100">
-                {items.slice(0, 5).map((item, index) => (
+            <div className="space-y-3">
+                {items.map((item, index) => (
                     <button
                         key={item.id}
                         onClick={() => handleItemClick(item.label)}
-                        className="w-full py-3 flex items-center justify-between group text-left transition-colors"
+                        className="w-full flex items-center gap-3 p-3 rounded-[8px] hover:bg-[#f3f4f6] transition-colors group text-left"
                     >
-                        <div className="flex items-center gap-4">
-                            <span className="text-[14px] font-black text-black/10 transition-colors group-hover:text-[#cc0000]">
-                                {index + 1}
-                            </span>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-[#cc0000] transition-colors line-clamp-1">
-                                {item.label}
-                            </span>
-                        </div>
-                        <span className="text-[#cc0000] opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                        <span className="text-[16px] font-bold text-[#6b7280] group-hover:text-[#c10007]">
+                            {index + 1}
+                        </span>
+                        <span className="text-[14px] font-medium text-[#111827] tracking-[-0.5px] group-hover:text-[#c10007]">
+                            {item.label}
+                        </span>
                     </button>
                 ))}
             </div>
-        </section>
+        </div>
     );
 }

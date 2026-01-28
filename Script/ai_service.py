@@ -131,76 +131,26 @@ class AIProcessor:
             print(f"⚠️ Topic detection failed: {e}")
             return [category]  # Fallback to main category
 
-    def rewrite_cnn_style(self, original_title, original_content, country, category, original_url=""):
+    def rewrite_cnn_style(self, original_title, original_content, country, category):
         """
         Rewrites the article in CNN-style professional journalism.
-        Returns: (new_title, new_content, keywords, summary, citations)
+        Returns: (new_title, new_content, seo_keywords)
         """
-        
-        # Determine Headline Mode based on Category
-        strict_categories = ["Politics", "Health", "Migration", "Crime", "Policy", "Government", "Legal"]
-        balanced_categories = ["Business", "Real Estate", "Education", "Tech", "Economy", "Environment"]
-        # All others (Lifestyle, Success Stories, Entertainment, etc.) fall into Engagement/Catchy mode
-        
-        headline_mode = "ENGAGEMENT"
-        tone_instruction = "Emotional but accurate. Catchy hooks allowed."
-        
-        if any(c.lower() in category.lower() for c in strict_categories):
-            headline_mode = "STRICT"
-            tone_instruction = "Factual, neutral, no emotional framing. ZERO BIAS."
-        elif any(c.lower() in category.lower() for c in balanced_categories):
-            headline_mode = "BALANCED"
-            tone_instruction = "Curiosity allowed, no exaggeration. Explain impact."
-
         prompt = f"""
-        ACT AS: Senior Investigative Journalist for CNN/Semafor (Target Audience: Filipinos/OFWs globally).
-        TASK: Write a comprehensive, deep-dive article based on the provided source content.
+        {AI_WRITING_STYLE}
 
         METADATA:
         - Country Focus: {country}
-        - Category: {category} (NOTE: If content is an Opinion/Blog, change Category to "Opinion" or "Analysis")
-        - Writing Style: {AI_WRITING_STYLE}
-        - Source URL: {original_url}
-        - HEADLINE MODE: {headline_mode} ({tone_instruction})
+        - Category: {category}
 
-        INPUT DATA:
-        TITLE: {original_title}
-        CONTENT: {original_content}
+        ORIGINAL TITLE: {original_title}
+        ORIGINAL CONTENT: {original_content}
 
-        GUIDELINES FOR "WELL-DETAILED" CONTENT (CRITICAL):
-        1. � HEADLINE RULES ({headline_mode}):
-           - STRICT: Absolute neutrality. No "Shocking", "Desperate", "Secret". Just facts.
-           - BALANCED: Can use curiosity ("Why...", "How...") but must be professional.
-           - ENGAGEMENT: Can use emotional hooks ("From Manila to...", "Success Story"). NO DECEPTION.
-           * RULE: Any curiosity in the headline MUST be answered in the first 2 paragraphs.
-        
-        2. 🧹 CLEAN FORMATTING: Do NOT write "SUBHEADER:" or "LEDE:". Use Markdown (##) for structure.
-        
-        3. 🔍 ADD SPECIFICS: Extract NUMBERS, DATES, NAMES. If vague, maintain skepticism.
-        
-        4. 🧠 CONTEXTUALIZE: Explain the impact on Filipinos/OFWs (Jobs, Economy, Rights).
-        
-        5. 🛡️ POLITICAL/OPINION SAFETY:
-           - If mentioning politicians: Maintain strict neutrality. Attribute all claims ("According to...").
-           - If source is a blog: Explicitly label as "Opinion".
-
-        OUTPUT FORMAT (Strict):
-        HEADLINE: [Headline matching {headline_mode} mode - Max 80 chars]
-        SUMMARY: [Executive Brief: 3 bullet points summarizing the key takeaway]
-        KEYWORDS: [3-5 High-value SEO keywords]
+        OUTPUT FORMAT (strict):
+        HEADLINE: [Your new headline]
+        KEYWORDS: [3-5 SEO keywords, comma-separated]
         ARTICLE:
-        [Strong opening paragraph with hard facts (Who, what, when, where)]
-        
-        [Deep dive paragraphs with specific details]
-        
-        ## Why It Matters
-        [Context, economic impact, or expert analysis]
-        
-        ## What Filipinos Need to Know
-        [Actionable advice or future outlook]
-
-        CITATIONS:
-        [1] Source Name - Title ({original_url})
+        [Your rewritten article]
         """
         try:
             response = self.text_model.generate_content(prompt)
@@ -208,47 +158,29 @@ class AIProcessor:
             
             # Parse response
             new_title = original_title
-            summary = ""
             keywords = category
             new_content = original_content
-            citations = []
             
             if "HEADLINE:" in text:
-                parts = text.split("HEADLINE:")[1]
-                if "SUMMARY:" in parts:
-                    new_title = parts.split("SUMMARY:")[0].strip()
-                    parts = parts.split("SUMMARY:")[1]
-                    
-                    if "KEYWORDS:" in parts:
-                        summary = parts.split("KEYWORDS:")[0].strip()
-                        parts = parts.split("KEYWORDS:")[1]
-                        
-                        if "ARTICLE:" in parts:
-                            keywords = parts.split("ARTICLE:")[0].strip()
-                            parts = parts.split("ARTICLE:")[1]
-                            
-                            if "CITATIONS:" in parts:
-                                new_content = parts.split("CITATIONS:")[0].strip()
-                                citations_text = parts.split("CITATIONS:")[1].strip()
-                                # Parse citations into a list if possible, or keep as text
-                                citations = [c.strip() for c in citations_text.split('\n') if c.strip()]
-                            else:
-                                new_content = parts.strip()
-
+                new_title = text.split("HEADLINE:")[1].split("KEYWORDS:")[0].strip()
+            if "KEYWORDS:" in text:
+                keywords = text.split("KEYWORDS:")[1].split("ARTICLE:")[0].strip()
+            if "ARTICLE:" in text:
+                new_content = text.split("ARTICLE:")[1].strip()
+            
             # Clean markdown formatting from AI response
             new_title = clean_markdown(new_title)
             new_content = clean_markdown(new_content)
-            summary = clean_markdown(summary)
             keywords = clean_markdown(keywords)
             
-            return new_title, new_content, keywords, summary, citations
+            return new_title, new_content, keywords
             
         except Exception as e:
             print(f"❌ Rewrite Error: {e}")
             if "'NoneType'" in str(e):
                 print("   ❌ Text model is None - Model failed to initialize")
                 print("   💡 API key invalid, no billing linked, or quota exhausted")
-            return f"AI: {original_title}", original_content, category, "", []
+            return f"AI: {original_title}", original_content, category
 
     def generate_image_prompt(self, title, content, country, category):
         """Generates a visual prompt for image generation."""
@@ -308,7 +240,9 @@ class AIProcessor:
                         img.save(temp_path)
                 
                 if os.path.exists(temp_path):
-                    print(f"✅ Image generated using {model_name}")
+                    # Add Watermark before returning
+                    self.add_ai_watermark(temp_path)
+                    print(f"✅ Image generated using {model_name} (Watermark added)")
                     return temp_path
 
             except Exception as e:
@@ -318,7 +252,51 @@ class AIProcessor:
         print("   💡 Image generation uses different quota (Imagen) - might have separate limits")
         return "https://placehold.co/800x450?text=News+Image"
 
-
+    def add_ai_watermark(self, image_path):
+        """Adds only the Gemini sparkle logo as a watermark."""
+        try:
+            img = Image.open(image_path).convert("RGBA")
+            overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+            draw = ImageDraw.Draw(overlay)
+            
+            width, height = img.size
+            margin = 30 # Increased margin for a cleaner look
+            
+            # 1. Draw Gemini-style Sparkle Logo
+            logo_size = max(32, int(height * 0.06)) # Slightly larger since it's now the only element
+            logo_x = width - logo_size - margin
+            logo_y = height - logo_size - margin
+            
+            # Coordinates for a 4-pointed sparkle
+            center_x = logo_x + logo_size // 2
+            center_y = logo_y + logo_size // 2
+            radius = logo_size // 2
+            
+            # Points for the sparkle (star)
+            p1 = (center_x, center_y - radius) # Top
+            p2 = (center_x + radius * 0.25, center_y - radius * 0.25)
+            p3 = (center_x + radius, center_y) # Right
+            p4 = (center_x + radius * 0.25, center_y + radius * 0.25)
+            p5 = (center_x, center_y + radius) # Bottom
+            p6 = (center_x - radius * 0.25, center_y + radius * 0.25)
+            p7 = (center_x - radius, center_y) # Left
+            p8 = (center_x - radius * 0.25, center_y - radius * 0.25)
+            
+            # Draw the sparkle with shadow for better visibility
+            # Shadow
+            shadow_offset = 2
+            s_pts = [(p[0] + shadow_offset, p[1] + shadow_offset) for p in [p1, p2, p3, p4, p5, p6, p7, p8]]
+            draw.polygon(s_pts, fill=(0, 0, 0, 100))
+            
+            # Main logo
+            draw.polygon([p1, p2, p3, p4, p5, p6, p7, p8], fill=(255, 255, 255, 200))
+            
+            # Combine
+            watermarked = Image.alpha_composite(img, overlay)
+            watermarked.convert("RGB").save(image_path)
+            
+        except Exception as e:
+            print(f"⚠️ Could not add Gemini watermark: {e}")
 
 
 if __name__ == "__main__":
@@ -331,8 +309,6 @@ if __name__ == "__main__":
     country = ai.detect_country(title, content)
     print(f"Detected Country: {country}")
     
-    new_title, new_content, keywords, summary, citations = ai.rewrite_cnn_style(title, content, country, "Real Estate")
+    new_title, new_content, keywords = ai.rewrite_cnn_style(title, content, country, "Real Estate")
     print(f"New Title: {new_title}")
-    print(f"Summary: {summary}")
     print(f"Keywords: {keywords}")
-    print(f"Citations: {citations}")

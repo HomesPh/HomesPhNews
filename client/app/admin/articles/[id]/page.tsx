@@ -1,15 +1,13 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Calendar, Eye, Edit, XCircle, ChevronLeft, Loader2 } from 'lucide-react';
 import { Article } from "@/app/admin/articles/data";
 import { getAdminArticle, publishArticle, rejectArticle } from "@/lib/api/admin/articles";
 import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
 import CustomizeTitlesModal from "@/components/features/admin/articles/CustomizeTitlesModal";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
-import ArticleBreadcrumb from "@/components/features/article/ArticleBreadcrumb";
-import { Categories, Countries } from "@/app/data";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -220,9 +218,6 @@ export default function ArticleDetailsPage() {
         }
     };
 
-    const searchParams = useSearchParams();
-    const from = searchParams.get('from') || '/admin/articles';
-
     if (isLoading) {
         return (
             <div className="p-20 text-center text-[#6b7280]">
@@ -253,146 +248,155 @@ export default function ArticleDetailsPage() {
         }
     };
 
-    const getCategoryLabel = (cat: string) => Categories.find(c => c.id.toLowerCase() === cat.toLowerCase() || c.label.toLowerCase() === cat.toLowerCase())?.label || cat;
-    const getCountryLabel = (country: string) => Countries.find(c => c.id.toLowerCase() === country.toLowerCase() || c.label.toLowerCase() === country.toLowerCase())?.label || country;
-
     return (
-        <div className="min-h-screen bg-[#f9fafb]">
+        <div className="min-h-screen bg-white">
+            {/* Top Navigation Bar */}
+            <div className="bg-white border-b border-[#e5e7eb] sticky top-0 z-50">
+                <div className="max-w-[1400px] mx-auto px-6 py-4">
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => router.push('/admin/articles')}
+                            className="text-[14px] text-[#666] hover:text-[#C10007] transition-colors flex items-center gap-1.5 group font-medium"
+                        >
+                            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                            Back to Articles
+                        </button>
+                        <span className="text-[#ddd]">|</span>
+                        <span className="text-[14px] text-[#666]">Admin Panel</span>
+                    </div>
+                </div>
+            </div>
+
             {/* Main Content Container */}
             <div className="max-w-[1400px] mx-auto px-6 py-8">
-                <div className="mb-6">
-                    <ArticleBreadcrumb
-                        homeLabel="Article"
-                        homeHref={from}
-                        category="Details"
-                        categoryHref="#"
-                    />
-                </div>
 
-                <div className="flex gap-8">
-                    {/* Main Content Area */}
+                <div className="flex gap-8 max-w-[1400px] mx-auto">
+                    {/* Main Content - CNN Style Article */}
                     <div className="flex-1 max-w-[800px]">
-                        <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-8 shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
-                            <article>
-                                {/* Category Badge & Status */}
-                                <div className="mb-6 flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <span className="px-3 py-1 bg-white border border-[#e5e7eb] rounded-[4px] text-[12px] font-semibold text-[#111827] tracking-[-0.5px] uppercase">
-                                            {article.category}
-                                        </span>
-                                        <span className="text-[14px] text-[#e5e7eb]">|</span>
-                                        <span className="text-[12px] font-semibold text-[#111827] tracking-[-0.5px] uppercase">
-                                            {article.location || article.country}
-                                        </span>
-                                    </div>
-                                    <StatusBadge status={article.status as any} />
-                                </div>
+                        <article className="bg-white">
+                            {/* Category Badge & Status */}
+                            <div className="mb-4 flex items-center gap-3">
+                                <span className="inline-block px-4 py-1.5 bg-[#C10007] text-white text-[11px] font-bold uppercase tracking-wider">
+                                    {article.category}
+                                </span>
+                                <StatusBadge status={article.status as any} />
+                            </div>
 
-                                {/* Main Headline */}
-                                <h1 className="text-[32px] font-bold text-[#111827] leading-[44px] tracking-[-0.5px] mb-4">
-                                    {article.title}
-                                </h1>
+                            {/* Main Headline - CNN Style */}
+                            <h1 className="text-[42px] md:text-[48px] font-bold text-[#0c0c0c] leading-[1.1] mb-6 tracking-tight">
+                                {article.title}
+                            </h1>
 
-                                {/* Metadata */}
-                                <div className="flex items-center gap-4 mb-6 text-[14px] text-[#6b7280] tracking-[-0.5px]">
-                                    <span className="font-medium text-[#111827]">
+                            {/* Byline - Professional News Style */}
+                            <div className="mb-6 pb-6 border-b border-[#e5e7eb]">
+                                <div className="flex items-center gap-4 text-[14px] text-[#666]">
+                                    <span className="font-semibold text-[#0c0c0c]">
                                         By {article.author || 'HomesPh News'}
                                     </span>
-                                    <span className="text-[#e5e7eb]">|</span>
+                                    <span className="text-[#999]">•</span>
                                     <div className="flex items-center gap-1.5">
                                         <Calendar className="w-4 h-4" />
-                                        <span>{article.date || new Date(article.created_at || '').toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                        })}</span>
+                                        <time>{article.date || new Date().toLocaleDateString()}</time>
                                     </div>
-                                    <span className="text-[#e5e7eb]">|</span>
+                                    <span className="text-[#999]">•</span>
                                     <div className="flex items-center gap-1.5">
                                         <Eye className="w-4 h-4" />
-                                        <span>{article.views || article.views_count || '0'} views</span>
+                                        <span>{article.views || '0'} views</span>
                                     </div>
                                 </div>
+                            </div>
 
-                                {/* Featured Image */}
-                                <figure className="mb-8">
-                                    <div className="w-full aspect-[16/9] overflow-hidden bg-gray-100 rounded-[8px] mb-3">
-                                        <img
-                                            src={article.image || article.image_url || 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'}
-                                            alt={article.title}
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                                e.currentTarget.src = 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available';
-                                            }}
-                                        />
-                                    </div>
-                                    <figcaption className="text-[13px] text-[#6b7280] italic leading-relaxed">
-                                        {article.title} — {article.location || article.country}
-                                    </figcaption>
-                                </figure>
+                            {/* Featured Image - Large, Professional */}
+                            <figure className="mb-8">
+                                <div className="w-full aspect-[16/9] overflow-hidden bg-gray-100 mb-3">
+                                    <img
+                                        src={article.image || article.image_url || 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'}
+                                        alt={article.title}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            e.currentTarget.src = 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available';
+                                        }}
+                                    />
+                                </div>
+                                <figcaption className="text-[13px] text-[#666] italic leading-relaxed">
+                                    {article.title} — {article.location || article.country}
+                                </figcaption>
+                            </figure>
 
-                                {/* Article Body */}
-                                <div className="prose prose-lg max-w-none prose-p:text-[#374151] prose-p:leading-[28px] prose-p:tracking-[-0.5px]">
-                                    {(() => {
-                                        const content = article.content || article.summary || '';
-                                        const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim());
+                            {/* Article Body - Professional Typography */}
+                            <div className="prose prose-lg max-w-none">
+                                {/* First Paragraph - Drop Cap Style */}
+                                {(() => {
+                                    const content = article.content || article.summary || '';
+                                    const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim());
 
-                                        return paragraphs.map((para, idx) => {
-                                            const trimmed = para.trim();
-                                            if (!trimmed) return null;
+                                    return paragraphs.map((para, idx) => {
+                                        const trimmed = para.trim();
+                                        if (!trimmed) return null;
 
-                                            // First paragraph gets special styling with drop cap
-                                            if (idx === 0) {
-                                                const firstChar = trimmed.charAt(0);
-                                                const restOfText = trimmed.slice(1);
-                                                return (
-                                                    <p
-                                                        key={idx}
-                                                        className="text-[19px] leading-[32px] text-[#0c0c0c] mb-6 font-normal"
-                                                    >
-                                                        <span className="float-left text-[72px] leading-[64px] mr-2 mt-1 font-bold text-[#0c0c0c]">
-                                                            {firstChar}
-                                                        </span>
-                                                        {restOfText}
-                                                    </p>
-                                                );
-                                            }
-
+                                        // First paragraph gets special styling with drop cap
+                                        if (idx === 0) {
+                                            const firstChar = trimmed.charAt(0);
+                                            const restOfText = trimmed.slice(1);
                                             return (
                                                 <p
                                                     key={idx}
-                                                    className="text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] mb-6"
+                                                    className="text-[19px] leading-[32px] text-[#0c0c0c] mb-6 font-normal"
                                                 >
-                                                    {trimmed}
+                                                    <span className="float-left text-[72px] leading-[64px] mr-2 mt-1 font-bold text-[#0c0c0c]">
+                                                        {firstChar}
+                                                    </span>
+                                                    {restOfText}
                                                 </p>
                                             );
-                                        });
-                                    })()}
-                                </div>
-                            </article>
-                        </div>
+                                        }
 
-                        {/* Topics Container - Separate as requested */}
-                        {(() => {
-                            const topics = article.topics || article.tags || [];
-                            if (topics.length === 0) return null;
-
-                            return (
-                                <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-8 mt-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
-                                    <h3 className="text-[14px] font-semibold text-[#111827] mb-4 tracking-[-0.5px]">Topics:</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {topics.map((topic, idx) => (
-                                            <span
+                                        // Regular paragraphs
+                                        return (
+                                            <p
                                                 key={idx}
-                                                className="px-3 py-1.5 bg-[#f3f4f6] rounded-[4px] text-[12px] text-[#374151] tracking-[-0.5px] font-medium"
+                                                className="text-[18px] leading-[32px] text-[#0c0c0c] mb-6 font-normal"
                                             >
-                                                {topic}
+                                                {trimmed}
+                                            </p>
+                                        );
+                                    });
+                                })()}
+                            </div>
+
+                            {/* Tags/Keywords - Bottom of Article */}
+                            {(() => {
+                                const topics = article.topics || article.tags || [];
+                                if (topics.length === 0) return null;
+
+                                return (
+                                    <div className="mt-12 pt-8 border-t border-[#e5e7eb]">
+                                        <div className="flex flex-wrap items-center gap-3">
+                                            <span className="text-[12px] font-semibold text-[#666] uppercase tracking-wider">
+                                                Topics:
                                             </span>
-                                        ))}
+                                            {topics.map((topic, idx) => (
+                                                <a
+                                                    key={idx}
+                                                    href={`/search?topic=${encodeURIComponent(topic)}`}
+                                                    className="px-3 py-1.5 bg-[#f5f5f5] hover:bg-[#e5e5e5] text-[13px] text-[#0c0c0c] rounded transition-colors font-medium"
+                                                >
+                                                    {topic}
+                                                </a>
+                                            ))}
+                                        </div>
                                     </div>
+                                );
+                            })()}
+
+                            {/* Article Footer - Location Info */}
+                            <div className="mt-8 pt-6 border-t border-[#e5e7eb]">
+                                <div className="flex items-center gap-2 text-[13px] text-[#666]">
+                                    <span className="font-medium text-[#0c0c0c]">Location:</span>
+                                    <span>{article.location || article.country || 'Global'}</span>
                                 </div>
-                            );
-                        })()}
+                            </div>
+                        </article>
                     </div>
 
                     {/* Right Sidebar - Admin Controls */}

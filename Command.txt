@@ -1,1 +1,0 @@
-ssh -i "FHPHKeyPair.pem" ubuntu@54.254.199.212 
