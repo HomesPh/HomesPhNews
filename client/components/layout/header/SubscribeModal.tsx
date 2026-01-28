@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { X, Mail, Briefcase, ArrowLeft, CheckCircle2, ChevronDown } from "lucide-react";
+import { X, Mail, Briefcase, ArrowLeft, CheckCircle2, ChevronDown, Loader2 } from "lucide-react";
 import { Categories, Countries } from "@/app/data";
+import { client } from "@/lib/api-new/client";
 
 interface SubscribeModalProps {
     isOpen: boolean;
@@ -21,6 +22,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
         countries: [] as string[]
     });
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     if (!isOpen) return null;
 
@@ -40,13 +42,33 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
         });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSubmitted(true);
-        setTimeout(() => {
-            handleReset();
-            onClose();
-        }, 3000);
+        setIsLoading(true);
+
+        try {
+            if (step === 'email') {
+                await client.post('/subscribe', {
+                    email: formData.email,
+                    categories: formData.categories,
+                    countries: formData.countries,
+                });
+            } else if (step === 'service') {
+                // For now, service is "Coming Soon", but we'll prepare the logic
+                // await client.post('/service-inquiry', formData);
+            }
+
+            setIsSubmitted(true);
+            setTimeout(() => {
+                handleReset();
+                onClose();
+            }, 3000);
+        } catch (error) {
+            console.error('Subscription failed:', error);
+            // Error handling could be added here (e.g., toast notification)
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -248,9 +270,14 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
 
                                         <button
                                             type="submit"
-                                            className="w-full bg-[#c10007] text-white py-[12px] rounded-[10px] font-bold text-[16px] tracking-[-0.5px] hover:bg-[#a00006] transition-all shadow-md active:scale-[0.98] mt-2"
+                                            disabled={isLoading}
+                                            className="w-full bg-[#c10007] text-white py-[12px] rounded-[10px] font-bold text-[16px] tracking-[-0.5px] hover:bg-[#a00006] transition-all shadow-md active:scale-[0.98] mt-2 flex items-center justify-center gap-2"
                                         >
-                                            Subscribe Now
+                                            {isLoading ? (
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                            ) : (
+                                                "Subscribe Now"
+                                            )}
                                         </button>
                                     </form>
                                 </div>
@@ -312,9 +339,14 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                         </div>
                                         <button
                                             type="submit"
-                                            className="w-full bg-[#c10007] text-white py-[12px] rounded-[10px] font-bold text-[16px] tracking-[-0.5px] hover:bg-[#a00006] transition-all shadow-md active:scale-[0.98] mt-2"
+                                            disabled={isLoading}
+                                            className="w-full bg-[#c10007] text-white py-[12px] rounded-[10px] font-bold text-[16px] tracking-[-0.5px] hover:bg-[#a00006] transition-all shadow-md active:scale-[0.98] mt-2 flex items-center justify-center gap-2"
                                         >
-                                            Send Request
+                                            {isLoading ? (
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                            ) : (
+                                                "Send Request"
+                                            )}
                                         </button>
                                     </form>
                                 </div>
