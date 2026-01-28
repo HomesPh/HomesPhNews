@@ -8,18 +8,22 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Resources\UserResource;
+use Illuminate\Http\JsonResponse;
+
 class AuthController extends Controller
 {
-    public function login(Request $request)
+    /**
+     * Authenticate user and return token.
+     */
+    public function login(LoginRequest $request): JsonResponse
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+        $validated = $request->validated();
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $validated['email'])->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!$user || !Hash::check($validated['password'], $user->password)) {
             return response()->json([
                 'message' => 'Invalid login details'
             ], 401);
@@ -30,10 +34,14 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
+            'user' => new UserResource($user),
         ]);
     }
 
-    public function logout(Request $request)
+    /**
+     * Log the user out (Revoke token).
+     */
+    public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
 
@@ -42,8 +50,19 @@ class AuthController extends Controller
         ]);
     }
 
-    public function user(Request $request)
+    /**
+     * Get the authenticated user.
+     */
+    public function me(Request $request): UserResource
     {
-        return response()->json($request->user());
+        return new UserResource($request->user());
+    }
+
+    /**
+     * Legacy user endpoint.
+     */
+    public function user(Request $request): UserResource
+    {
+        return new UserResource($request->user());
     }
 }
