@@ -17,8 +17,6 @@ export const metadata: Metadata = {
   description: "Stay informed with HomesTV - Your trusted source for global news.",
 };
 
-import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -29,9 +27,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
-        <ReactQueryProvider>
-          {children}
-        </ReactQueryProvider>
+        {children}
       </body>
     </html>
   );
