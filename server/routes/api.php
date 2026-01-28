@@ -1,26 +1,19 @@
 <?php
 
 // routes/api.php
-use App\Http\Controllers\Api\Admin\AnalyticsController;
+use Illuminate\Support\Facades\Route;
 // ✅ CORRECT CONTROLLER: Import the Admin Article Controller
 use App\Http\Controllers\Api\Admin\ArticleController as AdminArticleController;
-use App\Http\Controllers\Api\Admin\DashboardController;
-use App\Http\Controllers\Api\Admin\EventController;
-use App\Http\Controllers\Api\Admin\SiteController;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\SubscriptionController;
-use App\Http\Controllers\Api\SystemController;
-use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\User\ArticleController as UserArticleController;
+use App\Http\Controllers\Api\Admin\DashboardController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\SystemController;
+use App\Http\Controllers\Api\Admin\AnalyticsController;
+use App\Http\Controllers\Api\Admin\SiteController;
+use App\Http\Controllers\Api\Admin\EventController;
+use App\Http\Controllers\Api\UploadController;
 use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Facades\Route;
 
-// ═══════════════════════════════════════════════════════════════
-// PUBLIC SUBSCRIPTION ROUTE
-// ═══════════════════════════════════════════════════════════════
-Route::post('/subscribe', [SubscriptionController::class, 'store']);
-Route::get('/subscribe/{id}', [SubscriptionController::class, 'show']);
-Route::patch('/subscribe/{id}', [SubscriptionController::class, 'update']);
 
 // ═══════════════════════════════════════════════════════════════
 // SYSTEM ROUTES (Redis Test, Health Check)
@@ -28,38 +21,59 @@ Route::patch('/subscribe/{id}', [SubscriptionController::class, 'update']);
 Route::get('/redis-test', [SystemController::class, 'redisTest']);
 Route::get('/db-test', [SystemController::class, 'dbTest']);
 
+
 // Public login route
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/login', [AuthController::class, 'me'])->middleware('auth:sanctum')->name('login');
+
+Route::get('/login', function (Illuminate\Http\Request $request) {
+    // Check if the request has a valid token
+    $user = Auth::guard('sanctum')->user();
+
+    if ($user) {
+        return response()->json($user);
+    }
+
+    return response()->json(['message' => 'Unauthenticated.'], 401);
+})->name('login');
 
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', [AuthController::class, 'me']);
-    Route::post('/logout', [AuthController::class, 'logout']); // Explicit logout route
+    Route::get('/user', [AuthController::class, 'user']);
 });
 
+
 // ═══════════════════════════════════════════════════════════════
-// PUBLIC USER ROUTES (Mixed Database and Redis)
+// PUBLIC USER ROUTES (Redis-based - Python Script is Source of Truth)
 // ═══════════════════════════════════════════════════════════════
 
-// Public User Routes
-Route::prefix('articles')->name('articles.')->group(function () {
-    Route::get('/', [UserArticleController::class, 'index'])->name('index');
-    Route::get('/feed', [UserArticleController::class, 'feed'])->name('feed');
-    Route::get('/{id}', [UserArticleController::class, 'show'])->name('show');
-    Route::post('/{id}/view', [UserArticleController::class, 'incrementViews'])->name('view');
-});
+// Main feed endpoint with filtering
+Route::get('/article', [UserArticleController::class, 'feed']);
 
-// Alias for backward compatibility if needed, or just redirect
-Route::get('/article', [UserArticleController::class, 'index']);
+// Single article by ID (UUID from Python)
+Route::get('/articles/{id}', [UserArticleController::class, 'show'])
+    ->where('id', '[a-f0-9\-]{36}'); // UUID pattern
+
+// Increment article view count
+Route::post('/articles/{id}/view', [UserArticleController::class, 'incrementViews'])
+    ->where('id', '[a-f0-9\-]{36}');
+
+
+
+
+// Metadata: List all countries
+Route::get('/countries', [UserArticleController::class, 'countries']);
+
+// Metadata: List all categories
+Route::get('/categories', [UserArticleController::class, 'categories']);
 
 // Statistics
 Route::get('/stats', [UserArticleController::class, 'stats']);
 
+
 // ═══════════════════════════════════════════════════════════════
 // ADMIN ROUTES (Database-based for article management)
 // ═══════════════════════════════════════════════════════════════
-/*  middleware(['auth:sanctum', 'is.admin']): This is the security. It says a user must first be authenticated via Sanctum
+/*  middleware(['auth:sanctum', 'is.admin']): This is the security. It says a user must first be authenticated via Sanctum 
  (logged in with a token) AND they must pass our is.admin check. */
 // This group protects all routes within it.
 Route::middleware(['auth:sanctum', 'is.admin'])
