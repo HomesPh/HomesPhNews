@@ -7,62 +7,91 @@ import {
 } from "../types";
 
 /**
- * Article service
+ * Service for interacting with article-related endpoints.
+ * Handles both public feed access and administrative article management.
  */
 export const articleService = {
   /**
-   * Get paginated list of articles
+   * Retrieves a paginated list of articles based on provided filters.
+   * 
+   * @param params Filtering and pagination options
+   * @returns A collection of articles with metadata
    */
   async list(params?: ArticleFilters): Promise<ArticleCollectionWithMeta> {
     return client.get<ArticleCollectionWithMeta>("/articles", { params: params as any });
   },
 
   /**
-   * Get curated article feed
+   * Retrieves a curated feed of articles (trending, most read, etc.).
+   * 
+   * @param params Filtering options for the feed
+   * @returns A structured feed response
    */
   async feed(params?: ArticleFilters): Promise<ArticleFeedResponse> {
     return client.get<ArticleFeedResponse>("/articles/feed", { params: params as any });
   },
 
   /**
-   * Get single article by ID
+   * Retrieves a single article's full details.
+   * 
+   * @param id The unique identifier of the article
+   * @returns The article resource wrapper
    */
   async getById(id: string): Promise<{ data: ArticleResource }> {
     return client.get<{ data: ArticleResource }>(`/articles/${id}`);
   },
 
   /**
-   * Increment article view count
+   * Increments the view count for a specific article.
+   * Usually called when an article page is viewed.
+   * 
+   * @param id The unique identifier of the article
+   * @returns Confirmation message and the updated view count
    */
   async incrementViews(id: string): Promise<{ message: string; views_count: number }> {
     return client.post<{ message: string; views_count: number }>(`/articles/${id}/view`);
   },
 
   /**
-   * User-facing article index (legacy or specific use-case)
+   * Public-facing article search/index.
+   * Used for general browsing outside of the curated feed.
+   * 
+   * @param params Search and filter parameters
+   * @returns Raw response data
    */
   async index(params?: ArticleFilters): Promise<any> {
     return client.get("/article", { params: params as any });
   },
 
   /**
-   * Admin: Store new article
+   * [Admin] Creates a new article.
+   * 
+   * @param data The article payload (StoreArticleRequest)
+   * @returns The created article data
    */
   async store(data: any): Promise<any> {
     return client.post("/admin/articles", data);
   },
 
   /**
-   * Admin: Update article
+   * [Admin] Updates an existing article.
+   * 
+   * @param id The unique identifier of the article to update
+   * @param data The update payload (UpdateArticleRequest)
+   * @returns The updated article data
    */
   async update(id: string, data: any): Promise<any> {
     return client.put(`/admin/articles/${id}`, data);
   },
 
   /**
-   * Admin: Delete article
+   * [Admin] Deletes an article permanently.
+   * 
+   * @param id The unique identifier of the article to delete
+   * @returns Confirmation message
    */
   async delete(id: string): Promise<any> {
     return client.delete(`/admin/articles/${id}`);
   }
 };
+

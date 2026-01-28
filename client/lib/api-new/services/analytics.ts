@@ -2,12 +2,15 @@ import { client } from "../client";
 import { AnalyticsResponse } from "../types";
 
 /**
- * Analytics service
+ * Service for accessing administrative analytics and reports.
  */
 export const analyticsService = {
   /**
-   * Get admin analytics
-   * @param period range for data (e.g. "7d", "30d")
+   * Retrieves high-level analytics for the admin dashboard.
+   * Includes visitor counts, engagement metrics, and regional data.
+   * 
+   * @param period The time range for the data (e.g., "7d", "30d", "1y")
+   * @returns Detailed analytics report
    */
   async getAdminAnalytics(period: string = "7d"): Promise<AnalyticsResponse> {
     return client.get<AnalyticsResponse>("/admin/analytics", {
@@ -15,3 +18,4 @@ export const analyticsService = {
     });
   },
 };
+
