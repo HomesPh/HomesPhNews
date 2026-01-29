@@ -12,6 +12,7 @@ use App\Http\Resources\Articles\ArticleResource;
 use App\Models\Article;
 use App\Services\RedisArticleService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ArticleController extends Controller
 {
@@ -31,6 +32,8 @@ class ArticleController extends Controller
         $status = $validated['status'] ?? null;
         $perPage = $validated['per_page'] ?? 10;
         $page = $request->input('page', 1);
+        $sortBy = $validated['sort_by'] ?? 'created_at';
+        $sortDirection = $validated['sort_direction'] ?? 'desc';
 
         // ═══════════════════════════════════════════════════════════════
         // PENDING STATUS: Fetch from Redis (Python Scraper Source)
@@ -39,61 +42,70 @@ class ArticleController extends Controller
             return $this->getPendingArticlesFromRedis($validated, $perPage, $page);
         }
 
-        // ═══════════════════════════════════════════════════════════════
-        // OTHER STATUSES: Fetch from Database
-        // ═══════════════════════════════════════════════════════════════
-        $sortBy = $validated['sort_by'] ?? 'created_at';
-        $sortDirection = $validated['sort_direction'] ?? 'desc';
+        // Apply common filters (Search, Dates, Topics)
+        $query = Article::query()
+            ->when($status && !in_array($status, ['all', 'published']), fn ($q, $s) => $q->where('status', $s))
+            ->when($validated['search'] ?? null, function ($q, $s) {
+                $q->where(fn ($sub) => $sub->where('title', 'LIKE', "%{$s}%")->orWhere('summary', 'LIKE', "%{$s}%"));
+            })
+            ->when($validated['start_date'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '>=', $d))
+            ->when($validated['end_date'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '<=', $d))
+            ->when($validated['category'] ?? null, fn ($q, $c) => $q->where('category', $c))
+            ->when($validated['country'] ?? null, fn ($q, $c) => $q->where('country', 'like', "%{$c}%"));
 
-        $filterBaseQuery = Article::query()
-            ->when($status, fn ($q, $s) => $q->where('status', $s))
-            ->when($validated['search'] ?? null, fn ($q, $search) => $q->where(fn ($subQ) => $subQ->where('title', 'LIKE', "%{$search}%")->orWhere('summary', 'LIKE', "%{$search}%")))
-            ->when($validated['start_date'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '>=', $date))
-            ->when($validated['end_date'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '<=', $date))
-            ->when($validated['topics'] ?? null, function ($q, $topics) {
-                $topicArray = explode(',', $topics);
-                foreach ($topicArray as $topic) {
-                    $q->whereJsonContains('topics', trim($topic));
-                }
-            });
+        // Get filter counts before pagination
+        $availableCategories = (clone $query)->distinct()->whereNotNull('category')->pluck('category')->sort()->values();
+        $availableCountries = (clone $query)->distinct()->whereNotNull('country')->pluck('country')->sort()->values();
 
-        $availableCategories = (clone $filterBaseQuery)->when($validated['country'] ?? null, fn ($q, $country) => $q->where('country', $country))->distinct()->whereNotNull('category')->orderBy('category')->pluck('category');
-        $availableCountries = (clone $filterBaseQuery)->when($validated['category'] ?? null, fn ($q, $category) => $q->where('category', $category))->distinct()->whereNotNull('country')->orderBy('country')->pluck('country');
+        // Paginate DB results
+        $articles = $query->with(['publishedSites'])
+            ->select('id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url')
+            ->orderBy($sortBy, $sortDirection)
+            ->paginate($perPage);
 
-        $articlesQuery = (clone $filterBaseQuery)
-            ->with(['publishedSites']) // Eager load to fix N+1
-            ->when($validated['category'] ?? null, fn ($q, $category) => $q->where('category', $category))
-            ->when($validated['country'] ?? null, fn ($q, $country) => $q->where('country', 'like', '%'.$country.'%'))
-            ->select('id', 'title', 'summary', 'image', 'category', 'country', 'published_sites', 'status', 'created_at', 'views_count')
-            ->orderBy($sortBy, $sortDirection);
+        // Merge Redis articles if on early page of 'all'
+        if ((!$status || $status === 'all') && $page == 1) {
+            try {
+                $redisRaw = $this->redisService->getLatestArticles(5);
+                $redisItems = collect($redisRaw)->map(function ($a) {
+                    return [
+                        'id' => (string)($a['id'] ?? ''),
+                        'title' => $a['title'] ?? 'Untitled',
+                        'summary' => isset($a['content']) ? substr($a['content'], 0, 150) . '...' : '',
+                        'content' => $a['content'] ?? '',
+                        'image' => $a['image_url'] ?? null,
+                        'image_url' => $a['image_url'] ?? null,
+                        'category' => $a['category'] ?? 'General',
+                        'country' => $a['country'] ?? 'Global',
+                        'status' => 'pending',
+                        'created_at' => (isset($a['timestamp']) && is_numeric($a['timestamp'])) 
+                                        ? date('Y-m-d H:i:s', (int)$a['timestamp']) 
+                                        : ($a['timestamp'] ?? now()->toIso8601String()),
+                        'views_count' => 0,
+                        'published_sites' => [],
+                    ];
+                })->filter(fn($a) => !empty($a['id']));
 
-        $articles = $articlesQuery->paginate($perPage)->withQueryString();
-        $articles->appends(['available_filters' => ['categories' => $availableCategories, 'countries' => $availableCountries]]);
-
-        // MERGE REDIS ARTICLES IF STATUS IS 'ALL' (First Page Only)
-        if ((! $status || $status === 'all') && $page == 1) {
-            $redisArticlesRaw = $this->redisService->getLatestArticles(5);
-            $redisArticles = collect($redisArticlesRaw)->map(function ($a) {
-                return [
-                    'id' => $a['id'],
-                    'title' => $a['title'] ?? 'Untitled',
-                    'summary' => isset($a['content']) ? substr($a['content'], 0, 100) : '',
-                    'image' => $a['image_url'] ?? null,
-                    'category' => $a['category'] ?? 'Uncategorized',
-                    'country' => $a['country'] ?? 'Global',
-                    'published_sites' => [],
-                    'status' => 'pending',
-                    'created_at' => $a['timestamp'] ?? now()->toIso8601String(),
-                    'views_count' => 0,
-                ];
-            });
-
-            $mergedCollection = $redisArticles->merge($articles->getCollection());
-            $articles->setCollection($mergedCollection);
+                $merged = $redisItems->merge($articles->getCollection());
+                $articles->setCollection($merged);
+            } catch (\Exception $e) {
+                \Log::warning('Redis merge failed: ' . $e->getMessage());
+            }
         }
 
-        return (new ArticleCollection($articles))->additional([
+        return response()->json([
+            'data' => ArticleResource::collection($articles->getCollection()),
+            'current_page' => $articles->currentPage(),
+            'per_page' => $articles->perPage(),
+            'total' => $articles->total() + ((!$status || $status === 'all') ? 10 : 0), // Estimate total for UI if merging
+            'last_page' => $articles->lastPage(),
+            'from' => $articles->firstItem(),
+            'to' => $articles->lastItem(),
             'status_counts' => $this->getStatusCounts(),
+            'available_filters' => [
+                'categories' => $availableCategories,
+                'countries' => $availableCountries,
+            ],
         ]);
     }
 
@@ -412,20 +424,28 @@ class ArticleController extends Controller
             ->toArray();
 
         // Redis count (all Redis articles are pending)
-        $redisStats = $this->redisService->getStats();
-        $pendingCount = $redisStats['total_articles'] ?? 0;
+        $pendingCount = 0;
+        try {
+            $redisStats = $this->redisService->getStats();
+            $pendingCount = $redisStats['total_articles'] ?? 0;
+        } catch (\Exception $e) {
+            \Log::warning('Redis failed in ArticleController@getStatusCounts: ' . $e->getMessage());
+        }
 
         // Map status names to counts
         $publishedCount = $counts['published'] ?? 0;
         $rejectedCount = $counts['rejected'] ?? 0;
         $pendingReviewCount = $counts['pending review'] ?? 0;
 
-        // All = published + rejected + pending (Redis) + pending review (DB)
-        $allCount = $publishedCount + $rejectedCount + $pendingCount + $pendingReviewCount;
+        // DB Total (Published + Rejected + Pending Review) - This is what the "Published" tab shows
+        $dbTotal = $publishedCount + $rejectedCount + $pendingReviewCount;
+
+        // All = DB Total + Redis Pending
+        $allCount = $dbTotal + $pendingCount;
 
         return [
             'all' => $allCount,
-            'published' => $publishedCount,
+            'published' => $dbTotal, 
             'pending' => $pendingCount,
             'rejected' => $rejectedCount,
             'pending_review' => $pendingReviewCount,
