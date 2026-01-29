@@ -74,7 +74,7 @@ class ArticleController extends Controller
         $total = $query->count();
 
         $articles = $query->with(['publishedSites'])
-            ->select('id', 'title', 'summary', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'views_count')
+            ->select('id', 'title', 'summary', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'views_count', 'topics', 'original_url')
             ->orderBy('created_at', 'desc')
             ->offset($offset)
             ->limit($limit)
@@ -120,19 +120,19 @@ class ArticleController extends Controller
         }
 
         $trending = (clone $baseQuery)
-            ->select('id', 'title', 'country', 'category', 'image', 'topics', 'views_count', 'status', 'created_at as timestamp')
+            ->select('id', 'title', 'country', 'category', 'image', 'topics', 'views_count', 'status', 'created_at as timestamp', 'original_url')
             ->orderBy('views_count', 'desc')
             ->limit(5)
             ->get();
 
         $mostRead = (clone $baseQuery)
-            ->select('id', 'title', 'country', 'category', 'image', 'views_count', 'status', 'created_at as timestamp')
+            ->select('id', 'title', 'country', 'category', 'image', 'views_count', 'status', 'created_at as timestamp', 'original_url')
             ->orderBy('views_count', 'desc')
             ->limit(10)
             ->get();
 
         $latestGlobal = (clone $baseQuery)
-            ->select('id', 'title', 'summary as content', 'country', 'category', 'status', 'created_at as timestamp', 'image', 'views_count', 'keywords')
+            ->select('id', 'title', 'summary as content', 'country', 'category', 'status', 'created_at as timestamp', 'image', 'views_count', 'keywords', 'original_url')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();

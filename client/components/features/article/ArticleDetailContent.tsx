@@ -75,6 +75,7 @@ export default async function ArticleDetailContent({ id }: ArticleDetailContentP
             ? article.keywords.split(",").map((t: string) => t.trim())
             : []
         }
+        originalUrl={article.original_url}
       />
       <ArticleShareBox />
     </section>

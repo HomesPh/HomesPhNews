@@ -27,19 +27,22 @@ export default async function RelatedArticlesSidebar({ id }: RelatedArticlesSide
     });
 
     const seenIds = new Set();
-    relatedArticles = response.data
-      .filter((a) => {
-        if (a.id === article?.id || seenIds.has(a.id)) return false;
+    const articlesArray = Array.isArray(response?.data) ? response.data :
+      (response && typeof response === 'object' && Array.isArray((response as any).data) ? (response as any).data : []);
+
+    relatedArticles = articlesArray
+      .filter((a: any) => {
+        if (!a || a.id === article?.id || seenIds.has(a.id)) return false;
         seenIds.add(a.id);
         return true;
       })
       .slice(0, 4)
-      .map((a) => ({
+      .map((a: any) => ({
         id: a.id || "",
-        title: a.title,
+        title: a.title || "Untitled",
         views: a.views_count || 0,
         imageUrl: a.image_url || a.image || "/healthcare.jpg",
-        timeAgo: new Date(a.created_at || Date.now()).toLocaleDateString(),
+        timeAgo: a.created_at || a.timestamp ? new Date(a.created_at || a.timestamp).toLocaleDateString() : "Just now",
       }));
   } catch (error) {
     console.error("Error fetching related articles:", error);
