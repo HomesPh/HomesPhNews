@@ -8,9 +8,12 @@ use Illuminate\Http\Resources\Json\ResourceCollection;
 class ArticleCollection extends ResourceCollection
 {
     /**
+     * Disable wrapping for this collection to match frontend expectations.
+     */
+    public static $wrap = null;
+
+    /**
      * The resource that this resource collects.
-     *
-     * @var string
      */
     public $collects = ArticleResource::class;
 
@@ -23,6 +26,12 @@ class ArticleCollection extends ResourceCollection
     {
         return [
             'data' => $this->collection,
+            'current_page' => $this->resource->currentPage(),
+            'per_page'    => $this->resource->perPage(),
+            'total'       => $this->resource->total(),
+            'last_page'   => $this->resource->lastPage(),
+            'from'        => $this->resource->firstItem(),
+            'to'          => $this->resource->lastItem(),
         ];
     }
 }

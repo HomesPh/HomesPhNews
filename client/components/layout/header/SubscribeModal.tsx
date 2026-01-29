@@ -362,16 +362,17 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                             )}
                         </>
                     ) : (
-                        <div className="text-center py-[20px] animate-in zoom-in duration-500">
-                            <div className="w-[60px] h-[60px] bg-green-50 rounded-full flex items-center justify-center mx-auto mb-[16px]">
-                                <CheckCircle2 className="w-[30px] h-[30px] text-green-600" />
+                        <div className="text-center py-[40px] animate-in zoom-in duration-500">
+                            <div className="w-[80px] h-[80px] bg-[#f0fdf4] rounded-full flex items-center justify-center mx-auto mb-[24px] border border-[#dcfce7]">
+                                <CheckCircle2 className="w-[40px] h-[40px] text-[#16a34a]" />
                             </div>
-                            <h3 className="font-bold text-[24px] text-[#111827] tracking-[-1px] mb-[8px]">
-                                Success!
+                            <h3 className="font-bold text-[28px] text-[#111827] tracking-[-1px] mb-[12px]">
+                                You're all set!
                             </h3>
-                            <p className="text-[#6b7280] text-[15px] leading-[22px] max-w-[320px] mx-auto mb-[10px]">
-                                Your request has been successfully submitted. We'll be in touch soon!
+                            <p className="text-[#6b7280] text-[16px] leading-[24px] max-w-[380px] mx-auto mb-[8px]">
+                                Your subscription has been confirmed. A welcome email with your selected preferences has been sent to <strong>{formData.email}</strong>.
                             </p>
+                            <p className="text-[#9ca3af] text-[14px]">Redirecting you back shortly...</p>
                         </div>
                     )}
 
