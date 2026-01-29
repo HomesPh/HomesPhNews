@@ -8,11 +8,19 @@ use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\EventController;
 use App\Http\Controllers\Api\Admin\SiteController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\User\ArticleController as UserArticleController;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Route;
+
+// ═══════════════════════════════════════════════════════════════
+// PUBLIC SUBSCRIPTION ROUTE
+// ═══════════════════════════════════════════════════════════════
+Route::post('/subscribe', [SubscriptionController::class, 'store']);
+Route::get('/subscribe/{id}', [SubscriptionController::class, 'show']);
+Route::patch('/subscribe/{id}', [SubscriptionController::class, 'update']);
 
 // ═══════════════════════════════════════════════════════════════
 // SYSTEM ROUTES (Redis Test, Health Check)
