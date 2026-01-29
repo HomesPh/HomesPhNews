@@ -14,6 +14,9 @@ export default async function ArticleDetailContent({ id }: ArticleDetailContentP
   let article;
   try {
     const { data } = await articleService.getById(id);
+
+    console.log(data); // undefined tho
+
     article = data;
   } catch (error) {
     console.error("Error fetching article:", error);
