@@ -63,6 +63,14 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                 const data = await response.json();
 
                 if (response.ok) {
+                    // Save to browser cache for algorithm/personalization purpose
+                    localStorage.setItem('user_preferences', JSON.stringify({
+                        categories: formData.categories,
+                        countries: formData.countries,
+                        email: formData.email,
+                        subId: data.data?.sub_Id
+                    }));
+
                     setIsSubmitted(true);
                     setTimeout(() => {
                         handleReset();

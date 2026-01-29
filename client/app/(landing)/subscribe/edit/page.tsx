@@ -60,6 +60,15 @@ function EditSubscriptionContent() {
                 categories: formData.categories,
                 countries: formData.countries,
             });
+
+            // Sync with browser cache
+            localStorage.setItem('user_preferences', JSON.stringify({
+                categories: formData.categories,
+                countries: formData.countries,
+                email: formData.email,
+                subId: id
+            }));
+
             setIsSuccess(true);
             setTimeout(() => {
                 router.push("/");
