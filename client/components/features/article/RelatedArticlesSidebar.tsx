@@ -1,4 +1,4 @@
-import { articleService } from "@/lib/api-new";
+import { getArticleById, getArticlesList } from "@/lib/api-v2";
 import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
 import AdSpace from "@/components/shared/AdSpace";
 
@@ -9,8 +9,8 @@ interface RelatedArticlesSidebarProps {
 export default async function RelatedArticlesSidebar({ id }: RelatedArticlesSidebarProps) {
   let article;
   try {
-    const { data } = await articleService.getById(id);
-    article = data;
+    const { data: response } = await getArticleById(id);
+    article = response;
   } catch (error) {
     return null;
   }
@@ -20,29 +20,23 @@ export default async function RelatedArticlesSidebar({ id }: RelatedArticlesSide
   // Fetch related articles (same category)
   let relatedArticles: { id: string; title: string; views: number; imageUrl: string; timeAgo: string; }[] = [];
   try {
-    const response = await articleService.list({
+    const { data: listResponse } = await getArticlesList({
       mode: "list",
       category: article.category,
       limit: 5,
     });
 
-    const seenIds = new Set();
-    const articlesArray = Array.isArray(response?.data) ? response.data :
-      (response && typeof response === 'object' && Array.isArray((response as any).data) ? (response as any).data : []);
+    const articlesArray = listResponse?.data?.data || [];
 
     relatedArticles = articlesArray
-      .filter((a: any) => {
-        if (!a || a.id === article?.id || seenIds.has(a.id)) return false;
-        seenIds.add(a.id);
-        return true;
-      })
+      .filter((a) => a.id !== article?.id)
       .slice(0, 4)
-      .map((a: any) => ({
-        id: a.id || "",
-        title: a.title || "Untitled",
-        views: a.views_count || 0,
-        imageUrl: a.image_url || a.image || "/healthcare.jpg",
-        timeAgo: a.created_at || a.timestamp ? new Date(a.created_at || a.timestamp).toLocaleDateString() : "Just now",
+      .map((a) => ({
+        id: a.id,
+        title: a.title,
+        views: a.views_count,
+        imageUrl: a.image || "/healthcare.jpg",
+        timeAgo: new Date(a.created_at).toLocaleDateString(),
       }));
   } catch (error) {
     console.error("Error fetching related articles:", error);

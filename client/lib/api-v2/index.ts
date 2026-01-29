@@ -4,6 +4,7 @@
 export * from "./public/services/article/getArticlesFeed";
 export * from "./public/services/article/getArticlesList";
 export * from "./public/services/article/getArticleById";
+export * from "./public/services/article/incrementArticleViews";
 
 /**
  * exports from admin
