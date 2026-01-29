@@ -2,16 +2,16 @@
 
 import HeroSection from "@/components/features/dashboard/HeroSection";
 import ArticleCard from "@/components/features/dashboard/ArticleCard";
-import { ArticleFeedResponse } from "@/lib/api-new/types";
 import TrendingTopicsCard from "@/components/features/dashboard/TrendingTopicsCard";
 import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
 import AdSpace from "@/components/shared/AdSpace";
 import { use } from "react";
+import { FeedResponse } from "@/lib/api-v2";
 
 type DashboardFeedProps = {
   country: string;
   category: string;
-  feed: Promise<ArticleFeedResponse>;
+  feed: Promise<FeedResponse>;
 };
 
 export default function DashboardFeed({ country, category, feed }: DashboardFeedProps) {
