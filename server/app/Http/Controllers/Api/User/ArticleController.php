@@ -3,19 +3,16 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Articles\ArticleQueryRequest;
+use App\Http\Resources\Articles\ArticleCollection;
+use App\Http\Resources\Articles\ArticleResource;
 use App\Models\Article;
 use App\Services\RedisArticleService;
-use Illuminate\Http\Request;
-
-use App\Http\Requests\Articles\ArticleQueryRequest;
-use App\Http\Resources\Articles\ArticleResource;
-use App\Http\Resources\Articles\ArticleCollection;
-use App\Http\Resources\StatsResource;
 use Illuminate\Http\JsonResponse;
 
 /**
  * User Article Controller
- * 
+ *
  * Reads articles directly from Redis (where Python scraper stores them).
  * The Python Script is the SOURCE OF TRUTH.
  */
@@ -30,7 +27,7 @@ class ArticleController extends Controller
 
     /**
      * Get a paginated list of articles with searching and filtering.
-     * 
+     *
      * This endpoint is intended for search results, category listings, etc.
      */
     public function index(ArticleQueryRequest $request): ArticleCollection
@@ -40,8 +37,8 @@ class ArticleController extends Controller
         $country = $validated['country'] ?? null;
         $category = $validated['category'] ?? null;
         $topic = $validated['topic'] ?? null;
-        $limit = min(100, max(1, (int) ($validated['limit'] ?? 10)));
-        $offset = max(0, (int) ($validated['offset'] ?? 0));
+        $perPage = min(100, max(1, (int) ($validated['per_page'] ?? $validated['limit'] ?? 10)));
+        $page = $validated['page'] ?? (isset($validated['offset']) ? (int) ($validated['offset'] / $perPage) + 1 : 1);
 
         $query = Article::query();
 
@@ -71,20 +68,13 @@ class ArticleController extends Controller
             $query->whereRaw('JSON_CONTAINS(topics, ?)', [json_encode($topic)]);
         }
 
-        $total = $query->count();
-
         $articles = $query->with(['publishedSites'])
             ->select('id', 'title', 'summary', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'views_count')
             ->orderBy('created_at', 'desc')
-            ->offset($offset)
-            ->limit($limit)
-            ->get();
+            ->paginate($perPage, ['*'], 'page', $page);
 
         return (new ArticleCollection($articles))->additional([
             'meta' => [
-                'total' => $total,
-                'limit' => $limit,
-                'offset' => $offset,
                 'filters' => array_filter([
                     'search' => $search,
                     'country' => $country,
@@ -97,9 +87,9 @@ class ArticleController extends Controller
 
     /**
      * Get the curated article feed for the landing page.
-     * 
+     *
      * Includes trending, most read, and latest articles.
-     * 
+     *
      * @return array{trending: \App\Http\Resources\Articles\ArticleResource[], most_read: \App\Http\Resources\Articles\ArticleResource[], latest_global: \App\Http\Resources\Articles\ArticleResource[]}
      */
     public function feed(ArticleQueryRequest $request): JsonResponse
@@ -151,12 +141,13 @@ class ArticleController extends Controller
     {
         $article = Article::find($id);
 
-        if (!$article) {
+        if (! $article) {
             // Fallback to Redis if not found in DB
             $articleData = $this->redisService->getArticle($id);
-            if (!$articleData) {
+            if (! $articleData) {
                 return response()->json(['error' => 'Article not found'], 404);
             }
+
             return new ArticleResource($articleData);
         }
 
@@ -170,7 +161,7 @@ class ArticleController extends Controller
     {
         $article = Article::find($id);
 
-        if (!$article) {
+        if (! $article) {
             return response()->json(['error' => 'Article not found'], 404);
         }
 
@@ -178,10 +169,9 @@ class ArticleController extends Controller
 
         return response()->json([
             'message' => 'View count incremented',
-            'views_count' => (int) $article->views_count
+            'views_count' => (int) $article->views_count,
         ]);
     }
-
 
     /**
      * Get statistics summary.

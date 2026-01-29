@@ -1,6 +1,5 @@
 import VerticalArticleCard from "@/components/features/dashboard/VerticalArticleCard";
-import { getArticlesList } from "@/lib/api/news/service";
-import { ArticlesListResponse } from "@/lib/api/news/types";
+import { getArticlesList, type ArticleResource } from "@/lib/api-v2";
 import { Categories, Countries } from "@/app/data";
 
 type Props = {
@@ -22,9 +21,10 @@ export default async function SearchPage({ searchParams }: Props) {
         country: country !== "all" ? country : undefined,
         category: category !== "all" ? category : undefined,
         limit: 20
-    }) as ArticlesListResponse;
+    });
 
-    const filteredArticles = response?.data || [];
+    // Extract articles from the nested structure defined in ArticleListResponse
+    const filteredArticles: ArticleResource[] = response.data.data.data || [];
 
     // Helper lookup for labels
     const getLabel = (list: any[], val: string) =>
@@ -46,7 +46,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
             {filteredArticles.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
-                    {filteredArticles.map((article) => (
+                    {filteredArticles.map((article: ArticleResource) => (
                         <VerticalArticleCard
                             key={article.id}
                             id={article.id}
@@ -60,7 +60,7 @@ export default async function SearchPage({ searchParams }: Props) {
                                 year: 'numeric'
                             })}
                             views={`${article.views_count || 0} views`}
-                            imageSrc={article.image || article.image_url || "/images/placeholder.png"}
+                            imageSrc={article.image || "/images/placeholder.png"}
                         />
                     ))}
                 </div>
