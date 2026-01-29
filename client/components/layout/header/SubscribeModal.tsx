@@ -41,13 +41,51 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
         });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSubmitted(true);
-        setTimeout(() => {
-            handleReset();
-            onClose();
-        }, 3000);
+        setIsLoading(true);
+
+        try {
+            // Only 'email' step is currently handled by the backend
+            if (step === 'email') {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/subscribe`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: formData.email,
+                        categories: formData.categories,
+                        countries: formData.countries
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    setIsSubmitted(true);
+                    setTimeout(() => {
+                        handleReset();
+                        onClose();
+                    }, 3000);
+                } else {
+                    alert(data.message || 'Something went wrong. Please try again.');
+                }
+            } else {
+                // For service inquiry, we could add another endpoint later
+                // For now, let's just simulate success or implement if needed
+                setIsSubmitted(true);
+                setTimeout(() => {
+                    handleReset();
+                    onClose();
+                }, 3000);
+            }
+        } catch (error) {
+            console.error('Subscription error:', error);
+            alert('Failed to connect to the server. Please check your internet connection.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -249,9 +287,10 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
 
                                         <button
                                             type="submit"
-                                            className="w-full bg-[#c10007] text-white py-[12px] rounded-[10px] font-bold text-[16px] tracking-[-0.5px] hover:bg-[#a00006] transition-all shadow-md active:scale-[0.98] mt-2"
+                                            disabled={isLoading}
+                                            className="w-full bg-[#c10007] text-white py-[12px] rounded-[10px] font-bold text-[16px] tracking-[-0.5px] hover:bg-[#a00006] transition-all shadow-md active:scale-[0.98] mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
                                         >
-                                            Subscribe Now
+                                            {isLoading ? "Subscribing..." : "Subscribe Now"}
                                         </button>
                                     </form>
                                 </div>
@@ -313,9 +352,10 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                         </div>
                                         <button
                                             type="submit"
-                                            className="w-full bg-[#c10007] text-white py-[12px] rounded-[10px] font-bold text-[16px] tracking-[-0.5px] hover:bg-[#a00006] transition-all shadow-md active:scale-[0.98] mt-2"
+                                            disabled={isLoading}
+                                            className="w-full bg-[#c10007] text-white py-[12px] rounded-[10px] font-bold text-[16px] tracking-[-0.5px] hover:bg-[#a00006] transition-all shadow-md active:scale-[0.98] mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
                                         >
-                                            Send Request
+                                            {isLoading ? "Sending..." : "Send Request"}
                                         </button>
                                     </form>
                                 </div>
