@@ -24,14 +24,16 @@ class ArticleCollection extends ResourceCollection
      */
     public function toArray(Request $request): array
     {
+        $isPaginator = $this->resource instanceof \Illuminate\Pagination\AbstractPaginator;
+
         return [
             'data' => $this->collection,
-            'current_page' => method_exists($this->resource, 'currentPage') ? $this->resource->currentPage() : 1,
-            'per_page'    => method_exists($this->resource, 'perPage') ? $this->resource->perPage() : $this->collection->count(),
-            'total'       => method_exists($this->resource, 'total') ? $this->resource->total() : $this->collection->count(),
-            'last_page'   => method_exists($this->resource, 'lastPage') ? $this->resource->lastPage() : 1,
-            'from'        => method_exists($this->resource, 'firstItem') ? $this->resource->firstItem() : 1,
-            'to'          => method_exists($this->resource, 'lastItem') ? $this->resource->lastItem() : $this->collection->count(),
+            'current_page' => $isPaginator ? $this->resource->currentPage() : 1,
+            'per_page' => $isPaginator ? $this->resource->perPage() : $this->collection->count(),
+            'total' => $isPaginator ? $this->resource->total() : $this->collection->count(),
+            'last_page' => $isPaginator ? $this->resource->lastPage() : 1,
+            'from' => $isPaginator ? $this->resource->firstItem() : 1,
+            'to' => $isPaginator ? $this->resource->lastItem() : $this->collection->count(),
         ];
     }
 }
