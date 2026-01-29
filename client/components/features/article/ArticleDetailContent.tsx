@@ -1,4 +1,4 @@
-import { articleService } from "@/lib/api-new";
+import { getArticleById } from "@/lib/api-v2";
 import ArticleHeader from "./ArticleHeader";
 import ArticleFeaturedImage from "./ArticleFeaturedImage";
 import ArticleContent from "./ArticleContent";
@@ -13,11 +13,8 @@ interface ArticleDetailContentProps {
 export default async function ArticleDetailContent({ id }: ArticleDetailContentProps) {
   let article;
   try {
-    const { data } = await articleService.getById(id);
-
-    console.log(data); // undefined tho
-
-    article = data;
+    const response = await getArticleById(id);
+    article = response.data;
   } catch (error) {
     console.error("Error fetching article:", error);
     notFound();
@@ -53,16 +50,16 @@ export default async function ArticleDetailContent({ id }: ArticleDetailContentP
           article.content ? article.content.replace(/<[^>]*>/g, "").substring(0, 160) + "..." : ""
         }
         author={{ name: "HomesPh News" }}
-        date={new Date(article.timestamp || article.created_at || Date.now()).toLocaleDateString("en-US", {
+        date={new Date(article.created_at || Date.now()).toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
           day: "numeric",
         })}
         views={article.views_count}
       />
-      {(article.image_url || article.image) && (
+      {article.image && (
         <ArticleFeaturedImage
-          src={article.image_url || article.image}
+          src={article.image}
           alt={article.title}
           caption=""
         />

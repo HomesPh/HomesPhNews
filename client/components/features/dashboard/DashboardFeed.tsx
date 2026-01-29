@@ -132,7 +132,7 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
                 {/* Sidebar Column (Right) */}
                 <aside className="lg:col-span-4 space-y-10">
                     <AdSpace
-                        className="h-[112px]"
+                        className="h-28"
                         width="300x600"
                         height="Leader board Ad"
                     />

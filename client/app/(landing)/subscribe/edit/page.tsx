@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle2, Loader2, ArrowLeft, Mail, X, ChevronDown } from "lucide-react";
 import { Categories, Countries } from "@/app/data";
-import { client } from "@/lib/api-new/client";
+import AXIOS_INSTANCE_PUBLIC from "@/lib/api-v2/public/axios-instance";
 import Link from "next/link";
 
 function EditSubscriptionContent() {
@@ -32,7 +32,7 @@ function EditSubscriptionContent() {
 
         const fetchSubscription = async () => {
             try {
-                const response = await client.get<any>(`/subscribe/${id}`);
+                const response = await AXIOS_INSTANCE_PUBLIC.get<any>(`/subscribe/${id}`);
                 const data = response.data;
                 setFormData({
                     email: data.email,
@@ -56,7 +56,7 @@ function EditSubscriptionContent() {
 
         setIsSaving(true);
         try {
-            await client.patch(`/subscribe/${id}`, {
+            await AXIOS_INSTANCE_PUBLIC.patch(`/subscribe/${id}`, {
                 categories: formData.categories,
                 countries: formData.countries,
             });

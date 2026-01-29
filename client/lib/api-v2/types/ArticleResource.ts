@@ -4,11 +4,14 @@ export interface ArticleResource {
   summary: string;
   content: string;
   image: string;
+  image_url: string;
   category: string;
   country: string;
+  location: string;
+  description: string;
   status: string;
   views_count: number;
-  topics: string[] | null;
+  topics: any;
   keywords: string;
   source: string;
   original_url: string;

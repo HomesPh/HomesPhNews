@@ -1,4 +1,4 @@
-import { articleService } from "@/lib/api-new";
+import { getArticleById } from "@/lib/api-v2";
 import ArticleBreadcrumb from "./ArticleBreadcrumb";
 import { Categories, Countries } from "@/app/data";
 
@@ -9,8 +9,8 @@ interface ArticleBreadcrumbContainerProps {
 export default async function ArticleBreadcrumbContainer({ id }: ArticleBreadcrumbContainerProps) {
   let article;
   try {
-    const { data } = await articleService.getById(id);
-    article = data;
+    const response = await getArticleById(id);
+    article = response.data;
   } catch (error) {
     return null;
   }

@@ -1,4 +1,4 @@
-import { articleService } from "@/lib/api-new";
+import { getArticleById, getArticlesList } from "@/lib/api-v2";
 import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
 import AdSpace from "@/components/shared/AdSpace";
 
@@ -9,8 +9,8 @@ interface RelatedArticlesSidebarProps {
 export default async function RelatedArticlesSidebar({ id }: RelatedArticlesSidebarProps) {
   let article;
   try {
-    const { data } = await articleService.getById(id);
-    article = data;
+    const response = await getArticleById(id);
+    article = response.data;
   } catch (error) {
     return null;
   }
@@ -20,27 +20,29 @@ export default async function RelatedArticlesSidebar({ id }: RelatedArticlesSide
   // Fetch related articles (same category)
   let relatedArticles: { id: string; title: string; views: number; imageUrl: string; timeAgo: string; }[] = [];
   try {
-    const response = await articleService.list({
+    const response = await getArticlesList({
       mode: "list",
       category: article.category,
       limit: 5,
     });
 
-    const seenIds = new Set();
-    relatedArticles = response.data
-      .filter((a) => {
-        if (a.id === article?.id || seenIds.has(a.id)) return false;
-        seenIds.add(a.id);
-        return true;
-      })
-      .slice(0, 4)
-      .map((a) => ({
-        id: a.id || "",
-        title: a.title,
-        views: a.views_count || 0,
-        imageUrl: a.image_url || a.image || "/healthcare.jpg",
-        timeAgo: new Date(a.created_at || Date.now()).toLocaleDateString(),
-      }));
+    if (response) {
+      const seenIds = new Set();
+      relatedArticles = response.data.data
+        .filter((a) => {
+          if (a.id === article?.id || seenIds.has(a.id)) return false;
+          seenIds.add(a.id);
+          return true;
+        })
+        .slice(0, 4)
+        .map((a) => ({
+          id: a.id || "",
+          title: a.title,
+          views: a.views_count || 0,
+          imageUrl: a.image || "/healthcare.jpg",
+          timeAgo: new Date(a.created_at || Date.now()).toLocaleDateString(),
+        }));
+    }
   } catch (error) {
     console.error("Error fetching related articles:", error);
   }
@@ -83,7 +85,7 @@ export default async function RelatedArticlesSidebar({ id }: RelatedArticlesSide
   return (
     <aside className="space-y-8">
       <AdSpace
-        className="h-[112px]"
+        className="h-28"
         width="300x600"
         height="Leader board Ad"
       />
