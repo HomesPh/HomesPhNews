@@ -1,0 +1,95 @@
+Articles
+/
+Details
+Technology
+|
+USA
+AI Revolution: How Machine Learning is Transforming Healthcare in North America
+Computer researchers develop groundbreaking AI system that can detect early signs of cancer with 98% accuracy, potentially saving thousands of lives annually.
+
+By John Doe
+January 14, 2026
+1,240 views
+AI Revolution: How Machine Learning is Transforming Healthcare in North America
+The city-state has integrated AI platform that manages traffic, energy, and public services with unprecedented efficiency.
+
+Singapore has launched the world's most advanced AI-powered urban management system, representing a quantum leap in smart city technology. The comprehensive platform integrates traffic management, energy distribution, waste collection, and emergency services into a single, intelligent network.
+
+Prime Minister Lee Hsien Yang unveiled the system at a ceremony in Marina Bay, describing it as "the future of urban living." The AI system processes data from millions of sensors throughout the city, making real-time decisions to optimize urban operations.
+
+Topics:
+
+Healthcare
+AI
+Technology
+
+
+Article Management
+Manage and review all articles across the platform
+
+
+New Article
+
+All Articles
+5
+
+Published
+3
+
+Pending Review
+1
+
+Rejected
+1
+Search articles...
+
+All Category
+
+All Countries
+AI Revolution: How Machine Learning is Transforming Healthcare in North America
+Technology
+|
+USA
+AI Revolution: How Machine Learning is Transforming Healthcare in North America
+Computer researchers develop groundbreaking AI system that can detect early signs of cancer with 98% accuracy, potentially saving thousands of lives annually.
+
+January 14, 2026
+•
+1,240 views
+Published on:
+Main Portal
+Bayanihan
+Singapore Launches World's First AI-Powered Urban Management System
+Technology
+|
+SINGAPORE
+Singapore Launches World's First AI-Powered Urban Management System
+The smart city initiative aims to optimize traffic flow and energy consumption across the island using real-time sensor data.
+
+January 14, 2026
+•
+850 views
+Published on:
+Main Portal
+Filipino Homes
+Philippines Emerges as Southeast Asia's AI Outsourcing Leader
+Business
+|
+PHILIPPINES
+Philippines Emerges as Southeast Asia's AI Outsourcing Leader
+Local firms are rapidly adopting AI tools to enhance their service offerings, attracting significantly more international clients.
+
+January 14, 2026
+•
+2,100 views
+Published on:
+Main Portal
+Filipino Homes
+Rent.ph
+
+
+
+http://localhost:3000/admin/articles
+
+direa ang kaning kuan bah 
+so first let's tackle the meta data here ang sa articles kay kuan siya dire pwede siya ka login sa admin nga  inig fetch kay pending means ana diha pa sa 

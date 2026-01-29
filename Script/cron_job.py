@@ -72,11 +72,12 @@ def process_country(country: str, scraper: NewsScraper, ai: AIProcessor, storage
         
         # 4. AI Processing
         detected_country = ai.detect_country(article['title'], full_text)
-        new_title, new_content, keywords = ai.rewrite_cnn_style(
+        new_title, new_content, keywords, summary, citations = ai.rewrite_cnn_style(
             article['title'], 
             full_text, 
             detected_country, 
-            category
+            category,
+            article['link']
         )
         
         # 5. Generate Image
@@ -97,8 +98,10 @@ def process_country(country: str, scraper: NewsScraper, ai: AIProcessor, storage
             "country": detected_country,
             "category": category,
             "title": new_title,
+            "summary": summary,
             "content": new_content,
             "keywords": keywords,
+            "citations": citations,
             "original_url": article['link'],
             "image_url": img_url,
             "timestamp": time.time(),
@@ -136,11 +139,19 @@ def run_hourly_job():
     ai = AIProcessor()
     storage = StorageHandler()
     
-    countries = list(COUNTRIES.keys())
+    # countries = list(COUNTRIES.keys())
+    
+    # ⚠️ COST SAVING MODE: Process only 1 random country ⚠️
+    # To revert to full production:
+    # 1. Uncomment: countries = list(COUNTRIES.keys())
+    # 2. Comment out the lines below
+    selected_country = random.choice(list(COUNTRIES.keys()))
+    countries = [selected_country]
+    
     results = []
     
-    print(f"📋 Processing {len(countries)} countries with {MAX_WORKERS} workers")
-    print(f"📋 Countries: {', '.join(countries)}")
+    print(f"📋 Processing {len(countries)} country (TEST MODE): {countries[0]}")
+    # print(f"📋 Countries: {', '.join(countries)}")
     print("-" * 70)
     
     # Process countries in parallel
