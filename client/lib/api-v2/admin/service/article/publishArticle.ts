@@ -4,7 +4,7 @@ import AXIOS_INSTANCE_ADMIN from "../../axios-instance";
 import type { AxiosResponse } from "axios";
 import type { ArticleResource } from "../../../types/ArticleResource";
 
-export interface ArticleActionRequest {
+export interface PublishArticleRequest {
   custom_titles?: string[] | null;
   reason?: string | null;
   published_sites: string[];
@@ -20,7 +20,7 @@ export interface PublishArticleResponse {
  */
 export async function publishArticle(
   id: string,
-  body: ArticleActionRequest
+  body: PublishArticleRequest
 ): Promise<AxiosResponse<PublishArticleResponse>> {
   return AXIOS_INSTANCE_ADMIN.post<PublishArticleResponse>(
     `/admin/articles/${id}/publish`,
