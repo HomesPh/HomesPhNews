@@ -2,18 +2,18 @@
 
 import LandingHeroCarousel from "./LandingHeroCarousel";
 import LandingNewsBlock from "./LandingNewsBlock";
-import { ArticleFeedResponse, ArticleResource } from "@/lib/api-new/types";
 import TrendingTopicsCard from "@/components/features/dashboard/TrendingTopicsCard";
 import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
 import CategoriesSidebarCard from "./CategoriesSidebarCard";
 import LatestPostsSection from "./LatestPostsSection";
 import AdSpace from "@/components/shared/AdSpace";
 import { use } from "react";
+import { ArticleResource, FeedResponse } from "@/lib/api-v2";
 
 type DashboardFeedProps = {
     country: string;
     category: string;
-    feed: Promise<ArticleFeedResponse>;
+    feed: Promise<FeedResponse>;
 };
 
 export default function DashboardFeed({ country, category, feed }: DashboardFeedProps) {
@@ -35,7 +35,7 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
         source: "HomesTV",
         original_url: "#",
         created_at: "2026-01-28T07:00:00.000Z",
-        published_sites: null
+        published_sites: ""
     }));
 
     // Safely extract with fallbacks for empty responses
