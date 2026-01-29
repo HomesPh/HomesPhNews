@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 interface ArticleContentProps {
   content: string;
   topics: string[];
+  originalUrl?: string;
 }
 
 const AdPlaceholder = ({ label }: { label: string }) => (
@@ -18,7 +19,7 @@ const AdPlaceholder = ({ label }: { label: string }) => (
   </div>
 );
 
-export default function ArticleContent({ content, topics }: ArticleContentProps) {
+export default function ArticleContent({ content, topics, originalUrl }: ArticleContentProps) {
   return (
     <article className="my-8">
       <style jsx global>{`
@@ -84,6 +85,22 @@ export default function ArticleContent({ content, topics }: ArticleContentProps)
             </span>
           ))}
         </div>
+
+        {originalUrl && (
+          <div className="mt-4 pt-4 border-t border-[#e5e7eb]">
+            <p className="font-semibold text-[15px] text-[#111827] tracking-[-0.5px] leading-[20px] mb-2">
+              Source:
+            </p>
+            <a
+              href={originalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[14px] text-[#3b82f6] hover:underline break-all"
+            >
+              {originalUrl.length > 60 ? originalUrl.substring(0, 60) + "..." : originalUrl}
+            </a>
+          </div>
+        )}
       </div>
     </article>
   );

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SubscriptionDetail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\JsonResponse;
@@ -63,6 +64,12 @@ class SubscriptionController extends Controller
                 'category' => $request->categories,
                 'country' => $request->countries,
             ]);
+
+            // Store in cache for algorithm purpose only
+            Cache::put("user_preferences:{$subscription->sub_Id}", [
+                'categories' => $request->categories,
+                'countries' => $request->countries,
+            ], now()->addDays(30));
 
             // Fetch matching articles based on NEW preferences
             $matchingArticles = \App\Models\Article::whereIn('category', $request->categories)
@@ -182,6 +189,12 @@ class SubscriptionController extends Controller
                 'category' => $request->categories,
                 'country' => $request->countries,
             ]);
+
+            // Store in cache for algorithm purpose only
+            Cache::put("user_preferences:{$subscription->sub_Id}", [
+                'categories' => $request->categories,
+                'countries' => $request->countries,
+            ], now()->addDays(30));
 
             // Fetch matching articles
             $matchingArticles = \App\Models\Article::whereIn('category', $request->categories)
