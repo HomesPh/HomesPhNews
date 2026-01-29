@@ -5,7 +5,16 @@ import type { ArticleResource } from "../../../types/ArticleResource";
 import type { AxiosResponse } from "axios";
 
 export type ArticleListResponse = {
-  data: ArticleResource[];
+  data: {
+    data: ArticleResource[];
+    current_page?: number;
+    per_page?: number;
+    total?: number;
+    last_page?: number;
+    from?: number;
+    to?: number;
+  };
+  links?: any;
   meta?: any;
 }
 
