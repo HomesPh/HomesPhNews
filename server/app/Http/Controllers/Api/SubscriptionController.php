@@ -107,16 +107,22 @@ class SubscriptionController extends Controller
 
                 // Send "Already Subscribed" email
                 try {
-                    Mail::raw(
-                        "You are already subscribed to HomesTV Daily News!\n\n" .
-                        "To manage your preferences or edit your subscription, please click the link below:\n\n" .
-                        $editUrl . "\n\n" .
-                        "Thank you for being part of our community!",
-                        function ($message) use ($request) {
-                            $message->to($request->email)
-                                ->subject('Subscription Already Exists - HomesTV');
-                        }
-                    );
+                    Mail::send('emails.subscription', [
+                        'subject' => 'Subscription Already Exists - HomesTV',
+                        'title' => 'Welcome back!',
+                        'messageText' => 'You are already subscribed to HomesTV Daily News. We noticed you tried to sign up again, so we\'ve provided a link to manage your current preferences below.',
+                        'email' => $request->email,
+                        'categories' => $existing->category ?? [],
+                        'countries' => $existing->country ?? [],
+                        'articles' => [], // Don't need articles for this one
+                        'clientUrl' => env('APP_URL_CLIENT', 'http://localhost:3000'),
+                        'actionUrl' => $editUrl,
+                        'actionText' => 'Manage Subscription',
+                        'subId' => $existing->sub_Id
+                    ], function ($message) use ($request) {
+                        $message->to($request->email)
+                            ->subject('Subscription Already Exists - HomesTV');
+                    });
                 } catch (\Exception $e) {
                     \Log::error('Existing Subscription Email Failed: ' . $e->getMessage());
                 }
@@ -142,46 +148,37 @@ class SubscriptionController extends Controller
                 ->whereIn('country', $request->countries)
                 ->where('status', 'published')
                 ->latest()
-                ->limit(5)
+                ->limit(3)
                 ->get();
 
-            $articleList = "";
             if ($matchingArticles->isEmpty()) {
-                // Try broader search if no exact match (optional, but good for UX)
                 $matchingArticles = \App\Models\Article::whereIn('category', $request->categories)
                     ->orWhereIn('country', $request->countries)
                     ->where('status', 'published')
                     ->latest()
-                    ->limit(5)
+                    ->limit(3)
                     ->get();
-            }
-
-            if ($matchingArticles->isNotEmpty()) {
-                $articleList = "\nLatest News for You:\n";
-                foreach ($matchingArticles as $article) {
-                    $articleUrl = env('APP_URL_CLIENT', 'http://localhost:3000') . "/article?id=" . $article->id;
-                    $articleList .= "- " . $article->title . ": " . $articleUrl . "\n";
-                }
-            } else {
-                $articleList = "\nCheck out all the latest updates on our homepage: " . env('APP_URL_CLIENT', 'http://localhost:3000') . "\n";
             }
 
             // Send dynamic welcome email
             try {
-                Mail::raw(
-                    "Thank you for subscribing to HomesTV Daily News!\n\n" .
-                    "Details of your subscription:\n" .
-                    "- Email: {$request->email}\n" .
-                    "- Categories: " . implode(', ', $request->categories) . "\n" .
-                    "- Countries: " . implode(', ', $request->countries) . "\n\n" .
-                    "Check out matching articles tailored for you:\n" .
-                    $articleList . "\n" .
-                    "You will now receive the latest real estate updates based on your preferences.",
-                    function ($message) use ($request) {
-                        $message->to($request->email)
-                            ->subject('Welcome to HomesTV Subscription!');
-                    }
-                );
+                $clientUrl = env('APP_URL_CLIENT', 'http://localhost:3000');
+                Mail::send('emails.subscription', [
+                    'subject' => 'Welcome to HomesTV Subscription!',
+                    'title' => 'Successfully Subscribed!',
+                    'messageText' => 'Thank you for joining HomesTV Daily News. You will now receive the latest real estate updates tailored to your interests.',
+                    'email' => $request->email,
+                    'categories' => $request->categories,
+                    'countries' => $request->countries,
+                    'articles' => $matchingArticles,
+                    'clientUrl' => $clientUrl,
+                    'actionUrl' => $clientUrl . "/subscribe/edit?id=" . $subscription->sub_Id,
+                    'actionText' => 'Edit Preferences',
+                    'subId' => $subscription->sub_Id
+                ], function ($message) use ($request) {
+                    $message->to($request->email)
+                        ->subject('Welcome to HomesTV Subscription!');
+                });
             } catch (\Exception $e) {
                 \Log::error('Subscription Email Failed: ' . $e->getMessage());
             }
