@@ -64,7 +64,8 @@ export default function SitesPage() {
     // Calculate total articles and monthly views (client-side aggregation for now)
     const totalArticles = sitesList.reduce((sum, site) => sum + site.articles, 0);
     const totalMonthlyViews = sitesList.reduce((sum, site) => {
-        const views = parseInt(site.monthlyViews.replace(/,/g, '')) || 0;
+        const viewsStr = String(site.monthlyViews || '0');
+        const views = parseInt(viewsStr.replace(/,/g, '')) || 0;
         return sum + views;
     }, 0);
 

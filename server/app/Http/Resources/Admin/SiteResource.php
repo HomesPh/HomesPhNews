@@ -22,10 +22,12 @@ class SiteResource extends JsonResource
             'image' => $this->site_logo ?? '/images/HomesTV.png',
             'contact_name' => $this->contact_name,
             'contact_email' => $this->contact_email,
+            'contact' => $this->contact_name ? ($this->contact_name . ' (' . ($this->contact_email ?? 'N/A') . ')') : ($this->contact_email ?? 'N/A'),
             'description' => $this->site_description ?? '',
             'categories' => $this->site_keywords ?? [],
             'requested' => $this->created_at?->format('Y-m-d') ?? '',
-            'articles_count' => (int) ($this->articles_count ?? 0),
+            'articles' => (int) ($this->articles_count ?? 0),
+            'monthlyViews' => '0',
             'monthly_views' => 0,
         ];
     }
