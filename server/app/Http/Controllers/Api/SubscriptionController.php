@@ -64,6 +64,46 @@ class SubscriptionController extends Controller
                 'country' => $request->countries,
             ]);
 
+            // Fetch matching articles based on NEW preferences
+            $matchingArticles = \App\Models\Article::whereIn('category', $request->categories)
+                ->whereIn('country', $request->countries)
+                ->where('status', 'published')
+                ->latest()
+                ->limit(3)
+                ->get();
+
+            if ($matchingArticles->isEmpty()) {
+                $matchingArticles = \App\Models\Article::whereIn('category', $request->categories)
+                    ->orWhereIn('country', $request->countries)
+                    ->where('status', 'published')
+                    ->latest()
+                    ->limit(3)
+                    ->get();
+            }
+
+            // Send confirmation email with new news
+            try {
+                $clientUrl = env('APP_URL_CLIENT', 'http://localhost:3000');
+                Mail::send('emails.subscription', [
+                    'subject' => 'Preferences Updated - HomesTV',
+                    'title' => 'Preferences Saved!',
+                    'messageText' => 'Your subscription preferences have been updated successfully. We\'ve selected these latest news pieces based on your new interests.',
+                    'email' => $subscription->email,
+                    'categories' => $request->categories,
+                    'countries' => $request->countries,
+                    'articles' => $matchingArticles,
+                    'clientUrl' => $clientUrl,
+                    'actionUrl' => $clientUrl . "/subscribe/edit?id=" . $subscription->sub_Id,
+                    'actionText' => 'Manage Preferences',
+                    'subId' => $subscription->sub_Id
+                ], function ($message) use ($subscription) {
+                    $message->to($subscription->email)
+                        ->subject('Preferences Updated - HomesTV');
+                });
+            } catch (\Exception $e) {
+                \Log::error('Preference Update Email Failed: ' . $e->getMessage());
+            }
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Subscription updated successfully!',

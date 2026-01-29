@@ -38,7 +38,11 @@ export const articleService = {
    * @returns The article resource wrapper
    */
   async getById(id: string): Promise<{ data: ArticleResource }> {
-    return client.get<{ data: ArticleResource }>(`/articles/${id}`);
+    // Why this is different? 
+    // The API's ArticleResource returns the article 
+    // without wrapping it in a data property.
+    const article = await client.get<ArticleResource>(`/articles/${id}`);
+    return { data: article };
   },
 
   /**
