@@ -180,7 +180,7 @@
         <div class="footer">
             <div class="footer-text">
                 This email was sent to you because you subscribed to HomesTV Daily News.<br>
-                &copy; {{ date('Y') }} HomesTV. Makati, Philippines. All rights reserved.
+                &copy; {{ date('Y') }} HomesTV. 133 MH Aznar St, Cebu City, 6000 Cebu All rights reserved.
             </div>
             <div class="footer-links">
                 <a href="#">Privacy Policy</a>
