@@ -24,14 +24,14 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                         <Link
                             key={article.id}
                             href={`/article?id=${article.id}`}
-                            className="group cursor-pointer flex flex-col relative"
+                            className="group cursor-pointer flex flex-col relative transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                         >
                             <div className="aspect-video overflow-hidden mb-3 relative rounded-sm">
                                 <Image
                                     src={article.image || 'https://placehold.co/800x450?text=No+Image'}
                                     alt={article.title}
                                     fill
-                                    className="object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                                    className="object-cover transition-all duration-500 group-hover:scale-110"
                                 />
                                 {/* Tags at bottom right of image */}
                                 <div className="absolute bottom-2 right-2 flex gap-1 z-10">

@@ -28,7 +28,7 @@ export default function MostReadTodayCard({ title = "Most Read Today", items = [
           <Link
             key={article.id}
             href={`/article?id=${article.id}`}
-            className="flex gap-4 group cursor-pointer"
+            className="flex gap-4 group cursor-pointer transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
           >
             <div className="relative shrink-0 w-16 h-16 bg-gray-100 flex items-center justify-center overflow-hidden rounded-sm">
               <span className="absolute inset-0 flex items-center justify-center text-4xl font-black text-black/10 z-0">
