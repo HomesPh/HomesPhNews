@@ -33,9 +33,9 @@ export default function LandingCountryNav({ countries }: LandingCountryNavProps)
   }
 
   return (
-    <div className="bg-white w-full border-y border-[#e5e7eb]">
+    <div className="bg-white dark:bg-[#1a1d2e] w-full border-y border-[#e5e7eb] dark:border-[#2a2d3e] transition-colors duration-300">
       <div className="w-full max-w-[1280px] mx-auto px-4 py-[16px]">
-        <nav className="flex gap-[30px] items-center justify-start md:justify-center overflow-x-auto pb-2 scrollbar-hide">
+        <nav className="flex gap-[30px] items-center justify-start overflow-x-auto pb-2 scrollbar-hide">
           {countries.map((country, idx) => {
             const isActive = activeCountry === country.id;
 
@@ -43,7 +43,9 @@ export default function LandingCountryNav({ countries }: LandingCountryNavProps)
               <button
                 key={country.id}
                 onClick={() => handleChangeCountryTab(country.id)}
-                className={`relative pb-1 shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap transition-colors ${isActive ? "text-[#c10007]" : "text-[#374151] hover:text-[#c10007]"
+                className={`relative pb-1 shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap transition-colors ${isActive
+                  ? "text-[#c10007]"
+                  : "text-[#374151] dark:text-gray-300 hover:text-[#c10007] dark:hover:text-[#c10007]"
                   }`}
               >
                 {country.label}
