@@ -5,6 +5,7 @@ export * from "./public/services/article/getArticlesFeed";
 export * from "./public/services/article/getArticlesList";
 export * from "./public/services/article/getArticleById";
 export * from "./public/services/article/incrementArticleViews";
+export * from "./public/services/article/getStats";
 
 /**
  * exports from admin
@@ -36,7 +37,9 @@ export * from "./admin/service/sites/updateSite";
 export * from "./admin/service/sites/deleteSite";
 export * from "./admin/service/sites/getSiteNames";
 export * from "./admin/service/sites/toggleSiteStatus";
+export * from "./admin/service/sites/refreshKey";
 export * from "./admin/service/upload/uploadArticleImage";
+
 
 /**
  * global types

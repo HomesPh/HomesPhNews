@@ -28,9 +28,13 @@ const getAuthToken = (): string | null => {
   return match ? decodeURIComponent(match[1]) : null;
 };
 
+import { handleAxiosError } from "../utils/errorHandler";
+
+// ... existing code ...
+
 AXIOS_INSTANCE_ADMIN.interceptors.request.use(
   (config) => {
-    const token = getAuthToken(); // tf is this...
+    const token = getAuthToken();
 
     if (token) {
       config.headers = config.headers || {};
@@ -42,5 +46,11 @@ AXIOS_INSTANCE_ADMIN.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
+AXIOS_INSTANCE_ADMIN.interceptors.response.use(
+  (response) => response,
+  (error) => handleAxiosError(error)
+);
+
 
 export default AXIOS_INSTANCE_ADMIN;
