@@ -30,10 +30,6 @@ export const Countries: { id: string; label: string; }[] = [
   {
     id: "Europe",
     label: "Europe"
-  },
-  {
-    id: "as",
-    label: "Asia"
   }
 ]
 
