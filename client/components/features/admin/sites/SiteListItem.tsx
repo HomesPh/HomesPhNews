@@ -1,30 +1,42 @@
 "use client";
 
-import { Edit, Trash2, Link as LinkIcon } from 'lucide-react';
+import { Edit, Trash2, Link as LinkIcon, Key, RotateCw, Copy, Check } from 'lucide-react';
 import { Site } from "@/app/admin/sites/data";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
+import { useState } from 'react';
 
 interface SiteListItemProps {
     site: Site;
     onEdit?: (site: Site) => void;
     onDelete?: (id: number) => void;
     onToggleStatus?: (id: number) => void;
+    onRefreshKey?: (id: number) => void;
 }
 
 /**
  * SiteListItem component for displaying a single site in the management list
  */
-export default function SiteListItem({ site, onEdit, onDelete, onToggleStatus }: SiteListItemProps) {
+export default function SiteListItem({ site, onEdit, onDelete, onToggleStatus, onRefreshKey }: SiteListItemProps) {
     const isActive = site.status === 'active';
+    const [showKey, setShowKey] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+        if (site.apiKey) {
+            navigator.clipboard.writeText(site.apiKey);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
 
     return (
         <div className="bg-white border border-[#e5e7eb] rounded-[12px] p-6 hover:shadow-md transition-shadow">
             <div className="flex gap-6">
                 {/* Site Logo */}
                 <div className="w-[100px] h-[100px] rounded-[8px] overflow-hidden flex-shrink-0 bg-gray-100">
-                    <img 
-                        src={site.image} 
-                        alt={site.name} 
+                    <img
+                        src={site.image}
+                        alt={site.name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                             const target = e.target as HTMLImageElement;
@@ -45,8 +57,8 @@ export default function SiteListItem({ site, onEdit, onDelete, onToggleStatus }:
                             </div>
                             <div className="flex items-center gap-2 mb-2">
                                 <LinkIcon className="w-3.5 h-3.5 text-[#3b82f6]" />
-                                <a 
-                                    href={`https://${site.domain}`} 
+                                <a
+                                    href={`https://${site.domain}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-[13px] text-[#3b82f6] hover:underline tracking-[-0.5px]"
@@ -60,6 +72,40 @@ export default function SiteListItem({ site, onEdit, onDelete, onToggleStatus }:
                             <p className="text-[14px] text-[#6b7280] tracking-[-0.5px] mb-3 leading-relaxed">
                                 {site.description}
                             </p>
+
+                            {/* API Key Section */}
+                            <div className="flex items-center gap-2 mb-3 bg-gray-50 p-2 rounded-md border border-gray-100 w-fit">
+                                <Key className="w-3.5 h-3.5 text-gray-400" />
+                                <span className="text-[12px] font-medium text-gray-500 uppercase">API Key:</span>
+                                <code className="text-[12px] font-mono text-gray-700 max-w-[200px] truncate">
+                                    {showKey ? site.apiKey : '••••••••••••••••••••••••••••••••'}
+                                </code>
+                                <div className="flex items-center gap-1 ml-2">
+                                    <button
+                                        onClick={() => setShowKey(!showKey)}
+                                        className="text-[11px] text-blue-600 hover:underline"
+                                    >
+                                        {showKey ? 'Hide' : 'Show'}
+                                    </button>
+                                    <div className="h-3 w-[1px] bg-gray-300 mx-1"></div>
+                                    <button
+                                        onClick={handleCopy}
+                                        className="text-gray-400 hover:text-gray-600"
+                                        title="Copy API Key"
+                                    >
+                                        {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                                    </button>
+                                    <div className="h-3 w-[1px] bg-gray-300 mx-1"></div>
+                                    <button
+                                        onClick={() => onRefreshKey?.(site.id)}
+                                        className="text-gray-400 hover:text-blue-600"
+                                        title="Regenerate API Key"
+                                    >
+                                        <RotateCw className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
@@ -97,11 +143,10 @@ export default function SiteListItem({ site, onEdit, onDelete, onToggleStatus }:
                 <div className="flex items-start gap-3">
                     <button
                         onClick={() => onToggleStatus?.(site.id)}
-                        className={`px-4 py-2 text-[13px] font-medium rounded-[6px] transition-colors tracking-[-0.5px] ${
-                            isActive
+                        className={`px-4 py-2 text-[13px] font-medium rounded-[6px] transition-colors tracking-[-0.5px] ${isActive
                                 ? 'text-[#C10007] hover:bg-red-50'
                                 : 'text-[#10b981] hover:bg-green-50'
-                        }`}
+                            }`}
                     >
                         {isActive ? 'Suspend' : 'Activate'}
                     </button>

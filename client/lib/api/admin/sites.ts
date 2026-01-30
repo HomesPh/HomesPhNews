@@ -14,6 +14,7 @@ export interface Site {
     monthlyViews: string;
     contact_name?: string;
     contact_email?: string;
+    apiKey?: string;
 }
 
 export interface SitesResponse {
@@ -72,5 +73,13 @@ export async function toggleSiteStatus(id: number): Promise<void> {
  */
 export async function getSiteNames(): Promise<string[]> {
     const response = await api.get<string[]>('/admin/sites/names');
+    return response.data;
+}
+
+/**
+ * Refresh site API key
+ */
+export async function refreshSiteKey(id: number): Promise<Site> {
+    const response = await api.patch(`/admin/sites/${id}/refresh-key`);
     return response.data;
 }

@@ -177,4 +177,20 @@ class SiteController extends Controller
 
         return response()->json($sites);
     }
+    /**
+     * Refresh the API Key for a site.
+     */
+    public function refreshKey(int $id): JsonResponse|SiteResource
+    {
+        $site = Site::find($id);
+
+        if (!$site) {
+            return response()->json(['error' => 'Site not found'], 404);
+        }
+
+        $site->api_key = \Illuminate\Support\Str::random(64);
+        $site->save();
+
+        return new SiteResource($site);
+    }
 }
