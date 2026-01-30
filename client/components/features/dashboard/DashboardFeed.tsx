@@ -20,23 +20,26 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
     const feedData = use(feed);
 
     // Dummy data fallback for Blogs/Newsletters
-    const dummyArticles: ArticleResource[] = Array.from({ length: 20 }).map((_, i) => ({
-        id: `dummy-${i}`,
-        title: i % 2 === 0 ? `Featured Blog Post ${i + 1}: Modern Real Estate Trends` : `Global Newsletter Update: Market Analysis Q1 2026`,
-        summary: "Discover the latest trends in the real estate market with our comprehensive guide to modern living and investment strategies.",
-        content: "Full content would go here...",
-        image: `https://placehold.co/800x450?text=News+Image+${i + 1}`,
-        category: i % 2 === 0 ? "Real Estate" : "Market Insight",
-        country: "Global",
-        status: "published",
-        views_count: 120 + i * 5,
-        topics: ["Real Estate", "Trends"],
-        keywords: "real estate, trends",
-        source: "HomesTV",
-        original_url: "#",
-        created_at: "2026-01-28T07:00:00.000Z",
-        published_sites: ""
-    }));
+    const dummyArticles: ArticleResource[] = Array.from({ length: 20 }).map((_, i) => {
+        const availableCategories = ["Real Estate", "Business", "Politics", "Technology", "Economy", "Tourism"];
+        return {
+            id: `dummy-${i}`,
+            title: i % 2 === 0 ? `Featured Blog Post ${i + 1}: Modern Real Estate Trends` : `Global Newsletter Update: Market Analysis Q1 2026`,
+            summary: "Discover the latest trends in the real estate market with our comprehensive guide to modern living and investment strategies.",
+            content: "Full content would go here...",
+            image: `https://placehold.co/800x450?text=News+Image+${i + 1}`,
+            category: availableCategories[i % availableCategories.length],
+            country: "Global",
+            status: "published",
+            views_count: 120 + i * 5,
+            topics: ["Real Estate", "Trends"],
+            keywords: "real estate, trends",
+            source: "HomesTV",
+            original_url: "#",
+            created_at: "2026-01-28T07:00:00.000Z",
+            published_sites: ""
+        };
+    });
 
     // Safely extract with fallbacks for empty responses
     const latest_global = feedData?.latest_global?.length ? feedData.latest_global : dummyArticles;
@@ -157,7 +160,13 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
                         }))}
                     />
 
-                    <CategoriesSidebarCard />
+                    <CategoriesSidebarCard
+                        counts={feedData?.category_counts || latest_global.reduce((acc, article) => {
+                            const cat = article.category;
+                            acc[cat] = (acc[cat] || 0) + 1;
+                            return acc;
+                        }, {} as Record<string, number>)}
+                    />
 
                     {/* Newsletter Section */}
                     <section className="bg-gray-50 p-6 border border-gray-100">
