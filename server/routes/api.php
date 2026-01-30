@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('/subscribe', [SubscriptionController::class, 'store']);
 Route::get('/subscribe/{id}', [SubscriptionController::class, 'show']);
 Route::patch('/subscribe/{id}', [SubscriptionController::class, 'update']);
+// External Site Content API (Protected by API Key)
+Route::middleware('site.auth')->get('/external/articles', [\App\Http\Controllers\Api\SiteContentController::class, 'getArticles']);
 
 // ═══════════════════════════════════════════════════════════════
 // SYSTEM ROUTES (Redis Test, Health Check)
@@ -76,6 +78,7 @@ Route::middleware(['auth:sanctum', 'is.admin'])
 
         Route::get('sites/names', [SiteController::class, 'names']);
         Route::patch('sites/{id}/toggle-status', [SiteController::class, 'toggleStatus']);
+        Route::patch('sites/{id}/refresh-key', [SiteController::class, 'refreshKey']);
         Route::apiResource('sites', SiteController::class);
         Route::apiResource('articles', AdminArticleController::class)->except(['destroy']);
 

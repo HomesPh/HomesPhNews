@@ -192,6 +192,18 @@ export default function SitesPage() {
                                 setEditingSite(site as Site);
                                 setIsEditorOpen(true);
                             }}
+                            onRefreshKey={async (id) => {
+                                if (confirm(`Are you sure you want to regenerate the API key for ${site.name}? The old key will stop working immediately.`)) {
+                                    try {
+                                        const updatedSite = await import('@/lib/api/admin/sites').then(m => m.refreshSiteKey(id));
+                                        setSitesList(prev => prev.map(s => s.id === id ? updatedSite : s));
+                                        alert("API Key regenerated successfully.");
+                                    } catch (error) {
+                                        console.error("Failed to refresh key:", error);
+                                        alert("Failed to regenerate API Key.");
+                                    }
+                                }
+                            }}
                         />
                     ))
                 ) : (

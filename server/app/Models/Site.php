@@ -9,6 +9,15 @@ class Site extends Model
 {
     use HasFactory;
 
+    protected static function booted()
+    {
+        static::creating(function ($site) {
+            if (empty($site->api_key)) {
+                $site->api_key = \Illuminate\Support\Str::random(64);
+            }
+        });
+    }
+
     protected $table = 'sites';
 
     protected $fillable = [
@@ -20,6 +29,7 @@ class Site extends Model
         'site_status',
         'contact_name',
         'contact_email',
+        'api_key',
     ];
 
     protected $casts = [
