@@ -23,7 +23,7 @@ Store the key in your server's environment variables. You can find your site's s
 
 ```env
 HOMESPH_NEWS_API_URL=http://your-news-server.com
-HOMESPH_NEWS_API_KEY=ffPr9SfixF32Xn18878QkGm0y5fAnOnYAzH719K3C60b2t2EKf84mVtq7eokV5HD
+HOMESPH_NEWS_API_KEY=your_api_key
 ```
 
 ---
