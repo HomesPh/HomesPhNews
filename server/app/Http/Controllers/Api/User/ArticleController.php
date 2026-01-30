@@ -127,10 +127,15 @@ class ArticleController extends Controller
             ->limit(5)
             ->get();
 
+        $categoryCounts = Article::groupBy('category')
+            ->selectRaw('category, count(*) as count')
+            ->pluck('count', 'category');
+
         return response()->json([
             'trending' => ArticleResource::collection($trending),
             'most_read' => ArticleResource::collection($mostRead),
             'latest_global' => ArticleResource::collection($latestGlobal),
+            'category_counts' => $categoryCounts,
         ]);
     }
 
