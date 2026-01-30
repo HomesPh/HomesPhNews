@@ -17,6 +17,7 @@ export const fake_landing_page_articles: ArticlesFeedResponse = {
       category: "Global",
       country: "Global",
       image_url: "https://placehold.co/600x400?text=Global+News",
+      views_count: 0,
       timestamp: "2024-01-22T00:00:00Z",
       keywords: "Global, News",
       original_url: "https://example.com/global-news"
@@ -28,6 +29,7 @@ export const fake_landing_page_articles: ArticlesFeedResponse = {
       category: "Global",
       country: "Global",
       image_url: "https://placehold.co/600x400?text=Global+News",
+      views_count: 0,
       timestamp: "2024-01-22T00:00:00Z",
       keywords: "Global, News",
       original_url: "https://example.com/global-news"
@@ -41,6 +43,7 @@ export const fake_landing_page_articles: ArticlesFeedResponse = {
       category: "Trending",
       country: "Trending",
       image_url: "https://placehold.co/600x400?text=Trending+News",
+      views_count: 0,
       timestamp: "2024-01-22T00:00:00Z",
       keywords: "Trending, News",
       original_url: "https://example.com/trending-news"
@@ -52,6 +55,7 @@ export const fake_landing_page_articles: ArticlesFeedResponse = {
       category: "Trending",
       country: "Trending",
       image_url: "https://placehold.co/600x400?text=Trending+News",
+      views_count: 0,
       timestamp: "2024-01-22T00:00:00Z",
       keywords: "Trending, News",
       original_url: "https://example.com/trending-news"
@@ -65,6 +69,7 @@ export const fake_landing_page_articles: ArticlesFeedResponse = {
       category: "Most Read",
       country: "Most Read",
       image_url: "https://placehold.co/600x400?text=Most+Read+News",
+      views_count: 0,
       timestamp: "2024-01-22T00:00:00Z",
       keywords: "Most Read, News",
       original_url: "https://example.com/most-read-news"
@@ -79,21 +84,33 @@ export const fake_articles_list_response: ArticlesListResponse = {
       title: "Article List Item 1",
       category: "Business",
       country: "Philippines",
-      image_url: "https://placehold.co/600x400?text=Article+1"
+      image_url: "https://placehold.co/600x400?text=Article+1",
+      image: "https://placehold.co/600x400?text=Article+1",
+      summary: "Summary of article 1",
+      created_at: "2024-01-22T00:00:00Z",
+      views_count: 0,
     },
     {
       id: "2",
       title: "Article List Item 2",
       category: "Real Estate",
       country: "Canada",
-      image_url: "https://placehold.co/600x400?text=Article+2"
+      image_url: "https://placehold.co/600x400?text=Article+2",
+      image: "https://placehold.co/600x400?text=Article+2",
+      summary: "Summary of article 2",
+      created_at: "2024-01-22T00:00:00Z",
+      views_count: 0,
     },
     {
       id: "3",
       title: "Article List Item 3",
       category: "Technology",
       country: "USA",
-      image_url: "https://placehold.co/600x400?text=Article+3"
+      image_url: "https://placehold.co/600x400?text=Article+3",
+      image: "https://placehold.co/600x400?text=Article+3",
+      summary: "Summary of article 3",
+      created_at: "2024-01-22T00:00:00Z",
+      views_count: 0,
     }
   ],
   meta: {
@@ -116,6 +133,7 @@ export const fake_latest_articles: LatestArticlesResponse = {
       category: "Technology",
       country: "USA",
       image_url: "https://placehold.co/600x400?text=Latest+1",
+      views_count: 0,
       timestamp: "2024-01-22T10:00:00Z",
       keywords: "Technology, Innovation",
       original_url: "https://example.com/latest-1"
@@ -127,6 +145,7 @@ export const fake_latest_articles: LatestArticlesResponse = {
       category: "Business",
       country: "Philippines",
       image_url: "https://placehold.co/600x400?text=Latest+2",
+      views_count: 0,
       timestamp: "2024-01-22T09:30:00Z",
       keywords: "Business, Economy",
       original_url: "https://example.com/latest-2"
@@ -138,6 +157,7 @@ export const fake_latest_articles: LatestArticlesResponse = {
       category: "Real Estate",
       country: "Canada",
       image_url: "https://placehold.co/600x400?text=Latest+3",
+      views_count: 0,
       timestamp: "2024-01-22T09:00:00Z",
       keywords: "Real Estate, Property",
       original_url: "https://example.com/latest-3"
@@ -154,6 +174,7 @@ export const fake_search_results: SearchArticlesResponse = {
       category: "Technology",
       country: "USA",
       image_url: "https://placehold.co/600x400?text=Search+1",
+      views_count: 0,
       timestamp: "2024-01-21T12:00:00Z",
       keywords: "Search, Technology",
       original_url: "https://example.com/search-1"
@@ -165,6 +186,7 @@ export const fake_search_results: SearchArticlesResponse = {
       category: "Business",
       country: "Philippines",
       image_url: "https://placehold.co/600x400?text=Search+2",
+      views_count: 0,
       timestamp: "2024-01-21T11:00:00Z",
       keywords: "Search, Business",
       original_url: "https://example.com/search-2"

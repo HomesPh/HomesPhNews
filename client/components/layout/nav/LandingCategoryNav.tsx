@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 export type LandingCategoryNavProps = {
@@ -10,6 +11,18 @@ export type LandingCategoryNavProps = {
 }
 
 export default function LandingCategoryNav({ categories }: LandingCategoryNavProps) {
+  return (
+    <div className="bg-white w-full border-b border-[#e5e7eb]">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-[110px] py-[16px]">
+        <Suspense fallback={<NavContentFallback categories={categories} />}>
+          <NavContent categories={categories} />
+        </Suspense>
+      </div>
+    </div>
+  );
+}
+
+function NavContent({ categories }: LandingCategoryNavProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -33,27 +46,38 @@ export default function LandingCategoryNav({ categories }: LandingCategoryNavPro
   }
 
   return (
-    <div className="bg-white w-full border-b border-[#e5e7eb]">
-      <div className="max-w-[1440px] mx-auto px-4 md:px-[110px] py-[16px]">
-        <nav className="flex gap-[30px] items-center justify-center overflow-x-auto scrollbar-hide">
-          {categories.map((category, idx) => {
-            const isActive = activeCategory === category.id;
+    <nav className="flex gap-[30px] items-center justify-center overflow-x-auto scrollbar-hide">
+      {categories.map((category, idx) => {
+        const isActive = activeCategory === category.id;
 
-            return (
-              <button
-                key={category.id}
-                onClick={() => handleChangeCategoryTab(category.id)}
-                className={`shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap transition-colors ${isActive
-                  ? "bg-[#030213] text-white px-[10px] py-[5px] rounded-[6px]"
-                  : "text-[#374151] hover:text-[#c10007] px-0 py-px"
-                  }`}
-              >
-                {category.label}
-              </button>
-            );
-          })}
-        </nav>
-      </div>
-    </div>
+        return (
+          <button
+            key={category.id}
+            onClick={() => handleChangeCategoryTab(category.id)}
+            className={`shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap transition-colors ${isActive
+              ? "bg-[#030213] text-white px-[10px] py-[5px] rounded-[6px]"
+              : "text-[#374151] hover:text-[#c10007] px-0 py-px"
+              }`}
+          >
+            {category.label}
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
+function NavContentFallback({ categories }: LandingCategoryNavProps) {
+  return (
+    <nav className="flex gap-[30px] items-center justify-center overflow-x-auto scrollbar-hide">
+      {categories.map((category) => (
+        <div
+          key={category.id}
+          className="shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap text-[#374151] px-0 py-px"
+        >
+          {category.label}
+        </div>
+      ))}
+    </nav>
   );
 }

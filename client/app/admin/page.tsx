@@ -7,7 +7,7 @@ import ArticleCard from "@/components/features/admin/dashboard/ArticleCard";
 import ArticleDistribution from "@/components/features/admin/dashboard/ArticleDistribution";
 import QuickActions from "@/components/features/admin/dashboard/QuickActions";
 import Link from 'next/link';
-import { getAdminStats, AdminStatsResponse } from "@/lib/api/admin/dashboard";
+import { getAdminStats, AdminStatsResponse } from "@/lib/api-v2/admin/service/dashboard/getAdminStats";
 import { Loader2 } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from 'next/navigation';
@@ -25,7 +25,7 @@ export default function AdminDashboard() {
         const fetchData = async () => {
             try {
                 const response = await getAdminStats();
-                setData(response);
+                setData(response.data);
             } catch (error) {
                 console.error("Failed to fetch dashboard stats", error);
             } finally {
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
                         </>
                     ) : (
                         <>
-                            <ArticleDistribution sites={distributionSites} totalArticles={data?.stats.total_published ?? 0} />
+                            <ArticleDistribution sites={distributionSites} totalArticles={Number(data?.stats.total_published ?? 0)} />
                             <QuickActions />
                         </>
                     )}

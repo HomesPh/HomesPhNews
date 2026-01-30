@@ -13,6 +13,7 @@ export * from "./public/services/article/getStats";
 export * from "./admin/service/auth/login";
 export * from "./admin/service/auth/user";
 export * from "./admin/service/auth/logout";
+export * from "./store";
 
 export * from "./admin/service/article/getAdminArticles";
 export * from "./admin/service/article/getAdminArticleById";

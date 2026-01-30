@@ -1,4 +1,7 @@
+import { Suspense } from "react";
+
 import VerticalArticleCard from "@/components/features/dashboard/VerticalArticleCard";
+
 import { getArticlesList, type ArticleResource } from "@/lib/api-v2";
 import { Categories, Countries } from "@/app/data";
 
@@ -45,25 +48,27 @@ export default async function SearchPage({ searchParams }: Props) {
             </h1>
 
             {filteredArticles.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
-                    {filteredArticles.map((article: ArticleResource) => (
-                        <VerticalArticleCard
-                            key={article.id}
-                            id={article.id}
-                            category={article.category}
-                            location={article.country}
-                            title={article.title}
-                            description={article.summary}
-                            timeAgo={new Date(article.created_at).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric'
-                            })}
-                            views={`${article.views_count || 0} views`}
-                            imageSrc={article.image || "/images/placeholder.png"}
-                        />
-                    ))}
-                </div>
+                <Suspense fallback={<div className="py-12 text-center text-gray-500">Loading Results...</div>}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
+                        {filteredArticles.map((article: ArticleResource) => (
+                            <VerticalArticleCard
+                                key={article.id}
+                                id={article.id}
+                                category={article.category}
+                                location={article.country}
+                                title={article.title}
+                                description={article.summary}
+                                timeAgo={new Date(article.created_at).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                })}
+                                views={`${article.views_count || 0} views`}
+                                imageSrc={article.image || "/images/placeholder.png"}
+                            />
+                        ))}
+                    </div>
+                </Suspense>
             ) : (
                 <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-500">
                     <p className="font-semibold text-xl text-gray-900 mb-2">No results found</p>

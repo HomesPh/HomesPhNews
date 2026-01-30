@@ -1,6 +1,19 @@
-import api from "@/lib/api/axios";
+"use client";
+
 import { create } from "zustand";
-import { AuthStore, User } from "./types";
+import { login } from "./admin/service/auth/login";
+import { logout } from "./admin/service/auth/logout";
+
+interface AuthState {
+  token: string | null;
+}
+
+interface AuthActions {
+  login: (credentials: { email: string; password: string }) => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+export interface AuthStore extends AuthState, AuthActions { }
 
 /**
  * The authentication store hook.
@@ -8,7 +21,7 @@ import { AuthStore, User } from "./types";
  */
 export const useAuth = create<AuthStore>((set) => ({
   // Default values for AuthState
-  token: typeof window !== "undefined" ? localStorage.getItem("auth_token") : null,
+  token: typeof window !== "undefined" ? (localStorage.getItem("access_token") || localStorage.getItem("token") || localStorage.getItem("auth_token")) : null,
 
   // Actions for handling AuthState
   /**
@@ -20,12 +33,8 @@ export const useAuth = create<AuthStore>((set) => ({
    */
   login: async ({ email, password }) => {
     try {
-      const response = await api.post("/login", { email, password });
+      const response = await login({ email, password });
       const { access_token } = response.data;
-
-      if (typeof window !== "undefined") {
-        localStorage.setItem("auth_token", access_token);
-      }
 
       set({
         token: access_token
@@ -42,12 +51,14 @@ export const useAuth = create<AuthStore>((set) => ({
    */
   logout: async () => {
     try {
-      await api.post("/logout");
+      await logout();
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
       if (typeof window !== "undefined") {
         localStorage.removeItem("auth_token");
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("token");
       }
       set({
         token: null,

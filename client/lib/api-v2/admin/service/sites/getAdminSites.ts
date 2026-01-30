@@ -15,11 +15,16 @@ export interface GetAdminSitesResponse {
   counts: AdminSitesCounts;
 }
 
+export interface AdminSitesParams {
+  status?: string;
+  search?: string;
+}
+
 /**
  * List sites
  * GET /admin/sites
  */
-export async function getAdminSites(): Promise<AxiosResponse<GetAdminSitesResponse>> {
-  return AXIOS_INSTANCE_ADMIN.get<GetAdminSitesResponse>("/admin/sites");
+export async function getAdminSites(params?: AdminSitesParams): Promise<AxiosResponse<GetAdminSitesResponse>> {
+  return AXIOS_INSTANCE_ADMIN.get<GetAdminSitesResponse>("/admin/sites", { params });
 }
 

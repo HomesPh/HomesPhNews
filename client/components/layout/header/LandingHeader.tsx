@@ -1,26 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import SubscribeModal from "./SubscribeModal";
 import BreakingNewsTicker from "./BreakingNewsTicker";
 
-export default function LandingHeader() {
+function SearchInput() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
-  const [isSubscribeModalOpen, setIsSubscribeModalOpen] = useState(false);
 
-  const breakingNews = [
-    "AI Revolution: How Machine Learning is Transforming Healthcare in North America",
-    "Canada researchers develop groundbreaking AI system for early cancer detection",
-    "Global markets react to new tech regulations in major economies",
-    "Future of smart cities: Singapore unveils integrated AI management platform"
-  ];
-
-  // Sync state with URL parameter if it changes externally
   useEffect(() => {
     setSearchQuery(searchParams.get("q") || "");
   }, [searchParams]);
@@ -37,6 +28,43 @@ export default function LandingHeader() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
+
+  return (
+    <form onSubmit={handleSearch} className="relative">
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={handleInputChange}
+        placeholder="Search News"
+        className="bg-white border border-[#c10007] rounded-[8px] px-[10px] py-[7px] pl-[35px] w-[200px] md:w-[272px] font-medium text-[14px] text-[#374151] tracking-[-0.5px] focus:outline-none focus:ring-2 focus:ring-[#c10007]"
+      />
+      <div className="absolute left-[10px] top-1/2 -translate-y-1/2 size-[18px]">
+        <Search className="w-full h-full text-[#4B5563]" />
+      </div>
+    </form>
+  );
+}
+
+function SearchInputFallback() {
+  return (
+    <div className="relative">
+      <div className="bg-white border border-[#e5e7eb] rounded-[8px] px-[10px] py-[7px] pl-[35px] w-[200px] md:w-[272px] h-[36px]" />
+      <div className="absolute left-[10px] top-1/2 -translate-y-1/2 size-[18px]">
+        <Search className="w-full h-full text-[#e5e7eb]" />
+      </div>
+    </div>
+  );
+}
+
+export default function LandingHeader() {
+  const [isSubscribeModalOpen, setIsSubscribeModalOpen] = useState(false);
+
+  const breakingNews = [
+    "AI Revolution: How Machine Learning is Transforming Healthcare in North America",
+    "Canada researchers develop groundbreaking AI system for early cancer detection",
+    "Global markets react to new tech regulations in major economies",
+    "Future of smart cities: Singapore unveils integrated AI management platform"
+  ];
 
   return (
     <>
@@ -69,18 +97,9 @@ export default function LandingHeader() {
               Subscribe
             </button>
 
-            <form onSubmit={handleSearch} className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={handleInputChange}
-                placeholder="Search News"
-                className="bg-white border border-[#c10007] rounded-[8px] px-[10px] py-[7px] pl-[35px] w-[200px] md:w-[272px] font-medium text-[14px] text-[#374151] tracking-[-0.5px] focus:outline-none focus:ring-2 focus:ring-[#c10007]"
-              />
-              <div className="absolute left-[10px] top-1/2 -translate-y-1/2 size-[18px]">
-                <Search className="w-full h-full text-[#4B5563]" />
-              </div>
-            </form>
+            <Suspense fallback={<SearchInputFallback />}>
+              <SearchInput />
+            </Suspense>
           </div>
         </div>
       </header>

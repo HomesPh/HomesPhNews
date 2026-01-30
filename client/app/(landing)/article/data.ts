@@ -1,12 +1,12 @@
-import { Article } from "@/lib/api/news/types";
+import { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
 
 // dummy data, should be replaced with actual data from API
-export const articleData: any = { // Changed to any for now to allow extra properties in dummy data
+export const articleData: any = {
   id: "1",
   country: "sg",
   category: "tech",
   title: "Singapore Unveils World's First AI-Powered Urban Management System",
-  subtitle: "The city-state has integrated AI platform that manages traffic, energy, and public services with unprecedented efficiency.",
+
   author: {
     name: "Author",
     imageUrl: "https://via.placeholder.com/150",

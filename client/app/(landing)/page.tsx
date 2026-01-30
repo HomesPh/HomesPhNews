@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+export const dynamic = 'force-dynamic';
+
 import DashboardFeed from "@/components/features/dashboard/DashboardFeed";
 import { getArticlesFeed } from "@/lib/api-v2";
 

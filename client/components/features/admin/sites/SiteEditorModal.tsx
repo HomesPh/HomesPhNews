@@ -3,49 +3,37 @@
 import { useState, useEffect } from 'react';
 import { X, Upload } from 'lucide-react';
 import { FormInput, FormTextarea } from "@/components/features/admin/shared/FormFields";
-import { Site } from "@/app/admin/sites/data";
+import { SiteResource } from "@/lib/api-v2/types/SiteResource";
 
 interface SiteEditorModalProps {
     isOpen: boolean;
     onClose: () => void;
     mode: 'create' | 'edit';
-    initialData?: Site;
+    initialData?: SiteResource;
     onSave: (data: any) => void;
 }
 
 export default function SiteEditorModal({ isOpen, onClose, mode, initialData, onSave }: SiteEditorModalProps) {
-    // Extract contact name and email from the contact string
-    const extractContact = (contactStr: string) => {
-        const match = contactStr.match(/(.+)\s*\((.+)\)/);
-        if (match) {
-            return { name: match[1].trim(), email: match[2].trim() };
-        }
-        return { name: '', email: '' };
-    };
-
-    const contactInfo = initialData ? extractContact(initialData.contact) : { name: '', email: '' };
-
     const [formData, setFormData] = useState({
         siteName: initialData?.name || '',
         domain: initialData?.domain || '',
-        contactName: contactInfo.name,
-        contactEmail: contactInfo.email,
+        contactName: initialData?.contact_name || '',
+        contactEmail: initialData?.contact_email || '',
         description: initialData?.description || '',
-        categories: initialData?.categories.join(', ') || '',
+        categories: initialData?.categories?.join(', ') || '',
         logoUrl: initialData?.image || '',
     });
 
     useEffect(() => {
         if (isOpen && initialData) {
-            const contactInfo = extractContact(initialData.contact);
             setFormData({
                 siteName: initialData.name,
                 domain: initialData.domain,
-                contactName: contactInfo.name,
-                contactEmail: contactInfo.email,
-                description: initialData.description,
-                categories: initialData.categories.join(', '),
-                logoUrl: initialData.image,
+                contactName: initialData.contact_name || '',
+                contactEmail: initialData.contact_email || '',
+                description: initialData.description || '',
+                categories: initialData.categories?.join(', ') || '',
+                logoUrl: initialData.image || '',
             });
         } else if (isOpen && mode === 'create') {
             setFormData({
@@ -66,14 +54,15 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
         const siteData = {
             name: formData.siteName,
             domain: formData.domain,
-            contact: `${formData.contactName} (${formData.contactEmail})`,
+            contact_name: formData.contactName,
+            contact_email: formData.contactEmail,
             description: formData.description,
             categories: formData.categories.split(',').map(c => c.trim()).filter(c => c),
             image: formData.logoUrl || "/images/HomesTV.png",
+            // Remove legacy fields if not in request type, or keep if harmless? 
+            // Better to match request type. Status is handled by updateSite but mainly via toggle?
+            // UpdateSiteRequest supports status.
             status: initialData?.status || 'active',
-            requested: initialData?.requested || new Date().toISOString().split('T')[0],
-            articles: initialData?.articles || 0,
-            monthlyViews: initialData?.monthlyViews || '0',
         };
         onSave(siteData);
         onClose();
