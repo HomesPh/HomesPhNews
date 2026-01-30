@@ -67,20 +67,22 @@ function NavContent({ countries }: LandingCountryNavProps) {
             );
           })}
         </nav>
-        );
+      </div>
+    </div>
+  );
 }
 
-        function NavContentFallback({countries}: LandingCountryNavProps) {
+function NavContentFallback({ countries }: LandingCountryNavProps) {
   return (
-        <nav className="flex gap-[30px] items-center justify-center overflow-x-auto scrollbar-hide">
-          {countries.map((country) => (
-            <div
-              key={country.id}
-              className="relative pb-1 shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap text-[#374151]"
-            >
-              {country.label}
-            </div>
-          ))}
-        </nav>
-        );
+    <nav className="flex gap-[30px] items-center justify-center overflow-x-auto scrollbar-hide">
+      {countries.map((country) => (
+        <div
+          key={country.id}
+          className="relative pb-1 shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap text-[#374151]"
+        >
+          {country.label}
+        </div>
+      ))}
+    </nav>
+  );
 }

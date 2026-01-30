@@ -66,20 +66,22 @@ function NavContent({ categories }: LandingCategoryNavProps) {
             );
           })}
         </nav>
-        );
+      </div>
+    </div>
+  );
 }
 
-        function NavContentFallback({categories}: LandingCategoryNavProps) {
+function NavContentFallback({ categories }: LandingCategoryNavProps) {
   return (
-        <nav className="flex gap-[30px] items-center justify-center overflow-x-auto scrollbar-hide">
-          {categories.map((category) => (
-            <div
-              key={category.id}
-              className="shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap text-[#374151] px-0 py-px"
-            >
-              {category.label}
-            </div>
-          ))}
-        </nav>
-        );
+    <nav className="flex gap-[30px] items-center justify-center overflow-x-auto scrollbar-hide">
+      {categories.map((category) => (
+        <div
+          key={category.id}
+          className="shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap text-[#374151] px-0 py-px"
+        >
+          {category.label}
+        </div>
+      ))}
+    </nav>
+  );
 }

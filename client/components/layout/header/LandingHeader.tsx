@@ -10,7 +10,7 @@ import LandingMobileMenu from "./LandingMobileMenu";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
-function SearchInput() {
+export default function LandingHeader() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
