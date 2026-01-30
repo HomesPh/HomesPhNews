@@ -17,7 +17,6 @@ export default function LandingFooter() {
               <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Philippines</li>
               <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Singapore</li>
               <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Europe</li>
-              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Asia</li>
             </ul>
           </div>
 

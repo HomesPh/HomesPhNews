@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { incrementArticleViews } from "@/lib/api";
+import { incrementArticleViews } from "@/lib/api-v2";
 
 interface ArticleViewCounterProps {
     articleId: string;

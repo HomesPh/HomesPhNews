@@ -3,22 +3,25 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Admin\SiteResource;
 use App\Models\Site;
-use App\Models\Article;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class SiteController extends Controller
 {
-        public function index(Request $request)
+    /**
+     * Display a listing of the sites.
+     */
+    public function index(Request $request): JsonResponse
     {
         $query = Site::query();
 
-        // Filter by status
         if ($request->has('status') && $request->status !== 'all') {
             $query->where('site_status', $request->status);
         }
 
-        // Search
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -32,24 +35,6 @@ class SiteController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Transform to frontend format
-        $transformed = $sites->map(function ($site) {
-            return [
-                'id' => $site->id,
-                'name' => $site->site_name,
-                'domain' => $site->site_url,
-                'status' => $site->site_status,
-                'image' => $site->site_logo ?? '/images/HomesTV.png',
-                'contact' => $site->contact,
-                'description' => $site->site_description ?? '',
-                'categories' => $site->site_keywords ?? [],
-                'requested' => $site->created_at?->format('Y-m-d') ?? '',
-                'articles' => $site->articles_count,
-                'monthlyViews' => '0', // Placeholder for future analytics
-            ];
-        });
-
-        // Calculate counts - Single query group by is faster
         $statusCounts = Site::selectRaw('site_status, count(*) as total')
             ->groupBy('site_status')
             ->pluck('total', 'site_status')
@@ -62,12 +47,15 @@ class SiteController extends Controller
         ];
 
         return response()->json([
-            'data' => $transformed,
+            'data' => SiteResource::collection($sites),
             'counts' => $counts,
         ]);
     }
 
-        public function show(int $id)
+    /**
+     * Display the specified site.
+     */
+    public function show(int $id): JsonResponse|SiteResource
     {
         $site = Site::find($id);
 
@@ -75,21 +63,13 @@ class SiteController extends Controller
             return response()->json(['error' => 'Site not found'], 404);
         }
 
-        return response()->json([
-            'id' => $site->id,
-            'name' => $site->site_name,
-            'domain' => $site->site_url,
-            'status' => $site->site_status,
-            'image' => $site->site_logo ?? '/images/HomesTV.png',
-            'contact_name' => $site->contact_name,
-            'contact_email' => $site->contact_email,
-            'description' => $site->site_description ?? '',
-            'categories' => $site->site_keywords ?? [],
-            'created_at' => $site->created_at,
-        ]);
+        return new SiteResource($site);
     }
 
-        public function store(Request $request)
+    /**
+     * Store a newly created site.
+     */
+    public function store(Request $request): JsonResponse|SiteResource
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -112,13 +92,13 @@ class SiteController extends Controller
             'contact_email' => $validated['contact_email'] ?? null,
         ]);
 
-        return response()->json([
-            'message' => 'Site created successfully',
-            'site' => $site,
-        ], 201);
+        return (new SiteResource($site))->response()->setStatusCode(201);
     }
 
-        public function update(Request $request, int $id)
+    /**
+     * Update the specified site.
+     */
+    public function update(Request $request, int $id): JsonResponse|SiteResource
     {
         $site = Site::find($id);
 
@@ -148,13 +128,13 @@ class SiteController extends Controller
             'contact_email' => $validated['contact_email'] ?? $site->contact_email,
         ]);
 
-        return response()->json([
-            'message' => 'Site updated successfully',
-            'site' => $site->fresh(),
-        ]);
+        return new SiteResource($site->fresh());
     }
 
-        public function destroy(int $id)
+    /**
+     * Remove the specified site.
+     */
+    public function destroy(int $id): JsonResponse
     {
         $site = Site::find($id);
 
@@ -169,7 +149,10 @@ class SiteController extends Controller
         ]);
     }
 
-        public function toggleStatus(int $id)
+    /**
+     * Toggle the status of a site.
+     */
+    public function toggleStatus(int $id): JsonResponse|SiteResource
     {
         $site = Site::find($id);
 
@@ -180,18 +163,34 @@ class SiteController extends Controller
         $site->site_status = $site->site_status === 'active' ? 'suspended' : 'active';
         $site->save();
 
-        return response()->json([
-            'message' => 'Site status toggled successfully',
-            'site' => $site,
-        ]);
+        return new SiteResource($site);
     }
 
-        public function names()
+    /**
+     * Get a list of all active site names.
+     */
+    public function names(): JsonResponse
     {
         $sites = Site::where('site_status', 'active')
             ->orderBy('site_name')
             ->pluck('site_name');
 
         return response()->json($sites);
+    }
+    /**
+     * Refresh the API Key for a site.
+     */
+    public function refreshKey(int $id): JsonResponse|SiteResource
+    {
+        $site = Site::find($id);
+
+        if (!$site) {
+            return response()->json(['error' => 'Site not found'], 404);
+        }
+
+        $site->api_key = \Illuminate\Support\Str::random(64);
+        $site->save();
+
+        return new SiteResource($site);
     }
 }

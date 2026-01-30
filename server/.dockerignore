@@ -1,0 +1,25 @@
+# .dockerignore for Laravel Server
+.git
+.github
+.gitignore
+.editorconfig
+.env
+.env.example
+.gitattributes
+/vendor
+/node_modules
+/storage/*.key
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+phpunit.xml
+tests
+docker-compose.yml
+Dockerfile
+.dockerignore
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.idea
+.vscode

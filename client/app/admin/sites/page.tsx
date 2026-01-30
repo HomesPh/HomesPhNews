@@ -64,7 +64,8 @@ export default function SitesPage() {
     // Calculate total articles and monthly views (client-side aggregation for now)
     const totalArticles = sitesList.reduce((sum, site) => sum + site.articles, 0);
     const totalMonthlyViews = sitesList.reduce((sum, site) => {
-        const views = parseInt(site.monthlyViews.replace(/,/g, '')) || 0;
+        const viewsStr = String(site.monthlyViews || '0');
+        const views = parseInt(viewsStr.replace(/,/g, '')) || 0;
         return sum + views;
     }, 0);
 
@@ -190,6 +191,18 @@ export default function SitesPage() {
                             onEdit={(site: any) => {
                                 setEditingSite(site as Site);
                                 setIsEditorOpen(true);
+                            }}
+                            onRefreshKey={async (id) => {
+                                if (confirm(`Are you sure you want to regenerate the API key for ${site.name}? The old key will stop working immediately.`)) {
+                                    try {
+                                        const updatedSite = await import('@/lib/api/admin/sites').then(m => m.refreshSiteKey(id));
+                                        setSitesList(prev => prev.map(s => s.id === id ? updatedSite : s));
+                                        alert("API Key regenerated successfully.");
+                                    } catch (error) {
+                                        console.error("Failed to refresh key:", error);
+                                        alert("Failed to regenerate API Key.");
+                                    }
+                                }
                             }}
                         />
                     ))

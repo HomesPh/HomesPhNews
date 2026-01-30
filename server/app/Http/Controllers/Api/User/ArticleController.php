@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Articles\ArticleQueryRequest;
+use App\Http\Resources\Articles\ArticleCollection;
+use App\Http\Resources\Articles\ArticleResource;
 use App\Models\Article;
 use App\Services\RedisArticleService;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 /**
  * User Article Controller
- * 
+ *
  * Reads articles directly from Redis (where Python scraper stores them).
  * The Python Script is the SOURCE OF TRUTH.
  */
@@ -22,52 +25,21 @@ class ArticleController extends Controller
         $this->redisService = $redisService;
     }
 
-    public function feed(Request $request)
+    /**
+     * Get a paginated list of articles with searching and filtering.
+     *
+     * This endpoint is intended for search results, category listings, etc.
+     */
+    public function index(ArticleQueryRequest $request): ArticleCollection
     {
-        $mode = $request->input('mode');
-        $search = $request->input('search') ?? $request->input('q'); // Support both 'search' and 'q'
-        $country = $request->input('country');
-        $category = $request->input('category');
-        $topic = $request->input('topic'); // Support topic filtering
-        $limit = min(100, max(1, (int) $request->input('limit', 10)));
-        $offset = max(0, (int) $request->input('offset', 0));
+        $validated = $request->validated();
+        $search = $validated['search'] ?? $validated['q'] ?? null;
+        $country = $validated['country'] ?? null;
+        $category = $validated['category'] ?? null;
+        $topic = $validated['topic'] ?? null;
+        $perPage = min(100, max(1, (int) ($validated['per_page'] ?? $validated['limit'] ?? 10)));
+        $page = $validated['page'] ?? (isset($validated['offset']) ? (int) ($validated['offset'] / $perPage) + 1 : 1);
 
-        // Default to list mode if search is provided
-        if ($search && !$mode) {
-            $mode = 'list';
-        }
-
-        // 1. Dashboard Mode (feed) or default if no filters
-        if ($mode === 'feed' || (!$mode && !$search && !$country && !$category)) {
-            $trending = Article::with(['publishedSites']) // Fix N+1
-                ->select('id', 'title', 'country', 'category', 'image', 'topics', 'views_count')
-                ->where('status', 'published')
-                ->orderBy('views_count', 'desc')
-                ->limit(5)
-                ->get();
-
-            $mostRead = Article::with(['publishedSites']) // Fix N+1
-                ->select('id', 'title', 'country', 'category', 'image', 'views_count', 'created_at as timestamp')
-                ->where('status', 'published')
-                ->orderBy('views_count', 'desc')
-                ->limit(10)
-                ->get();
-
-            $latestGlobal = Article::with(['publishedSites']) // Fix N+1
-                ->select('id', 'title', 'summary as content', 'country', 'category', 'created_at as timestamp', 'image', 'views_count', 'keywords')
-                ->where('status', 'published')
-                ->orderBy('created_at', 'desc')
-                ->limit(5)
-                ->get();
-
-            return response()->json([
-                'trending' => $trending,
-                'most_read' => $mostRead,
-                'latest_global' => $latestGlobal,
-            ]);
-        }
-
-        // 2. List Mode or Filtered Mode
         $query = Article::query();
 
         // Always filter by published status for public feed
@@ -96,54 +68,105 @@ class ArticleController extends Controller
             $query->whereRaw('JSON_CONTAINS(topics, ?)', [json_encode($topic)]);
         }
 
-        $total = $query->count();
-
-        $articles = $query->with(['publishedSites']) // Fix N+1
-            ->select('id', 'title', 'summary', 'country', 'category', 'image', 'created_at as timestamp', 'views_count')
+        $articles = $query->with(['publishedSites'])
+            ->select('id', 'title', 'summary', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'views_count', 'topics', 'original_url')
             ->orderBy('created_at', 'desc')
-            ->offset($offset)
-            ->limit($limit)
-            ->get();
+            ->paginate($perPage, ['*'], 'page', $page);
 
-        return response()->json([
-            'data' => $articles,
+        return (new ArticleCollection($articles))->additional([
             'meta' => [
-                'total' => $total,
-                'limit' => $limit,
-                'offset' => $offset,
                 'filters' => array_filter([
                     'search' => $search,
                     'country' => $country,
                     'category' => $category,
+                    'topic' => $topic,
                 ]),
             ],
         ]);
     }
 
-    public function show(string $id)
+    /**
+     * Get the curated article feed for the landing page.
+     *
+     * Includes trending, most read, and latest articles.
+     *
+     * @return array{trending: \App\Http\Resources\Articles\ArticleResource[], most_read: \App\Http\Resources\Articles\ArticleResource[], latest_global: \App\Http\Resources\Articles\ArticleResource[]}
+     */
+    public function feed(ArticleQueryRequest $request): JsonResponse
     {
-        $article = Article::find($id);
+        $validated = $request->validated();
+        $country = $validated['country'] ?? null;
+        $category = $validated['category'] ?? null;
 
-        if (!$article) {
-            // Fallback to Redis if not found in DB (useful during migration/transition)
-            $articleData = $this->redisService->getArticle($id);
-            if (!$articleData) {
-                return response()->json(['error' => 'Article not found'], 404);
-            }
-            return response()->json($articleData);
+        $baseQuery = Article::with(['publishedSites'])
+            ->where('status', 'published');
+
+        if ($country) {
+            $baseQuery->where('country', $country);
         }
 
-        return response()->json($article);
+        if ($category) {
+            $baseQuery->where('category', $category);
+        }
+
+        $trending = (clone $baseQuery)
+            ->select('id', 'title', 'country', 'category', 'image', 'topics', 'views_count', 'status', 'created_at as timestamp', 'original_url')
+            ->orderBy('views_count', 'desc')
+            ->limit(5)
+            ->get();
+
+        $mostRead = (clone $baseQuery)
+            ->select('id', 'title', 'country', 'category', 'image', 'views_count', 'status', 'created_at as timestamp', 'original_url')
+            ->orderBy('views_count', 'desc')
+            ->limit(10)
+            ->get();
+
+        $latestGlobal = (clone $baseQuery)
+            ->select('id', 'title', 'summary as content', 'country', 'category', 'status', 'created_at as timestamp', 'image', 'views_count', 'keywords', 'original_url')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        $categoryCounts = Article::groupBy('category')
+            ->selectRaw('category, count(*) as count')
+            ->pluck('count', 'category');
+
+        return response()->json([
+            'trending' => ArticleResource::collection($trending),
+            'most_read' => ArticleResource::collection($mostRead),
+            'latest_global' => ArticleResource::collection($latestGlobal),
+            'category_counts' => $categoryCounts,
+        ]);
     }
 
     /**
-     * Increment article view count
+     * Show a single article.
      */
-    public function incrementViews(string $id)
+    public function show(string $id): JsonResponse|ArticleResource
     {
         $article = Article::find($id);
 
-        if (!$article) {
+        if (! $article) {
+            // Fallback to Redis if not found in DB
+            $articleData = $this->redisService->getArticle($id);
+            if (! $articleData) {
+                return response()->json(['error' => 'Article not found'], 404);
+            }
+
+            return new ArticleResource($articleData);
+        }
+
+        return new ArticleResource($article);
+    }
+
+    /**
+     * Increment article view count.
+     */
+    public function incrementViews(string $id): JsonResponse
+    {
+        $article = Article::find($id);
+
+        if (! $article) {
             return response()->json(['error' => 'Article not found'], 404);
         }
 
@@ -151,64 +174,14 @@ class ArticleController extends Controller
 
         return response()->json([
             'message' => 'View count incremented',
-            'views_count' => $article->views_count
+            'views_count' => (int) $article->views_count,
         ]);
     }
 
-
-    public function latest(Request $request)
-    {
-        $limit = min(50, max(1, (int) $request->input('limit', 10)));
-        $articles = $this->redisService->getLatestArticles($limit);
-
-        return response()->json($this->redisService->formatSummaries($articles));
-    }
-
-    public function search(Request $request)
-    {
-        $query = $request->input('q', '');
-
-        if (strlen($query) < 2) {
-            return response()->json(['error' => 'Search query must be at least 2 characters'], 400);
-        }
-
-        $limit = min(100, max(1, (int) $request->input('limit', 20)));
-        $articles = $this->redisService->searchArticles($query, $limit);
-
-        return response()->json([
-            'query' => $query,
-            'count' => count($articles),
-            'data' => $this->redisService->formatSummaries($articles),
-        ]);
-    }
-
-    public function countries()
-    {
-        $countries = Article::select('country as name', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
-            ->where('status', 'published')
-            ->groupBy('country')
-            ->orderBy('count', 'desc')
-            ->get();
-
-        return response()->json([
-            'data' => $countries
-        ]);
-    }
-
-    public function categories()
-    {
-        $categories = Article::select('category as name', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
-            ->where('status', 'published')
-            ->groupBy('category')
-            ->orderBy('count', 'desc')
-            ->get();
-
-        return response()->json([
-            'data' => $categories
-        ]);
-    }
-
-    public function stats()
+    /**
+     * Get statistics summary.
+     */
+    public function stats(): JsonResponse
     {
         return response()->json($this->redisService->getStats());
     }

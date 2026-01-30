@@ -18,36 +18,38 @@ interface MostReadTodayProps {
 
 export default function MostReadTodayCard({ title = "Most Read Today", items = [], className }: MostReadTodayProps) {
   return (
-    <div className={cn("bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-sm flex flex-col gap-4", className)}>
-      <h3 className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">
-        {title}
-      </h3>
+    <div className={cn("space-y-6", className)}>
+      <div className="bg-[#cc0000] px-4 py-1 mb-6">
+        <h3 className="text-white text-xs font-black uppercase tracking-widest">{title}</h3>
+      </div>
 
-      <div className="flex flex-col gap-4">
-        {items.map((article) => (
+      <div className="space-y-6">
+        {items.map((article, index) => (
           <Link
             key={article.id}
             href={`/article?id=${article.id}`}
-            className="flex gap-3 cursor-pointer group"
+            className="flex gap-4 group cursor-pointer transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
           >
-            {/* Image */}
-            <div className="relative w-[80px] h-[80px] rounded-[8px] overflow-hidden shrink-0">
+            <div className="relative shrink-0 w-16 h-16 bg-gray-100 flex items-center justify-center overflow-hidden rounded-sm">
+              <span className="absolute inset-0 flex items-center justify-center text-4xl font-black text-black/10 z-0">
+                {index + 1}
+              </span>
               <Image
                 src={article.imageUrl || 'https://placehold.co/800x450?text=No+Image'}
                 alt={article.title}
                 fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                className="object-cover relative z-10 group-hover:scale-110 transition-transform duration-500"
               />
             </div>
-
-            {/* Content */}
-            <div className="flex-1 flex flex-col gap-1">
-              <h4 className="line-clamp-2 text-[14px] font-bold leading-tight text-black tracking-[-0.5px] transition-colors group-hover:text-[#c10007]">
+            <div className="flex flex-col justify-center">
+              <h4 className="text-[11px] font-black uppercase leading-tight group-hover:text-[#cc0000] transition-colors line-clamp-2 mb-1.5 tracking-tight">
                 {article.title}
               </h4>
-              <p className="text-[12px] font-normal text-[#6b7280] tracking-[-0.5px]">
-                {article.views.toLocaleString()} views
-              </p>
+              <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
+                <span>{article.timeAgo || 'Recently'}</span>
+                <span>•</span>
+                <span>{article.views.toLocaleString()} views</span>
+              </div>
             </div>
           </Link>
         ))}

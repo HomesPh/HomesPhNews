@@ -34,8 +34,8 @@ export default function LandingCategoryNav({ categories }: LandingCategoryNavPro
 
   return (
     <div className="bg-white w-full border-b border-[#e5e7eb]">
-      <div className="max-w-[1440px] mx-auto px-4 md:px-[110px] py-[16px]">
-        <nav className="flex gap-[30px] items-center justify-center overflow-x-auto scrollbar-hide">
+      <div className="w-full max-w-[1280px] mx-auto px-4 py-[16px]">
+        <nav className="flex gap-[30px] items-center justify-start md:justify-center overflow-x-auto pb-2 scrollbar-hide">
           {categories.map((category, idx) => {
             const isActive = activeCategory === category.id;
 
