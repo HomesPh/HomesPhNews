@@ -8,6 +8,7 @@ export type FeedResponse = {
   trending: ArticleResource[];
   latest_global: ArticleResource[];
   most_read: ArticleResource[];
+  category_counts?: Record<string, number>;
 }
 
 export type FeedParams = {
