@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArticleResource } from "@/lib/api-new/types";
+import { ArticleResource } from "@/lib/api-v2";
 
 interface LandingHeroGridProps {
     articles: ArticleResource[];
@@ -26,6 +26,8 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         src={main.image || 'https://placehold.co/1280x600?text=No+Image'}
                         alt={main.title}
                         fill
+                        priority
+                        sizes="100vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-8">
@@ -68,6 +70,8 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             src={article.image || 'https://placehold.co/800x800?text=No+Image'}
                             alt={article.title}
                             fill
+                            priority
+                            sizes="(max-width: 768px) 100vw, 50vw"
                             className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
@@ -109,6 +113,8 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         src={main.image || 'https://placehold.co/800x800?text=No+Image'}
                         alt={main.title}
                         fill
+                        priority
+                        sizes="(max-width: 768px) 100vw, 50vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
@@ -143,6 +149,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 src={article.image || 'https://placehold.co/800x450?text=No+Image'}
                                 alt={article.title}
                                 fill
+                                sizes="(max-width: 768px) 100vw, 25vw"
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">
@@ -186,6 +193,8 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                     src={main.image || 'https://placehold.co/800x800?text=No+Image'}
                     alt={main.title}
                     fill
+                    priority
+                    sizes="(max-width: 768px) 100vw, 50vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
@@ -223,6 +232,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             src={topSmall.image || 'https://placehold.co/800x450?text=No+Image'}
                             alt={topSmall.title}
                             fill
+                            sizes="(max-width: 768px) 100vw, 50vw"
                             className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">
@@ -258,6 +268,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 src={article.image || 'https://placehold.co/400x400?text=No+Image'}
                                 alt={article.title}
                                 fill
+                                sizes="(max-width: 768px) 50vw, 25vw"
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">

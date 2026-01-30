@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { Info, X, Upload, ImageIcon, Check, Loader2, GripVertical } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import TemplateSelector, { TemplateType } from "./TemplateSelector";
-import { uploadArticleImage } from "@/lib/api/admin/articles";
+import { uploadArticleImage } from "@/lib/api-v2";
 import { ContentBlock } from "../ArticleEditorModal";
 import ArticleRichTextEditor from "./ArticleRichTextEditor";
 
@@ -71,8 +71,8 @@ export default function ArticleEditorForm({
 
         setIsUploading(true);
         try {
-            const { url } = await uploadArticleImage(file);
-            onDataChange('image', url);
+            const response = await uploadArticleImage(file);
+            onDataChange('image', response.data.url);
         } catch (error) {
             console.error("Upload failed", error);
             alert("Failed to upload image. Please try again.");
@@ -87,9 +87,9 @@ export default function ArticleEditorForm({
 
         setIsUploading(true);
         try {
-            const { url } = await uploadArticleImage(file);
+            const response = await uploadArticleImage(file);
             const currentImages = [...(data as any)[field]];
-            currentImages[index] = url;
+            currentImages[index] = response.data.url;
             onDataChange(field, currentImages);
         } catch (error) {
             console.error("Upload failed", error);
@@ -105,9 +105,9 @@ export default function ArticleEditorForm({
 
         setIsUploading(true);
         try {
-            const { url } = await uploadArticleImage(file);
+            const response = await uploadArticleImage(file);
             const updated = [...data.contentBlocks];
-            updated[index] = { ...updated[index], image: url };
+            updated[index] = { ...updated[index], image: response.data.url };
             onDataChange('contentBlocks', updated);
         } catch (error) {
             console.error("Upload failed", error);

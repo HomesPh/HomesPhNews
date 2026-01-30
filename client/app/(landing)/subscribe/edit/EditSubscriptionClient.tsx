@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle2, Loader2, Mail, X, ChevronDown, Bell, Globe, Sparkles } from "lucide-react";
 import { Categories, Countries } from "@/app/data";
-import { client } from "@/lib/api-new/client";
+import { getSubscriptionById, updateSubscription } from "@/lib/api-v2";
 import Link from "next/link";
 
 
@@ -34,12 +34,12 @@ function EditSubscriptionClient() {
 
     const fetchSubscription = async () => {
       try {
-        const response = await client.get<any>(`/subscribe/${id}`);
+        const response = await getSubscriptionById(id);
         const data = response.data;
         setFormData({
           email: data.email,
-          categories: Array.isArray(data.category) ? data.category : JSON.parse(data.category || "[]"),
-          countries: Array.isArray(data.country) ? data.country : JSON.parse(data.country || "[]"),
+          categories: Array.isArray(data.category) ? data.category : JSON.parse(data.category as string || "[]"),
+          countries: Array.isArray(data.country) ? data.country : JSON.parse(data.country as string || "[]"),
         });
       } catch (err) {
         console.error("Failed to fetch subscription:", err);
@@ -58,7 +58,7 @@ function EditSubscriptionClient() {
 
     setIsSaving(true);
     try {
-      await client.patch(`/subscribe/${id}`, {
+      await updateSubscription(id, {
         categories: formData.categories,
         countries: formData.countries,
       });

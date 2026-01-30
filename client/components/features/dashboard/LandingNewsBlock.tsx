@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArticleResource } from "@/lib/api-new/types";
+import { ArticleResource } from "@/lib/api-v2";
 import LandingBlockHeader from "./LandingBlockHeader";
 
 interface LandingNewsBlockProps {

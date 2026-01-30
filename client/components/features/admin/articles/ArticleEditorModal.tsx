@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X, ArrowLeft, Save, Send } from 'lucide-react';
 import { cn } from "@/lib/utils";
-import { getSiteNames } from "@/lib/api/admin/sites";
-import { updatePendingArticle, createArticle, updateArticle } from "@/lib/api/admin/articles";
+import { getSiteNames, updatePendingArticle, createArticle, updateArticle } from "@/lib/api-v2";
 import ArticleEditorForm from "./editor/ArticleEditorForm";
 import ArticleEditorPreview from "./editor/ArticleEditorPreview";
 import { TemplateType } from "./editor/TemplateSelector";
@@ -49,7 +48,7 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
     });
 
     useEffect(() => {
-        getSiteNames().then(setAvailableSites).catch(console.error);
+        getSiteNames().then(res => setAvailableSites(res.data as string[])).catch(console.error);
     }, []);
 
     useEffect(() => {
@@ -203,7 +202,7 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 country: articleData.country,
                 image: articleData.image,
                 published_sites: articleData.publishTo,
-                status: isPublish ? 'published' : 'pending review',
+                status: (isPublish ? 'published' : 'pending review') as 'published' | 'pending review',
                 topics: articleData.tags,
                 author: articleData.author,
                 date: articleData.publishDate,

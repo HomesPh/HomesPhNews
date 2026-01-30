@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { ArticleResource } from "@/lib/api-new/types";
+import { ArticleResource } from "@/lib/api-v2";
 import LandingHeroGrid from './LandingHeroGrid';
 
 interface HeroSlide {

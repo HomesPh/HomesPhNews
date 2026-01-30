@@ -38,6 +38,7 @@ export default function MostReadTodayCard({ title = "Most Read Today", items = [
                 src={article.imageUrl || 'https://placehold.co/800x450?text=No+Image'}
                 alt={article.title}
                 fill
+                sizes="64px"
                 className="object-cover relative z-10 group-hover:scale-110 transition-transform duration-500"
               />
             </div>
