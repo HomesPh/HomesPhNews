@@ -3,10 +3,7 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class DailyNewsletterMail extends Mailable
@@ -28,32 +25,20 @@ class DailyNewsletterMail extends Mailable
     }
 
     /**
-     * Get the message envelope.
+     * Build the message.
      */
-    public function envelope(): Envelope
+    public function build()
     {
-        return new Envelope(
-            subject: 'Your Daily HomesTV News Digest',
-        );
-    }
-
-    /**
-     * Get the message content definition.
-     */
-    public function content(): Content
-    {
-        return new Content(
-            markdown: 'emails.newsletter.daily',
-        );
-    }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
-    public function attachments(): array
-    {
-        return [];
+        // Use public URL for the logo (Gmail blocks base64 and embedded images)
+        $logo = $this->clientUrl . '/images/HomesTV.png';
+        
+        return $this->subject('Your Daily HomesTV News Digest')
+                    ->view('emails.newsletter.daily')
+                    ->with([
+                        'logo' => $logo,
+                        'subscriber' => $this->subscriber,
+                        'articles' => $this->articles,
+                        'clientUrl' => $this->clientUrl,
+                    ]);
     }
 }

@@ -134,7 +134,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="https://homestv.ph/images/HomesTV.png" alt="HomesTV">
+            <img src="{{ $logo }}" alt="HomesTV" style="max-height:35px; filter:brightness(0) invert(1);">
         </div>
         <div class="sub-header">Daily News Digest</div>
         
