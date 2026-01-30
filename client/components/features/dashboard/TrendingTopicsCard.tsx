@@ -29,7 +29,7 @@ export default function TrendingTopicsCard({ items, className }: TrendingTopicsP
                     <button
                         key={item.id}
                         onClick={() => handleItemClick(item.label)}
-                        className="w-full py-3 flex items-center justify-between group text-left transition-colors"
+                        className="w-full py-3 flex items-center justify-between group text-left transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                     >
                         <div className="flex items-center gap-4">
                             <span className="text-[14px] font-black text-black/10 transition-colors group-hover:text-[#cc0000]">

@@ -18,6 +18,7 @@ class SiteResource extends JsonResource
             'id' => $this->id,
             'name' => $this->site_name,
             'domain' => $this->site_url,
+            'apiKey' => $this->api_key,
             'status' => $this->site_status,
             'image' => $this->site_logo ?? '/images/HomesTV.png',
             'contact_name' => $this->contact_name,

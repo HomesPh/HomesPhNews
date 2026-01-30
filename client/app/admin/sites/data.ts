@@ -10,6 +10,9 @@ export interface Site {
     requested: string;
     articles: number;
     monthlyViews: string;
+    contact_name?: string;
+    contact_email?: string;
+    apiKey?: string;
 }
 
 export const sitesData: Site[] = [

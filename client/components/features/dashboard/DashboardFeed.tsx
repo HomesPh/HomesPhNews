@@ -20,26 +20,57 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
     const feedData = use(feed);
 
     // Dummy data fallback for Blogs/Newsletters
-    const dummyArticles: ArticleResource[] = Array.from({ length: 20 }).map((_, i) => ({
-        id: `dummy-${i}`,
-        title: i % 2 === 0 ? `Featured Blog Post ${i + 1}: Modern Real Estate Trends` : `Global Newsletter Update: Market Analysis Q1 2026`,
-        summary: "Discover the latest trends in the real estate market with our comprehensive guide to modern living and investment strategies.",
-        content: "Full content would go here...",
-        image: `https://placehold.co/800x450?text=News+Image+${i + 1}`,
-        category: i % 2 === 0 ? "Real Estate" : "Market Insight",
-        country: "Global",
-        status: "published",
-        views_count: 120 + i * 5,
-        topics: ["Real Estate", "Trends"],
-        keywords: "real estate, trends",
-        source: "HomesTV",
-        original_url: "#",
-        created_at: "2026-01-28T07:00:00.000Z",
-        published_sites: ""
-    }));
+    const dummyArticles: ArticleResource[] = Array.from({ length: 20 }).map((_, i) => {
+        const availableCategories = ["Real Estate", "Business", "Politics", "Technology", "Economy", "Tourism", "Market Insight"];
+        const cat = availableCategories[i % availableCategories.length];
+        const isBlog = i % 3 === 0;
+        const isNewsletter = cat === "Market Insight";
+
+        let title = `Latest News in ${cat}: Update ${i + 1}`;
+        if (isNewsletter) title = `Global Newsletter: ${cat} Analysis Q1 2026`;
+        else if (isBlog) title = `Featured Blog: Modern ${cat} Trends`;
+
+        return {
+            id: `dummy-${i}`,
+            title,
+            summary: `Discover the latest trends in ${cat} with our comprehensive guide.`,
+            content: "Full content would go here...",
+            image: `https://placehold.co/800x450?text=${cat}+Image+${i + 1}`,
+            category: cat,
+            country: "Global",
+            status: "published",
+            views_count: 120 + i * 5,
+            topics: [cat, "Trends"],
+            keywords: `${cat.toLowerCase()}, trends`,
+            source: "HomesTV",
+            original_url: "#",
+            created_at: "2026-01-28T07:00:00.000Z",
+            published_sites: ""
+        };
+    });
 
     // Safely extract with fallbacks for empty responses
-    const latest_global = feedData?.latest_global?.length ? feedData.latest_global : dummyArticles;
+    const rawFeed = feedData?.latest_global?.length ? feedData.latest_global : dummyArticles;
+
+    // Filter Feed based on active Category
+    const latest_global = rawFeed.filter(article => {
+        if (category === "All") return true;
+        if (category === "Articles") {
+            // Exclude Blogs and Newsletters
+            return !article.title.includes("Blog") &&
+                !article.title.includes("Newsletter") &&
+                article.category !== "Market Insight";
+        }
+        if (category === "Blogs") {
+            return article.title.includes("Blog") || article.category === "Blogs";
+        }
+        if (category === "Newsletters") {
+            return article.title.includes("Newsletter") || article.category === "Market Insight";
+        }
+        // Fallback for specific categories like "Real Estate" (if navigated directly)
+        return article.category === category;
+    });
+
     const trending = feedData?.trending || [];
     const most_read = feedData?.most_read || [];
 
@@ -79,34 +110,38 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
                         <div className="space-y-12">
                             {/* News Blocks - Sequence matching reference exactly */}
                             <LandingNewsBlock
-                                title="Top Stories"
+                                title={category === "All" ? "Top Stories" : `Top ${category}`}
                                 articles={latest_global.slice(4, 10)}
                                 variant={1}
                             />
 
                             <LandingNewsBlock
-                                title="Featured Stories"
+                                title={category === "All" ? "Featured Stories" : `Featured ${category}`}
                                 articles={latest_global.slice(10, 15)}
                                 variant={2}
                             />
 
                             <LandingNewsBlock
-                                title="Insights & Analysis"
+                                title={category === "All" ? "Insights & Analysis" : `${category} Insights`}
                                 articles={latest_global.slice(15, 19)}
                                 variant={3}
                             />
 
-                            <LandingNewsBlock
-                                title="Latest Blogs"
-                                articles={dummyArticles.filter(a => a.category === "Real Estate").slice(0, 6)}
-                                variant={1}
-                            />
+                            {category === "All" && (
+                                <LandingNewsBlock
+                                    title="Latest Blogs"
+                                    articles={dummyArticles.filter(a => a.category === "Real Estate").slice(0, 6)}
+                                    variant={1}
+                                />
+                            )}
 
-                            <LandingNewsBlock
-                                title="Community Newsletter"
-                                articles={dummyArticles.filter(a => a.category === "Market Insight").slice(0, 5)}
-                                variant={2}
-                            />
+                            {category === "All" && (
+                                <LandingNewsBlock
+                                    title="Community Newsletter"
+                                    articles={dummyArticles.filter(a => a.category === "Market Insight").slice(0, 5)}
+                                    variant={2}
+                                />
+                            )}
 
                             <LandingNewsBlock
                                 title="More Updates"
@@ -157,7 +192,13 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
                         }))}
                     />
 
-                    <CategoriesSidebarCard />
+                    <CategoriesSidebarCard
+                        counts={feedData?.category_counts || latest_global.reduce((acc, article) => {
+                            const cat = article.category;
+                            acc[cat] = (acc[cat] || 0) + 1;
+                            return acc;
+                        }, {} as Record<string, number>)}
+                    />
 
                     {/* Newsletter Section */}
                     <section className="bg-gray-50 p-6 border border-gray-100">
