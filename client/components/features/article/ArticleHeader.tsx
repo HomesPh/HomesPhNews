@@ -117,9 +117,9 @@ export default function ArticleHeader({
       </div>
 
       {/* Author and Meta / Social Share Row */}
-      <div className="flex items-center justify-between border-y border-[#e5e7eb] py-[20px]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between border-y border-[#e5e7eb] py-[20px] gap-4">
         {/* Left: Author and Meta Info */}
-        <div className="flex gap-[34px] items-center">
+        <div className="flex flex-wrap items-center gap-y-2 gap-x-[20px] md:gap-x-[34px]">
           <p className="font-semibold text-[14px] text-[#6b7280] tracking-[-0.5px] leading-[20px]">
             By {author.name}
           </p>

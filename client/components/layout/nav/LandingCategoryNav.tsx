@@ -46,38 +46,40 @@ function NavContent({ categories }: LandingCategoryNavProps) {
   }
 
   return (
-    <nav className="flex gap-[30px] items-center justify-center overflow-x-auto scrollbar-hide">
-      {categories.map((category, idx) => {
-        const isActive = activeCategory === category.id;
+    <div className="bg-white w-full border-b border-[#e5e7eb]">
+      <div className="w-full max-w-[1280px] mx-auto px-4 py-[16px]">
+        <nav className="flex gap-[30px] items-center justify-start md:justify-center overflow-x-auto pb-2 scrollbar-hide">
+          {categories.map((category, idx) => {
+            const isActive = activeCategory === category.id;
 
-        return (
-          <button
-            key={category.id}
-            onClick={() => handleChangeCategoryTab(category.id)}
-            className={`shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap transition-colors ${isActive
-              ? "bg-[#030213] text-white px-[10px] py-[5px] rounded-[6px]"
-              : "text-[#374151] hover:text-[#c10007] px-0 py-px"
-              }`}
-          >
-            {category.label}
-          </button>
+            return (
+              <button
+                key={category.id}
+                onClick={() => handleChangeCategoryTab(category.id)}
+                className={`shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap transition-colors ${isActive
+                  ? "bg-[#030213] text-white px-[10px] py-[5px] rounded-[6px]"
+                  : "text-[#374151] hover:text-[#c10007] px-0 py-px"
+                  }`}
+              >
+                {category.label}
+              </button>
+            );
+          })}
+        </nav>
         );
-      })}
-    </nav>
-  );
 }
 
-function NavContentFallback({ categories }: LandingCategoryNavProps) {
+        function NavContentFallback({categories}: LandingCategoryNavProps) {
   return (
-    <nav className="flex gap-[30px] items-center justify-center overflow-x-auto scrollbar-hide">
-      {categories.map((category) => (
-        <div
-          key={category.id}
-          className="shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap text-[#374151] px-0 py-px"
-        >
-          {category.label}
-        </div>
-      ))}
-    </nav>
-  );
+        <nav className="flex gap-[30px] items-center justify-center overflow-x-auto scrollbar-hide">
+          {categories.map((category) => (
+            <div
+              key={category.id}
+              className="shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap text-[#374151] px-0 py-px"
+            >
+              {category.label}
+            </div>
+          ))}
+        </nav>
+        );
 }

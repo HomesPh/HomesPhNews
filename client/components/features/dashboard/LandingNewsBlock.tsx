@@ -19,12 +19,12 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
         return (
             <div className="mb-12">
                 <LandingBlockHeader title={title} />
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-6 sm:overflow-visible sm:pb-0 scrollbar-hide">
                     {articles.slice(0, 6).map((article) => (
                         <Link
                             key={article.id}
                             href={`/article?id=${article.id}`}
-                            className="group cursor-pointer flex flex-col relative transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                            className="group cursor-pointer flex flex-col relative transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] min-w-[85vw] sm:min-w-0 snap-center"
                         >
                             <div className="aspect-video overflow-hidden mb-3 relative rounded-sm">
                                 <Image
