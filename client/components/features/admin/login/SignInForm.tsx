@@ -14,7 +14,7 @@ interface SignInFormProps {
     demoCredentials: { email: string; password: string };
 }
 
-import { useAuth } from "@/lib/api/auth/store";
+import { useAuth } from "@/lib/api-v2";
 
 export default function SignInForm({ fields, submitLabel, demoCredentials }: SignInFormProps) {
     const router = useRouter();

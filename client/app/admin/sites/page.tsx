@@ -7,11 +7,19 @@ import SitesFilters from "@/components/features/admin/sites/SitesFilters";
 import SiteListItem from "@/components/features/admin/sites/SiteListItem";
 import SiteEditorModal from "@/components/features/admin/sites/SiteEditorModal";
 import Pagination from "@/components/features/admin/shared/Pagination";
-import { getSites, createSite, updateSite, deleteSite, toggleSiteStatus, Site } from "@/lib/api/admin/sites";
+import { getAdminSites, AdminSitesParams } from "@/lib/api-v2/admin/service/sites/getAdminSites";
+import { createSite } from "@/lib/api-v2/admin/service/sites/createSite";
+import { updateSite } from "@/lib/api-v2/admin/service/sites/updateSite";
+import { deleteSite } from "@/lib/api-v2/admin/service/sites/deleteSite";
+import { toggleSiteStatus } from "@/lib/api-v2/admin/service/sites/toggleSiteStatus";
+import { SiteResource } from "@/lib/api-v2/types/SiteResource";
 import useUrlFilters from '@/hooks/useUrlFilters';
 import usePagination from '@/hooks/usePagination';
 import { Plus, CheckCircle, XCircle, Link as LinkIcon, Users, Loader2 } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
+
+// Alias SiteResource as Site for compatibility with component code if fields match
+type Site = SiteResource;
 
 // URL Filter configuration
 const URL_FILTERS_CONFIG = {
@@ -27,7 +35,7 @@ const URL_FILTERS_CONFIG = {
 export default function SitesPage() {
     // URL-synced filters
     const { filters, setFilter } = useUrlFilters(URL_FILTERS_CONFIG);
-    const activeTab = filters.status as 'all' | 'active' | 'suspended';
+    const activeTab = filters.status as string;
 
     // Local state
     const [isLoading, setIsLoading] = useState(true);
@@ -43,12 +51,13 @@ export default function SitesPage() {
     const fetchData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const response = await getSites({
+            const response = await getAdminSites({
                 status: activeTab,
                 search: filters.search
             });
-            setSitesList(response.data);
-            setCounts(response.counts);
+            const { data, counts } = response.data;
+            setSitesList(data);
+            setCounts(counts as any);
             // In a real paginated API, we'd update totalPages here from response meta
         } catch (error) {
             console.error("Failed to fetch sites:", error);
@@ -170,7 +179,7 @@ export default function SitesPage() {
             <SitesFilters
                 searchQuery={filters.search}
                 setSearchQuery={(val) => setFilter('search', val)}
-                activeTab={activeTab}
+                activeTab={activeTab as any}
                 setActiveTab={(val) => setFilter('status', val)}
                 counts={counts}
             />
@@ -195,8 +204,8 @@ export default function SitesPage() {
                             onRefreshKey={async (id) => {
                                 if (confirm(`Are you sure you want to regenerate the API key for ${site.name}? The old key will stop working immediately.`)) {
                                     try {
-                                        const updatedSite = await import('@/lib/api/admin/sites').then(m => m.refreshSiteKey(id));
-                                        setSitesList(prev => prev.map(s => s.id === id ? updatedSite : s));
+                                        const updatedSiteResponse = await import('@/lib/api-v2/admin/service/sites/refreshKey').then(m => m.refreshKey(id));
+                                        setSitesList(prev => prev.map(s => s.id === id ? updatedSiteResponse.data.data : s));
                                         alert("API Key regenerated successfully.");
                                     } catch (error) {
                                         console.error("Failed to refresh key:", error);

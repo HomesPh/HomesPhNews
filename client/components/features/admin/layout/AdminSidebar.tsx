@@ -4,7 +4,7 @@ import { LayoutDashboard, FileText, BarChart3, Calendar, Settings, LogOut, Users
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/lib/api/auth/store";
+import { useAuth } from "@/lib/api-v2";
 
 const SidebarItems = [
   {
