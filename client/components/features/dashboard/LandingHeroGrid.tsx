@@ -57,12 +57,12 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
     // 2 Articles: Split View (Equal Columns)
     if (articles.length === 2) {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-1 mb-8 md:h-[405px]">
+            <div className="flex overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-2 gap-1 mb-8 h-[400px] md:h-[405px] scrollbar-hide">
                 {articles.map((article) => (
                     <Link
                         key={article.id}
                         href={`/article?id=${article.id}`}
-                        className="relative group cursor-pointer overflow-hidden h-full min-h-[300px]"
+                        className="relative group cursor-pointer overflow-hidden h-full min-w-[90vw] md:min-w-auto snap-center shrink-0 block"
                     >
                         <Image
                             src={article.image || 'https://placehold.co/800x800?text=No+Image'}
@@ -99,11 +99,11 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
         const side1 = articles[1];
         const side2 = articles[2];
         return (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-1 mb-8 md:h-[405px]">
+            <div className="flex overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-4 gap-1 mb-8 h-[400px] md:h-[405px] scrollbar-hide">
                 {/* Main Article (Left Half) */}
                 <Link
                     href={`/article?id=${main.id}`}
-                    className="md:col-span-2 relative group cursor-pointer overflow-hidden aspect-square md:aspect-auto h-[400px] md:h-full"
+                    className="md:col-span-2 relative group cursor-pointer overflow-hidden h-full min-w-[90vw] md:min-w-auto snap-center shrink-0 block"
                 >
                     <Image
                         src={main.image || 'https://placehold.co/800x800?text=No+Image'}
@@ -132,12 +132,12 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                 </Link>
 
                 {/* Right Column (2 Stacked) */}
-                <div className="md:col-span-2 grid grid-rows-2 gap-1 h-full">
+                <div className="md:col-span-2 grid grid-rows-2 gap-1 h-full min-w-[90vw] md:min-w-auto snap-center shrink-0">
                     {[side1, side2].map((article) => (
                         <Link
                             key={article.id}
                             href={`/article?id=${article.id}`}
-                            className="relative group cursor-pointer overflow-hidden h-full"
+                            className="relative group cursor-pointer overflow-hidden h-full block"
                         >
                             <Image
                                 src={article.image || 'https://placehold.co/800x450?text=No+Image'}
@@ -176,11 +176,11 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
     const bottomSmall2 = articles[3];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-1 mb-8 md:h-[405px]">
+        <div className="flex overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-4 gap-1 mb-8 h-[400px] md:h-[405px] scrollbar-hide">
             {/* Large Main Article */}
             <Link
                 href={`/article?id=${main.id}`}
-                className="md:col-span-2 relative group cursor-pointer overflow-hidden aspect-square md:aspect-auto h-[400px] md:h-full"
+                className="md:col-span-2 relative group cursor-pointer overflow-hidden h-full min-w-[90vw] md:min-w-auto snap-center shrink-0 block"
             >
                 <Image
                     src={main.image || 'https://placehold.co/800x800?text=No+Image'}
@@ -212,12 +212,12 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
             </Link>
 
             {/* Right Column Grid */}
-            <div className="md:col-span-2 grid grid-cols-1 gap-1 h-full">
+            <div className="md:col-span-2 grid grid-cols-1 gap-1 h-full min-w-[90vw] md:min-w-auto snap-center shrink-0">
                 {/* Top Medium Article */}
                 {topSmall && (
                     <Link
                         href={`/article?id=${topSmall.id}`}
-                        className="relative group cursor-pointer overflow-hidden h-[200px]"
+                        className="relative group cursor-pointer overflow-hidden h-[200px] block"
                     >
                         <Image
                             src={topSmall.image || 'https://placehold.co/800x450?text=No+Image'}
@@ -252,7 +252,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         <Link
                             key={article.id || idx}
                             href={`/article?id=${article.id}`}
-                            className="relative group cursor-pointer overflow-hidden"
+                            className="relative group cursor-pointer overflow-hidden block"
                         >
                             <Image
                                 src={article.image || 'https://placehold.co/400x400?text=No+Image'}
