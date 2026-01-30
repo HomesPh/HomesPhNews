@@ -6,7 +6,7 @@ import LatestPostsSection from "@/components/features/dashboard/LatestPostsSecti
 import LandingHeroCarousel from "@/components/features/dashboard/LandingHeroCarousel";
 import AdSpace from "@/components/shared/AdSpace";
 import Link from 'next/link';
-import { ArticleResource } from "@/lib/api-new/types";
+import type { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
 
 export const dynamic = 'force-dynamic';
 
@@ -143,7 +143,7 @@ export default async function RestaurantPage() {
                         items={mostRead.slice(0, 5).map((article) => ({
                             id: article.id || '',
                             title: article.title,
-                            imageUrl: article.image || article.image_url,
+                            imageUrl: article.image || article.image_url || '',
                             views: article.views_count,
                             timeAgo: article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently',
                         }))}

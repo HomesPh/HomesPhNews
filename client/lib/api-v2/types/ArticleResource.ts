@@ -14,4 +14,5 @@ export interface ArticleResource {
   original_url: string;
   created_at: string;
   published_sites: string;
+  image_url?: string;
 }
