@@ -2,6 +2,7 @@
 
 import { Menu, Search, LayoutDashboard, FileText, Mail, Utensils } from "lucide-react";
 import Link from "next/link";
+import { ModeToggle } from "@/components/features/theme/ModeToggle";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import SubscribeModal from "./SubscribeModal";
 import BreakingNewsTicker from "./BreakingNewsTicker";
@@ -52,92 +53,105 @@ export default function LandingHeader() {
 
   return (
     <>
-      <BreakingNewsTicker items={breakingNews} />
+      <header className="fixed top-0 left-0 right-0 z-50 transition-colors duration-300">
+        <BreakingNewsTicker items={breakingNews} />
 
-      <header className="bg-white w-full border-b border-[#e5e7eb]">
-        <div className="w-full max-w-[1280px] mx-auto flex items-center justify-between px-4 py-[16px]">
-          <Link
-            href="/"
-            className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity"
-          >
-            <img
-              src="/images/HomesTV.png"
-              alt="HomesTV"
-              className="h-10 w-auto object-contain"
-            />
-            <div className="flex flex-col">
-              <p className="font-bold text-[20px] text-[#111827] tracking-[-0.5px] leading-tight">
-                HomesTV
-              </p>
-            </div>
-          </Link>
+        <div className="bg-white dark:bg-[#1a1d2e] border-b border-[#e5e7eb] dark:border-[#2a2d3e] transition-colors duration-300">
+          <div className="w-full max-w-[1280px] mx-auto px-4 h-[72px]">
+            <div className="flex items-center justify-between h-full">
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-8 xl:gap-16 ml-8">
-            {navLinks.map((link) => {
-              const currentCategory = searchParams.get("category") || "All";
-              const isLinkActive = link.href.includes("category=")
-                ? currentCategory === new URLSearchParams(link.href.split("?")[1]).get("category")
-                : pathname === link.href;
+              {/* Logo Section */}
+              <Link href="/" className="flex items-center gap-2 md:gap-3">
+                <div className="relative w-8 h-8 md:w-10 md:h-10">
+                  <img
+                    src="/images/HomesTV.png"
+                    alt="HomesTV Logo"
+                    className="object-contain w-full h-full"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-bold text-[18px] md:text-[22px] leading-none text-[#111827] dark:text-white tracking-tight">
+                    HomesTV
+                  </span>
+                </div>
+              </Link>
 
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    "font-medium text-[15px] transition-colors whitespace-nowrap",
-                    isLinkActive ? "text-[#c10007]" : "text-[#374151] hover:text-[#c10007]"
-                  )}
+              {/* Desktop Navigation */}
+              <nav className="hidden lg:flex items-center gap-8 xl:gap-16 ml-8">
+                {navLinks.map((link) => {
+                  const currentCategory = searchParams.get("category") || "All";
+                  const isLinkActive = link.href.includes("category=")
+                    ? currentCategory === new URLSearchParams(link.href.split("?")[1]).get("category")
+                    : pathname === link.href;
+
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={cn(
+                        "font-medium text-[15px] transition-colors whitespace-nowrap",
+                        isLinkActive
+                          ? "text-[#c10007]"
+                          : "text-[#374151] dark:text-gray-300 hover:text-[#c10007] dark:hover:text-[#c10007]"
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              {/* Search and Subscribe */}
+              <div className="hidden lg:flex items-center gap-4">
+                <div className="relative group">
+                  <input
+                    type="text"
+                    placeholder="Search articles..."
+                    value={searchQuery}
+                    onChange={handleInputChange}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
+                    className="w-[200px] bg-gray-50 dark:bg-[#252836] border border-gray-200 dark:border-gray-700 rounded-full py-2 pl-4 pr-10 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all dark:text-white dark:placeholder:text-gray-500"
+                  />
+                  <button
+                    onClick={handleSearch}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-600"
+                  >
+                    <Search size={18} />
+                  </button>
+                </div>
+
+                <div className="h-6 w-px bg-gray-200 dark:bg-gray-700" />
+
+                <ModeToggle />
+
+                <button
+                  onClick={() => setIsSubscribeModalOpen(true)}
+                  className="bg-[#c10007] hover:bg-[#a10006] text-white px-6 py-2 rounded-full text-sm font-semibold transition-colors shadow-sm hover:shadow-md"
                 >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Search and Subscribe */}
-          <div className="flex gap-[20px] items-center">
-            <button
-              onClick={() => setIsSubscribeModalOpen(true)}
-              className="hidden md:flex bg-[#030213] text-white px-[10px] py-[5px] rounded-[6px] font-semibold text-[14px] tracking-[-0.5px] hover:bg-[#1a1829] transition-colors"
-            >
-              Subscribe
-            </button>
-
-            <form onSubmit={handleSearch} className="relative hidden md:block">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={handleInputChange}
-                placeholder="Search News"
-                className="bg-white border border-[#c10007] rounded-[8px] px-[10px] py-[7px] pl-[35px] w-[200px] md:w-[272px] font-medium text-[14px] text-[#374151] tracking-[-0.5px] focus:outline-none focus:ring-2 focus:ring-[#c10007]"
-              />
-              <div className="absolute left-[10px] top-1/2 -translate-y-1/2 size-[18px]">
-                <Search className="w-full h-full text-[#4B5563]" />
-              </div>
-            </form>
-
-            {/* Mobile Menu Trigger */}
-            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <button className="lg:hidden p-2 text-[#374151] hover:text-[#c10007] transition-colors">
-                  <Menu size={24} />
+                  Subscribe
                 </button>
-              </SheetTrigger>
-              <LandingMobileMenu
-                navLinks={navLinks}
-                searchQuery={searchQuery}
-                handleInputChange={handleInputChange}
-                handleSearch={(e) => {
-                  handleSearch(e);
-                  setIsMobileMenuOpen(false);
-                }}
-                setIsSubscribeModalOpen={(open) => {
-                  setIsSubscribeModalOpen(open);
-                  setIsMobileMenuOpen(false);
-                }}
-              />
-            </Sheet>
+              </div>
+
+              {/* Mobile Menu Trigger */}
+              <div className="flex items-center gap-2 lg:hidden">
+                <ModeToggle />
+                <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                  <SheetTrigger asChild>
+                    <button className="lg:hidden p-2 text-[#374151] dark:text-gray-300 hover:text-[#c10007] transition-colors">
+                      <Menu size={24} />
+                    </button>
+                  </SheetTrigger>
+                  <LandingMobileMenu
+                    navLinks={navLinks}
+                    searchQuery={searchQuery}
+                    handleInputChange={handleInputChange}
+                    handleSearch={handleSearch}
+                    setIsSubscribeModalOpen={setIsSubscribeModalOpen}
+                  />
+                </Sheet>
+              </div>
+
+            </div>
           </div>
         </div>
       </header>

@@ -10,7 +10,7 @@ export default function LandingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#f9fafb] flex flex-col">
+    <div className="min-h-screen bg-[#f9fafb] dark:bg-[#030712] flex flex-col pt-[120px] transition-colors duration-300">
       <LandingHeader />
       <LandingCountryNav countries={Countries} />
       <LandingCategoryNav categories={Categories} />
