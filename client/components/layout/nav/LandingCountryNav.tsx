@@ -12,12 +12,10 @@ export type LandingCountryNavProps = {
 
 export default function LandingCountryNav({ countries }: LandingCountryNavProps) {
   return (
-    <div className="bg-white w-full border-y border-[#e5e7eb]">
-      <div className="max-w-[1440px] mx-auto px-4 md:px-[110px] py-[16px]">
-        <Suspense fallback={<NavContentFallback countries={countries} />}>
-          <NavContent countries={countries} />
-        </Suspense>
-      </div>
+    <div className="bg-white w-full">
+      <Suspense fallback={<NavContentFallback countries={countries} />}>
+        <NavContent countries={countries} />
+      </Suspense>
     </div>
   );
 }
