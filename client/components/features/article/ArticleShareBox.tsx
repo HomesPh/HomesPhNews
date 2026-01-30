@@ -55,39 +55,39 @@ export default function ArticleShareBox() {
   };
 
   return (
-    <div className="bg-[#eff6ff] rounded-[12px] p-[25px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col gap-[10px] items-center justify-center text-center h-[159px] my-8">
-      <p className="font-semibold text-[18px] text-[#111827] tracking-[-0.5px] leading-[20px]">
+    <div className="bg-[#eff6ff] dark:bg-[#1a1d2e] border border-transparent dark:border-[#2a2d3e] rounded-[12px] p-[25px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col gap-[10px] items-center justify-center text-center my-8">
+      <p className="font-semibold text-[18px] text-[#111827] dark:text-white tracking-[-0.5px] leading-[20px]">
         Found this article interesting?
       </p>
-      <p className="font-normal text-[16px] text-[#4b5563] tracking-[-0.5px] leading-[24px]">
+      <p className="font-normal text-[16px] text-[#4b5563] dark:text-gray-400 tracking-[-0.5px] leading-[24px]">
         Share it with your network.
       </p>
 
-      <div className="flex gap-[7px] items-center flex-wrap justify-center">
+      <div className="flex gap-[7px] items-center flex-wrap justify-center w-full">
         <button
           onClick={() => handleShare('facebook')}
-          className="bg-[#155dfc] text-white px-[10px] py-[8px] rounded-[6px] font-medium text-[12px] tracking-[-0.5px] hover:opacity-90 transition-opacity flex gap-[10px] items-center justify-center min-w-[154px]"
+          className="bg-[#155dfc] text-white px-[10px] py-[8px] rounded-[6px] font-medium text-[12px] tracking-[-0.5px] hover:opacity-90 transition-opacity flex gap-[10px] items-center justify-center w-full sm:w-auto min-w-[154px]"
         >
           <Facebook className="w-[15px] h-[15px]" />
           Share on Facebook
         </button>
         <button
           onClick={() => handleShare('x')}
-          className="bg-black text-white px-[10px] py-[8px] rounded-[6px] font-medium text-[12px] tracking-[-0.5px] hover:opacity-90 transition-opacity flex gap-[10px] items-center justify-center min-w-[154px]"
+          className="bg-black dark:bg-black text-white px-[10px] py-[8px] rounded-[6px] font-medium text-[12px] tracking-[-0.5px] hover:opacity-90 transition-opacity flex gap-[10px] items-center justify-center w-full sm:w-auto min-w-[154px]"
         >
           <XIcon className="w-[14px] h-[14px]" />
           Share on X
         </button>
         <button
           onClick={() => handleShare('whatsapp')}
-          className="bg-[#25D366] text-white px-[10px] py-[8px] rounded-[6px] font-medium text-[12px] tracking-[-0.5px] hover:opacity-90 transition-opacity flex gap-[10px] items-center justify-center min-w-[154px]"
+          className="bg-[#25D366] text-white px-[10px] py-[8px] rounded-[6px] font-medium text-[12px] tracking-[-0.5px] hover:opacity-90 transition-opacity flex gap-[10px] items-center justify-center w-full sm:w-auto min-w-[154px]"
         >
           <WhatsAppIcon className="w-[15px] h-[15px]" />
           Share on WhatsApp
         </button>
         <button
           onClick={() => handleShare('linkedin')}
-          className="bg-[#1447e6] text-white px-[10px] py-[8px] rounded-[6px] font-medium text-[12px] tracking-[-0.5px] hover:opacity-90 transition-opacity flex gap-[10px] items-center justify-center min-w-[154px]"
+          className="bg-[#1447e6] text-white px-[10px] py-[8px] rounded-[6px] font-medium text-[12px] tracking-[-0.5px] hover:opacity-90 transition-opacity flex gap-[10px] items-center justify-center w-full sm:w-auto min-w-[154px]"
         >
           <Linkedin className="w-[15px] h-[15px]" />
           Share on LinkedIn

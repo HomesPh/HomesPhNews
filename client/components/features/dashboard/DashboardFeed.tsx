@@ -201,18 +201,18 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
                     />
 
                     {/* Newsletter Section */}
-                    <section className="bg-gray-50 p-6 border border-gray-100">
-                        <h3 className="text-[14px] font-black uppercase tracking-widest mb-4">Newsletter</h3>
-                        <p className="text-[10px] font-medium text-gray-500 mb-4 leading-relaxed">
+                    <section className="bg-gray-50 dark:bg-[#1a1d2e] p-6 border border-gray-100 dark:border-[#2a2d3e] rounded-lg">
+                        <h3 className="text-[14px] font-black uppercase tracking-widest mb-4 dark:text-white">Newsletter</h3>
+                        <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">
                             Subscribe to our daily news update and stay informed.
                         </p>
                         <div className="flex flex-col space-y-3">
                             <input
                                 type="email"
                                 placeholder="Email Address"
-                                className="w-full px-4 py-3 bg-white border border-gray-200 text-[10px] font-bold outline-none focus:border-[#cc0000]"
+                                className="w-full px-4 py-3 bg-white dark:bg-[#252836] border border-gray-200 dark:border-gray-700 text-[10px] font-bold outline-none focus:border-[#cc0000] dark:text-white"
                             />
-                            <button className="w-full bg-[#1a1a1a] text-white py-3 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-[#cc0000] transition-colors">
+                            <button className="w-full bg-[#1a1a1a] dark:bg-[#C10007] text-white py-3 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-[#cc0000] transition-colors">
                                 Subscribe
                             </button>
                         </div>
