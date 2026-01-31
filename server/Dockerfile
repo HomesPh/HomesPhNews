@@ -35,4 +35,4 @@ RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 ENV FRANKENPHP_CONFIG="worker ./public/index.php"
 
 # Start FrankenPHP using the PORT environment variable provided by Cloud Run
-CMD ["sh", "-c", "frankenphp run --config /etc/caddy/Caddyfile --env PORT=${PORT:-8080}"]
+CMD ["sh", "-c", "php artisan migrate --force && frankenphp run --config /etc/caddy/Caddyfile --listen :${PORT:-8080}"]
