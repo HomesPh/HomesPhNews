@@ -12,13 +12,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // ✅ ADD THIS LINE to register your admin middleware alias
+        $middleware->statefulApi(); // Ensures Sanctum/Session works for API
+        
         $middleware->alias([
             'is.admin'    => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'site.auth'   => \App\Http\Middleware\VerifySiteApiKey::class,
         ]);
 
-        // You might have other middleware configurations here, leave them as they are.
+        $middleware->api(prepend: [
+            \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // ...
