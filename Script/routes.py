@@ -6,7 +6,7 @@ FastAPI route handlers for articles and metadata.
 import json
 import asyncio
 from typing import List
-from fastapi import APIRouter, HTTPException, Query, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Query
 
 from models import Article, ArticleSummary, CountryStats, CategoryStats, ImageGenerationRequest
 from database import redis_client, PREFIX
@@ -224,23 +224,38 @@ async def get_categories():
 # ═══════════════════════════════════════════════════════════════
 
 @router.post("/trigger", tags=["Admin"])
-async def trigger_job(background_tasks: BackgroundTasks):
+async def trigger_job():
     """
     Manually trigger the scheduled scraper job.
-    Useful for testing and manual runs.
+    SYNCHRONOUS: Waits for job to complete before returning.
+    This keeps the Cloud Run instance alive during processing.
+    Timeout: Up to 60 minutes (set via --timeout 3600)
     """
     from scheduler import run_hourly_job, job_status
+    import time
     
     # Check if already running
     if job_status["is_running"]:
         raise HTTPException(status_code=409, detail="Job is already running. Please wait for it to complete.")
     
-    # Add coroutine to background tasks
-    background_tasks.add_task(run_hourly_job)
+    start_time = time.time()
+    
+    # Run the job SYNCHRONOUSLY (await it)
+    results = await run_hourly_job()
+    
+    duration = round(time.time() - start_time, 2)
+    
+    # Calculate summary
+    success = sum(1 for r in (results or []) if r.get("status") == "success")
+    errors = sum(1 for r in (results or []) if r.get("status") == "error")
     
     return {
-        "status": "triggered",
-        "message": "Job has been triggered. Check Discord webhook and logs for results.",
+        "status": "completed",
+        "message": f"Job completed in {duration}s. {success} success, {errors} errors.",
+        "duration_seconds": duration,
+        "success_count": success,
+        "error_count": errors,
+        "results": results,
         "timestamp": str(__import__('datetime').datetime.now())
     }
 
