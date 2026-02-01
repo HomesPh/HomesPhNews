@@ -271,10 +271,11 @@ class AIProcessor:
         except:
             return f"Professional {category} scene in {country}, photojournalism style"
 
-    def generate_image(self, visual_prompt, article_id):
+    def generate_image(self, visual_prompt, article_id, upload=True):
         """
         Generates an image using available Gemini/Imagen models.
-        Returns the path to the generated image or a placeholder URL.
+        If upload=True, uploads to S3/GCP and returns URL.
+        Otherwise returns local path.
         """
         print(f"🎨 Generating image: {visual_prompt[:50]}...")
         
@@ -285,6 +286,11 @@ class AIProcessor:
             'gemini-2.5-flash-image'
         ]
 
+        # Use uuid if no article_id provided (for new generations)
+        import uuid
+        if not article_id:
+            article_id = str(uuid.uuid4())
+
         for model_name in image_models:
             try:
                 full_model_name = f"models/{model_name}"
@@ -292,30 +298,43 @@ class AIProcessor:
                 result = image_model.generate_content(visual_prompt)
                 
                 image_bytes = None
-                temp_path = f"temp_{article_id}.png"
+                temp_filename = f"gen_{article_id}.png"
+                temp_path = os.path.abspath(temp_filename)
                 
                 # Try to extract image from response
                 if hasattr(result, 'images') and result.images:
                     result.images[0].save(temp_path)
+                    image_bytes = True
                 elif hasattr(result, 'candidates') and result.candidates:
                     for part in result.candidates[0].content.parts:
                         if hasattr(part, 'inline_data'):
-                            image_bytes = part.inline_data.data
-                            break
-                    if image_bytes:
-                        import io
-                        img = Image.open(io.BytesIO(image_bytes))
-                        img.save(temp_path)
+                            image_bytes_data = part.inline_data.data
+                            if image_bytes_data:
+                                import io
+                                img = Image.open(io.BytesIO(image_bytes_data))
+                                img.save(temp_path)
+                                image_bytes = True
+                                break
                 
-                if os.path.exists(temp_path):
+                if image_bytes and os.path.exists(temp_path):
                     print(f"✅ Image generated using {model_name}")
+                    
+                    if upload:
+                        from storage import StorageHandler
+                        storage = StorageHandler()
+                        # Upload to cloud (folder: generated)
+                        # Remove existing file if fails, but StorageHandler handles cleanup mostly
+                        destination = f"generated/{temp_filename}"
+                        public_url = storage.upload_image(temp_path, destination)
+                        return public_url
+                    
                     return temp_path
 
             except Exception as e:
+                # print(f"   Model {model_name} failed: {e}") # Verbose
                 continue
         
         print("⚠️ Image generation failed. Using placeholder.")
-        print("   💡 Image generation uses different quota (Imagen) - might have separate limits")
         return "https://placehold.co/800x450?text=News+Image"
 
 

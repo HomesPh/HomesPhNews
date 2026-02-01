@@ -21,43 +21,101 @@ class ArticleResource extends JsonResource
     {
         // Handle both Model (Eloquent) and Array (Redis) data
         $isModel = $this->resource instanceof \Illuminate\Database\Eloquent\Model;
-        $data = $isModel ? $this->resource->toArray() : $this->resource;
+        
+        // For models, extract raw attributes ONLY - no relationships
+        if ($isModel) {
+            $data = $this->resource->getAttributes();
+        } else {
+            $data = $this->resource;
+        }
 
-        $publishedSites = ($isModel && $this->resource->relationLoaded('publishedSites')) 
-            ? $this->resource->getRelation('publishedSites')->pluck('site_name')->toArray() 
-            : ($data['published_sites'] ?? []);
+        // Get published sites - use eager loaded relationship if available
+        $publishedSites = [];
+        if ($isModel && $this->resource->relationLoaded('publishedSites')) {
+            // Use already loaded relationship (no extra query!)
+            $relation = $this->resource->getRelation('publishedSites');
+            if ($relation instanceof \Illuminate\Support\Collection) {
+                $publishedSites = $relation->pluck('site_name')->map(fn($n) => (string) $n)->toArray();
+            } elseif (is_array($relation)) {
+                $publishedSites = array_map('strval', $relation);
+            }
+        } elseif (isset($data['published_sites']) && is_array($data['published_sites'])) {
+            $publishedSites = array_map('strval', $data['published_sites']);
+        }
+
+        // Get gallery images - use eager loaded relationship if available
+        $galleryImages = [];
+        if ($isModel && $this->resource->relationLoaded('images')) {
+            // Use already loaded relationship (no extra query!)
+            $relation = $this->resource->getRelation('images');
+            if ($relation instanceof \Illuminate\Support\Collection) {
+                $galleryImages = $relation->pluck('image_path')->map(fn($p) => (string) $p)->toArray();
+            } elseif (is_array($relation)) {
+                $galleryImages = array_map(fn($img) => (string) ($img['image_path'] ?? ''), $relation);
+            }
+        } elseif (isset($data['galleryImages']) && is_array($data['galleryImages'])) {
+            $galleryImages = array_map('strval', $data['galleryImages']);
+        } elseif (isset($data['gallery_images']) && is_array($data['gallery_images'])) {
+            $galleryImages = array_map('strval', $data['gallery_images']);
+        }
+
+        // Parse topics if it's a JSON string
+        $topics = [];
+        if (isset($data['topics'])) {
+            if (is_string($data['topics'])) {
+                $decoded = json_decode($data['topics'], true);
+                $topics = is_array($decoded) ? array_map('strval', $decoded) : [];
+            } elseif (is_array($data['topics'])) {
+                $topics = array_map('strval', $data['topics']);
+            }
+        }
+
+        // Handle date: Redis uses 'timestamp' (Unix), DB uses 'created_at' (string)
+        $createdAt = null;
+        if (isset($data['created_at']) && !empty($data['created_at'])) {
+            $createdAt = (string) $data['created_at'];
+        } elseif (isset($data['timestamp'])) {
+            // Convert Unix timestamp to ISO string
+            $ts = $data['timestamp'];
+            if (is_numeric($ts)) {
+                $createdAt = date('Y-m-d H:i:s', (int) $ts);
+            } else {
+                $createdAt = (string) $ts;
+            }
+        }
 
         return [
-            // Core fields
+            // Core fields - all scalar, no objects
             'id' => (string) ($data['id'] ?? ''),
-            'title' => $data['title'] ?? '',
-            'summary' => $data['summary'] ?? ($data['content'] ?? ''),
-            'content' => $data['content'] ?? '',
-            'category' => $data['category'] ?? '',
-            'country' => $data['country'] ?? ($data['location'] ?? 'Global'),
-            'status' => $data['status'] ?? 'pending',
-            'created_at' => $data['created_at'] ?? ($data['timestamp'] ?? null),
+            'title' => (string) ($data['title'] ?? ''),
+            'summary' => (string) ($data['summary'] ?? ($data['content'] ?? '')),
+            'content' => (string) ($data['content'] ?? ''),
+            'category' => (string) ($data['category'] ?? ''),
+            'country' => (string) ($data['country'] ?? ($data['location'] ?? 'Global')),
+            'status' => (string) ($data['status'] ?? 'pending'),
+            'created_at' => $createdAt,
             'views_count' => (int) ($data['views_count'] ?? 0),
             
-            // Image handling
-            'image_url' => $data['image_url'] ?? ($data['image'] ?? ''),
-            'image' => $data['image'] ?? ($data['image_url'] ?? ''),
+            // Image handling - scalar strings only
+            'image_url' => (string) ($data['image'] ?? ($data['image_url'] ?? '')),
+            'image' => (string) ($data['image'] ?? ($data['image_url'] ?? '')),
             
-            // Aliases for frontend compatibility
-            'location' => $data['country'] ?? ($data['location'] ?? 'Global'),
-            'description' => $data['summary'] ?? ($data['content'] ?? ''),
-            'date' => $data['created_at'] ?? ($data['timestamp'] ?? null),
+            // Aliases for frontend compatibility - scalar strings only
+            'location' => (string) ($data['country'] ?? ($data['location'] ?? 'Global')),
+            'description' => (string) ($data['summary'] ?? ($data['content'] ?? '')),
+            'date' => $createdAt,
             'views' => number_format((int) ($data['views_count'] ?? 0)) . ' views',
             
-            // Sites and Topics
+            // Array fields - array of strings ONLY, no objects
             'published_sites' => $publishedSites,
-            'sites' => $publishedSites, // Used by BaseArticleCard
-            'topics' => is_string($data['topics'] ?? null) ? json_decode($data['topics'], true) : ($data['topics'] ?? []),
-            
-            // Optional/Metadata
-            'keywords' => $data['keywords'] ?? '',
-            'source' => $data['source'] ?? '',
-            'original_url' => $data['original_url'] ?? '',
+            'sites' => $publishedSites,
+            'topics' => $topics,
+            'galleryImages' => $galleryImages,
+
+            // Optional/Metadata - scalar strings only
+            'keywords' => (string) ($data['keywords'] ?? ''),
+            'source' => (string) ($data['source'] ?? ''),
+            'original_url' => (string) ($data['original_url'] ?? ''),
         ];
     }
 }

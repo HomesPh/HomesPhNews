@@ -31,7 +31,7 @@ Route::get('/redis-test', [SystemController::class, 'redisTest']);
 Route::get('/db-test', [SystemController::class, 'dbTest']);
 
 // Public login route
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 Route::get('/login', [AuthController::class, 'me'])->middleware('auth:sanctum')->name('login');
 
 // Protected Routes

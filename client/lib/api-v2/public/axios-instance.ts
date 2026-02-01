@@ -15,7 +15,7 @@ import { handleAxiosError } from "../utils/errorHandler";
 
 const AXIOS_INSTANCE_PUBLIC: AxiosInstance = axios.create({
   baseURL,
-  timeout: 10000,
+  timeout: 30000,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json"

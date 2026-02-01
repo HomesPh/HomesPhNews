@@ -37,6 +37,8 @@ export type ArticleListParams = {
   end_date?: string;
 }
 
-export async function getArticlesList(params?: ArticleListParams): Promise<AxiosResponse<ArticleListResponse>> {
-  return AXIOS_INSTANCE_PUBLIC.get<ArticleListResponse>("/articles", { params });
+export async function getArticlesList(params?: ArticleListParams): Promise<ArticleListResponse> {
+  const response = await AXIOS_INSTANCE_PUBLIC.get<ArticleListResponse>("/articles", { params });
+  // Return only the data to avoid serializing Axios response objects with circular references
+  return response.data;
 }

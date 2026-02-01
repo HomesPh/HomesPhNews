@@ -57,8 +57,9 @@ class ArticleController extends Controller
         $availableCategories = (clone $query)->distinct()->whereNotNull('category')->pluck('category')->sort()->values();
         $availableCountries = (clone $query)->distinct()->whereNotNull('country')->pluck('country')->sort()->values();
 
-        // Paginate DB results
-        $articles = $query->with(['publishedSites'])
+        // Paginate DB results - Eager load to prevent N+1 queries
+        $articles = $query
+            ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
             ->select('id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url')
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage);
@@ -211,9 +212,22 @@ class ArticleController extends Controller
     {
         $validated = $request->validated();
         $validated['status'] = $validated['status'] ?? 'pending review';
+        
+        // Generate UUID for the article ID
+        $validated['id'] = \Illuminate\Support\Str::uuid()->toString();
+        $validated['article_id'] = $validated['id'];
 
         $siteNames = $validated['published_sites'] ?? [];
         unset($validated['published_sites']);
+        
+        // Remove fields that don't exist in the articles table
+        unset($validated['gallery_images']);
+        unset($validated['split_images']);
+        unset($validated['content_blocks']);
+        unset($validated['template']);
+        unset($validated['author']);
+        unset($validated['date']);
+        unset($validated['slug']);
 
         $article = Article::create($validated);
 
@@ -222,7 +236,19 @@ class ArticleController extends Controller
             $article->publishedSites()->sync($siteIds);
         }
 
-        return (new ArticleResource($article->fresh()))->response()->setStatusCode(201);
+        // Handle Gallery Images
+        $galleryImages = $request->input('gallery_images', []);
+        if (is_array($galleryImages)) {
+            foreach ($galleryImages as $imagePath) {
+                if (!empty($imagePath)) {
+                    $article->images()->create([
+                        'image_path' => $imagePath
+                    ]);
+                }
+            }
+        }
+
+        return (new ArticleResource($article))->response()->setStatusCode(201);
     }
 
     /**
@@ -231,12 +257,12 @@ class ArticleController extends Controller
     public function show($id): JsonResponse|ArticleResource
     {
         if (is_numeric($id) || ! \Illuminate\Support\Str::isUuid($id)) {
-            $article = Article::find($id);
+            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])->find($id);
             if ($article) {
                 return new ArticleResource($article);
             }
         } else {
-            $article = Article::where('id', $id)->first();
+            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])->where('id', $id)->first();
             if ($article) {
                 return new ArticleResource($article);
             }
@@ -290,9 +316,25 @@ class ArticleController extends Controller
             unset($validated['published_sites']);
         }
 
+        // Handle Gallery Images Sync
+        if (isset($validated['galleryImages']) && is_array($validated['galleryImages'])) {
+            // Remove old images
+            $article->images()->delete();
+            
+            // Add new images
+            foreach ($validated['galleryImages'] as $imagePath) {
+                if (!empty($imagePath)) {
+                    $article->images()->create([
+                        'image_path' => $imagePath
+                    ]);
+                }
+            }
+            unset($validated['galleryImages']); // Don't try to update article table with this
+        }
+
         $article->update($validated);
 
-        return new ArticleResource($article->fresh());
+        return new ArticleResource($article);
     }
 
     public function updateTitles(Request $request, Article $article)
@@ -332,9 +374,9 @@ class ArticleController extends Controller
             'article_id' => $id,
             'title' => $redisArticle['title'] ?? '',
             'original_title' => $redisArticle['title'] ?? '',
-            'summary' => substr($redisArticle['content'] ?? '', 0, 500),
+            'summary' => $redisArticle['summary'] ?? substr($redisArticle['content'] ?? '', 0, 500),
             'content' => $redisArticle['content'] ?? '',
-            'image' => $redisArticle['image_url'] ?? '',
+            'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? '',
             'category' => $redisArticle['category'] ?? '',
             'country' => $redisArticle['country'] ?? '',
             'source' => $redisArticle['source'] ?? '',
@@ -354,6 +396,18 @@ class ArticleController extends Controller
         if (isset($validated['custom_titles'])) {
             $article->custom_titles = $validated['custom_titles'];
             $article->save();
+        }
+
+        // Handle Gallery Images from Redis
+        $galleryImages = $redisArticle['gallery_images'] ?? [];
+        if (!empty($galleryImages) && is_array($galleryImages)) {
+            foreach ($galleryImages as $imagePath) {
+                if (!empty($imagePath)) {
+                    $article->images()->create([
+                        'image_path' => $imagePath
+                    ]);
+                }
+            }
         }
 
         $this->redisService->deleteArticle($id);

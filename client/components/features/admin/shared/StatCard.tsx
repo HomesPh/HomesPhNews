@@ -1,9 +1,22 @@
-import { FileText, CheckCircle2, AlertCircle, Eye, Users, MousePointerClick, TrendingUp, DollarSign, SquareStack, ToggleRight, XCircle, Link as LinkIcon, CheckCircle } from 'lucide-react';
+"use client";
+
+import {
+    FileText,
+    CheckCircle2,
+    CheckCircle,
+    AlertCircle,
+    Eye,
+    Users,
+    MousePointerClick,
+    TrendingUp,
+    DollarSign,
+    SquareStack,
+    ToggleRight,
+    XCircle,
+    Link as LinkIcon
+} from 'lucide-react';
 import { cn } from "@/lib/utils";
 
-/**
- * Stat Icons mapping
- */
 const ICONS = {
     FileText,
     CheckCircle2,
@@ -31,42 +44,40 @@ interface StatCardProps {
     hasIconBg?: boolean;
 }
 
-/**
- * StatCard component for displaying key metrics with icons and trends
- */
 export default function StatCard({
     title,
     value,
     trend,
     iconName,
-    iconBgColor = "bg-[#dbeafe]",
-    iconColor = "text-[#155DFC]",
+    iconBgColor = "bg-red-50",
+    iconColor = "text-[#C10007]",
     iconSize = "w-4 h-4",
-    hasIconBg = false,
+    hasIconBg = true,
 }: StatCardProps) {
     const Icon = ICONS[iconName];
+    const isPositive = trend.startsWith('+');
 
     return (
-        <div className="bg-white rounded-[12px] border border-[#f3f4f6] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] p-6">
-            {/* Header: Title and Icon */}
-            <div className="flex items-start justify-between mb-3">
-                <p className="text-[16px] font-medium text-[#4b5563] tracking-[-0.5px]">{title}</p>
-                {hasIconBg ? (
-                    <div className={cn("w-[24px] h-[24px] rounded flex items-center justify-center", iconBgColor)}>
-                        <Icon className={cn(iconSize, iconColor)} />
-                    </div>
-                ) : (
-                    <Icon className={cn(iconSize, iconColor)} />
-                )}
+        <div className="bg-white rounded-[16px] border border-gray-100 p-4 shadow-sm hover:shadow-md transition-all duration-300 group">
+            <div className="flex justify-between items-start mb-2">
+                <div className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110",
+                    iconBgColor || "bg-gray-50",
+                    !hasIconBg && "bg-transparent w-auto h-auto"
+                )}>
+                    {Icon && <Icon className={cn(iconSize, iconColor)} />}
+                </div>
+                <div className={cn(
+                    "flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold",
+                    isPositive ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
+                )}>
+                    {trend}
+                </div>
             </div>
 
-            {/* Value */}
-            <p className="text-[38px] font-bold text-[#111827] mb-3 tracking-[-0.5px]">{value}</p>
-
-            {/* Trend Indicator */}
-            <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-[#10b981]" />
-                <span className="text-[14px] font-semibold text-[#10b981] tracking-[-0.5px]">{trend}</span>
+            <div>
+                <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">{title}</h4>
+                <p className="text-2xl font-black text-gray-900 tracking-tighter">{value}</p>
             </div>
         </div>
     );

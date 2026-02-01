@@ -14,7 +14,7 @@ export default async function RestaurantPage() {
     const feedData = await getArticlesFeed({
         category: "Restaurant",
         limit: 30, // Increased limit to feed carousel + blocks
-    }).then((res) => res.data);
+    });
 
     let articles = feedData.latest_global || [];
     const trending = feedData.trending || [];

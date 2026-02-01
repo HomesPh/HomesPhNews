@@ -41,6 +41,7 @@ export * from "./admin/service/sites/getSiteNames";
 export * from "./admin/service/sites/toggleSiteStatus";
 export * from "./admin/service/sites/refreshKey";
 export * from "./admin/service/upload/uploadArticleImage";
+export * from "./admin/service/ai/generateImages";
 
 
 /**

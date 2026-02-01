@@ -4,10 +4,11 @@ FastAPI route handlers for articles and metadata.
 """
 
 import json
+import asyncio
 from typing import List
 from fastapi import APIRouter, HTTPException, Query
 
-from models import Article, ArticleSummary, CountryStats, CategoryStats
+from models import Article, ArticleSummary, CountryStats, CategoryStats, ImageGenerationRequest
 from database import redis_client, PREFIX
 
 
@@ -161,6 +162,31 @@ async def search_articles(
     return results
 
 
+@router.post("/generate-images", tags=["AI"])
+async def generate_images(payload: ImageGenerationRequest):
+    """
+    Generate images using AI based on a text prompt.
+    Directly uploads to Cloud Storage and returns public URLs.
+    """
+    from ai_service import AIProcessor
+    ai = AIProcessor()
+    
+    generated_urls = []
+    
+    # Run generation 'n' times
+    # Note: Sequential for now to avoid rapid API limit hits on free tier
+    for i in range(payload.n):
+        # We pass None as article_id so it generates a random one
+        url = ai.generate_image(payload.prompt, None, upload=True)
+        if url and "placehold.co" not in url:
+            generated_urls.append(url)
+            
+    if not generated_urls:
+        raise HTTPException(status_code=500, detail="Failed to generate images. AI model might be busy or quota exceeded.")
+        
+    return {"urls": generated_urls}
+
+
 # ═══════════════════════════════════════════════════════════════
 # METADATA ROUTES
 # ═══════════════════════════════════════════════════════════════
@@ -191,3 +217,61 @@ async def get_categories():
         categories.append({"name": name, "count": count})
     
     return sorted(categories, key=lambda x: x["count"], reverse=True)
+
+
+# ═══════════════════════════════════════════════════════════════
+# ADMIN/TRIGGER ROUTES
+# ═══════════════════════════════════════════════════════════════
+
+@router.post("/trigger", tags=["Admin"])
+async def trigger_job():
+    """
+    Manually trigger the scheduled scraper job.
+    SYNCHRONOUS: Waits for job to complete before returning.
+    This keeps the Cloud Run instance alive during processing.
+    Timeout: Up to 60 minutes (set via --timeout 3600)
+    """
+    from scheduler import run_hourly_job, job_status
+    import time
+    
+    # Check if already running
+    if job_status["is_running"]:
+        raise HTTPException(status_code=409, detail="Job is already running. Please wait for it to complete.")
+    
+    start_time = time.time()
+    
+    # Run the job SYNCHRONOUSLY (await it)
+    results = await run_hourly_job()
+    
+    duration = round(time.time() - start_time, 2)
+    
+    # Calculate summary
+    success = sum(1 for r in (results or []) if r.get("status") == "success")
+    errors = sum(1 for r in (results or []) if r.get("status") == "error")
+    
+    return {
+        "status": "completed",
+        "message": f"Job completed in {duration}s. {success} success, {errors} errors.",
+        "duration_seconds": duration,
+        "success_count": success,
+        "error_count": errors,
+        "results": results,
+        "timestamp": str(__import__('datetime').datetime.now())
+    }
+
+
+@router.get("/status", tags=["Admin"])
+async def get_status():
+    """Get current job status and statistics."""
+    from scheduler import job_status
+    
+    return {
+        "is_running": job_status["is_running"],
+        "total_runs": job_status["total_runs"],
+        "total_success": job_status["total_success"],
+        "total_errors": job_status["total_errors"],
+        "total_skipped": job_status["total_skipped"],
+        "last_run": job_status["last_run"],
+        "next_run": job_status["next_run"],
+        "last_results": job_status["last_results"]
+    }

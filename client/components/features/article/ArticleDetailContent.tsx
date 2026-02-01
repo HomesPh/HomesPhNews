@@ -13,7 +13,7 @@ interface ArticleDetailContentProps {
 export default async function ArticleDetailContent({ id }: ArticleDetailContentProps) {
   let article;
   try {
-    const { data: response } = await getArticleById(id);
+    const response = await getArticleById(id);
     article = response;
   } catch (error) {
     console.error("Error fetching article:", error);

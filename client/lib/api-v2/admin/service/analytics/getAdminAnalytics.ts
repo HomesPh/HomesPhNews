@@ -10,9 +10,13 @@ export type AdminAnalyticsParams = {
 
 export interface AdminAnalyticsOverview {
   total_page_news: number;
+  total_page_news_trend: string;
   unique_visitors: number;
+  unique_visitors_trend: string;
   total_clicks: number;
+  total_clicks_trend: string;
   avg_engagement: number;
+  avg_engagement_trend: string;
 }
 
 export interface AdminAnalyticsTrafficTrend {
@@ -22,11 +26,24 @@ export interface AdminAnalyticsTrafficTrend {
 }
 
 export interface AdminAnalyticsResponse {
-  range: string | unknown[] | null;
+  range: string | null;
   overview: AdminAnalyticsOverview;
   traffic_trends: AdminAnalyticsTrafficTrend[];
-  content_by_category: Article[];
-  performance_by_country: Article[];
+  content_by_category: Array<{
+    category: string;
+    count: number;
+  }>;
+  performance_by_country: Array<{
+    country: string;
+    total_views: number;
+  }>;
+  partner_performance: Array<{
+    site: string;
+    articlesShared: number;
+    monthlyViews: number;
+    revenueGenerated: string;
+    avgEngagement: string;
+  }>;
 }
 
 /**

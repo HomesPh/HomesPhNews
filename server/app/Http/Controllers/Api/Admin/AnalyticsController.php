@@ -36,11 +36,30 @@ class AnalyticsController extends Controller
                 break;
         }
 
-        // 1. Total Overview Stats (Filtered)
+        // Calculate previous period for trends
+        $diffInDays = $startDate->diffInDays($endDate);
+        if ($diffInDays == 0) $diffInDays = 1;
+        $prevStartDate = $startDate->copy()->subDays($diffInDays);
+        $prevEndDate = $startDate->copy()->subSecond();
+
+        // 1. Current Stats (Filtered)
         $totalPageNews = Article::whereBetween('created_at', [$startDate, $endDate])->count();
         $totalUniqueVisitors = Analytics::whereBetween('created_at', [$startDate, $endDate])->sum('unique_visitors');
         $totalClicks = Analytics::whereBetween('created_at', [$startDate, $endDate])->sum('total_clicks');
         $avgEngagement = Analytics::whereBetween('created_at', [$startDate, $endDate])->avg('avg_engagement');
+
+        // 2. Previous Stats (for Trends)
+        $prevPageNews = Article::whereBetween('created_at', [$prevStartDate, $prevEndDate])->count();
+        $prevUniqueVisitors = Analytics::whereBetween('created_at', [$prevStartDate, $prevEndDate])->sum('unique_visitors');
+        $prevClicks = Analytics::whereBetween('created_at', [$prevStartDate, $prevEndDate])->sum('total_clicks');
+        $prevAvgEngagement = Analytics::whereBetween('created_at', [$prevStartDate, $prevEndDate])->avg('avg_engagement');
+
+        $trends = [
+            'news' => $this->calculateTrend($totalPageNews, $prevPageNews),
+            'visitors' => $this->calculateTrend($totalUniqueVisitors, $prevUniqueVisitors),
+            'clicks' => $this->calculateTrend($totalClicks, $prevClicks),
+            'engagement' => $this->calculateTrend($avgEngagement, $prevAvgEngagement)
+        ];
 
         // 2. Traffic Trends (Optimized)
         // Fetch grouped data directly from database to avoid N+1 queries
@@ -81,17 +100,53 @@ class AnalyticsController extends Controller
             ->orderByDesc('total_views')
             ->get();
 
+        // 5. Partner Sites Performance (Filtered)
+        $partnerStats = \App\Models\Site::withCount(['articles' => function($query) use ($startDate, $endDate) {
+            $query->whereBetween('article_site.created_at', [$startDate, $endDate]);
+        }])
+        ->withSum(['articles' => function($query) use ($startDate, $endDate) {
+            $query->whereBetween('article_site.created_at', [$startDate, $endDate]);
+        }], 'views_count')
+        ->get();
+
+        $partnerPerformance = $partnerStats->map(function($site) {
+            return [
+                'site' => $site->site_name,
+                'articlesShared' => $site->articles_count,
+                'monthlyViews' => (int) ($site->articles_sum_views_count ?? 0),
+                'revenueGenerated' => '$0.00', // Mocking revenue for now
+                'avgEngagement' => '0.0%' // Mocking engagement for now
+            ];
+        });
+
         return response()->json([
             'range' => $period,
             'overview' => [
                 'total_page_news' => $totalPageNews,
+                'total_page_news_trend' => $trends['news'],
                 'unique_visitors' => (int) $totalUniqueVisitors,
+                'unique_visitors_trend' => $trends['visitors'],
                 'total_clicks' => (int) $totalClicks,
+                'total_clicks_trend' => $trends['clicks'],
                 'avg_engagement' => round($avgEngagement ?? 0, 2),
+                'avg_engagement_trend' => $trends['engagement'],
             ],
             'traffic_trends' => $trafficTrends,
             'content_by_category' => $contentByCategory,
-            'performance_by_country' => $performanceByCountry
+            'performance_by_country' => $performanceByCountry,
+            'partner_performance' => $partnerPerformance
         ]);
+    }
+
+    private function calculateTrend($current, $previous)
+    {
+        $current = (float) $current;
+        $previous = (float) $previous;
+
+        if ($previous == 0) {
+            return $current > 0 ? "+100%" : "0%";
+        }
+        $diff = (($current - $previous) / $previous) * 100;
+        return ($diff >= 0 ? "+" : "") . round($diff, 1) . "%";
     }
 }

@@ -5,6 +5,7 @@ Best Practice: Centralized settings for easy scaling.
 
 # Supported Countries with Google News region codes (Top OFW Destinations)
 COUNTRIES = {
+    "Philippines": {"gl": "PH", "hl": "en-PH", "ceid": "PH:en"},
     "Saudi Arabia": {"gl": "SA", "hl": "en", "ceid": "SA:en"},
     "United Arab Emirates": {"gl": "AE", "hl": "en-AE", "ceid": "AE:en"},
     "Singapore": {"gl": "SG", "hl": "en-SG", "ceid": "SG:en"},
@@ -15,6 +16,11 @@ COUNTRIES = {
     "Japan": {"gl": "JP", "hl": "en", "ceid": "JP:en"},
     "Australia": {"gl": "AU", "hl": "en-AU", "ceid": "AU:en"},
     "Malaysia": {"gl": "MY", "hl": "en-MY", "ceid": "MY:en"},
+    "Canada": {"gl": "CA", "hl": "en-CA", "ceid": "CA:en"},
+    "United States": {"gl": "US", "hl": "en-US", "ceid": "US:en"},
+    "United Kingdom": {"gl": "GB", "hl": "en-GB", "ceid": "GB:en"},
+    "Italy": {"gl": "IT", "hl": "en", "ceid": "IT:en"},
+    "South Korea": {"gl": "KR", "hl": "en", "ceid": "KR:en"},
 }
 
 # News Categories relevant to OFWs

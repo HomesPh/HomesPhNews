@@ -28,11 +28,11 @@ class UploadController extends Controller
                 $file = $request->file('image');
                 $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
                 
-                // Store in public/articles directory
-                $path = $file->storeAs('articles', $filename, 'public');
+                // Store in S3 bucket under homestv/articles directory
+                $path = $file->storeAs('homestv/articles', $filename, 's3');
                 
-                // Construct the full URL
-                $url = asset('storage/' . $path);
+                // Construct the full S3 URL
+                $url = Storage::disk('s3')->url($path);
                 
                 return response()->json([
                     'message' => 'Image uploaded successfully',
