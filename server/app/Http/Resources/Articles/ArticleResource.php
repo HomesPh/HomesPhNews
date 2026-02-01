@@ -70,6 +70,20 @@ class ArticleResource extends JsonResource
             }
         }
 
+        // Handle date: Redis uses 'timestamp' (Unix), DB uses 'created_at' (string)
+        $createdAt = null;
+        if (isset($data['created_at']) && !empty($data['created_at'])) {
+            $createdAt = (string) $data['created_at'];
+        } elseif (isset($data['timestamp'])) {
+            // Convert Unix timestamp to ISO string
+            $ts = $data['timestamp'];
+            if (is_numeric($ts)) {
+                $createdAt = date('Y-m-d H:i:s', (int) $ts);
+            } else {
+                $createdAt = (string) $ts;
+            }
+        }
+
         return [
             // Core fields - all scalar, no objects
             'id' => (string) ($data['id'] ?? ''),
@@ -79,7 +93,7 @@ class ArticleResource extends JsonResource
             'category' => (string) ($data['category'] ?? ''),
             'country' => (string) ($data['country'] ?? ($data['location'] ?? 'Global')),
             'status' => (string) ($data['status'] ?? 'pending'),
-            'created_at' => isset($data['created_at']) ? (string) $data['created_at'] : null,
+            'created_at' => $createdAt,
             'views_count' => (int) ($data['views_count'] ?? 0),
             
             // Image handling - scalar strings only
@@ -89,7 +103,7 @@ class ArticleResource extends JsonResource
             // Aliases for frontend compatibility - scalar strings only
             'location' => (string) ($data['country'] ?? ($data['location'] ?? 'Global')),
             'description' => (string) ($data['summary'] ?? ($data['content'] ?? '')),
-            'date' => isset($data['created_at']) ? (string) $data['created_at'] : null,
+            'date' => $createdAt,
             'views' => number_format((int) ($data['views_count'] ?? 0)) . ' views',
             
             // Array fields - array of strings ONLY, no objects
