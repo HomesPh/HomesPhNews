@@ -4,8 +4,9 @@ FastAPI route handlers for articles and metadata.
 """
 
 import json
+import asyncio
 from typing import List
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, BackgroundTasks
 
 from models import Article, ArticleSummary, CountryStats, CategoryStats, ImageGenerationRequest
 from database import redis_client, PREFIX
@@ -216,3 +217,46 @@ async def get_categories():
         categories.append({"name": name, "count": count})
     
     return sorted(categories, key=lambda x: x["count"], reverse=True)
+
+
+# ═══════════════════════════════════════════════════════════════
+# ADMIN/TRIGGER ROUTES
+# ═══════════════════════════════════════════════════════════════
+
+@router.post("/trigger", tags=["Admin"])
+async def trigger_job(background_tasks: BackgroundTasks):
+    """
+    Manually trigger the scheduled scraper job.
+    Useful for testing and manual runs.
+    """
+    from scheduler import run_hourly_job, job_status
+    
+    # Check if already running
+    if job_status["is_running"]:
+        raise HTTPException(status_code=409, detail="Job is already running. Please wait for it to complete.")
+    
+    # Add coroutine to background tasks
+    background_tasks.add_task(run_hourly_job)
+    
+    return {
+        "status": "triggered",
+        "message": "Job has been triggered. Check Discord webhook and logs for results.",
+        "timestamp": str(__import__('datetime').datetime.now())
+    }
+
+
+@router.get("/status", tags=["Admin"])
+async def get_status():
+    """Get current job status and statistics."""
+    from scheduler import job_status
+    
+    return {
+        "is_running": job_status["is_running"],
+        "total_runs": job_status["total_runs"],
+        "total_success": job_status["total_success"],
+        "total_errors": job_status["total_errors"],
+        "total_skipped": job_status["total_skipped"],
+        "last_run": job_status["last_run"],
+        "next_run": job_status["next_run"],
+        "last_results": job_status["last_results"]
+    }

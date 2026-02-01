@@ -59,9 +59,9 @@ class DashboardController extends Controller
              ];
         })->sortByDesc('published_count')->take(5)->values();
 
-        // 6. Recent articles
-        // NOTE: DO NOT load relationships here - ArticleResource queries them directly via raw DB queries
+        // 6. Recent articles - Eager load to prevent N+1
         $recentArticles = Article::query()
+            ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
             ->where('status', 'published')
             ->latest() 
             ->take(5)  

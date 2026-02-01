@@ -57,9 +57,9 @@ class ArticleController extends Controller
         $availableCategories = (clone $query)->distinct()->whereNotNull('category')->pluck('category')->sort()->values();
         $availableCountries = (clone $query)->distinct()->whereNotNull('country')->pluck('country')->sort()->values();
 
-        // Paginate DB results
-        // NOTE: DO NOT load relationships here - ArticleResource queries them directly via raw DB queries
+        // Paginate DB results - Eager load to prevent N+1 queries
         $articles = $query
+            ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
             ->select('id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url')
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage);
@@ -257,12 +257,12 @@ class ArticleController extends Controller
     public function show($id): JsonResponse|ArticleResource
     {
         if (is_numeric($id) || ! \Illuminate\Support\Str::isUuid($id)) {
-            $article = Article::with('images')->find($id);
+            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])->find($id);
             if ($article) {
                 return new ArticleResource($article);
             }
         } else {
-            $article = Article::with('images')->where('id', $id)->first();
+            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])->where('id', $id)->first();
             if ($article) {
                 return new ArticleResource($article);
             }

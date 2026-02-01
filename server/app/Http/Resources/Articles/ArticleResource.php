@@ -29,29 +29,30 @@ class ArticleResource extends JsonResource
             $data = $this->resource;
         }
 
-        // Get published sites - use raw query to avoid model references
+        // Get published sites - use eager loaded relationship if available
         $publishedSites = [];
-        if ($isModel && $this->resource->id) {
-            // Query directly instead of using relationship to avoid model serialization
-            $publishedSites = \App\Models\Site::query()
-                ->join('article_site', 'sites.id', '=', 'article_site.site_id')
-                ->where('article_site.article_id', $this->resource->id)
-                ->pluck('sites.site_name')
-                ->map(fn($name) => (string) $name)
-                ->toArray();
+        if ($isModel && $this->resource->relationLoaded('publishedSites')) {
+            // Use already loaded relationship (no extra query!)
+            $relation = $this->resource->getRelation('publishedSites');
+            if ($relation instanceof \Illuminate\Support\Collection) {
+                $publishedSites = $relation->pluck('site_name')->map(fn($n) => (string) $n)->toArray();
+            } elseif (is_array($relation)) {
+                $publishedSites = array_map('strval', $relation);
+            }
         } elseif (isset($data['published_sites']) && is_array($data['published_sites'])) {
             $publishedSites = array_map('strval', $data['published_sites']);
         }
 
-        // Get gallery images - use raw query to avoid model references
+        // Get gallery images - use eager loaded relationship if available
         $galleryImages = [];
-        if ($isModel && $this->resource->id) {
-            // Query directly instead of using relationship
-            $galleryImages = \App\Models\ArticleImage::query()
-                ->where('article_id', $this->resource->id)
-                ->pluck('image_path')
-                ->map(fn($path) => (string) $path)
-                ->toArray();
+        if ($isModel && $this->resource->relationLoaded('images')) {
+            // Use already loaded relationship (no extra query!)
+            $relation = $this->resource->getRelation('images');
+            if ($relation instanceof \Illuminate\Support\Collection) {
+                $galleryImages = $relation->pluck('image_path')->map(fn($p) => (string) $p)->toArray();
+            } elseif (is_array($relation)) {
+                $galleryImages = array_map(fn($img) => (string) ($img['image_path'] ?? ''), $relation);
+            }
         } elseif (isset($data['galleryImages']) && is_array($data['galleryImages'])) {
             $galleryImages = array_map('strval', $data['galleryImages']);
         } elseif (isset($data['gallery_images']) && is_array($data['gallery_images'])) {
