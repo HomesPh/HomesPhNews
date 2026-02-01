@@ -12,8 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->statefulApi(); // Ensures Sanctum/Session works for API
-        
+        $middleware->validateCsrfTokens(except: [
+            'api/*',
+        ]);
+
         $middleware->alias([
             'is.admin'    => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'site.auth'   => \App\Http\Middleware\VerifySiteApiKey::class,

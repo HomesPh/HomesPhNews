@@ -9,7 +9,7 @@ interface ArticleBreadcrumbContainerProps {
 export default async function ArticleBreadcrumbContainer({ id }: ArticleBreadcrumbContainerProps) {
   let article;
   try {
-    const { data: response } = await getArticleById(id);
+    const response = await getArticleById(id);
     article = response;
   } catch (error) {
     return null;

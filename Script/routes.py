@@ -7,7 +7,7 @@ import json
 from typing import List
 from fastapi import APIRouter, HTTPException, Query
 
-from models import Article, ArticleSummary, CountryStats, CategoryStats
+from models import Article, ArticleSummary, CountryStats, CategoryStats, ImageGenerationRequest
 from database import redis_client, PREFIX
 
 
@@ -159,6 +159,31 @@ async def search_articles(
                     break
     
     return results
+
+
+@router.post("/generate-images", tags=["AI"])
+async def generate_images(payload: ImageGenerationRequest):
+    """
+    Generate images using AI based on a text prompt.
+    Directly uploads to Cloud Storage and returns public URLs.
+    """
+    from ai_service import AIProcessor
+    ai = AIProcessor()
+    
+    generated_urls = []
+    
+    # Run generation 'n' times
+    # Note: Sequential for now to avoid rapid API limit hits on free tier
+    for i in range(payload.n):
+        # We pass None as article_id so it generates a random one
+        url = ai.generate_image(payload.prompt, None, upload=True)
+        if url and "placehold.co" not in url:
+            generated_urls.append(url)
+            
+    if not generated_urls:
+        raise HTTPException(status_code=500, detail="Failed to generate images. AI model might be busy or quota exceeded.")
+        
+    return {"urls": generated_urls}
 
 
 # ═══════════════════════════════════════════════════════════════

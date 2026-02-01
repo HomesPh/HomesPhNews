@@ -68,7 +68,8 @@ class ArticleController extends Controller
             $query->whereRaw('JSON_CONTAINS(topics, ?)', [json_encode($topic)]);
         }
 
-        $articles = $query->with(['publishedSites'])
+        // NOTE: DO NOT load relationships here - ArticleResource queries them directly via raw DB queries
+        $articles = $query
             ->select('id', 'title', 'summary', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'views_count', 'topics', 'original_url')
             ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
@@ -98,8 +99,7 @@ class ArticleController extends Controller
         $country = $validated['country'] ?? null;
         $category = $validated['category'] ?? null;
 
-        $baseQuery = Article::with(['publishedSites'])
-            ->where('status', 'published');
+        $baseQuery = Article::where('status', 'published');
 
         if ($country) {
             $baseQuery->where('country', $country);

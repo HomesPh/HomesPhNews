@@ -27,7 +27,7 @@ export default async function SearchPage({ searchParams }: Props) {
     });
 
     // Extract articles from the nested structure defined in ArticleListResponse
-    const filteredArticles: ArticleResource[] = response.data.data.data || [];
+    const filteredArticles: ArticleResource[] = response.data?.data || [];
 
     // Helper lookup for labels
     const getLabel = (list: any[], val: string) =>

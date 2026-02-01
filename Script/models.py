@@ -20,6 +20,12 @@ class Article(BaseModel):
     timestamp: Optional[float] = 0
 
 
+class ImageGenerationRequest(BaseModel):
+    """Request payload for AI image generation."""
+    prompt: str
+    n: int = 1
+
+
 class ArticleSummary(BaseModel):
     """Lightweight article for lists."""
     id: str

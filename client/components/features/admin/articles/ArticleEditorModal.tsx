@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X, ArrowLeft, Save, Send } from 'lucide-react';
 import { cn } from "@/lib/utils";
-import { getSiteNames, updatePendingArticle, createArticle, updateArticle } from "@/lib/api-v2";
+import { getSiteNames, updatePendingArticle, createArticle, updateArticle, publishArticle, uploadArticleImage } from "@/lib/api-v2";
 import ArticleEditorForm from "./editor/ArticleEditorForm";
 import ArticleEditorPreview from "./editor/ArticleEditorPreview";
 import { TemplateType } from "./editor/TemplateSelector";
@@ -191,8 +191,61 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
         });
     };
 
+    // Helper: Convert base64 data URL to File object
+    const dataUrlToFile = async (dataUrl: string, filename: string): Promise<File> => {
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        return new File([blob], filename, { type: blob.type });
+    };
+
+    // Helper: Check if string is a base64 data URL
+    const isDataUrl = (str: string) => str?.startsWith('data:');
+
+    // Helper: Upload image to S3 if it's a data URL, otherwise return as-is
+    const uploadIfDataUrl = async (imageUrl: string | null): Promise<string | null> => {
+        if (!imageUrl || !isDataUrl(imageUrl)) return imageUrl;
+        try {
+            const file = await dataUrlToFile(imageUrl, `image-${Date.now()}.jpg`);
+            const response = await uploadArticleImage(file);
+            return response.data.url;
+        } catch (error) {
+            console.error('Failed to upload image:', error);
+            throw error;
+        }
+    };
+
     const handleSave = async (isPublish: boolean = false) => {
         try {
+            // Upload any base64 images to S3 first
+            let finalImage = articleData.image;
+            let finalGalleryImages = [...articleData.galleryImages];
+            let finalContentBlocks = [...articleData.contentBlocks];
+
+            // Show uploading state
+            console.log('Uploading images to S3...');
+
+            // Upload main image if it's a data URL
+            if (isDataUrl(finalImage || '')) {
+                finalImage = await uploadIfDataUrl(finalImage);
+            }
+
+            // Upload gallery images
+            for (let i = 0; i < finalGalleryImages.length; i++) {
+                if (isDataUrl(finalGalleryImages[i])) {
+                    finalGalleryImages[i] = await uploadIfDataUrl(finalGalleryImages[i]) || '';
+                }
+            }
+
+            // Upload content block images
+            for (let i = 0; i < finalContentBlocks.length; i++) {
+                if (finalContentBlocks[i].image && isDataUrl(finalContentBlocks[i].image || '')) {
+                    finalContentBlocks[i] = {
+                        ...finalContentBlocks[i],
+                        image: await uploadIfDataUrl(finalContentBlocks[i].image || null) || undefined
+                    };
+                }
+            }
+
             const payload = {
                 title: articleData.title,
                 slug: articleData.slug,
@@ -200,27 +253,60 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 content: articleData.content,
                 category: articleData.category,
                 country: articleData.country,
-                image: articleData.image,
+                image: finalImage,
                 published_sites: articleData.publishTo,
                 status: (isPublish ? 'published' : 'pending review') as 'published' | 'pending review',
                 topics: articleData.tags,
                 author: articleData.author,
                 date: articleData.publishDate,
-                gallery_images: articleData.galleryImages,
+                gallery_images: finalGalleryImages,
                 split_images: articleData.splitImages,
-                content_blocks: articleData.contentBlocks,
+                content_blocks: finalContentBlocks,
                 template: template
             };
 
+            // Helper to check if ID is a UUID (Redis articles have UUID IDs)
+            const isUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+            
+            // Check if this is a pending article from Redis
+            // - Either status is 'pending' or 'pending review'  
+            // - Or the ID is a UUID (Redis articles have UUID format)
+            const isPendingArticle = initialData?.status === 'pending' || 
+                                     initialData?.status === 'pending review' ||
+                                     (initialData?.id && isUUID(initialData.id));
+
+            console.log('handleSave debug:', { 
+                mode, 
+                status: initialData?.status, 
+                id: initialData?.id, 
+                isPendingArticle,
+                isPublish 
+            });
+
             if (mode === 'create') {
+                // Create article directly in MySQL database
                 await createArticle(payload);
                 alert(`Article ${isPublish ? 'published' : 'created'} successfully!`);
-            } else if (mode === 'edit' && (initialData?.status === 'pending' || initialData?.status === 'pending review')) {
+            } else if (mode === 'edit' && isPendingArticle) {
+                // For pending articles (from Redis), first update the data
                 await updatePendingArticle(initialData.id, {
                     ...payload,
-                    image_url: articleData.image || undefined,
+                    image_url: finalImage || undefined,
                 });
-                alert('Article updated successfully!');
+                
+                // If publishing, also move from Redis to MySQL database
+                if (isPublish) {
+                    if (articleData.publishTo.length === 0) {
+                        alert('Please select at least one site to publish to.');
+                        return;
+                    }
+                    await publishArticle(initialData.id, {
+                        published_sites: articleData.publishTo,
+                    });
+                    alert('Article published successfully!');
+                } else {
+                    alert('Article updated successfully!');
+                }
             } else if (mode === 'edit') {
                 await updateArticle(initialData.id, payload);
                 alert('Article updated successfully!');
