@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export type StatusType = 'published' | 'pending' | 'rejected' | 'active' | 'inactive' | 'suspended';
+export type StatusType = 'published' | 'pending' | 'pending review' | 'rejected' | 'active' | 'inactive' | 'suspended' | 'deleted';
 
 interface StatusBadgeProps {
     status: StatusType;
@@ -30,11 +30,23 @@ export default function StatusBadge({ status, className }: StatusBadgeProps) {
             textColor: '#9a3412', // Deep Orange
             borderColor: '#fef08a',
         },
+        'pending review': {
+            label: 'Pending Review',
+            bgColor: '#fef9c3',
+            textColor: '#9a3412',
+            borderColor: '#fef08a',
+        },
         rejected: {
             label: 'Rejected',
             bgColor: '#fee2e2',
             textColor: '#991b1b',
             borderColor: '#fecaca',
+        },
+        deleted: {
+            label: 'Deleted',
+            bgColor: '#f3f4f6',
+            textColor: '#6b7280',
+            borderColor: '#e5e7eb',
         },
         inactive: {
             label: 'Inactive',
