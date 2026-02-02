@@ -7,7 +7,33 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import * as api from "@/lib/api-v2";
+import {
+  login,
+  getUser,
+  logout,
+  getAdminArticles,
+  createArticle,
+  getAdminArticleById,
+  updateArticle,
+  updateArticleTitles,
+  updatePendingArticle,
+  publishArticle,
+  getAdminEvents,
+  createEvent,
+  getEventById,
+  updateEvent,
+  deleteEvent,
+  getAdminSites,
+  getSiteNames,
+  createSite,
+  getAdminSiteById,
+  updateSite,
+  toggleSiteStatus,
+  deleteSite,
+  getAdminStats,
+  getAdminAnalytics,
+  uploadArticleImage,
+} from "@/lib/api-v2";
 
 type LastResult = {
   action: string;
@@ -117,13 +143,13 @@ export default function TestPage() {
                       label="Admin Login"
                       action="login"
                       description="Login with default admin credentials"
-                      onClick={() => api.login({ email: "admin@globalnews.com", password: "admin123" })}
+                      onClick={() => login({ email: "admin@globalnews.com", password: "admin123" })}
                     />
                     <ActionRow
                       label="Get Auth User"
                       action="getUser"
                       description="Retrieve current authenticated user details"
-                      onClick={() => api.getUser()}
+                      onClick={() => getUser()}
                     />
                     <Separator />
                     <ActionRow
@@ -131,7 +157,7 @@ export default function TestPage() {
                       action="logout"
                       variant="destructive"
                       description="Terminate the current session"
-                      onClick={() => api.logout()}
+                      onClick={() => logout()}
                     />
                   </CardContent>
                 </Card>
@@ -149,13 +175,13 @@ export default function TestPage() {
                       label="Get Admin Articles"
                       action="getAdminArticles"
                       description="List first 5 articles with status counts"
-                      onClick={() => api.getAdminArticles({ per_page: 5, page: 1 })}
+                      onClick={() => getAdminArticles({ per_page: 5, page: 1 })}
                     />
                     <ActionRow
                       label="Create Test Article"
                       action="createArticle"
                       description="Create a new article in pending review state"
-                      onClick={() => api.createArticle({
+                      onClick={() => createArticle({
                         title: "Test Article " + new Date().toLocaleTimeString(),
                         summary: "Automated test summary generated for API validation.",
                         content: "Full content body for the test article.",
@@ -184,21 +210,21 @@ export default function TestPage() {
                       label="Get Article By ID"
                       action="getAdminArticleById"
                       disabled={!articleId}
-                      onClick={() => api.getAdminArticleById(articleId)}
+                      onClick={() => getAdminArticleById(articleId)}
                     />
                     <ActionRow
                       label="Update Generic Article"
                       action="updateArticle"
                       disabled={!articleId}
                       description="Updates title with a timestamp"
-                      onClick={() => api.updateArticle(articleId, { title: "Updated: " + new Date().toLocaleTimeString() })}
+                      onClick={() => updateArticle(articleId, { title: "Updated: " + new Date().toLocaleTimeString() })}
                     />
                     <ActionRow
                       label="Update Custom Titles"
                       action="updateArticleTitles"
                       disabled={!articleId}
                       description="Sets custom A/B titles"
-                      onClick={() => api.updateArticleTitles(articleId, {
+                      onClick={() => updateArticleTitles(articleId, {
                         custom_titles: ["Variation X - " + Date.now(), "Variation Y - " + Date.now()]
                       })}
                     />
@@ -222,26 +248,16 @@ export default function TestPage() {
                       label="Update Pending Record"
                       action="updatePendingArticle"
                       disabled={!pendingId}
-                      onClick={() => api.updatePendingArticle(pendingId, { title: "Updated Pending Article" })}
+                      onClick={() => updatePendingArticle(pendingId, { title: "Updated Pending Article" })}
                     />
                     <ActionRow
                       label="Publish Article"
                       action="publishArticle"
                       variant="secondary"
                       disabled={!pendingId}
-                      onClick={() => api.publishArticle(pendingId, {
+                      onClick={() => publishArticle(pendingId, {
                         published_sites: ["web"],
                         reason: "Validated via Test Page"
-                      })}
-                    />
-                    <ActionRow
-                      label="Reject Article"
-                      action="rejectArticle"
-                      variant="destructive"
-                      disabled={!pendingId}
-                      onClick={() => api.rejectArticle(pendingId, {
-                        published_sites: [],
-                        reason: "Rejected via Test Page"
                       })}
                     />
                   </CardContent>
@@ -259,12 +275,12 @@ export default function TestPage() {
                     <ActionRow
                       label="List All Events"
                       action="getAdminEvents"
-                      onClick={() => api.getAdminEvents()}
+                      onClick={() => getAdminEvents()}
                     />
                     <ActionRow
                       label="Create New Event"
                       action="createEvent"
-                      onClick={() => api.createEvent({
+                      onClick={() => createEvent({
                         event_title: "System Check",
                         description: "Manual triggering of system event check",
                         date: new Date().toISOString()
@@ -283,20 +299,20 @@ export default function TestPage() {
                       label="Get Event By ID"
                       action="getEventById"
                       disabled={!eventId}
-                      onClick={() => api.getEventById(Number(eventId))}
+                      onClick={() => getEventById(Number(eventId))}
                     />
                     <ActionRow
                       label="Update Event"
                       action="updateEvent"
                       disabled={!eventId}
-                      onClick={() => api.updateEvent(Number(eventId), { event_title: "MODIFIED EVENT" })}
+                      onClick={() => updateEvent(Number(eventId), { event_title: "MODIFIED EVENT" })}
                     />
                     <ActionRow
                       label="Delete Event"
                       action="deleteEvent"
                       variant="destructive"
                       disabled={!eventId}
-                      onClick={() => api.deleteEvent(Number(eventId))}
+                      onClick={() => deleteEvent(Number(eventId))}
                     />
                   </CardContent>
                 </Card>
@@ -313,17 +329,17 @@ export default function TestPage() {
                     <ActionRow
                       label="Get Admin Sites"
                       action="getAdminSites"
-                      onClick={() => api.getAdminSites()}
+                      onClick={() => getAdminSites()}
                     />
                     <ActionRow
                       label="Get Active Site Names"
                       action="getSiteNames"
-                      onClick={() => api.getSiteNames()}
+                      onClick={() => getSiteNames()}
                     />
                     <ActionRow
                       label="Register New Site"
                       action="createSite"
-                      onClick={() => api.createSite({
+                      onClick={() => createSite({
                         name: "Test Site " + Date.now(),
                         domain: `test-${Date.now()}.example.com`,
                         description: "Experimental site Target"
@@ -342,26 +358,26 @@ export default function TestPage() {
                       label="Get Site By ID"
                       action="getAdminSiteById"
                       disabled={!siteId}
-                      onClick={() => api.getAdminSiteById(Number(siteId))}
+                      onClick={() => getAdminSiteById(Number(siteId))}
                     />
                     <ActionRow
                       label="Update Site"
                       action="updateSite"
                       disabled={!siteId}
-                      onClick={() => api.updateSite(Number(siteId), { name: "Updated Site " + Date.now() })}
+                      onClick={() => updateSite(Number(siteId), { name: "Updated Site " + Date.now() })}
                     />
                     <ActionRow
                       label="Toggle Site Status"
                       action="toggleSiteStatus"
                       disabled={!siteId}
-                      onClick={() => api.toggleSiteStatus(Number(siteId))}
+                      onClick={() => toggleSiteStatus(Number(siteId))}
                     />
                     <ActionRow
                       label="Unregister Site"
                       action="deleteSite"
                       variant="destructive"
                       disabled={!siteId}
-                      onClick={() => api.deleteSite(Number(siteId))}
+                      onClick={() => deleteSite(Number(siteId))}
                     />
                   </CardContent>
                 </Card>
@@ -379,22 +395,22 @@ export default function TestPage() {
                       label="Global Dashboard Stats"
                       action="getAdminStats"
                       description="Fetch top-level aggregated stats for the dashboard"
-                      onClick={() => api.getAdminStats()}
+                      onClick={() => getAdminStats()}
                     />
                     <Separator />
                     <div className="space-y-3">
                       <p className="text-sm font-semibold">Analytics Overviews</p>
                       <div className="grid grid-cols-2 gap-2">
-                        <Button variant="outline" size="sm" onClick={() => run("getAdminAnalytics-7d", () => api.getAdminAnalytics({ period: "7d" }))}>
+                        <Button variant="outline" size="sm" onClick={() => run("getAdminAnalytics-7d", () => getAdminAnalytics({ period: "7d" }))}>
                           Last 7 Days
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => run("getAdminAnalytics-30d", () => api.getAdminAnalytics({ period: "30d" }))}>
+                        <Button variant="outline" size="sm" onClick={() => run("getAdminAnalytics-30d", () => getAdminAnalytics({ period: "30d" }))}>
                           Last 30 Days
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => run("getAdminAnalytics-3m", () => api.getAdminAnalytics({ period: "3m" }))}>
+                        <Button variant="outline" size="sm" onClick={() => run("getAdminAnalytics-3m", () => getAdminAnalytics({ period: "3m" }))}>
                           Last 3 Months
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => run("getAdminAnalytics-1y", () => api.getAdminAnalytics({ period: "1y" }))}>
+                        <Button variant="outline" size="sm" onClick={() => run("getAdminAnalytics-1y", () => getAdminAnalytics({ period: "1y" }))}>
                           Last Year
                         </Button>
                       </div>
@@ -426,7 +442,7 @@ export default function TestPage() {
                             setLastResult({ action: "upload", ok: false, payload: "No file selected" });
                             return;
                           }
-                          run("uploadArticleImage", () => api.uploadArticleImage(file));
+                          run("uploadArticleImage", () => uploadArticleImage(file));
                         }}
                       >
                         Upload Selected File

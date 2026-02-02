@@ -23,7 +23,7 @@ export interface Article {
 export const articles: Article[] = [
   {
     id: 'self-driving-cars-federal-approval',
-    category: 'Technology',
+    category: 'Business & Economy',
     location: 'USA',
     title: 'Self-Driving Cars Get Federal Approval',
     description: 'The US Department of Transportation has approved...',
@@ -70,7 +70,7 @@ export const articles: Article[] = [
   },
   {
     id: 'philippines-tech-hub',
-    category: 'Technology',
+    category: 'Business & Economy',
     location: 'Philippines',
     title: 'Manila Emerges as New Tech Destination',
     description: 'The Philippine capital is seeing a surge in tech investments...',
@@ -89,7 +89,7 @@ export const articles: Article[] = [
   },
   {
     id: 'canada-clean-energy',
-    category: 'Economy',
+    category: 'Business & Economy',
     location: 'Canada',
     title: 'Canada Invests $5B in Clean Energy Projects',
     description: 'The federal government has announced a massive investment in solar and wind power...',
@@ -108,7 +108,7 @@ export const articles: Article[] = [
   },
   {
     id: 'dubai-tourism-record',
-    category: 'Tourism',
+    category: 'Community',
     location: 'Dubai',
     title: 'Dubai Sees Record Tourist Arrivals in Q1',
     description: 'Travel statistics for the first quarter of 2025 show a significant increase...',
@@ -127,7 +127,7 @@ export const articles: Article[] = [
   },
   {
     id: 'europe-politics-summit',
-    category: 'Politics',
+    category: 'Labor & Employment',
     location: 'Europe',
     title: 'EU Leaders Meet to Discuss Security Strategy',
     description: 'The summit in Brussels aims to strengthen defense cooperation among member states...',
