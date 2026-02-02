@@ -43,7 +43,7 @@ class ArticleController extends Controller
         $query = Article::query();
 
         // Always filter by published status for public feed
-        $query->where('status', 'published');
+        $query->where('status', 'published')->where('is_deleted', false);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -100,7 +100,7 @@ class ArticleController extends Controller
         $country = $validated['country'] ?? null;
         $category = $validated['category'] ?? null;
 
-        $baseQuery = Article::where('status', 'published');
+        $baseQuery = Article::where('status', 'published')->where('is_deleted', false);
 
         if ($country) {
             $baseQuery->where('country', $country);
@@ -149,7 +149,9 @@ class ArticleController extends Controller
     public function show(string $id): JsonResponse|ArticleResource
     {
         // Eager load relationships to prevent N+1
-        $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])->find($id);
+        $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])
+            ->where('is_deleted', false)
+            ->find($id);
 
         if (! $article) {
             // Fallback to Redis if not found in DB

@@ -88,6 +88,8 @@ Route::middleware(['auth:sanctum', 'is.admin'])
         Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
         // Publish pending article (Redis → MySQL, then delete from Redis)
         Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
+        // Restore soft-deleted article
+        Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
 
         // Upload Routes
         Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
