@@ -17,9 +17,13 @@ class SubscriptionController extends Controller
      */
     public function show($id): JsonResponse
     {
-        $subscription = SubscriptionDetail::find($id);
+        // Try finding by the defined primary key column 'sub_Id'
+        $subscription = SubscriptionDetail::where('sub_Id', $id)->first();
 
         if (!$subscription) {
+            // Log the failure for debugging
+            \Log::warning("Subscription not found for ID: " . $id);
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'Subscription not found.'
@@ -37,7 +41,7 @@ class SubscriptionController extends Controller
      */
     public function update(Request $request, $id): JsonResponse
     {
-        $subscription = SubscriptionDetail::find($id);
+        $subscription = SubscriptionDetail::where('sub_Id', $id)->first();
 
         if (!$subscription) {
             return response()->json([
@@ -164,7 +168,7 @@ class SubscriptionController extends Controller
                         'articles' => [], // Don't need articles for this one
                         'clientUrl' => env('APP_URL_CLIENT', 'http://localhost:3000'),
                         'actionUrl' => $editUrl,
-                        'actionText' => 'Manage Subscription',
+                        'actionText' => 'Edit your Preferences',
                         'subId' => $existing->sub_Id
                     ], function ($message) use ($request) {
                         $message->to($request->email)
