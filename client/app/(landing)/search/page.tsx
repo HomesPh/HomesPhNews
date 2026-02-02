@@ -48,7 +48,11 @@ export default async function SearchPage({ searchParams }: Props) {
 
             const matchesCountry = country === "all" || a.country === country || a.country === "Global";
 
-            return !seenIds.has(a.id) && matchesCategory && matchesCountry;
+            const matchesSearch = !q ||
+                a.title.toLowerCase().includes(q.toLowerCase()) ||
+                a.summary.toLowerCase().includes(q.toLowerCase());
+
+            return !seenIds.has(a.id) && matchesCategory && matchesCountry && matchesSearch;
         });
         filteredArticles = [...realArticles, ...uniqueMock];
     }
@@ -69,7 +73,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-            <h1 className="text-[32px] font-bold text-[#111827] tracking-tight">
+            <h1 className="text-[32px] font-bold text-[#111827] dark:text-white tracking-tight">
                 {heading}{filterText}
             </h1>
 
@@ -101,8 +105,8 @@ export default async function SearchPage({ searchParams }: Props) {
                     />
                 </Suspense>
             ) : (
-                <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-500">
-                    <p className="font-semibold text-xl text-gray-900 mb-2">No results found</p>
+                <div className="bg-white dark:bg-[#1a1d2e] rounded-xl border border-gray-200 dark:border-[#2a2d3e] p-12 text-center text-gray-500 dark:text-gray-400">
+                    <p className="font-semibold text-xl text-gray-900 dark:text-white mb-2">No results found</p>
                     <p>We couldn't find any articles matching your search criteria.</p>
                 </div>
             )}

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArticleResource } from "@/lib/api-v2";
 import LandingBlockHeader from "./LandingBlockHeader";
+import { stripHtml } from '@/lib/utils';
 
 interface LandingNewsBlockProps {
     title: string;
@@ -39,7 +40,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                     <div className="bg-[#cc0000] text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter shadow-lg">
                                         {article.category}
                                     </div>
-                                    <div className="bg-white text-[#1a1a1a] text-[8px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 shadow-lg">
+                                    <div className="bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[8px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors">
                                         {article.country || "Global"}
                                     </div>
                                 </div>
@@ -84,7 +85,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 <div className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg">
                                     {main.category}
                                 </div>
-                                <div className="bg-white text-[#1a1a1a] text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 shadow-lg">
+                                <div className="bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors">
                                     {main.country || "Global"}
                                 </div>
                             </div>
@@ -123,7 +124,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                         <div className="bg-[#cc0000] text-white text-[8px] font-black uppercase px-1 py-0.5 tracking-tighter shadow-lg">
                                             {article.category}
                                         </div>
-                                        <div className="bg-white text-[#1a1a1a] text-[8px] font-black uppercase px-1 py-0.5 tracking-tighter border border-gray-100 shadow-lg">
+                                        <div className="bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[8px] font-black uppercase px-1 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors">
                                             {article.country || "Global"}
                                         </div>
                                     </div>
@@ -170,7 +171,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 <div className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg">
                                     {article.category}
                                 </div>
-                                <div className="bg-white text-[#1a1a1a] text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 shadow-lg">
+                                <div className="bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors">
                                     {article.country || "Global"}
                                 </div>
                             </div>
