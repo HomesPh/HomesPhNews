@@ -6,7 +6,8 @@ import { Calendar, Eye, Edit, XCircle, ChevronLeft, Loader2, ExternalLink } from
 import { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
 import { getAdminArticleById } from "@/lib/api-v2/admin/service/article/getAdminArticleById";
 import { publishArticle } from "@/lib/api-v2/admin/service/article/publishArticle";
-import { rejectArticle } from "@/lib/api-v2/admin/service/article/rejectArticle";
+import { deleteArticle } from "@/lib/api-v2/admin/service/article/deleteArticle";
+import { Trash2 } from 'lucide-react';
 import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
 import CustomizeTitlesModal from "@/components/features/admin/articles/CustomizeTitlesModal";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
@@ -46,11 +47,10 @@ export default function ArticleDetailsPage() {
     const [article, setArticle] = useState<ArticleResource | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isPublishing, setIsPublishing] = useState(false);
-    const [isRejecting, setIsRejecting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [customTitles, setCustomTitles] = useState<Record<string, string>>({});
     const [showPublishDialog, setShowPublishDialog] = useState(false);
-    const [showRejectDialog, setShowRejectDialog] = useState(false);
-    const [rejectReason, setRejectReason] = useState('');
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [availableSites, setAvailableSites] = useState<string[]>([]);
     const [publishToSites, setPublishToSites] = useState<string[]>([]);
 
@@ -117,27 +117,23 @@ export default function ArticleDetailsPage() {
         }
     };
 
-    const handleRejectClick = () => {
+    const handleDeleteClick = () => {
         if (!article || !params.id) return;
-        setShowRejectDialog(true);
+        setShowDeleteDialog(true);
     };
 
-    const confirmReject = async () => {
-        setIsRejecting(true);
+    const confirmDelete = async () => {
+        setIsDeleting(true);
         try {
             const articleId = (Array.isArray(params.id) ? params.id[0] : params.id) || '';
-            await rejectArticle(articleId, {
-                reason: rejectReason || null,
-                published_sites: [] // Required by type, empty for reject
-            });
-            router.push('/admin/articles?status=rejected');
+            await deleteArticle(articleId);
+            router.push('/admin/articles');
         } catch (error: any) {
-            const message = error.response?.data?.message || 'Failed to reject article';
+            const message = error.response?.data?.message || 'Failed to delete article';
             alert(`Error: ${message}`);
         } finally {
-            setIsRejecting(false);
-            setShowRejectDialog(false);
-            setRejectReason('');
+            setIsDeleting(false);
+            setShowDeleteDialog(false);
         }
     };
 
@@ -346,12 +342,12 @@ export default function ArticleDetailsPage() {
                                     <Edit className="w-4 h-4" /> Edit Article
                                 </button>
                                 <button
-                                    onClick={handleRejectClick}
-                                    disabled={isRejecting || article.status === 'rejected' || article.status === 'published'}
+                                    onClick={handleDeleteClick}
+                                    disabled={isDeleting}
                                     className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#ef4444] hover:bg-red-50 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {isRejecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                                    {isRejecting ? 'Rejecting...' : (article.status === 'rejected' ? 'Rejected' : 'Reject Article')}
+                                    {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                    {isDeleting ? 'Deleting...' : 'Delete Article'}
                                 </button>
                             </div>
                         </div>
@@ -375,21 +371,20 @@ export default function ArticleDetailsPage() {
                 </AlertDialogContent>
             </AlertDialog>
 
-            <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Reject Article</DialogTitle>
-                        <DialogDescription>Are you sure you want to reject this article? Please provide a reason below (optional).</DialogDescription>
-                    </DialogHeader>
-                    <div className="py-4">
-                        <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Reason for rejection..." className="w-full min-h-[100px] p-3 rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
-                    </div>
-                    <DialogFooter>
-                        <button onClick={() => setShowRejectDialog(false)} className="px-4 py-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md text-sm font-medium transition-colors">Cancel</button>
-                        <button onClick={confirmReject} className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-md text-sm font-medium transition-colors">Confirm Reject</button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-red-600">Delete Article</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to <strong>permanently delete</strong> this article? This action cannot be undone and will remove the article from both the website and management system.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Confirm Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
