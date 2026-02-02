@@ -201,6 +201,6 @@ export default function AnalyticsPage() {
                     <PartnerPerformanceTable data={partnerData} />
                 )}
             </div>
-        </div>
+        </div >
     );
 }
