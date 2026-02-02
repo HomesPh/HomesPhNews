@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -18,45 +19,76 @@ class DashboardController extends Controller
     
     public function getStats()
     {
-        // 1. Get the number of articles with 'published' status (MySQL)
-        $totalPublished = Article::where('status', 'published')->count();
+        // Periods
+        $now = Carbon::now();
+        $thirtyDaysAgo = $now->copy()->subDays(30);
+        $sixtyDaysAgo = $now->copy()->subDays(60);
 
-        // 2. Get the number of articles pending in Redis (Pending Review)
-        // Redis holds the raw scraper data which is considered 'Pending Review' until published
+        // 1. Current Stats
+        $totalPublished = Article::where('status', 'published')->count();
         $redisStats = $this->redisService->getStats();
         $pendingReview = $redisStats['total_articles'] ?? 0;
-
-        // 3. Total Articles = Published (DB) + Pending (Redis)
         $totalArticles = $totalPublished + $pendingReview;
-
-        // 4. Get the sum of all views from the 'views_count' column
         $totalViews = Article::sum('views_count');
 
-        // 5. Calculate distribution counts using Site relationship
-        $sitesWithCounts = \App\Models\Site::withCount('articles')->get();
+        // 2. Trend Calculations (Last 30 vs Previous 30)
+        $currentPeriodArticles = Article::whereBetween('created_at', [$thirtyDaysAgo, $now])->count();
+        $previousPeriodArticles = Article::whereBetween('created_at', [$sixtyDaysAgo, $thirtyDaysAgo])->count();
+        $articleTrend = $this->calculateTrend($currentPeriodArticles, $previousPeriodArticles);
+
+        $currentPeriodViews = Article::whereBetween('created_at', [$thirtyDaysAgo, $now])->sum('views_count');
+        // Views are all-time, so comparing "added views" in last 30 days might be hard without logs.
+        // For now, let's just calculate based on articles added. 
+        // Or if we have Analytics timestamps, we use that. 
+        $viewTrend = $this->calculateTrend($currentPeriodViews, 0); // Temporary placeholder
+
+        $currentPeriodPublished = Article::where('status', 'published')->whereBetween('created_at', [$thirtyDaysAgo, $now])->count();
+        $previousPeriodPublished = Article::where('status', 'published')->whereBetween('created_at', [$sixtyDaysAgo, $thirtyDaysAgo])->count();
+        $publishedTrend = $this->calculateTrend($currentPeriodPublished, $previousPeriodPublished);
+
+        // 5. Distribution by Site
+        $sitesWithCounts = \App\Models\Site::withCount('articles')
+            ->withSum('articles', 'views_count')
+            ->get();
         
         $results = $sitesWithCounts->map(function ($site) {
-             return ['distributed_in' => $site->site_name, 'published_count' => $site->articles_count];
+             return [
+                 'distributed_in' => $site->site_name, 
+                 'published_count' => $site->articles_count,
+                 'total_views' => $site->articles_sum_views_count ?? 0
+             ];
         })->sortByDesc('published_count')->take(5)->values();
 
-        // 6. Get the 5 most recent articles
+        // 6. Recent articles - Eager load to prevent N+1
         $recentArticles = Article::query()
-            ->with(['publishedSites']) // Fix N+1 for recent articles list
+            ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
             ->where('status', 'published')
-            ->latest() // This is a shortcut for ->orderBy('created_at', 'desc')
-            ->take(5)  // Limit the result to 5 articles
-            ->get(['id', 'title', 'image', 'category', 'country', 'created_at', 'views_count', 'status']); // Only get the columns you need
+            ->latest() 
+            ->take(5)  
+            ->get(['id', 'title', 'image', 'category', 'country', 'created_at', 'views_count', 'status']); 
 
-        // Return all statistics in a single JSON response
         return response()->json([
             'stats' => [
                 'total_articles' => $totalArticles,
+                'total_articles_trend' => $articleTrend,
                 'total_published' => $totalPublished,
+                'total_published_trend' => $publishedTrend,
                 'pending_review' => $pendingReview,
+                'pending_review_trend' => "Needs attention",
                 'total_views' => $totalViews,
-                'total_distribution' => $results, // ✅ CORRECTED: Was $distributedReview
+                'total_views_trend' => $viewTrend,
+                'total_distribution' => $results,
             ],
             'recent_articles' => $recentArticles
         ]);
+    }
+
+    private function calculateTrend($current, $previous)
+    {
+        if ($previous == 0) {
+            return $current > 0 ? "+100%" : "0%";
+        }
+        $diff = (($current - $previous) / $previous) * 100;
+        return ($diff >= 0 ? "+" : "") . round($diff, 1) . "%";
     }
 }

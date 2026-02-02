@@ -9,7 +9,7 @@ interface RelatedArticlesSidebarProps {
 export default async function RelatedArticlesSidebar({ id }: RelatedArticlesSidebarProps) {
   let article;
   try {
-    const { data: response } = await getArticleById(id);
+    const response = await getArticleById(id);
     article = response;
   } catch (error) {
     return null;
@@ -20,7 +20,7 @@ export default async function RelatedArticlesSidebar({ id }: RelatedArticlesSide
   // Fetch related articles (same category)
   let relatedArticles: { id: string; title: string; views: number; imageUrl: string; timeAgo: string; }[] = [];
   try {
-    const { data: listResponse } = await getArticlesList({
+    const listResponse = await getArticlesList({
       mode: "list",
       category: article.category,
       limit: 5,

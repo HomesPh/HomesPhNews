@@ -13,6 +13,6 @@ export interface ArticleResource {
   source: string;
   original_url: string;
   created_at: string;
-  published_sites: string;
+  published_sites: string | string[];
   image_url?: string;
 }

@@ -12,9 +12,10 @@ class SiteContentController extends Controller
         // The site is already resolved by the Middleware
         $site = $request->attributes->get('site');
 
-        // Fetch articles intended for this site
+        // Fetch articles with eager loading to prevent N+1
         $articles = $site->articles()
-            ->where('status', 'published') // Ensure only published articles
+            ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
+            ->where('status', 'published')
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 

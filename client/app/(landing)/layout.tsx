@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import LandingHeader from "@/components/layout/header/LandingHeader";
 import LandingCountryNav from "@/components/layout/nav/LandingCountryNav";
 import LandingCategoryNav from "@/components/layout/nav/LandingCategoryNav";
@@ -11,7 +12,9 @@ export default function LandingLayout({
 }) {
   return (
     <div className="min-h-screen bg-[#f9fafb] dark:bg-[#030712] flex flex-col pt-[120px] transition-colors duration-300">
-      <LandingHeader />
+      <Suspense fallback={<div className="h-[72px] bg-white border-b border-[#e5e7eb]" />}>
+        <LandingHeader />
+      </Suspense>
       <LandingCountryNav countries={Countries} />
       <LandingCategoryNav categories={Categories} />
       <main className="flex-1">

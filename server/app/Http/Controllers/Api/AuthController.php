@@ -19,6 +19,7 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request): JsonResponse
     {
+        \Log::info('Login attempt for: ' . $request->email);
         $validated = $request->validated();
 
         $user = User::where('email', $validated['email'])->first();

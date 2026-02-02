@@ -79,7 +79,9 @@ export default function ArticleDetailsPage() {
 
     useEffect(() => {
         if (article) {
-            const existingSites = (article.published_sites as string[]) || [];
+            const existingSites = Array.isArray(article.published_sites)
+                ? article.published_sites
+                : (article.published_sites ? [article.published_sites] : []);
             if (existingSites.length > 0) {
                 setPublishToSites(existingSites);
             } else if (availableSites.length > 0) {
@@ -330,7 +332,9 @@ export default function ArticleDetailsPage() {
                                         <svg className="w-4 h-4 text-[#6b7280]" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="2" fill="none" /><circle cx="8" cy="8" r="2" fill="currentColor" /></svg>
                                         <span className="text-[14px] text-[#6b7280] tracking-[-0.5px]">Published Sites</span>
                                     </div>
-                                    <span className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">{(article.published_sites as string[] | undefined)?.length || 0}</span>
+                                    <span className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">
+                                        {Array.isArray(article.published_sites) ? article.published_sites.length : (article.published_sites ? 1 : 0)}
+                                    </span>
                                 </div>
                             </div>
                         </div>
