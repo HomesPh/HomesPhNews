@@ -16,13 +16,13 @@ interface PartnerPerformanceTableProps {
 
 export default function PartnerPerformanceTable({ data }: PartnerPerformanceTableProps) {
     return (
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-            <div className="p-8 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="bg-white border border-[#f3f4f6] rounded-[12px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden">
+            <div className="p-8 border-b border-[#f3f4f6] flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h3 className="text-2xl font-bold text-gray-900 tracking-tight">Partner Performance Hub</h3>
-                    <p className="text-gray-500 font-medium mt-1">Detailed performance metrics across all distribution channels</p>
+                    <h3 className="text-[24px] font-bold text-[#111827] tracking-[-0.5px]">Partner Performance Hub</h3>
+                    <p className="text-[#6b7280] font-medium mt-1 tracking-[-0.5px]">Detailed performance metrics across all distribution channels</p>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-xl text-gray-600 font-bold text-sm border border-gray-100 italic">
+                <div className="flex items-center gap-2 px-4 py-2 bg-[#f9fafb] rounded-[12px] text-[#4b5563] font-bold text-sm border border-[#f3f4f6] italic">
                     <TrendingUp className="w-4 h-4 text-emerald-500" />
                     Live Performance Tracking
                 </div>
@@ -31,38 +31,38 @@ export default function PartnerPerformanceTable({ data }: PartnerPerformanceTabl
             <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead>
-                        <tr className="bg-gray-50/50">
-                            <th className="text-left px-8 py-5 text-[11px] font-extrabold text-gray-400 uppercase tracking-widest border-b border-gray-100">Partner Channel</th>
-                            <th className="text-left px-8 py-5 text-[11px] font-extrabold text-gray-400 uppercase tracking-widest border-b border-gray-100">Articles</th>
-                            <th className="text-left px-8 py-5 text-[11px] font-extrabold text-gray-400 uppercase tracking-widest border-b border-gray-100">Traffic (Views)</th>
-                            <th className="text-left px-8 py-5 text-[11px] font-extrabold text-gray-400 uppercase tracking-widest border-b border-gray-100">Revenue Contribution</th>
-                            <th className="text-left px-8 py-5 text-[11px] font-extrabold text-gray-400 uppercase tracking-widest border-b border-gray-100 text-right">Action</th>
+                        <tr className="bg-[#f9fafb]/50">
+                            <th className="text-left px-8 py-5 text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-widest border-b border-[#f3f4f6]">Partner Channel</th>
+                            <th className="text-left px-8 py-5 text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-widest border-b border-[#f3f4f6]">Articles</th>
+                            <th className="text-left px-8 py-5 text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-widest border-b border-[#f3f4f6]">Traffic (Views)</th>
+                            <th className="text-left px-8 py-5 text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-widest border-b border-[#f3f4f6]">Revenue Contribution</th>
+                            <th className="text-left px-8 py-5 text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-widest border-b border-[#f3f4f6] text-right">Action</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                         {data.map((site, index) => (
-                            <tr key={index} className="group hover:bg-gray-50/80 transition-all duration-200">
+                            <tr key={index} className="group hover:bg-[#f9fafb]/80 transition-all duration-200">
                                 <td className="px-8 py-6">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-white group-hover:text-[#C10007] group-hover:shadow-sm border border-transparent group-hover:border-gray-100 transition-all">
+                                        <div className="w-10 h-10 rounded-xl bg-[#f3f4f6] flex items-center justify-center text-[#9ca3af] group-hover:bg-white group-hover:text-[#C10007] group-hover:shadow-sm border border-transparent group-hover:border-[#f3f4f6] transition-all">
                                             <LayersIcon className="w-5 h-5" />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-extrabold text-gray-900 group-hover:text-[#C10007] transition-colors">{site.site}</p>
-                                            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter">Verified Partner</p>
+                                            <p className="text-[14px] font-extrabold text-[#111827] group-hover:text-[#C10007] transition-colors tracking-[-0.5px]">{site.site}</p>
+                                            <p className="text-[11px] font-bold text-[#9ca3af] uppercase tracking-tighter">Verified Partner</p>
                                         </div>
                                     </div>
                                 </td>
                                 <td className="px-8 py-6">
                                     <div className="flex items-center gap-2">
                                         <FileText className="w-3.5 h-3.5 text-blue-500 opacity-60" />
-                                        <span className="text-sm font-bold text-gray-700">{site.articlesShared}</span>
+                                        <span className="text-[14px] font-bold text-[#374151] tracking-[-0.5px]">{site.articlesShared}</span>
                                     </div>
                                 </td>
                                 <td className="px-8 py-6">
                                     <div className="flex items-center gap-2">
                                         <Users className="w-3.5 h-3.5 text-purple-500 opacity-60" />
-                                        <span className="text-sm font-bold text-gray-700">{site.monthlyViews.toLocaleString()}</span>
+                                        <span className="text-[14px] font-bold text-[#374151] tracking-[-0.5px]">{site.monthlyViews.toLocaleString()}</span>
                                     </div>
                                 </td>
                                 <td className="px-8 py-6">

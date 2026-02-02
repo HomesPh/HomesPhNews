@@ -80,16 +80,14 @@ Route::middleware(['auth:sanctum', 'is.admin'])
         Route::patch('sites/{id}/toggle-status', [SiteController::class, 'toggleStatus']);
         Route::patch('sites/{id}/refresh-key', [SiteController::class, 'refreshKey']);
         Route::apiResource('sites', SiteController::class);
-        Route::apiResource('articles', AdminArticleController::class)->except(['destroy']);
-
+        Route::apiResource('articles', AdminArticleController::class);
+        
         // Custom Article Actions
         Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
         // Edit pending (Redis) article without touching the main database
         Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
         // Publish pending article (Redis → MySQL, then delete from Redis)
         Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
-        // Reject pending article (Redis → MySQL with rejected status, then delete from Redis)
-        Route::post('articles/{id}/reject', [AdminArticleController::class, 'reject']);
 
         // Upload Routes
         Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');

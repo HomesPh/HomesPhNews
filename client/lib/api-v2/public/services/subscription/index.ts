@@ -1,4 +1,3 @@
-"use server";
 
 import AXIOS_INSTANCE_PUBLIC from "../../axios-instance";
 import type { AxiosResponse } from "axios";

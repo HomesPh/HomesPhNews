@@ -1,4 +1,5 @@
 import { FileText, BarChart3, Calendar, Plus } from 'lucide-react';
+import Link from 'next/link';
 
 /**
  * QuickActions component providing shortcuts to common admin tasks
@@ -19,15 +20,16 @@ export default function QuickActions() {
             {/* Action Buttons List */}
             <div className="space-y-3">
                 {actions.map((action, index) => (
-                    <button
+                    <Link
                         key={index}
+                        href={action.href}
                         className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-[#e5e7eb] rounded-[8px] hover:bg-[#f9fafb] transition-colors"
                     >
                         <action.icon className="w-4 h-4 text-[#111827]" />
                         <span className="text-[14px] font-medium text-[#111827] tracking-[-0.5px]">
                             {action.label}
                         </span>
-                    </button>
+                    </Link>
                 ))}
             </div>
         </div>
