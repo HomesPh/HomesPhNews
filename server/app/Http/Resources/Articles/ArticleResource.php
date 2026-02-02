@@ -19,104 +19,98 @@ class ArticleResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // Handle both Model (Eloquent) and Array (Redis) data
-        $isModel = $this->resource instanceof \Illuminate\Database\Eloquent\Model;
+        $res = $this->resource;
+        $isModel = $res instanceof \Illuminate\Database\Eloquent\Model;
         
-        // For models, extract raw attributes ONLY - no relationships
+        // Extract raw data safely
         if ($isModel) {
-            $data = $this->resource->getAttributes();
+            $data = $res->getAttributes();
         } else {
-            $data = $this->resource;
+            $data = (array) $res;
         }
+        
+        $get = function($key, $default = null) use ($data) {
+            return $data[$key] ?? $default;
+        };
 
-        // Get published sites - use eager loaded relationship if available
-        $publishedSites = [];
-        if ($isModel && $this->resource->relationLoaded('publishedSites')) {
-            // Use already loaded relationship (no extra query!)
-            $relation = $this->resource->getRelation('publishedSites');
-            if ($relation instanceof \Illuminate\Support\Collection) {
-                $publishedSites = $relation->pluck('site_name')->map(fn($n) => (string) $n)->toArray();
-            } elseif (is_array($relation)) {
-                $publishedSites = array_map('strval', $relation);
-            }
-        } elseif (isset($data['published_sites']) && is_array($data['published_sites'])) {
-            $publishedSites = array_map('strval', $data['published_sites']);
-        }
-
-        // Get gallery images - use eager loaded relationship if available
-        $galleryImages = [];
-        if ($isModel && $this->resource->relationLoaded('images')) {
-            // Use already loaded relationship (no extra query!)
-            $relation = $this->resource->getRelation('images');
-            if ($relation instanceof \Illuminate\Support\Collection) {
-                $galleryImages = $relation->pluck('image_path')->map(fn($p) => (string) $p)->toArray();
-            } elseif (is_array($relation)) {
-                $galleryImages = array_map(fn($img) => (string) ($img['image_path'] ?? ''), $relation);
-            }
-        } elseif (isset($data['galleryImages']) && is_array($data['galleryImages'])) {
-            $galleryImages = array_map('strval', $data['galleryImages']);
-        } elseif (isset($data['gallery_images']) && is_array($data['gallery_images'])) {
-            $galleryImages = array_map('strval', $data['gallery_images']);
-        }
-
-        // Parse topics if it's a JSON string
-        $topics = [];
-        if (isset($data['topics'])) {
-            if (is_string($data['topics'])) {
-                $decoded = json_decode($data['topics'], true);
-                $topics = is_array($decoded) ? array_map('strval', $decoded) : [];
-            } elseif (is_array($data['topics'])) {
-                $topics = array_map('strval', $data['topics']);
-            }
-        }
-
-        // Handle date: Redis uses 'timestamp' (Unix), DB uses 'created_at' (string)
-        $createdAt = null;
-        if (isset($data['created_at']) && !empty($data['created_at'])) {
-            $createdAt = (string) $data['created_at'];
-        } elseif (isset($data['timestamp'])) {
-            // Convert Unix timestamp to ISO string
-            $ts = $data['timestamp'];
-            if (is_numeric($ts)) {
-                $createdAt = date('Y-m-d H:i:s', (int) $ts);
+        // Handle sites (robust)
+        // If it's a model, check for the relation FIRST to avoid accessor interference
+        $sites = [];
+        if ($isModel) {
+            if ($res->relationLoaded('publishedSites')) {
+                $rel = $res->getRelation('publishedSites');
+                $sites = ($rel instanceof \Illuminate\Support\Collection) 
+                    ? $rel->pluck('site_name')->toArray() 
+                    : (is_array($rel) ? $rel : []);
             } else {
-                $createdAt = (string) $ts;
+                // Use the accessor if relation not loaded, ensuring we treat it as an array
+                $attr = $res->published_sites; // Accessor returns array
+                $sites = is_array($attr) ? $attr : [];
             }
+        } else {
+            $sitesData = $get('published_sites') ?? $get('sites', []);
+            $sites = is_array($sitesData) ? $sitesData : [];
         }
+
+        // Handle images (robust)
+        $images = [];
+        if ($isModel) {
+            if ($res->relationLoaded('images')) {
+                $rel = $res->getRelation('images');
+                $images = ($rel instanceof \Illuminate\Support\Collection) 
+                    ? $rel->pluck('image_path')->toArray() 
+                    : (is_array($rel) ? $rel : []);
+            } else {
+                $images = []; // Not loaded
+            }
+        } else {
+            $imgs = $get('galleryImages') ?? $get('gallery_images') ?? [];
+            $images = is_array($imgs) ? $imgs : [];
+        }
+
+        // Date logic (Redis uses 'timestamp', DB uses 'created_at')
+        $date = $get('created_at');
+        if (empty($date) && isset($data['timestamp'])) {
+            $ts = $data['timestamp'];
+            $date = is_numeric($ts) ? date('Y-m-d H:i:s', (int)$ts) : (string)$ts;
+        }
+
+        // Topics logic
+        $topics = $get('topics', []);
+        if (is_string($topics)) {
+            $decoded = json_decode($topics, true);
+            $topics = is_array($decoded) ? $decoded : [];
+        }
+
+        $isDeleted = (bool) $get('is_deleted', false);
+        $status = (string) $get('status', 'pending');
 
         return [
-            // Core fields - all scalar, no objects
-            'id' => (string) ($data['id'] ?? ''),
-            'title' => (string) ($data['title'] ?? ''),
-            'summary' => (string) ($data['summary'] ?? ($data['content'] ?? '')),
-            'content' => (string) ($data['content'] ?? ''),
-            'category' => (string) ($data['category'] ?? ''),
-            'country' => (string) ($data['country'] ?? ($data['location'] ?? 'Global')),
-            'status' => (bool) ($data['is_deleted'] ?? false) ? 'deleted' : (string) ($data['status'] ?? 'pending'),
-            'created_at' => $createdAt,
-            'views_count' => (int) ($data['views_count'] ?? 0),
-            
-            // Image handling - scalar strings only
-            'image_url' => (string) ($data['image'] ?? ($data['image_url'] ?? '')),
-            'image' => (string) ($data['image'] ?? ($data['image_url'] ?? '')),
-            
-            // Aliases for frontend compatibility - scalar strings only
-            'location' => (string) ($data['country'] ?? ($data['location'] ?? 'Global')),
-            'description' => (string) ($data['summary'] ?? ($data['content'] ?? '')),
-            'date' => $createdAt,
-            'views' => number_format((int) ($data['views_count'] ?? 0)) . ' views',
-            
-            // Array fields - array of strings ONLY, no objects
-            'published_sites' => $publishedSites,
-            'sites' => $publishedSites,
-            'topics' => $topics,
-            'galleryImages' => $galleryImages,
-
-            // Optional/Metadata - scalar strings only
-            'keywords' => (string) ($data['keywords'] ?? ''),
-            'source' => (string) ($data['source'] ?? ''),
-            'original_url' => (string) ($data['original_url'] ?? ''),
-            'is_deleted' => (bool) ($data['is_deleted'] ?? false),
+            'id' => (string) $get('id', ''),
+            'article_id' => (string) $get('article_id', $get('id', '')),
+            'title' => (string) $get('title', ''),
+            'summary' => (string) $get('summary', $get('content', '')),
+            'content' => (string) $get('content', ''),
+            'category' => (string) $get('category', 'General'),
+            'country' => (string) $get('country', $get('location', 'Global')),
+            'status' => $isDeleted ? 'deleted' : $status,
+            'created_at' => (string) $date,
+            'views_count' => (int) $get('views_count', 0),
+            'image_url' => (string) ($get('image_url') ?? $get('image', '')),
+            'image' => (string) ($get('image') ?? $get('image_url', '')),
+            'location' => (string) $get('country', $get('location', 'Global')),
+            'description' => (string) $get('summary', $get('content', '')),
+            'date' => (string) $date,
+            'views' => number_format((int) $get('views_count', 0)) . ' views',
+            'published_sites' => array_map('strval', $sites),
+            'sites' => array_map('strval', $sites),
+            'topics' => array_map('strval', is_array($topics) ? $topics : []),
+            'galleryImages' => array_map('strval', $images),
+            'keywords' => (string) $get('keywords', ''),
+            'source' => (string) $get('source', ''),
+            'original_url' => (string) $get('original_url', ''),
+            'is_deleted' => $isDeleted,
+            'is_redis' => !$isModel,
         ];
     }
 }
