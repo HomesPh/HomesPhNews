@@ -265,14 +265,14 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 template: template
             };
 
-            // Redis articles (from scraper) have status === 'pending'
-            const isPendingArticle = initialData?.status === 'pending';
+            // Use the is_redis flag from our Resource to determine the save path
+            const isFromRedis = initialData?.is_redis === true;
 
             console.log('handleSave debug:', {
                 mode,
+                isFromRedis,
                 status: initialData?.status,
                 id: initialData?.id,
-                isPendingArticle,
                 isPublish
             });
 
@@ -285,8 +285,8 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 // Create article directly in MySQL database
                 await createArticle(payload);
                 alert(`Article ${isPublish ? 'published' : 'created'} successfully!`);
-            } else if (mode === 'edit' && isPendingArticle) {
-                // For pending articles (from Redis), first update the data
+            } else if (mode === 'edit' && isFromRedis) {
+                // For Redis articles (from scraper), first update the Redis cache
                 await updatePendingArticle(initialData.id, {
                     ...payload,
                     image_url: finalImage || undefined,
@@ -302,6 +302,7 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                     alert('Article updated successfully!');
                 }
             } else if (mode === 'edit') {
+                // DB articles (including 'pending review' and restored ones)
                 await updateArticle(initialData.id, payload);
                 alert(`Article ${isPublish ? 'published' : 'updated'} successfully!`);
             }

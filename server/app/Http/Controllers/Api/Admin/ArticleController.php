@@ -69,7 +69,7 @@ class ArticleController extends Controller
         // Paginate DB results - Eager load to prevent N+1 queries
         $articles = $query
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'is_deleted')
+            ->select('id', 'article_id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'is_deleted')
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage);
 
@@ -101,6 +101,11 @@ class ArticleController extends Controller
                         'published_sites' => [],
                     ];
                 })->filter(fn($a) => !empty($a['id']));
+
+                // Deduplicate: Don't show Redis items if they already exist in our DB
+                $redisIds = $redisItems->pluck('id')->toArray();
+                $existingInDb = Article::whereIn('id', $redisIds)->pluck('id')->toArray();
+                $redisItems = $redisItems->filter(fn($a) => !in_array($a['id'], $existingInDb));
 
                 $merged = $redisItems->merge($articles->getCollection());
                 $articles->setCollection($merged);
@@ -244,6 +249,7 @@ class ArticleController extends Controller
         unset($validated['date']);
         unset($validated['slug']);
 
+        $validated['is_deleted'] = false;
         $article = Article::create($validated);
 
         if (! empty($siteNames)) {
@@ -375,13 +381,33 @@ class ArticleController extends Controller
 
         $validated = $request->validated();
 
-        $redisArticle = $this->redisService->getArticle($id);
-        if (! $redisArticle) {
-            return response()->json(['message' => 'Pending article not found in Redis'], 404);
+        // 1. Attempt to find in Database first
+        // If it exists in DB (even if soft-deleted or restored), we update it
+        $existing = Article::where('id', $id)->first();
+        if ($existing) {
+            // Restore and update
+            $existing->update([
+                'is_deleted' => false,
+                'status' => 'published'
+            ]);
+            
+            // Sync sites if provided
+            $siteNames = $validated['published_sites'] ?? [];
+            if (! empty($siteNames)) {
+                $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
+                $existing->publishedSites()->sync($siteIds);
+            }
+
+            // Cleanup Redis if it's still there
+            $this->redisService->deleteArticle($id);
+            
+            return new ArticleResource($existing);
         }
 
-        if (Article::where('id', $id)->exists()) {
-            return response()->json(['message' => 'Article already exists in database'], 409);
+        // 2. If not in DB, check Redis (Source of Truth for new scraper articles)
+        $redisArticle = $this->redisService->getArticle($id);
+        if (! $redisArticle) {
+            return response()->json(['message' => 'Article not found in database or pending queue'], 404);
         }
 
         $article = Article::create([
@@ -400,6 +426,7 @@ class ArticleController extends Controller
             'topics' => $redisArticle['topics'] ?? [],
             'status' => 'published',
             'views_count' => 0,
+            'is_deleted' => false,
         ]);
 
         $siteNames = $validated['published_sites'] ?? [];
