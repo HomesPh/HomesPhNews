@@ -10,8 +10,8 @@ interface BaseArticleCardProps {
         id?: string;
         image_url?: string;
         image?: string;           // Legacy fallback
-        category: string;
-        country?: string;
+        category?: string | null; // Allow null
+        country?: string | null;  // Allow null
         location?: string;        // Legacy fallback
         title: string;
         summary?: string;
@@ -21,8 +21,9 @@ interface BaseArticleCardProps {
         views_count?: number;
         views?: string;           // Legacy fallback
         status: string;
-        topics?: string[];
+        topics?: string[] | null; // Allow null
         sites?: string[];         // Legacy fallback
+        published_sites?: string | string[]; // New API field
     };
     variant?: 'compact' | 'list';
     onClick?: () => void;
@@ -66,7 +67,15 @@ export default function BaseArticleCard({
     const description = article.summary || article.description || '';
     const dateStr = article.created_at || article.date || null;
     const viewsStr = article.views ?? formatViews(article.views_count);
-    const sites = article.sites || (article.topics?.slice(0, 3)) || [];
+
+    // Handle published_sites which can be string or string[]
+    const publishedSites = Array.isArray(article.published_sites)
+        ? article.published_sites
+        : (article.published_sites ? [article.published_sites] : []);
+
+    const sites = publishedSites.length > 0
+        ? publishedSites
+        : (article.sites || (article.topics?.slice(0, 3)) || []);
 
     if (isCompact) {
         return (

@@ -68,7 +68,9 @@ class ArticleController extends Controller
             $query->whereRaw('JSON_CONTAINS(topics, ?)', [json_encode($topic)]);
         }
 
-        $articles = $query->with(['publishedSites'])
+        // Eager load relationships to prevent N+1 queries
+        $articles = $query
+            ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
             ->select('id', 'title', 'summary', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'views_count', 'topics', 'original_url')
             ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
@@ -98,8 +100,7 @@ class ArticleController extends Controller
         $country = $validated['country'] ?? null;
         $category = $validated['category'] ?? null;
 
-        $baseQuery = Article::with(['publishedSites'])
-            ->where('status', 'published');
+        $baseQuery = Article::where('status', 'published');
 
         if ($country) {
             $baseQuery->where('country', $country);
@@ -110,18 +111,21 @@ class ArticleController extends Controller
         }
 
         $trending = (clone $baseQuery)
+            ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
             ->select('id', 'title', 'country', 'category', 'image', 'topics', 'views_count', 'status', 'created_at as timestamp', 'original_url')
             ->orderBy('views_count', 'desc')
             ->limit(5)
             ->get();
 
         $mostRead = (clone $baseQuery)
+            ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
             ->select('id', 'title', 'country', 'category', 'image', 'views_count', 'status', 'created_at as timestamp', 'original_url')
             ->orderBy('views_count', 'desc')
             ->limit(10)
             ->get();
 
         $latestGlobal = (clone $baseQuery)
+            ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
             ->select('id', 'title', 'summary as content', 'country', 'category', 'status', 'created_at as timestamp', 'image', 'views_count', 'keywords', 'original_url')
             ->orderBy('created_at', 'desc')
             ->limit(5)
@@ -144,7 +148,8 @@ class ArticleController extends Controller
      */
     public function show(string $id): JsonResponse|ArticleResource
     {
-        $article = Article::find($id);
+        // Eager load relationships to prevent N+1
+        $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])->find($id);
 
         if (! $article) {
             // Fallback to Redis if not found in DB

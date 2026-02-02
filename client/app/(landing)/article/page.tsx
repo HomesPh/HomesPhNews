@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+
 import ArticleViewCounter from "@/components/features/article/ArticleViewCounter";
 import AdSpace from "@/components/shared/AdSpace";
 import { notFound } from "next/navigation";
@@ -26,7 +27,9 @@ export default async function Article({ searchParams }: Props) {
 
   return (
     <div className="max-w-[1440px] mx-auto px-4 md:px-[110px] py-8">
-      <ArticleViewCounter articleId={articleId} />
+      <Suspense fallback={null}>
+        <ArticleViewCounter articleId={articleId} />
+      </Suspense>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content Component Area */}

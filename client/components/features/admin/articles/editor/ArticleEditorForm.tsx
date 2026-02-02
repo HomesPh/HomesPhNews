@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useRef } from 'react';
-import { Info, X, Upload, ImageIcon, Check, Loader2, GripVertical } from 'lucide-react';
+import { Info, X, Upload, ImageIcon, Check, Loader2, GripVertical, Sparkles } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import TemplateSelector, { TemplateType } from "./TemplateSelector";
-import { uploadArticleImage } from "@/lib/api/admin/articles";
+import { uploadArticleImage } from "@/lib/api-v2";
 import { ContentBlock } from "../ArticleEditorModal";
 import ArticleRichTextEditor from "./ArticleRichTextEditor";
+import ImageGeneratorDialog from "./ImageGeneratorDialog";
 
 interface ArticleEditorFormProps {
     data: {
@@ -41,7 +42,12 @@ export default function ArticleEditorForm({
 }: ArticleEditorFormProps) {
     const [activeTab, setActiveTab] = useState<'content' | 'template'>('content');
     const [isUploading, setIsUploading] = useState(false);
+    const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleAiImageSelect = (url: string) => {
+        onDataChange('image', url);
+    };
 
     const handleTitleChange = (value: string) => {
         onDataChange('title', value);
@@ -65,17 +71,28 @@ export default function ArticleEditorForm({
         }
     };
 
+    // Convert file to base64 data URL (hold on client, don't upload yet)
+    const fileToDataUrl = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    };
+
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         setIsUploading(true);
         try {
-            const { url } = await uploadArticleImage(file);
-            onDataChange('image', url);
+            // Hold image as data URL on client (will upload to S3 on save)
+            const dataUrl = await fileToDataUrl(file);
+            onDataChange('image', dataUrl);
         } catch (error) {
-            console.error("Upload failed", error);
-            alert("Failed to upload image. Please try again.");
+            console.error("Failed to read image", error);
+            alert("Failed to process image. Please try again.");
         } finally {
             setIsUploading(false);
         }
@@ -87,13 +104,14 @@ export default function ArticleEditorForm({
 
         setIsUploading(true);
         try {
-            const { url } = await uploadArticleImage(file);
+            // Hold image as data URL on client (will upload to S3 on save)
+            const dataUrl = await fileToDataUrl(file);
             const currentImages = [...(data as any)[field]];
-            currentImages[index] = url;
+            currentImages[index] = dataUrl;
             onDataChange(field, currentImages);
         } catch (error) {
-            console.error("Upload failed", error);
-            alert("Failed to upload image. Please try again.");
+            console.error("Failed to read image", error);
+            alert("Failed to process image. Please try again.");
         } finally {
             setIsUploading(false);
         }
@@ -105,13 +123,14 @@ export default function ArticleEditorForm({
 
         setIsUploading(true);
         try {
-            const { url } = await uploadArticleImage(file);
+            // Hold image as data URL on client (will upload to S3 on save)
+            const dataUrl = await fileToDataUrl(file);
             const updated = [...data.contentBlocks];
-            updated[index] = { ...updated[index], image: url };
+            updated[index] = { ...updated[index], image: dataUrl };
             onDataChange('contentBlocks', updated);
         } catch (error) {
-            console.error("Upload failed", error);
-            alert("Failed to upload image. Please try again.");
+            console.error("Failed to read image", error);
+            alert("Failed to process image. Please try again.");
         } finally {
             setIsUploading(false);
         }
@@ -265,15 +284,26 @@ export default function ArticleEditorForm({
                                         </div>
                                     )}
                                 </div>
-                                <div className="mt-3">
-                                    <label className="block text-[12px] font-medium text-[#6b7280] mb-1">Or direct URL:</label>
-                                    <input
-                                        type="text"
-                                        value={data.image || ''}
-                                        onChange={(e) => onDataChange('image', e.target.value)}
-                                        placeholder="https://example.com/image.jpg"
-                                        className="w-full px-3 py-2 border border-[#d1d5db] rounded-[6px] text-[13px] text-[#111827]"
-                                    />
+                                <div className="mt-3 flex gap-2">
+                                    <div className="flex-1">
+                                        <label className="block text-[12px] font-medium text-[#6b7280] mb-1">Or direct URL:</label>
+                                        <input
+                                            type="text"
+                                            value={data.image || ''}
+                                            onChange={(e) => onDataChange('image', e.target.value)}
+                                            placeholder="https://example.com/image.jpg"
+                                            className="w-full px-3 py-2 border border-[#d1d5db] rounded-[6px] text-[13px] text-[#111827]"
+                                        />
+                                    </div>
+                                    <div className="pt-6">
+                                        <button
+                                            onClick={() => setIsAiDialogOpen(true)}
+                                            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-[6px] text-[13px] font-medium shadow-sm hover:opacity-90 transition-all flex items-center gap-2"
+                                        >
+                                            <Sparkles className="w-4 h-4" />
+                                            Generate AI
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -683,6 +713,13 @@ export default function ArticleEditorForm({
                     </div>
                 )}
             </div>
+
+            <ImageGeneratorDialog
+                isOpen={isAiDialogOpen}
+                onClose={() => setIsAiDialogOpen(false)}
+                onSelectImage={handleAiImageSelect}
+                articleTitle={data.title}
+            />
 
             <style jsx>{`
                 .custom-scrollbar::-webkit-scrollbar {

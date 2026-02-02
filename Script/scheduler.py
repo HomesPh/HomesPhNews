@@ -9,6 +9,8 @@ import random
 import asyncio
 import uuid
 import hashlib
+import requests
+import os
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from typing import List, Dict
@@ -111,6 +113,140 @@ def get_dedup_stats() -> Dict:
         "urls_tracked": redis_client.scard(f"{PREFIX}scraped_urls"),
         "titles_tracked": redis_client.scard(f"{PREFIX}title_hashes")
     }
+
+
+def send_discord_notification(results: List[Dict]):
+    """
+    Send a beautiful, well-formatted Discord notification.
+    Uses Discord embeds with proper styling.
+    """
+    webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
+    if not webhook_url:
+        print("⚠️ DISCORD_WEBHOOK_URL not set, skipping notification")
+        return
+    
+    try:
+        success = sum(1 for r in results if r["status"] == "success")
+        errors = sum(1 for r in results if r["status"] == "error")
+        duplicates = sum(1 for r in results if r["status"] == "all_duplicates")
+        total_countries = len(results)
+        
+        # Determine embed color based on results
+        if errors == 0 and success > 0:
+            color = 0x00D166  # Green - all good
+            status_emoji = "✅"
+        elif errors > success:
+            color = 0xED4245  # Red - mostly errors
+            status_emoji = "❌"
+        else:
+            color = 0xFEE75C  # Yellow - mixed results
+            status_emoji = "⚠️"
+        
+        # Build country results with flag emojis
+        country_flags = {
+            "Philippines": "🇵🇭",
+            "Saudi Arabia": "🇸🇦", 
+            "United Arab Emirates": "🇦🇪",
+            "Singapore": "🇸🇬",
+            "Hong Kong": "🇭🇰",
+            "Qatar": "🇶🇦",
+            "Kuwait": "🇰🇼",
+            "Taiwan": "🇹🇼",
+            "Japan": "🇯🇵",
+            "Australia": "🇦🇺",
+            "Malaysia": "🇲🇾",
+            "Canada": "🇨🇦",
+            "United States": "🇺🇸",
+            "United Kingdom": "🇬🇧",
+            "Italy": "🇮🇹",
+            "South Korea": "🇰🇷",
+        }
+        
+        # Format country results
+        country_lines = []
+        for r in results:
+            country = r.get("country", "Unknown")
+            flag = country_flags.get(country, "🌍")
+            
+            if r["status"] == "success":
+                country_lines.append(f"{flag} **{country}**: 1 ✅")
+            elif r["status"] == "error":
+                err_msg = r.get("error", "Unknown error")[:30]
+                country_lines.append(f"{flag} **{country}**: ❌ `{err_msg}`")
+            elif r["status"] == "all_duplicates":
+                country_lines.append(f"{flag} **{country}**: ⏭️ Skipped (duplicates)")
+        
+        # Split into columns if too many countries
+        country_text = "\n".join(country_lines) if country_lines else "No countries processed"
+        
+        # Collect successful article titles
+        article_titles = []
+        for r in results:
+            if r["status"] == "success" and r.get("title"):
+                title = r["title"][:60] + "..." if len(r.get("title", "")) > 60 else r.get("title", "")
+                article_titles.append(f"• {title}")
+        
+        articles_text = "\n".join(article_titles[:5]) if article_titles else "No articles generated"
+        if len(article_titles) > 5:
+            articles_text += f"\n*...and {len(article_titles) - 5} more*"
+        
+        # Get next run time
+        next_run_text = "Not scheduled"
+        if job_status.get("next_run"):
+            try:
+                next_dt = datetime.fromisoformat(job_status["next_run"])
+                next_run_text = next_dt.strftime("%b %d, %Y at %I:%M %p")
+            except:
+                next_run_text = job_status["next_run"]
+        
+        # Build the embed
+        embed = {
+            "title": f"{status_emoji} News Scraper Job Complete",
+            "description": f"Processed **{total_countries} countries** with **{success} successful** articles.",
+            "color": color,
+            "fields": [
+                {
+                    "name": "📊 Results Summary",
+                    "value": f"```\n✅ Success:    {success}\n❌ Errors:     {errors}\n⏭️ Duplicates: {duplicates}\n```",
+                    "inline": True
+                },
+                {
+                    "name": "📈 Stats",
+                    "value": f"```\nTotal Runs: {job_status.get('total_runs', 1)}\nAll-time:   {job_status.get('total_success', 0)} articles\n```",
+                    "inline": True
+                },
+                {
+                    "name": "🌏 Countries Processed",
+                    "value": country_text,
+                    "inline": False
+                },
+                {
+                    "name": "📰 New Articles",
+                    "value": articles_text,
+                    "inline": False
+                },
+            ],
+            "footer": {
+                "text": f"HomesPh News Engine • {total_countries} Countries • Next: {next_run_text}",
+                "icon_url": "https://cdn-icons-png.flaticon.com/512/2965/2965879.png"
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        payload = {
+            "username": "HomesPh News Bot",
+            "avatar_url": "https://cdn-icons-png.flaticon.com/512/2965/2965879.png",
+            "embeds": [embed]
+        }
+        
+        response = requests.post(webhook_url, json=payload, timeout=10)
+        if response.status_code == 204:
+            print("📨 Discord notification sent successfully")
+        else:
+            print(f"⚠️ Discord webhook failed: {response.status_code} - {response.text}")
+    
+    except Exception as e:
+        print(f"⚠️ Discord notification error: {e}")
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -258,10 +394,11 @@ def process_single_country(country: str) -> Dict:
 async def run_hourly_job():
     """
     Main scheduled job:
-    - Runs every hour
-    - Processes all countries in parallel
-    - Skips duplicate articles
-    - Updates job status
+    - Runs 10 times per day
+    - Processes ALL countries per run (parallel)
+    - Each country: 1 article per run
+    - Over 10 runs: Each country gets 10 articles/day
+    - Total: 12 countries × 1 article × 10 runs = 120 articles/day
     """
     global job_status
     
@@ -280,18 +417,16 @@ async def run_hourly_job():
     print(f"📅 Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 70)
     
-    # countries = list(COUNTRIES.keys())
-    
-    # ⚠️ COST SAVING MODE: Process only 1 random country ⚠️
-    # To revert to full production:
-    # 1. Uncomment: countries = list(COUNTRIES.keys())
-    # 2. Comment out the lines below
-    selected_country = random.choice(list(COUNTRIES.keys()))
-    countries = [selected_country]
+    # Process ALL countries (not rotating, all at once)
+    all_countries = list(COUNTRIES.keys())
+    countries = all_countries
 
     dedup_stats = get_dedup_stats()
     
-    print(f"📋 Countries: {len(countries)} (TEST MODE: {countries[0]}) | Workers: {MAX_WORKERS}")
+    print(f"📍 Countries: {len(countries)} (Processing ALL in parallel)")
+    print(f"📊 Articles per country: {ARTICLES_PER_COUNTRY}")
+    print(f"📈 Total articles this run: {len(countries) * ARTICLES_PER_COUNTRY}")
+    print(f"💡 Each country gets 10/day over 10 runs")
     print(f"🔍 Dedup: {dedup_stats['urls_tracked']} URLs | {dedup_stats['titles_tracked']} titles tracked")
     print("-" * 70)
     
@@ -338,5 +473,9 @@ async def run_hourly_job():
         print(f"⏰ Next run: {next_dt.strftime('%Y-%m-%d %H:%M:%S')} ({minutes} min)")
     
     print("=" * 70 + "\n")
+    
+    # Send Discord notification
+    if results and success_count > 0:
+        send_discord_notification(results)
     
     return results

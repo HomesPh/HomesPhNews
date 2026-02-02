@@ -8,7 +8,7 @@ interface LandingBlockHeaderProps {
 
 export default function LandingBlockHeader({ title }: LandingBlockHeaderProps) {
     return (
-        <div className="flex items-center justify-between border-b-2 border-[#1a1a1a] pb-1 mb-6">
+        <div className="flex items-center justify-between border-b-2 border-gray-400 dark:border-gray-600 pb-1 mb-6">
             <div className="bg-[#1a1a1a] px-4 py-1">
                 <h2 className="text-white text-xs font-black uppercase tracking-widest">{title}</h2>
             </div>

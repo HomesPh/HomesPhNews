@@ -1,13 +1,13 @@
 "use client";
 
 import { Edit, Trash2, Link as LinkIcon, Key, RotateCw, Copy, Check } from 'lucide-react';
-import { Site } from "@/app/admin/sites/data";
+import { SiteResource } from "@/lib/api-v2/types/SiteResource";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 import { useState } from 'react';
 
 interface SiteListItemProps {
-    site: Site;
-    onEdit?: (site: Site) => void;
+    site: SiteResource;
+    onEdit?: (site: SiteResource) => void;
     onDelete?: (id: number) => void;
     onToggleStatus?: (id: number) => void;
     onRefreshKey?: (id: number) => void;
@@ -35,7 +35,7 @@ export default function SiteListItem({ site, onEdit, onDelete, onToggleStatus, o
                 {/* Site Logo */}
                 <div className="w-[100px] h-[100px] rounded-[8px] overflow-hidden flex-shrink-0 bg-gray-100">
                     <img
-                        src={site.image}
+                        src={site.image || undefined}
                         alt={site.name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -53,7 +53,7 @@ export default function SiteListItem({ site, onEdit, onDelete, onToggleStatus, o
                                 <h3 className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">
                                     {site.name}
                                 </h3>
-                                <StatusBadge status={site.status} />
+                                <StatusBadge status={site.status as any} />
                             </div>
                             <div className="flex items-center gap-2 mb-2">
                                 <LinkIcon className="w-3.5 h-3.5 text-[#3b82f6]" />
@@ -144,8 +144,8 @@ export default function SiteListItem({ site, onEdit, onDelete, onToggleStatus, o
                     <button
                         onClick={() => onToggleStatus?.(site.id)}
                         className={`px-4 py-2 text-[13px] font-medium rounded-[6px] transition-colors tracking-[-0.5px] ${isActive
-                                ? 'text-[#C10007] hover:bg-red-50'
-                                : 'text-[#10b981] hover:bg-green-50'
+                            ? 'text-[#C10007] hover:bg-red-50'
+                            : 'text-[#10b981] hover:bg-green-50'
                             }`}
                     >
                         {isActive ? 'Suspend' : 'Activate'}

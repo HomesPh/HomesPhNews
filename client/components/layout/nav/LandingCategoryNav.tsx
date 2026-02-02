@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 export type LandingCategoryNavProps = {
@@ -10,6 +11,16 @@ export type LandingCategoryNavProps = {
 }
 
 export default function LandingCategoryNav({ categories }: LandingCategoryNavProps) {
+  return (
+    <div className="bg-white w-full">
+      <Suspense fallback={<NavContentFallback categories={categories} />}>
+        <NavContent categories={categories} />
+      </Suspense>
+    </div>
+  );
+}
+
+function NavContent({ categories }: LandingCategoryNavProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -33,9 +44,9 @@ export default function LandingCategoryNav({ categories }: LandingCategoryNavPro
   }
 
   return (
-    <div className="bg-white w-full border-b border-[#e5e7eb]">
+    <div className="bg-white dark:bg-[#1a1d2e] w-full border-b border-[#e5e7eb] dark:border-[#2a2d3e] transition-colors duration-300">
       <div className="w-full max-w-[1280px] mx-auto px-4 py-[16px]">
-        <nav className="flex gap-[30px] items-center justify-start md:justify-center overflow-x-auto pb-2 scrollbar-hide">
+        <nav className="flex gap-[30px] items-center justify-start overflow-x-auto pb-2 scrollbar-hide">
           {categories.map((category, idx) => {
             const isActive = activeCategory === category.id;
 
@@ -45,7 +56,7 @@ export default function LandingCategoryNav({ categories }: LandingCategoryNavPro
                 onClick={() => handleChangeCategoryTab(category.id)}
                 className={`shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap transition-colors ${isActive
                   ? "bg-[#030213] text-white px-[10px] py-[5px] rounded-[6px]"
-                  : "text-[#374151] hover:text-[#c10007] px-0 py-px"
+                  : "text-[#374151] dark:text-gray-300 hover:text-[#c10007] dark:hover:text-[#c10007] px-0 py-px"
                   }`}
               >
                 {category.label}
@@ -55,5 +66,20 @@ export default function LandingCategoryNav({ categories }: LandingCategoryNavPro
         </nav>
       </div>
     </div>
+  );
+}
+
+function NavContentFallback({ categories }: LandingCategoryNavProps) {
+  return (
+    <nav className="flex gap-[30px] items-center justify-center overflow-x-auto scrollbar-hide">
+      {categories.map((category) => (
+        <div
+          key={category.id}
+          className="shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap text-[#374151] px-0 py-px"
+        >
+          {category.label}
+        </div>
+      ))}
+    </nav>
   );
 }

@@ -5,11 +5,19 @@ import type { AxiosResponse } from "axios";
 import type { Article } from "../../../types/Article";
 
 export interface AdminStatsSummary {
-  total_articles: string;
+  total_articles: number;
+  total_articles_trend: string;
   total_published: number;
-  pending_review: string | number;
-  total_views: unknown;
-  total_distribution: string;
+  total_published_trend: string;
+  pending_review: number;
+  pending_review_trend: string;
+  total_views: number;
+  total_views_trend: string;
+  total_distribution: Array<{
+    distributed_in: string;
+    published_count: number;
+    total_views: number;
+  }>;
 }
 
 export interface AdminStatsResponse {

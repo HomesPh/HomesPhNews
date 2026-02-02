@@ -30,19 +30,20 @@ export default function MostReadTodayCard({ title = "Most Read Today", items = [
             href={`/article?id=${article.id}`}
             className="flex gap-4 group cursor-pointer transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98]"
           >
-            <div className="relative shrink-0 w-16 h-16 bg-gray-100 flex items-center justify-center overflow-hidden rounded-sm">
-              <span className="absolute inset-0 flex items-center justify-center text-4xl font-black text-black/10 z-0">
+            <div className="relative shrink-0 w-16 h-16 bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden rounded-sm transition-colors">
+              <span className="absolute inset-0 flex items-center justify-center text-4xl font-black text-gray-400 dark:text-gray-500 z-0 transition-colors">
                 {index + 1}
               </span>
               <Image
                 src={article.imageUrl || 'https://placehold.co/800x450?text=No+Image'}
                 alt={article.title}
                 fill
+                sizes="64px"
                 className="object-cover relative z-10 group-hover:scale-110 transition-transform duration-500"
               />
             </div>
             <div className="flex flex-col justify-center">
-              <h4 className="text-[11px] font-black uppercase leading-tight group-hover:text-[#cc0000] transition-colors line-clamp-2 mb-1.5 tracking-tight">
+              <h4 className="text-[11px] font-black uppercase leading-tight text-gray-900 dark:text-gray-200 group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors line-clamp-2 mb-1.5 tracking-tight">
                 {article.title}
               </h4>
               <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase tracking-tighter">

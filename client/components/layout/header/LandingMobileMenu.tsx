@@ -25,15 +25,14 @@ export default function LandingMobileMenu({
     return (
         <SheetContent
             side="right"
-            className="w-[300px] sm:w-[400px] p-0 border-l-[#2a2d3e] bg-[#1a1d2e] gap-0 border-none [&>button]:text-white"
+            className="w-[300px] sm:w-[400px] p-0 border-l border-gray-200 dark:border-[#2a2d3e] bg-white dark:bg-[#1a1d2e] gap-0 border-none [&>button]:text-gray-500 dark:[&>button]:text-white"
         >
             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
 
-            {/* Exact replica of AdminSidebar container */}
-            <div className="flex flex-col h-full bg-[#1a1d2e] text-white">
+            <div className="flex flex-col h-full bg-white dark:bg-[#1a1d2e] text-gray-900 dark:text-white transition-colors duration-300">
 
-                {/* Header - Exact match to AdminSidebar Header */}
-                <div className="px-4 py-6 border-b border-[rgba(255,255,255,0.1)]">
+                {/* Header */}
+                <div className="px-4 py-6 border-b border-gray-100 dark:border-[rgba(255,255,255,0.1)]">
                     <div className="flex items-center gap-3 px-2">
                         <img
                             src="/images/HomesTV.png"
@@ -41,14 +40,14 @@ export default function LandingMobileMenu({
                             className="w-10 h-10 object-contain"
                         />
                         <div className="flex flex-col">
-                            <h1 className="text-[20px] font-bold text-white leading-[1.4] tracking-[-0.5px]">
+                            <h1 className="text-[20px] font-bold text-gray-900 dark:text-white leading-[1.4] tracking-[-0.5px]">
                                 HomesTV
                             </h1>
                         </div>
                     </div>
                 </div>
 
-                {/* Content - Exact match to AdminSidebar Content */}
+                {/* Content */}
                 <div className="flex-1 px-4 py-6 overflow-y-auto scrollbar-hide">
                     <div className="flex flex-col gap-2">
                         {navLinks.map((link) => {
@@ -63,10 +62,9 @@ export default function LandingMobileMenu({
                                         href={link.href}
                                         className={cn(
                                             "flex items-center gap-3 px-4 py-3 rounded-[8px] transition-colors w-full h-auto",
-                                            // Exact classes from AdminSidebar logic
                                             isActive
                                                 ? "bg-[#C10007] text-white hover:bg-[#C10007] hover:text-white"
-                                                : "text-[#9ca3af] hover:bg-[#252836] hover:text-white"
+                                                : "text-gray-600 dark:text-[#9ca3af] hover:bg-gray-100 dark:hover:bg-[#252836] hover:text-black dark:hover:text-white"
                                         )}
                                     >
                                         <Icon className="w-5 h-5 flex-shrink-0" />
@@ -79,15 +77,15 @@ export default function LandingMobileMenu({
                         })}
                     </div>
 
-                    {/* User Side Customization: Search & Subscribe (Styled to match footer/item look) */}
-                    <div className="mt-8 pt-6 border-t border-[rgba(255,255,255,0.1)] flex flex-col gap-4">
+                    {/* User Side Customization */}
+                    <div className="mt-8 pt-6 border-t border-gray-100 dark:border-[rgba(255,255,255,0.1)] flex flex-col gap-4">
                         <form onSubmit={handleSearch} className="relative">
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={handleInputChange}
                                 placeholder="Search News"
-                                className="w-full bg-[#252836] border-none rounded-[8px] px-[10px] py-[10px] pl-[35px] font-medium text-[14px] text-white tracking-[-0.5px] placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-600"
+                                className="w-full bg-gray-50 dark:bg-[#252836] border border-gray-200 dark:border-none rounded-[8px] px-[10px] py-[10px] pl-[35px] font-medium text-[14px] text-gray-900 dark:text-white tracking-[-0.5px] placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-300 dark:focus:ring-gray-600"
                             />
                             <div className="absolute left-[10px] top-1/2 -translate-y-1/2 size-[18px]">
                                 <Search className="w-full h-full text-gray-500" />

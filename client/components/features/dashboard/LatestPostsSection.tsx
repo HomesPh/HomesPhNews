@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArticleResource } from "@/lib/api-new/types";
+import { ArticleResource } from "@/lib/api-v2";
 
 interface LatestPostsSectionProps {
     articles: ArticleResource[];
@@ -29,7 +29,7 @@ export default function LatestPostsSection({ articles }: LatestPostsSectionProps
                     <Link
                         key={article.id}
                         href={`/article?id=${article.id}`}
-                        className="group cursor-pointer flex flex-col md:flex-row gap-8 pb-10 border-b border-gray-100 last:border-0"
+                        className="group cursor-pointer flex flex-col md:flex-row gap-8 pb-10 border-b border-gray-300 dark:border-gray-700 last:border-0"
                     >
                         <div className="md:w-1/3 aspect-[4/3] shrink-0 overflow-hidden relative rounded-sm">
                             <Image

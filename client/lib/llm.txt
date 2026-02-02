@@ -1,1 +1,0 @@
-Please use api-v2 instead of the other api folders.

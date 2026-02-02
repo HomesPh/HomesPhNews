@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArticleResource } from "@/lib/api-new/types";
+import { ArticleResource } from "@/lib/api-v2";
 import LandingBlockHeader from "./LandingBlockHeader";
 
 interface LandingNewsBlockProps {
@@ -106,7 +106,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                             <Link
                                 key={article.id}
                                 href={`/article?id=${article.id}`}
-                                className="group cursor-pointer flex gap-4 border-b border-gray-100 pb-4 last:border-0 last:pb-0"
+                                className="group cursor-pointer flex gap-4 border-b border-gray-300 dark:border-gray-700 pb-4 last:border-0 last:pb-0"
                             >
                                 <div className="w-24 h-24 shrink-0 overflow-hidden relative rounded-sm">
                                     <Image
@@ -152,7 +152,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                     <Link
                         key={article.id}
                         href={`/article?id=${article.id}`}
-                        className="group cursor-pointer flex flex-col border-b border-gray-100 pb-6 md:border-0 md:pb-0 relative"
+                        className="group cursor-pointer flex flex-col border-b border-gray-300 dark:border-gray-700 pb-6 md:border-0 md:pb-0 relative"
                     >
                         <div className="aspect-[16/10] overflow-hidden mb-4 relative rounded-sm">
                             <Image
@@ -171,7 +171,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 </div>
                             </div>
                         </div>
-                        <h3 className="text-base font-black uppercase leading-tight group-hover:text-[#cc0000] transition-colors mb-2">
+                        <h3 className="text-base font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors mb-2">
                             {article.title}
                         </h3>
                         <div className="flex items-center space-x-3 text-[9px] font-bold text-gray-400 uppercase tracking-tighter mt-auto">
