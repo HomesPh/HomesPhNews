@@ -35,18 +35,27 @@ class ArticleController extends Controller
         $sortBy = $validated['sort_by'] ?? 'created_at';
         $sortDirection = $validated['sort_direction'] ?? 'desc';
 
-        // ═══════════════════════════════════════════════════════════════
-        // PENDING STATUS: Fetch from Redis (Python Scraper Source)
-        // ═══════════════════════════════════════════════════════════════
-        if ($status === 'pending') {
-            return $this->getPendingArticlesFromRedis($validated, $perPage, $page);
-        }
-
         // Apply common filters (Search, Dates, Topics)
         $query = Article::query()
-            ->when($status && !in_array($status, ['all', 'published']), fn ($q, $s) => $q->where('status', $s))
+            ->when($status === 'deleted', 
+                fn ($q) => $q->where('is_deleted', true),
+                fn ($q) => $q->where('is_deleted', false)
+            )
+            ->when($status && !in_array($status, ['all', 'deleted']), function($q) use ($status) {
+                if ($status === 'pending') {
+                    $q->whereIn('status', ['pending', 'pending review']);
+                } else {
+                    $q->where('status', $status);
+                }
+            })
             ->when($validated['search'] ?? null, function ($q, $s) {
-                $q->where(fn ($sub) => $sub->where('title', 'LIKE', "%{$s}%")->orWhere('summary', 'LIKE', "%{$s}%"));
+                $q->where(function ($sub) use ($s) {
+                    $sub->where('title', 'LIKE', "%{$s}%")
+                        ->orWhere('summary', 'LIKE', "%{$s}%")
+                        ->orWhere('content', 'LIKE', "%{$s}%")
+                        ->orWhere('keywords', 'LIKE', "%{$s}%")
+                        ->orWhere('topics', 'LIKE', "%{$s}%");
+                });
             })
             ->when($validated['start_date'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '>=', $d))
             ->when($validated['end_date'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '<=', $d))
@@ -60,14 +69,20 @@ class ArticleController extends Controller
         // Paginate DB results - Eager load to prevent N+1 queries
         $articles = $query
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url')
+            ->select('id', 'article_id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'is_deleted')
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage);
 
-        // Merge Redis articles if on early page of 'all'
-        if ((!$status || $status === 'all') && $page == 1) {
+        // Merge Redis articles if on early page of 'all' or 'pending'
+        if (((!$status || $status === 'all') || $status === 'pending') && $page == 1) {
             try {
-                $redisRaw = $this->redisService->getLatestArticles(5);
+                // Pass all active filters to Redis filterArticles
+                $redisRaw = $this->redisService->filterArticles([
+                    'search' => $validated['search'] ?? null,
+                    'category' => $validated['category'] ?? null,
+                    'country' => $validated['country'] ?? null,
+                ], ($status === 'pending') ? 50 : 5);
+
                 $redisItems = collect($redisRaw)->map(function ($a) {
                     return [
                         'id' => (string)($a['id'] ?? ''),
@@ -87,6 +102,11 @@ class ArticleController extends Controller
                     ];
                 })->filter(fn($a) => !empty($a['id']));
 
+                // Deduplicate: Don't show Redis items if they already exist in our DB
+                $redisIds = $redisItems->pluck('id')->toArray();
+                $existingInDb = Article::whereIn('id', $redisIds)->pluck('id')->toArray();
+                $redisItems = $redisItems->filter(fn($a) => !in_array($a['id'], $existingInDb));
+
                 $merged = $redisItems->merge($articles->getCollection());
                 $articles->setCollection($merged);
             } catch (\Exception $e) {
@@ -98,7 +118,7 @@ class ArticleController extends Controller
             'data' => ArticleResource::collection($articles->getCollection()),
             'current_page' => $articles->currentPage(),
             'per_page' => $articles->perPage(),
-            'total' => $articles->total() + ((!$status || $status === 'all') ? 10 : 0), // Estimate total for UI if merging
+            'total' => $articles->total() + ((!$status || $status === 'all' || $status === 'pending') ? 50 : 0), // Estimate total for UI if merging
             'last_page' => $articles->lastPage(),
             'from' => $articles->firstItem(),
             'to' => $articles->lastItem(),
@@ -229,6 +249,7 @@ class ArticleController extends Controller
         unset($validated['date']);
         unset($validated['slug']);
 
+        $validated['is_deleted'] = false;
         $article = Article::create($validated);
 
         if (! empty($siteNames)) {
@@ -360,13 +381,33 @@ class ArticleController extends Controller
 
         $validated = $request->validated();
 
-        $redisArticle = $this->redisService->getArticle($id);
-        if (! $redisArticle) {
-            return response()->json(['message' => 'Pending article not found in Redis'], 404);
+        // 1. Attempt to find in Database first
+        // If it exists in DB (even if soft-deleted or restored), we update it
+        $existing = Article::where('id', $id)->first();
+        if ($existing) {
+            // Restore and update
+            $existing->update([
+                'is_deleted' => false,
+                'status' => 'published'
+            ]);
+            
+            // Sync sites if provided
+            $siteNames = $validated['published_sites'] ?? [];
+            if (! empty($siteNames)) {
+                $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
+                $existing->publishedSites()->sync($siteIds);
+            }
+
+            // Cleanup Redis if it's still there
+            $this->redisService->deleteArticle($id);
+            
+            return new ArticleResource($existing);
         }
 
-        if (Article::where('id', $id)->exists()) {
-            return response()->json(['message' => 'Article already exists in database'], 409);
+        // 2. If not in DB, check Redis (Source of Truth for new scraper articles)
+        $redisArticle = $this->redisService->getArticle($id);
+        if (! $redisArticle) {
+            return response()->json(['message' => 'Article not found in database or pending queue'], 404);
         }
 
         $article = Article::create([
@@ -385,6 +426,7 @@ class ArticleController extends Controller
             'topics' => $redisArticle['topics'] ?? [],
             'status' => 'published',
             'views_count' => 0,
+            'is_deleted' => false,
         ]);
 
         $siteNames = $validated['published_sites'] ?? [];
@@ -426,33 +468,75 @@ class ArticleController extends Controller
         $deletedFromDb = false;
         $deletedFromRedis = false;
 
-        // 1. Try to delete from Database
+        // 1. Try to find in Database
         $article = Article::find($id);
         if ($article) {
-            $article->delete();
+            $article->update(['is_deleted' => true]);
             $deletedFromDb = true;
         }
 
-        // 2. Try to delete from Redis (if ID is UUID)
-        if (\Illuminate\Support\Str::isUuid($id)) {
+        // 2. Try to handle Redis article (if ID is UUID and not in DB)
+        if (!$deletedFromDb && \Illuminate\Support\Str::isUuid($id)) {
             try {
-                if ($this->redisService->getArticle($id)) {
+                $redisArticle = $this->redisService->getArticle($id);
+                if ($redisArticle) {
+                    // Move to DB as soft-deleted article
+                    Article::create([
+                        'id' => $id,
+                        'article_id' => $id,
+                        'title' => $redisArticle['title'] ?? '',
+                        'summary' => $redisArticle['summary'] ?? substr($redisArticle['content'] ?? '', 0, 500),
+                        'content' => $redisArticle['content'] ?? '',
+                        'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? '',
+                        'category' => $redisArticle['category'] ?? '',
+                        'country' => $redisArticle['country'] ?? '',
+                        'source' => $redisArticle['source'] ?? '',
+                        'status' => 'pending review',
+                        'is_deleted' => true,
+                    ]);
+                    
                     $this->redisService->deleteArticle($id);
                     $deletedFromRedis = true;
                 }
             } catch (\Exception $e) {
-                \Log::warning("Failed to delete article {$id} from Redis: " . $e->getMessage());
+                \Log::warning("Failed to soft-delete article {$id} from Redis: " . $e->getMessage());
             }
         }
 
         if (!$deletedFromDb && !$deletedFromRedis) {
-            return response()->json(['message' => 'Article not found in any storage'], 404);
+            return response()->json(['message' => 'Article not found'], 404);
         }
 
         return response()->json([
-            'message' => 'Article permanently deleted successfully',
+            'message' => 'Article soft-deleted successfully',
             'from_db' => $deletedFromDb,
             'from_redis' => $deletedFromRedis
+        ]);
+    }
+
+    /**
+     * Restore a soft-deleted article.
+     */
+    public function restore(string $id): JsonResponse
+    {
+        $article = Article::find($id);
+        
+        if (!$article) {
+            return response()->json(['message' => 'Article not found'], 404);
+        }
+
+        if (!$article->is_deleted) {
+            return response()->json(['message' => 'Article is not deleted'], 400);
+        }
+
+        $article->update([
+            'is_deleted' => false,
+            'status' => 'pending review'
+        ]);
+
+        return response()->json([
+            'message' => 'Article restored successfully',
+            'article' => $article
         ]);
     }
 
@@ -465,11 +549,15 @@ class ArticleController extends Controller
      */
     protected function getStatusCounts(): array
     {
-        // Database counts - Single query group by is much faster
-        $counts = Article::selectRaw('status, count(*) as total')
+        // Database counts for active articles
+        $counts = Article::where('is_deleted', false)
+            ->selectRaw('status, count(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status')
             ->toArray();
+
+        // Count soft-deleted articles separately
+        $deletedCount = Article::where('is_deleted', true)->count();
 
         // Redis count (all Redis articles are pending)
         $pendingCount = 0;
@@ -484,7 +572,7 @@ class ArticleController extends Controller
         $publishedCount = $counts['published'] ?? 0;
         $pendingReviewCount = $counts['pending review'] ?? 0;
 
-        // DB Total (Published + Pending Review)
+        // DB Total (Published + Pending Review) - excluding soft deleted
         $dbTotal = $publishedCount + $pendingReviewCount;
 
         // All = DB Total + Redis Pending
@@ -493,8 +581,8 @@ class ArticleController extends Controller
         return [
             'all' => $allCount,
             'published' => $publishedCount, 
-            'pending' => $pendingCount,
-            'pending_review' => $pendingReviewCount,
+            'pending' => $pendingCount + $pendingReviewCount,
+            'deleted' => $deletedCount,
         ];
     }
 }

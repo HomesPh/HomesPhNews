@@ -7,21 +7,25 @@ import { ArticleResource } from "@/lib/api-v2";
 
 interface LatestPostsSectionProps {
     articles: ArticleResource[];
+    title?: string;
+    viewAllHref?: string;
 }
 
-export default function LatestPostsSection({ articles }: LatestPostsSectionProps) {
-    const [visibleCount, setVisibleCount] = useState(2);
+export default function LatestPostsSection({ articles, title, viewAllHref }: LatestPostsSectionProps) {
+    const [visibleCount, setVisibleCount] = useState(3);
     const visibleArticles = articles.slice(0, visibleCount);
     const hasMore = visibleCount < articles.length;
 
     const handleLoadMore = () => {
-        setVisibleCount(prev => Math.min(prev + 4, articles.length));
+        setVisibleCount(prev => Math.min(prev + 10, articles.length));
     };
 
     return (
         <div className="space-y-12">
             <div className="bg-[#cc0000] px-4 py-1 inline-block mb-8">
-                <h2 className="text-white text-xs font-black uppercase tracking-widest">Latest Posts</h2>
+                <h2 className="text-white text-xs font-black uppercase tracking-widest">
+                    {title || "Latest Posts"}
+                </h2>
             </div>
 
             <div className="flex flex-col space-y-10">
@@ -49,10 +53,10 @@ export default function LatestPostsSection({ articles }: LatestPostsSectionProps
                             </div>
                         </div>
                         <div className="flex flex-col">
-                            <h3 className="text-xl md:text-2xl font-black uppercase leading-tight group-hover:text-[#cc0000] transition-colors mb-4">
+                            <h3 className="text-xl md:text-2xl font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors mb-4">
                                 {article.title}
                             </h3>
-                            <p className="text-gray-500 text-sm font-medium leading-relaxed line-clamp-3 mb-6">
+                            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium leading-relaxed line-clamp-3 mb-6">
                                 {article.summary}
                             </p>
                             <div className="flex items-center space-x-4 text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-auto">
@@ -73,7 +77,16 @@ export default function LatestPostsSection({ articles }: LatestPostsSectionProps
                 ))}
             </div>
 
-            {hasMore && (
+            {viewAllHref ? (
+                <div className="pt-4 text-center">
+                    <Link
+                        href={viewAllHref}
+                        className="bg-[#cc0000] text-white px-10 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-black transition-all transform hover:-translate-y-1 shadow-xl shadow-red-500/10 inline-block"
+                    >
+                        More Posts
+                    </Link>
+                </div>
+            ) : hasMore && (
                 <div className="pt-4 text-center">
                     <button
                         onClick={handleLoadMore}

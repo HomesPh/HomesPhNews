@@ -31,6 +31,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                     src={article.image || 'https://placehold.co/800x450?text=No+Image'}
                                     alt={article.title}
                                     fill
+                                    unoptimized={(article.image || '').includes('wikimedia.org')}
                                     className="object-cover transition-all duration-500 group-hover:scale-110"
                                 />
                                 {/* Tags at bottom right of image */}
@@ -43,7 +44,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                     </div>
                                 </div>
                             </div>
-                            <h3 className="text-sm font-black uppercase leading-tight group-hover:text-[#cc0000] transition-colors line-clamp-2 mb-2">
+                            <h3 className="text-sm font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors line-clamp-2 mb-2">
                                 {article.title}
                             </h3>
                             <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-auto">
@@ -75,6 +76,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 src={main.image || 'https://placehold.co/800x600?text=No+Image'}
                                 alt={main.title}
                                 fill
+                                unoptimized={(main.image || '').includes('wikimedia.org')}
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                             {/* Tags at bottom right of image */}
@@ -87,10 +89,10 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 </div>
                             </div>
                         </div>
-                        <h3 className="text-xl font-black uppercase leading-tight group-hover:text-[#cc0000] transition-colors mb-3">
+                        <h3 className="text-xl font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors mb-3">
                             {main.title}
                         </h3>
-                        <p className="text-gray-500 text-xs font-medium leading-relaxed line-clamp-2 mb-4">
+                        <p className="text-gray-500 dark:text-gray-400 text-xs font-medium leading-relaxed line-clamp-2 mb-4">
                             {main.content}
                         </p>
                         <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
@@ -113,6 +115,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                         src={article.image || 'https://placehold.co/200x200?text=No+Image'}
                                         alt={article.title}
                                         fill
+                                        unoptimized={(article.image || '').includes('wikimedia.org')}
                                         className="object-cover group-hover:scale-110 transition-transform duration-500"
                                     />
                                     {/* Small tags for side posts */}
@@ -126,7 +129,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                     </div>
                                 </div>
                                 <div className="flex flex-col justify-center">
-                                    <h4 className="text-xs font-black uppercase leading-tight group-hover:text-[#cc0000] transition-colors line-clamp-2 mb-2">
+                                    <h4 className="text-xs font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors line-clamp-2 mb-2">
                                         {article.title}
                                     </h4>
                                     <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
@@ -159,6 +162,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 src={article.image || 'https://placehold.co/800x500?text=No+Image'}
                                 alt={article.title}
                                 fill
+                                unoptimized={(article.image || '').includes('wikimedia.org')}
                                 className="object-cover transition-transform duration-700 group-hover:scale-110"
                             />
                             {/* Tags at bottom right of image */}

@@ -7,7 +7,8 @@ import { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
 import { getAdminArticleById } from "@/lib/api-v2/admin/service/article/getAdminArticleById";
 import { publishArticle } from "@/lib/api-v2/admin/service/article/publishArticle";
 import { deleteArticle } from "@/lib/api-v2/admin/service/article/deleteArticle";
-import { Trash2 } from 'lucide-react';
+import { restoreArticle } from "@/lib/api-v2/admin/service/article/restoreArticle";
+import { Trash2, RotateCcw } from 'lucide-react';
 import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
 import CustomizeTitlesModal from "@/components/features/admin/articles/CustomizeTitlesModal";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
@@ -48,9 +49,11 @@ export default function ArticleDetailsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isPublishing, setIsPublishing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isRestoring, setIsRestoring] = useState(false);
     const [customTitles, setCustomTitles] = useState<Record<string, string>>({});
     const [showPublishDialog, setShowPublishDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [showRestoreDialog, setShowRestoreDialog] = useState(false);
     const [availableSites, setAvailableSites] = useState<string[]>([]);
     const [publishToSites, setPublishToSites] = useState<string[]>([]);
 
@@ -127,13 +130,33 @@ export default function ArticleDetailsPage() {
         try {
             const articleId = (Array.isArray(params.id) ? params.id[0] : params.id) || '';
             await deleteArticle(articleId);
-            router.push('/admin/articles');
+            router.push('/admin/articles?status=deleted');
         } catch (error: any) {
             const message = error.response?.data?.message || 'Failed to delete article';
             alert(`Error: ${message}`);
         } finally {
             setIsDeleting(false);
             setShowDeleteDialog(false);
+        }
+    };
+
+    const handleRestoreClick = () => {
+        if (!article || !params.id) return;
+        setShowRestoreDialog(true);
+    };
+
+    const confirmRestore = async () => {
+        setIsRestoring(true);
+        try {
+            const articleId = (Array.isArray(params.id) ? params.id[0] : params.id) || '';
+            await restoreArticle(articleId);
+            router.push('/admin/articles');
+        } catch (error: any) {
+            const message = error.response?.data?.message || 'Failed to restore article';
+            alert(`Error: ${message}`);
+        } finally {
+            setIsRestoring(false);
+            setShowRestoreDialog(false);
         }
     };
 
@@ -341,14 +364,25 @@ export default function ArticleDetailsPage() {
                                 <button onClick={() => setIsEditModalOpen(true)} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#374151] hover:bg-gray-50 transition-all active:scale-95 tracking-[-0.5px]">
                                     <Edit className="w-4 h-4" /> Edit Article
                                 </button>
-                                <button
-                                    onClick={handleDeleteClick}
-                                    disabled={isDeleting}
-                                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#ef4444] hover:bg-red-50 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                                    {isDeleting ? 'Deleting...' : 'Delete Article'}
-                                </button>
+                                {article.is_deleted || article.status === 'deleted' ? (
+                                    <button
+                                        onClick={handleRestoreClick}
+                                        disabled={isRestoring}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-emerald-200 bg-emerald-50 rounded-[8px] text-[14px] font-medium text-emerald-700 hover:bg-emerald-100 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isRestoring ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                                        {isRestoring ? 'Restoring...' : 'Restore Article'}
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleDeleteClick}
+                                        disabled={isDeleting}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#ef4444] hover:bg-red-50 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                        {isDeleting ? 'Deleting...' : 'Delete Article'}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </aside>
@@ -374,14 +408,29 @@ export default function ArticleDetailsPage() {
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle className="text-red-600">Delete Article</AlertDialogTitle>
+                        <AlertDialogTitle className="text-red-600">Move to Trash</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to <strong>permanently delete</strong> this article? This action cannot be undone and will remove the article from both the website and management system.
+                            Are you sure you want to <strong>trash</strong> this article? It will be moved to the Deleted tab and won't be visible to users, but you can restore it later.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Confirm Delete</AlertDialogAction>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Confirm Trash</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={showRestoreDialog} onOpenChange={setShowRestoreDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-emerald-600">Restore Article</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to <strong>restore</strong> this article? It will be moved back to its previous status and will be visible again if it was published.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmRestore} className="bg-emerald-600 hover:bg-emerald-700">Confirm Restore</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
