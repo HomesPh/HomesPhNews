@@ -1,5 +1,4 @@
-"use client";
-
+import { cn } from "@/lib/utils";
 import { useState } from 'react';
 import {
     Dialog,
@@ -20,9 +19,10 @@ interface SiteDistribution {
 interface ArticleDistributionProps {
     sites: SiteDistribution[];
     totalArticles: number;
+    className?: string;
 }
 
-export default function ArticleDistribution({ sites, totalArticles }: ArticleDistributionProps) {
+export default function ArticleDistribution({ sites, totalArticles, className }: ArticleDistributionProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     // Sort and take top 5 for the main view
@@ -31,7 +31,7 @@ export default function ArticleDistribution({ sites, totalArticles }: ArticleDis
     const hasMore = sites.length > 5;
 
     return (
-        <div className="bg-white rounded-[12px] border border-[#f3f4f6] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] p-6 h-full">
+        <div className={cn("bg-white rounded-[12px] border border-[#f3f4f6] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] p-6", className)}>
             <h2 className="text-[18px] font-bold text-[#111827] mb-6 tracking-[-0.5px]">Article Distribution</h2>
 
             <div className="space-y-4">
