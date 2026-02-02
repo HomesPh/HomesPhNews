@@ -137,16 +137,15 @@ export default function AnalyticsPage() {
                     </div>
                 </div>
 
-                    {/* Export Data Button */}
-                    <button
-                        onClick={handleExportData}
-                        disabled={isLoading}
-                        className="flex items-center gap-2 px-5 h-[50px] bg-[#C10007] text-white rounded-[6px] hover:bg-[#a10006] transition-colors disabled:opacity-50"
-                    >
-                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                        <span className="text-[16px] font-medium tracking-[-0.5px]">Export Data</span>
-                    </button>
-                </div>
+                {/* Export Data Button */}
+                <button
+                    onClick={handleExportData}
+                    disabled={isLoading}
+                    className="flex items-center gap-2 px-5 h-[50px] bg-[#C10007] text-white rounded-[6px] hover:bg-[#a10006] transition-colors disabled:opacity-50"
+                >
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                    <span className="text-[16px] font-medium tracking-[-0.5px]">Export Data</span>
+                </button>
             </AdminPageHeader>
 
             {/* Analytics Stats Grid */}
@@ -202,6 +201,6 @@ export default function AnalyticsPage() {
                     <PartnerPerformanceTable data={partnerData} />
                 )}
             </div>
-        </div >
+        </div>
     );
 }
