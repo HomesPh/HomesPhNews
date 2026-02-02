@@ -48,9 +48,21 @@ export default function LandingFooter() {
           <div>
             <h4 className="font-bold text-[16px] mb-4">Legal</h4>
             <ul className="space-y-2 mb-6">
-              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Terms & Policy</li>
-              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Privacy Policy</li>
-              <li className="font-normal text-[14px] text-[#9ca3af] hover:text-white cursor-pointer transition-colors">Cookie Policy</li>
+              <li>
+                <Link href="/terms-and-policy" className="font-normal text-[14px] text-[#9ca3af] hover:text-white transition-colors">
+                  Terms & Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy-policy" className="font-normal text-[14px] text-[#9ca3af] hover:text-white transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/cookie-policy" className="font-normal text-[14px] text-[#9ca3af] hover:text-white transition-colors">
+                  Cookie Policy
+                </Link>
+              </li>
             </ul>
 
             <h4 className="font-bold text-[16px] mb-4">Follow Us</h4>
