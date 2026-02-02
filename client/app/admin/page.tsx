@@ -8,7 +8,6 @@ import ArticleDistribution from "@/components/features/admin/dashboard/ArticleDi
 import QuickActions from "@/components/features/admin/dashboard/QuickActions";
 import Link from 'next/link';
 import { getAdminStats, AdminStatsResponse } from "@/lib/api-v2/admin/service/dashboard/getAdminStats";
-import { Loader2 } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from 'next/navigation';
 
@@ -75,8 +74,8 @@ export default function AdminDashboard() {
     const distributionSites = data?.stats.total_distribution.map(d => ({
         name: d.distributed_in,
         count: d.published_count,
-        totalViews: d.total_views,
-        color: "#C10007" // You might want to assign different colors per site dynamically
+        totalViews: 0, // The API might need update to return this, or we default to 0 for now as per reference
+        color: "#C10007"
     })) ?? [];
 
     return (
@@ -162,6 +161,27 @@ export default function AdminDashboard() {
                             </>
                         )}
                     </div>
+                </div>
+
+                {/* Sidebar: Distribution and Quick Actions */}
+                <div className="space-y-8">
+                    {isLoading ? (
+                        <>
+                            <Skeleton className="h-[300px] rounded-xl bg-white" />
+                            <Skeleton className="h-[200px] rounded-xl bg-white" />
+                        </>
+                    ) : (
+                        <>
+                            <ArticleDistribution
+                                sites={distributionSites.map(s => ({
+                                    ...s,
+                                    totalViews: 0 // Adding missing prop requirement for current ArticleDistribution
+                                }))}
+                                totalArticles={Number(data?.stats.total_published ?? 0)}
+                            />
+                            <QuickActions />
+                        </>
+                    )}
                 </div>
             </div>
         </div>

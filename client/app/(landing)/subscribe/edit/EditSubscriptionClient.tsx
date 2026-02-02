@@ -35,9 +35,13 @@ function EditSubscriptionClient() {
     const fetchSubscription = async () => {
       try {
         const response = await getSubscriptionById(id);
-        const data = response.data;
+        // The API returns { status: 'success', data: { ... } }
+        // Type assertion needed because the interface definition currently doesn't match the wrapper
+        const apiResponse = response.data as any;
+        const data = apiResponse.data || apiResponse;
+
         setFormData({
-          email: data.email,
+          email: data.email || "",
           categories: Array.isArray(data.category) ? data.category : JSON.parse(data.category as string || "[]"),
           countries: Array.isArray(data.country) ? data.country : JSON.parse(data.country as string || "[]"),
         });

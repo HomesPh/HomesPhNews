@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import StatCard from "@/components/features/admin/shared/StatCard";
 import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
-import { ChevronDown, Download, Loader2, Filter, Info } from 'lucide-react';
+import { ChevronDown, Download, Loader2 } from 'lucide-react';
 import TrafficTrendsChart from "@/components/features/admin/analytics/TrafficTrendsChart";
 import CategoryDistributionChart from "@/components/features/admin/analytics/CategoryDistributionChart";
 import CountryPerformanceChart from "@/components/features/admin/analytics/CountryPerformanceChart";
@@ -11,12 +11,6 @@ import PartnerPerformanceTable from "@/components/features/admin/analytics/Partn
 import ArticleDistribution from "@/components/features/admin/dashboard/ArticleDistribution";
 import { getAdminAnalytics, AdminAnalyticsResponse } from "@/lib/api-v2/admin/service/analytics/getAdminAnalytics";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 export default function AnalyticsPage() {
     const [dateRange, setDateRange] = useState('Last 7 Days');
@@ -106,121 +100,108 @@ export default function AnalyticsPage() {
     };
 
     return (
-        <div className="p-4 md:p-8 bg-[#f8fafc] min-h-screen">
-            <div className="max-w-[1600px] mx-auto space-y-8">
-                {/* Premium Header */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-gray-200">
-                    <div>
-                        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
-                            Growth Analytics
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger>
-                                        <Info className="w-5 h-5 text-gray-400 cursor-help" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Real-time performance metrics across all integrated news platforms.</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        </h1>
-                        <p className="text-gray-500 mt-1 font-medium">Monitoring your impact across the globe.</p>
+        <div className="p-8 bg-[#f9fafb] min-h-screen">
+            <AdminPageHeader
+                title="Growth Analytics"
+                description="Monitoring your impact across the globe."
+            >
+                <div className="flex items-center gap-4">
+                    {/* Date Range Filter */}
+                    <div className="relative">
+                        <select
+                            value={dateRange}
+                            onChange={(e) => setDateRange(e.target.value)}
+                            className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[16px] text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] cursor-pointer"
+                        >
+                            <option>Last 7 Days</option>
+                            <option>Last 30 Days</option>
+                            <option>Last 3 Months</option>
+                            <option>Last 6 Months</option>
+                            <option>Last Year</option>
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-xl border border-gray-200">
-                            <Filter className="w-4 h-4 text-gray-400" />
-                            <select
-                                value={dateRange}
-                                onChange={(e) => setDateRange(e.target.value)}
-                                className="bg-transparent border-none text-[14px] font-bold text-gray-700 focus:ring-0 cursor-pointer outline-none"
-                            >
-                                <option>Last 7 Days</option>
-                                <option>Last 30 Days</option>
-                                <option>Last 3 Months</option>
-                                <option>Last 6 Months</option>
-                                <option>Last Year</option>
-                            </select>
-                        </div>
-
-                        <div className="h-6 w-[1px] bg-gray-200 mx-1 hidden sm:block" />
-
-                        <div className="flex items-center gap-2">
-                            <select
-                                value={exportFormat}
-                                onChange={(e) => setExportFormat(e.target.value)}
-                                className="px-3 py-1.5 bg-white border border-gray-200 rounded-xl text-[14px] font-semibold text-gray-600 focus:ring-2 focus:ring-[#C10007] outline-none cursor-pointer"
-                            >
-                                <option>CSV</option>
-                                <option>PDF</option>
-                                <option>Excel</option>
-                            </select>
-
-                            <button
-                                onClick={handleExportData}
-                                className="flex items-center gap-2 px-5 py-2 bg-[#C10007] text-white rounded-xl hover:bg-[#a10006] transition-all active:scale-95 shadow-md shadow-red-100 disabled:opacity-50"
-                                disabled={isLoading}
-                            >
-                                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                                <span className="text-[14px] font-bold uppercase tracking-wider">Export</span>
-                            </button>
-                        </div>
+                    {/* Export Format Filter */}
+                    <div className="relative">
+                        <select
+                            value={exportFormat}
+                            onChange={(e) => setExportFormat(e.target.value)}
+                            className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[16px] text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] cursor-pointer"
+                        >
+                            <option>CSV</option>
+                            <option>PDF</option>
+                            <option>Excel</option>
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
                     </div>
                 </div>
 
-                {/* Key Metrics Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {isLoading ? (
-                        Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-[140px] rounded-2xl bg-white shadow-sm" />)
-                    ) : (
-                        stats.map((stat, index) => (
-                            <StatCard key={index} {...stat} hasIconBg={true} />
-                        ))
-                    )}
+                    {/* Export Data Button */}
+                    <button
+                        onClick={handleExportData}
+                        disabled={isLoading}
+                        className="flex items-center gap-2 px-5 h-[50px] bg-[#C10007] text-white rounded-[6px] hover:bg-[#a10006] transition-colors disabled:opacity-50"
+                    >
+                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                        <span className="text-[16px] font-medium tracking-[-0.5px]">Export Data</span>
+                    </button>
                 </div>
+            </AdminPageHeader>
 
-                {/* Charts Row 1 */}
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                    <div className="xl:col-span-2">
-                        {isLoading ? (
-                            <Skeleton className="h-[450px] rounded-2xl bg-white shadow-sm" />
-                        ) : (
-                            <TrafficTrendsChart data={trafficData} />
-                        )}
-                    </div>
-                    <div className="xl:col-span-1">
-                        {isLoading ? (
-                            <Skeleton className="h-[450px] rounded-2xl bg-white shadow-sm" />
-                        ) : (
-                            <CategoryDistributionChart data={categoryData} />
-                        )}
-                    </div>
-                </div>
-
-                {/* Charts Row 2: Breakdowns */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                    {isLoading ? (
-                        <>
-                            <Skeleton className="h-[500px] rounded-2xl bg-white shadow-sm" />
-                            <Skeleton className="h-[500px] rounded-2xl bg-white shadow-sm" />
-                        </>
-                    ) : (
-                        <>
-                            <CountryPerformanceChart data={countryPerformanceData} />
-                            <ArticleDistribution sites={distributionSites} totalArticles={data?.overview.total_page_news ?? 1} />
-                        </>
-                    )}
-                </div>
-
-                {/* Full Partner Performance Table */}
-                <div className="pt-4">
-                    {isLoading ? (
-                        <Skeleton className="h-[500px] rounded-2xl bg-white shadow-sm" />
-                    ) : (
-                        <PartnerPerformanceTable data={partnerData} />
-                    )}
-                </div>
+            {/* Analytics Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {isLoading ? (
+                    Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-[140px] rounded-[12px] bg-white shadow-sm" />)
+                ) : (
+                    stats.map((stat, index) => (
+                        <StatCard
+                            key={index}
+                            {...stat}
+                            hasIconBg={true}
+                        />
+                    ))
+                )}
             </div>
-        </div>
+
+            {/* Charts Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {isLoading ? (
+                    <>
+                        <Skeleton className="h-[400px] rounded-[12px] bg-white shadow-sm" />
+                        <Skeleton className="h-[400px] rounded-[12px] bg-white shadow-sm" />
+                    </>
+                ) : (
+                    <>
+                        <TrafficTrendsChart data={trafficData} />
+                        <CategoryDistributionChart data={categoryData} />
+                    </>
+                )}
+            </div>
+
+            {/* Country and Article Distribution Grid */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+                {isLoading ? (
+                    <>
+                        <Skeleton className="h-[400px] rounded-[12px] bg-white shadow-sm" />
+                        <Skeleton className="h-[400px] rounded-[12px] bg-white shadow-sm" />
+                    </>
+                ) : (
+                    <>
+                        <CountryPerformanceChart data={countryPerformanceData} />
+                        <ArticleDistribution sites={distributionSites} totalArticles={data?.overview.total_page_news ?? 1} className="h-full" />
+                    </>
+                )}
+            </div>
+
+            {/* Partner Performance Table */}
+            <div className="mb-8">
+                {isLoading ? (
+                    <Skeleton className="h-[400px] rounded-[12px] bg-white shadow-sm" />
+                ) : (
+                    <PartnerPerformanceTable data={partnerData} />
+                )}
+            </div>
+        </div >
     );
 }

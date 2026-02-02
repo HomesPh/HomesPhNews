@@ -95,6 +95,7 @@ export default function ArticleEditorPreview({ data, template, onDataChange }: A
                 day: 'numeric'
             })}
             views={0}
+            forceLight={true}
         />
     );
 
@@ -103,6 +104,7 @@ export default function ArticleEditorPreview({ data, template, onDataChange }: A
             <ArticleContent
                 content={data.content || '<p>Article content will appear here...</p>'}
                 topics={data.tags}
+                forceLight={true}
             />
         </div>
     );

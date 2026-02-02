@@ -265,23 +265,21 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 template: template
             };
 
-            // Helper to check if ID is a UUID (Redis articles have UUID IDs)
-            const isUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-            
-            // Check if this is a pending article from Redis
-            // - Either status is 'pending' or 'pending review'  
-            // - Or the ID is a UUID (Redis articles have UUID format)
-            const isPendingArticle = initialData?.status === 'pending' || 
-                                     initialData?.status === 'pending review' ||
-                                     (initialData?.id && isUUID(initialData.id));
+            // Redis articles (from scraper) have status === 'pending'
+            const isPendingArticle = initialData?.status === 'pending';
 
-            console.log('handleSave debug:', { 
-                mode, 
-                status: initialData?.status, 
-                id: initialData?.id, 
+            console.log('handleSave debug:', {
+                mode,
+                status: initialData?.status,
+                id: initialData?.id,
                 isPendingArticle,
-                isPublish 
+                isPublish
             });
+
+            if (isPublish && articleData.publishTo.length === 0) {
+                alert('Please select at least one site to publish to.');
+                return;
+            }
 
             if (mode === 'create') {
                 // Create article directly in MySQL database
@@ -293,13 +291,9 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                     ...payload,
                     image_url: finalImage || undefined,
                 });
-                
+
                 // If publishing, also move from Redis to MySQL database
                 if (isPublish) {
-                    if (articleData.publishTo.length === 0) {
-                        alert('Please select at least one site to publish to.');
-                        return;
-                    }
                     await publishArticle(initialData.id, {
                         published_sites: articleData.publishTo,
                     });
@@ -309,20 +303,21 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 }
             } else if (mode === 'edit') {
                 await updateArticle(initialData.id, payload);
-                alert('Article updated successfully!');
+                alert(`Article ${isPublish ? 'published' : 'updated'} successfully!`);
             }
 
             onClose();
             window.location.reload();
         } catch (error: any) {
             console.error("Failed to save article", error);
-            const msg = error.response?.data?.message || "Failed to save changes. Please try again.";
-            alert(`Error ${error.response?.status || ''}: ${msg}`);
+            const status = error.response?.status || error.status || '';
+            const msg = error.response?.data?.message || error.message || "Failed to save changes. Please try again.";
+            alert(`Error ${status}: ${msg}`);
         }
     };
 
     return (
-        <div className="fixed inset-0 bg-white z-[100] flex flex-col animate-in fade-in duration-200">
+        <div className="force-light fixed inset-0 bg-white z-[100] flex flex-col animate-in fade-in duration-200">
             {/* Full Screen Header */}
             <div className="h-[70px] border-b border-[#e5e7eb] px-6 flex items-center justify-between bg-white shrink-0">
                 <div className="flex items-center gap-4">

@@ -36,7 +36,7 @@ export default function CustomizeTitlesModal({
     };
 
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[110] animate-in fade-in duration-200 backdrop-blur-[2px]">
+        <div className="force-light fixed inset-0 bg-black/40 flex items-center justify-center z-[110] animate-in fade-in duration-200 backdrop-blur-[2px]">
             <div className="bg-white rounded-[12px] shadow-[0px_25px_50px_0px_rgba(0,0,0,0.25)] w-full max-w-[600px] flex flex-col animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="p-8 pb-0">

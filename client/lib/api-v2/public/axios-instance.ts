@@ -1,4 +1,4 @@
-"use server";
+
 
 /**
  * This instance is intended to host the axios instance for public API calls.

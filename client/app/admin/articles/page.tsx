@@ -56,7 +56,6 @@ export default function ArticlesPage() {
         all: 0,
         published: 0,
         pending: 0,
-        rejected: 0,
     });
 
     // Effect: Fetch articles when filters change
@@ -92,7 +91,6 @@ export default function ArticlesPage() {
                         all: Number(status_counts.all),
                         published: Number(status_counts.published),
                         pending: Number(status_counts.pending),
-                        rejected: Number(status_counts.rejected),
                     });
                 }
 

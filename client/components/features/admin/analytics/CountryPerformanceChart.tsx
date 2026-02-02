@@ -24,77 +24,55 @@ export default function CountryPerformanceChart({ data }: CountryPerformanceChar
     if (!mounted) return <div className="h-[400px] w-full bg-white animate-pulse rounded-2xl shadow-sm" />;
 
     return (
-        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h3 className="text-xl font-bold text-gray-900 tracking-tight">Global Performance</h3>
-                    <p className="text-sm text-gray-500 font-medium">Views by geographic location</p>
-                </div>
-                <div className="p-2 bg-emerald-50 rounded-lg">
-                    <Globe className="w-5 h-5 text-emerald-600" />
-                </div>
+        <div className="bg-white border border-[#f3f4f6] rounded-[12px] p-6 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]">
+            <div className="flex items-center justify-between mb-6">
+                <h3 className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">Global Performance</h3>
+                <Globe className="w-5 h-5 text-[#9ca3af]" />
             </div>
 
-            <div className="flex-grow">
-                <div className="h-[320px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={data} layout="vertical" margin={{ left: 10, right: 30 }}>
-                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                            <XAxis
-                                type="number"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }}
-                                tickFormatter={(value) => value >= 1000 ? `${value / 1000}K` : value}
-                            />
-                            <YAxis
-                                dataKey="country"
-                                type="category"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fontSize: 12, fill: '#1e293b', fontWeight: 700 }}
-                                width={100}
-                            />
-                            <Tooltip
-                                cursor={{ fill: '#f8fafc' }}
-                                contentStyle={{
-                                    borderRadius: '16px',
-                                    border: 'none',
-                                    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-                                    padding: '12px'
-                                }}
-                            />
-                            <Bar
-                                dataKey="totalViews"
-                                fill="#10b981"
-                                radius={[0, 4, 4, 0]}
-                                barSize={18}
-                                name="Total Views"
-                            >
-                                {data.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={index === 0 ? '#10b981' : '#34d399'} />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
-
-            <div className="mt-8 grid grid-cols-3 gap-4 border-t border-gray-50 pt-6">
-                <div className="text-center">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Top Region</p>
-                    <p className="text-sm font-extrabold text-gray-900">{data[0]?.country || 'N/A'}</p>
-                </div>
-                <div className="text-center border-x border-gray-100 px-4">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Avg Views</p>
-                    <p className="text-sm font-extrabold text-gray-900">
-                        {data.length ? (data.reduce((acc, curr) => acc + curr.totalViews, 0) / data.length).toLocaleString(undefined, { maximumFractionDigits: 0 }) : 0}
-                    </p>
-                </div>
-                <div className="text-center">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Coverage</p>
-                    <p className="text-sm font-extrabold text-gray-900">{data.length} Countries</p>
-                </div>
+            <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={data} layout="vertical" margin={{ left: 10, right: 30 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
+                        <XAxis
+                            type="number"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fontSize: 12, fill: '#6b7280' }}
+                            tickFormatter={(value) => value >= 1000 ? `${value / 1000}K` : value}
+                            stroke="#e5e7eb"
+                        />
+                        <YAxis
+                            dataKey="country"
+                            type="category"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fontSize: 12, fill: '#111827', fontWeight: 600 }}
+                            width={100}
+                        />
+                        <Tooltip
+                            cursor={{ fill: '#f9fafb' }}
+                            contentStyle={{
+                                backgroundColor: '#fff',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '8px',
+                                fontSize: '14px'
+                            }}
+                            formatter={(value: any) => value.toLocaleString()}
+                        />
+                        <Bar
+                            dataKey="totalViews"
+                            fill="#10b981"
+                            radius={[0, 4, 4, 0]}
+                            barSize={18}
+                            name="Total Views"
+                        >
+                            {data.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={index === 0 ? '#10b981' : '#34d399'} />
+                            ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
             </div>
         </div>
     );
