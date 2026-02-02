@@ -418,48 +418,42 @@ class ArticleController extends Controller
     }
 
     /**
-     * Reject a pending article.
+     * Remove the specified article from storage.
+     * Handles both Database articles and Redis articles.
      */
-    public function reject(ArticleActionRequest $request, string $id): JsonResponse|ArticleResource
+    public function destroy(string $id): JsonResponse
     {
-        if (! \Illuminate\Support\Str::isUuid($id)) {
-            return response()->json(['message' => 'Invalid article ID format'], 400);
+        $deletedFromDb = false;
+        $deletedFromRedis = false;
+
+        // 1. Try to delete from Database
+        $article = Article::find($id);
+        if ($article) {
+            $article->delete();
+            $deletedFromDb = true;
         }
 
-        $validated = $request->validated();
-
-        $redisArticle = $this->redisService->getArticle($id);
-        if (! $redisArticle) {
-            return response()->json(['message' => 'Pending article not found in Redis'], 404);
+        // 2. Try to delete from Redis (if ID is UUID)
+        if (\Illuminate\Support\Str::isUuid($id)) {
+            try {
+                if ($this->redisService->getArticle($id)) {
+                    $this->redisService->deleteArticle($id);
+                    $deletedFromRedis = true;
+                }
+            } catch (\Exception $e) {
+                \Log::warning("Failed to delete article {$id} from Redis: " . $e->getMessage());
+            }
         }
 
-        if (Article::where('id', $id)->exists()) {
-            return response()->json(['message' => 'Article already exists in database'], 409);
+        if (!$deletedFromDb && !$deletedFromRedis) {
+            return response()->json(['message' => 'Article not found in any storage'], 404);
         }
 
-        $article = Article::create([
-            'id' => $id,
-            'article_id' => $id,
-            'title' => $redisArticle['title'] ?? '',
-            'original_title' => $redisArticle['title'] ?? '',
-            'summary' => substr($redisArticle['content'] ?? '', 0, 500),
-            'content' => $redisArticle['content'] ?? '',
-            'image' => $redisArticle['image_url'] ?? '',
-            'category' => $redisArticle['category'] ?? '',
-            'country' => $redisArticle['country'] ?? '',
-            'source' => $redisArticle['source'] ?? '',
-            'original_url' => $redisArticle['original_url'] ?? '',
-            'keywords' => $redisArticle['keywords'] ?? '',
-            'status' => 'rejected',
-            'views_count' => 0,
+        return response()->json([
+            'message' => 'Article permanently deleted successfully',
+            'from_db' => $deletedFromDb,
+            'from_redis' => $deletedFromRedis
         ]);
-
-        $this->redisService->deleteArticle($id);
-
-        $reason = $validated['reason'] ?? 'No reason provided';
-        \Illuminate\Support\Facades\Log::info("Article {$id} rejected. Reason: {$reason}");
-
-        return new ArticleResource($article);
     }
 
     /**
@@ -488,20 +482,18 @@ class ArticleController extends Controller
 
         // Map status names to counts
         $publishedCount = $counts['published'] ?? 0;
-        $rejectedCount = $counts['rejected'] ?? 0;
         $pendingReviewCount = $counts['pending review'] ?? 0;
 
-        // DB Total (Published + Rejected + Pending Review) - This is what the "Published" tab shows
-        $dbTotal = $publishedCount + $rejectedCount + $pendingReviewCount;
+        // DB Total (Published + Pending Review)
+        $dbTotal = $publishedCount + $pendingReviewCount;
 
         // All = DB Total + Redis Pending
         $allCount = $dbTotal + $pendingCount;
 
         return [
             'all' => $allCount,
-            'published' => $dbTotal, 
+            'published' => $publishedCount, 
             'pending' => $pendingCount,
-            'rejected' => $rejectedCount,
             'pending_review' => $pendingReviewCount,
         ];
     }

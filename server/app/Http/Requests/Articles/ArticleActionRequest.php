@@ -22,10 +22,9 @@ class ArticleActionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'published_sites' => 'required_without:reason|array',
+            'published_sites' => 'required|array',
             'published_sites.*' => 'string',
             'custom_titles' => 'nullable|array',
-            'reason' => 'nullable|string|max:500',
         ];
     }
 }

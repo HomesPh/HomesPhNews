@@ -3,12 +3,12 @@
 import { useMemo } from 'react';
 import { cn } from "@/lib/utils";
 
-export type ArticleTab = 'all' | 'published' | 'pending' | 'rejected';
+export type ArticleTab = 'all' | 'published' | 'pending';
 
 interface ArticlesTabsProps {
     activeTab: ArticleTab;
     setActiveTab: (tab: ArticleTab) => void;
-    counts: Record<ArticleTab, number>;
+    counts: Record<string, number>;
 }
 
 /**
@@ -19,7 +19,6 @@ export default function ArticlesTabs({ activeTab, setActiveTab, counts }: Articl
         { id: 'all' as ArticleTab, label: 'All Articles' },
         { id: 'published' as ArticleTab, label: 'Published' },
         { id: 'pending' as ArticleTab, label: 'Pending Review' },
-        { id: 'rejected' as ArticleTab, label: 'Rejected' },
     ];
 
     return (
