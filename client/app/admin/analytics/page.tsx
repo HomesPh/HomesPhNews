@@ -188,7 +188,7 @@ export default function AnalyticsPage() {
                 ) : (
                     <>
                         <CountryPerformanceChart data={countryPerformanceData} />
-                        <ArticleDistribution sites={distributionSites} totalArticles={data?.overview.total_page_news ?? 1} />
+                        <ArticleDistribution sites={distributionSites} totalArticles={data?.overview.total_page_news ?? 1} className="h-full" />
                     </>
                 )}
             </div>
