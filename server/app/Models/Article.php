@@ -57,6 +57,14 @@ class Article extends Model
     }
 
     /**
+     * Relationship: An article has many gallery images
+     */
+    public function images()
+    {
+        return $this->hasMany(ArticleImage::class, 'article_id');
+    }
+
+    /**
      * Relationship: Sites where this article is published
      */
     public function publishedSites()

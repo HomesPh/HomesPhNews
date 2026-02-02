@@ -15,7 +15,7 @@ export interface Article {
   status: string;
   is_featured: number | null;
   is_live: number | null;
-  published_sites: string | null;
+  published_sites: string | string[] | null;
   custom_titles: unknown[] | null;
   views_count: number;
   created_at: string | null;

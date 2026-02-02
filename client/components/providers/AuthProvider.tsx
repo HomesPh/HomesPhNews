@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAuth } from "@/lib/api/auth/store";
+import { useAuth } from "@/lib/api-v2";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useAuth((state) => state.login);

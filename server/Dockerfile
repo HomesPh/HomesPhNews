@@ -14,7 +14,7 @@ RUN apk add --no-cache \
     postgresql-dev
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql mbcstring zip exif pcntl gd
+RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring zip exif pcntl gd
 
 # Set working directory
 WORKDIR /app
@@ -26,20 +26,13 @@ COPY . /app
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Install application dependencies
-RUN composer install --no-interaction --optimize-autoloader --no-dev
+RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
 
 # Set permissions for Laravel
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
 # Configure FrankenPHP
 ENV FRANKENPHP_CONFIG="worker ./public/index.php"
-ENV PORT=8080
 
-# Expose the port used by Cloud Run
-EXPOSE 8080
-
-# Clean up
-RUN rm -rf /root/.composer
-
-# Start FrankenPHP
-CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--env", "PORT=8080"]
+# Start FrankenPHP using the PORT environment variable provided by Cloud Run
+CMD ["sh", "-c", "php artisan migrate --force ; frankenphp php-server --listen :${PORT:-8080} --root ./public"]

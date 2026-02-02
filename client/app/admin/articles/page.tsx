@@ -8,11 +8,11 @@ import ArticlesTabs, { ArticleTab } from "@/components/features/admin/articles/A
 import ArticlesFilters from "@/components/features/admin/articles/ArticlesFilters";
 import ArticleListItem from "@/components/features/admin/articles/ArticleListItem";
 import Pagination from "@/components/features/admin/shared/Pagination";
-import { Article } from "@/app/admin/articles/data";
+import { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
 import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
 import usePagination from '@/hooks/usePagination';
 import useUrlFilters from '@/hooks/useUrlFilters';
-import { getAdminArticles } from "@/lib/api/admin/articles";
+import { getAdminArticles } from "@/lib/api-v2/admin/service/article/getAdminArticles";
 import ArticlesSkeleton from "@/components/features/admin/articles/ArticlesSkeleton";
 
 // Filter configuration with defaults and reset values
@@ -48,7 +48,7 @@ export default function ArticlesPage() {
     const pagination = usePagination();
 
     // State for articles (fetched from backend)
-    const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
+    const [filteredArticles, setFilteredArticles] = useState<ArticleResource[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     // State for status counts (from backend)
@@ -73,20 +73,27 @@ export default function ArticlesPage() {
                     search: searchQuery || undefined,
                     page: pagination.currentPage,
                     per_page: 10
-                };
+                } as any;
 
                 const response = await getAdminArticles(apiFilters);
+                // Backend returns pagination fields at top level, not in a meta object
+                const { data, current_page, last_page, status_counts } = response.data;
 
                 // Ensure we always have an array, even if API returns unexpected data
-                setFilteredArticles(response.data ?? []);
+                setFilteredArticles(data ?? []);
 
                 // Update pagination with backend data (with fallbacks to prevent NaN)
-                pagination.handlePageChange(response.current_page ?? 1);
-                pagination.setTotalPages(response.last_page ?? 1);
+                pagination.handlePageChange(current_page ?? 1);
+                pagination.setTotalPages(last_page ?? 1);
 
                 // Update status counts from backend
-                if (response.status_counts) {
-                    setCounts(response.status_counts);
+                if (status_counts) {
+                    setCounts({
+                        all: Number(status_counts.all),
+                        published: Number(status_counts.published),
+                        pending: Number(status_counts.pending),
+                        rejected: Number(status_counts.rejected),
+                    });
                 }
 
             } catch (error) {

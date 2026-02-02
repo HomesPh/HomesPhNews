@@ -55,13 +55,21 @@ export interface AdminArticleListMeta {
 
 export interface AdminArticleListResponse {
   data: ArticleResource[];
-  links: {
+  // Pagination fields are at top level (not in a meta object)
+  current_page: number;
+  per_page: number;
+  total: number;
+  last_page: number;
+  from: number | null;
+  to: number | null;
+  // Optional links and meta for compatibility
+  links?: {
     first: string | null;
     last: string | null;
     prev: string | null;
     next: string | null;
   };
-  meta: AdminArticleListMeta;
+  meta?: AdminArticleListMeta;
   status_counts: AdminArticleStatusCounts;
   available_filters?: AdminArticleAvailableFilters;
 }

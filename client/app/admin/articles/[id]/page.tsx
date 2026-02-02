@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Calendar, Eye, Edit, XCircle, ChevronLeft, Loader2, ExternalLink } from 'lucide-react';
-import { Article } from "@/app/admin/articles/data";
-import { getAdminArticle, publishArticle, rejectArticle } from "@/lib/api/admin/articles";
+import { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
+import { getAdminArticleById } from "@/lib/api-v2/admin/service/article/getAdminArticleById";
+import { publishArticle } from "@/lib/api-v2/admin/service/article/publishArticle";
+import { rejectArticle } from "@/lib/api-v2/admin/service/article/rejectArticle";
 import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
 import CustomizeTitlesModal from "@/components/features/admin/articles/CustomizeTitlesModal";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
@@ -28,7 +30,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { getSiteNames } from "@/lib/api/admin/sites";
+import { getSiteNames } from "@/lib/api-v2/admin/service/sites/getSiteNames";
 
 /**
  * Article Details Page
@@ -41,7 +43,7 @@ export default function ArticleDetailsPage() {
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
-    const [article, setArticle] = useState<Article | null>(null);
+    const [article, setArticle] = useState<ArticleResource | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isPublishing, setIsPublishing] = useState(false);
     const [isRejecting, setIsRejecting] = useState(false);
@@ -57,8 +59,11 @@ export default function ArticleDetailsPage() {
             if (!params.id) return;
             setIsLoading(true);
             try {
-                const fetched = await getAdminArticle(Array.isArray(params.id) ? params.id[0] : params.id);
-                setArticle(fetched);
+                const response = await getAdminArticleById(Array.isArray(params.id) ? params.id[0] : params.id);
+                // Handle both response structures: { data: article } or article directly
+                const articleData = response.data.data ?? response.data;
+                console.log('Article API response:', response.data);
+                setArticle(articleData as ArticleResource);
             } catch (e) {
                 console.error("Failed to fetch article", e);
             } finally {
@@ -69,12 +74,14 @@ export default function ArticleDetailsPage() {
     }, [params.id]);
 
     useEffect(() => {
-        getSiteNames().then(setAvailableSites).catch(console.error);
+        getSiteNames().then(res => setAvailableSites(res.data as unknown as string[])).catch(console.error);
     }, []);
 
     useEffect(() => {
         if (article) {
-            const existingSites = article.sites || article.published_sites || [];
+            const existingSites = Array.isArray(article.published_sites)
+                ? article.published_sites
+                : (article.published_sites ? [article.published_sites] : []);
             if (existingSites.length > 0) {
                 setPublishToSites(existingSites);
             } else if (availableSites.length > 0) {
@@ -96,7 +103,10 @@ export default function ArticleDetailsPage() {
         setIsPublishing(true);
         try {
             const articleId = (Array.isArray(params.id) ? params.id[0] : params.id) || '';
-            await publishArticle(articleId, publishToSites, customTitles);
+            await publishArticle(articleId, {
+                published_sites: publishToSites,
+                custom_titles: Object.entries(customTitles).map(([k, v]) => `${k}:${v}`) // Assuming format "site:title" for string[]
+            });
             router.push('/admin/articles?status=published');
         } catch (error: any) {
             const message = error.response?.data?.message || 'Failed to publish article';
@@ -116,7 +126,10 @@ export default function ArticleDetailsPage() {
         setIsRejecting(true);
         try {
             const articleId = (Array.isArray(params.id) ? params.id[0] : params.id) || '';
-            await rejectArticle(articleId, rejectReason || undefined);
+            await rejectArticle(articleId, {
+                reason: rejectReason || null,
+                published_sites: [] // Required by type, empty for reject
+            });
             router.push('/admin/articles?status=rejected');
         } catch (error: any) {
             const message = error.response?.data?.message || 'Failed to reject article';
@@ -168,7 +181,7 @@ export default function ArticleDetailsPage() {
                                         </span>
                                         <span className="text-[14px] text-[#e5e7eb]">|</span>
                                         <span className="text-[12px] font-semibold text-[#111827] tracking-[-0.5px] uppercase">
-                                            {article.location || article.country}
+                                            {article.country /* Use country as location fallback */}
                                         </span>
                                     </div>
                                     <StatusBadge status={article.status as any} />
@@ -180,12 +193,12 @@ export default function ArticleDetailsPage() {
 
                                 <div className="flex items-center gap-4 mb-6 text-[14px] text-[#6b7280] tracking-[-0.5px]">
                                     <span className="font-medium text-[#111827]">
-                                        By {article.author || 'HomesPh News'}
+                                        By {'HomesPh News' /* Default author */}
                                     </span>
                                     <span className="text-[#e5e7eb]">|</span>
                                     <div className="flex items-center gap-1.5">
                                         <Calendar className="w-4 h-4" />
-                                        <span>{new Date(article.date || article.created_at || '').toLocaleDateString('en-US', {
+                                        <span>{new Date(article.created_at || '').toLocaleDateString('en-US', {
                                             year: 'numeric',
                                             month: 'long',
                                             day: 'numeric'
@@ -194,21 +207,21 @@ export default function ArticleDetailsPage() {
                                     <span className="text-[#e5e7eb]">|</span>
                                     <div className="flex items-center gap-1.5">
                                         <Eye className="w-4 h-4" />
-                                        <span>{article.views || article.views_count || '0'} views</span>
+                                        <span>{article.views_count || '0'} views</span>
                                     </div>
                                 </div>
 
                                 <figure className="mb-8">
                                     <div className="w-full aspect-[16/9] overflow-hidden bg-gray-100 rounded-[8px] mb-3">
                                         <img
-                                            src={article.image || article.image_url || 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'}
+                                            src={article.image || 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'}
                                             alt={article.title}
                                             className="w-full h-full object-cover"
                                             onError={(e) => { e.currentTarget.src = 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'; }}
                                         />
                                     </div>
                                     <figcaption className="text-[13px] text-[#6b7280] italic leading-relaxed">
-                                        {article.title} — {article.location || article.country}
+                                        {article.title} — {article.country}
                                     </figcaption>
                                 </figure>
 
@@ -238,7 +251,7 @@ export default function ArticleDetailsPage() {
 
                         {/* Topics Container */}
                         {(() => {
-                            const topics = article.topics || article.tags || [];
+                            const topics = article.topics || [];
                             if (topics.length === 0 && !article.original_url) return null;
 
                             return (
@@ -312,14 +325,16 @@ export default function ArticleDetailsPage() {
                                         <Eye className="w-4 h-4 text-[#6b7280]" />
                                         <span className="text-[14px] text-[#6b7280] tracking-[-0.5px]">Total Views</span>
                                     </div>
-                                    <span className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">{article.views || article.views_count || 0}</span>
+                                    <span className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">{article.views_count || 0}</span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <svg className="w-4 h-4 text-[#6b7280]" fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="2" fill="none" /><circle cx="8" cy="8" r="2" fill="currentColor" /></svg>
                                         <span className="text-[14px] text-[#6b7280] tracking-[-0.5px]">Published Sites</span>
                                     </div>
-                                    <span className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">{article.published_sites?.length || article.sites?.length || 0}</span>
+                                    <span className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">
+                                        {Array.isArray(article.published_sites) ? article.published_sites.length : (article.published_sites ? 1 : 0)}
+                                    </span>
                                 </div>
                             </div>
                         </div>

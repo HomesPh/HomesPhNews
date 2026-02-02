@@ -1,10 +1,10 @@
 import { Calendar, Eye, MapPin } from 'lucide-react';
-import { Article } from "@/app/admin/articles/data";
+import { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
 import { Badge } from "@/components/ui/badge";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 
 interface ArticleListItemProps {
-    article: Article;
+    article: ArticleResource;
     onClick?: () => void;
 }
 

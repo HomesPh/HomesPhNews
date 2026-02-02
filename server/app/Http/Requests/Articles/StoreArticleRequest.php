@@ -27,11 +27,19 @@ class StoreArticleRequest extends FormRequest
             'content' => 'required|string',
             'category' => 'required|string|max:50',
             'country' => 'required|string|max:100',
-            'image' => 'nullable|string|max:500',
+            'image' => 'nullable|string|max:2000',
             'published_sites' => 'nullable|array',
             'published_sites.*' => 'string',
             'status' => 'nullable|string|in:published,pending review',
             'topics' => 'nullable|array',
+            // Extra fields from editor (not stored in articles table but accepted)
+            'gallery_images' => 'nullable|array',
+            'split_images' => 'nullable|array',
+            'content_blocks' => 'nullable|array',
+            'template' => 'nullable|string',
+            'author' => 'nullable|string',
+            'date' => 'nullable|string',
+            'slug' => 'nullable|string',
         ];
     }
 }

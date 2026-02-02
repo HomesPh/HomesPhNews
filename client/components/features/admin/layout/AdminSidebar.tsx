@@ -1,10 +1,10 @@
 "use client";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
-import { LayoutDashboard, FileText, BarChart3, Calendar, Settings, LogOut, Users, BookOpen, Globe, Megaphone } from "lucide-react";
+import { LayoutDashboard, FileText, BarChart3, Calendar, Settings, LogOut, Users, BookOpen, Globe, Megaphone, Utensils } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/lib/api/auth/store";
+import { useAuth } from "@/lib/api-v2";
 
 const SidebarItems = [
   {
@@ -18,9 +18,44 @@ const SidebarItems = [
     icon: FileText
   },
   {
+    title: "Restaurant",
+    href: "/admin/restaurant",
+    icon: Utensils
+  },
+  {
+    title: "Blogs",
+    href: "/admin/blogs",
+    icon: BookOpen
+  },
+  {
     title: "Sites",
     href: "/admin/sites",
+    icon: Globe
+  },
+  {
+    title: "Users",
+    href: "/admin/users",
     icon: Users
+  },
+  {
+    title: "Analytics",
+    href: "/admin/analytics",
+    icon: BarChart3
+  },
+  {
+    title: "Ads",
+    href: "/admin/ads",
+    icon: Megaphone
+  },
+  {
+    title: "Calendar",
+    href: "/admin/calendar",
+    icon: Calendar
+  },
+  {
+    title: "Settings",
+    href: "/admin/settings",
+    icon: Settings
   }
 ]
 
