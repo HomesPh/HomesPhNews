@@ -31,6 +31,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                     src={article.image || 'https://placehold.co/800x450?text=No+Image'}
                                     alt={article.title}
                                     fill
+                                    unoptimized={(article.image || '').includes('wikimedia.org')}
                                     className="object-cover transition-all duration-500 group-hover:scale-110"
                                 />
                                 {/* Tags at bottom right of image */}
@@ -75,6 +76,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 src={main.image || 'https://placehold.co/800x600?text=No+Image'}
                                 alt={main.title}
                                 fill
+                                unoptimized={(main.image || '').includes('wikimedia.org')}
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                             {/* Tags at bottom right of image */}
@@ -113,6 +115,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                         src={article.image || 'https://placehold.co/200x200?text=No+Image'}
                                         alt={article.title}
                                         fill
+                                        unoptimized={(article.image || '').includes('wikimedia.org')}
                                         className="object-cover group-hover:scale-110 transition-transform duration-500"
                                     />
                                     {/* Small tags for side posts */}
@@ -159,6 +162,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 src={article.image || 'https://placehold.co/800x500?text=No+Image'}
                                 alt={article.title}
                                 fill
+                                unoptimized={(article.image || '').includes('wikimedia.org')}
                                 className="object-cover transition-transform duration-700 group-hover:scale-110"
                             />
                             {/* Tags at bottom right of image */}

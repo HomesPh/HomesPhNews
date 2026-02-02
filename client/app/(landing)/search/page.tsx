@@ -4,6 +4,8 @@ import VerticalArticleCard from "@/components/features/dashboard/VerticalArticle
 
 import { getArticlesList, type ArticleResource } from "@/lib/api-v2";
 import { Categories, Countries } from "@/app/data";
+import { mockSpecialtyContent } from "@/lib/api-v2/mock/mockArticles";
+import ArchivePagination from "@/components/features/dashboard/ArchivePagination";
 
 type Props = {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -16,6 +18,9 @@ export default async function SearchPage({ searchParams }: Props) {
     const country = (params.country as string) || "all";
     const category = (params.category as string) || "all";
 
+    const page = Number(params.page) || 1;
+    const perPage = 20;
+
     // Fetch articles from API
     const response = await getArticlesList({
         mode: "list",
@@ -23,11 +28,30 @@ export default async function SearchPage({ searchParams }: Props) {
         topic: topic || undefined,
         country: country !== "all" ? country : undefined,
         category: category !== "all" ? category : undefined,
-        limit: 20
+        limit: perPage,
+        page: page
     });
 
-    // Extract articles from the nested structure defined in ArticleListResponse
-    const filteredArticles: ArticleResource[] = response.data?.data || [];
+    // Extract real articles
+    const realArticles: ArticleResource[] = response.data?.data || [];
+    const totalPages = response.data?.last_page || 1;
+
+    // Mixed content strategy: if category is 'all' or specialty, mix in mock content for page 1
+    let filteredArticles = realArticles;
+    if (page === 1 && (category === "all" || ["blogs", "newsletters", "restaurants"].includes(category.toLowerCase()))) {
+        const seenIds = new Set(realArticles.map(a => a.id));
+        const uniqueMock = mockSpecialtyContent.filter(a => {
+            const matchesCategory = category === "all" ||
+                (category.toLowerCase() === "blogs" && (a.id.includes('blog') || a.category === "Real Estate")) ||
+                (category.toLowerCase() === "newsletters" && (a.id.includes('newsletter') || a.category === "Business & Economy")) ||
+                (category.toLowerCase() === "restaurants" && a.category === "Restaurant");
+
+            const matchesCountry = country === "all" || a.country === country || a.country === "Global";
+
+            return !seenIds.has(a.id) && matchesCategory && matchesCountry;
+        });
+        filteredArticles = [...realArticles, ...uniqueMock];
+    }
 
     // Helper lookup for labels
     const getLabel = (list: any[], val: string) =>
@@ -36,10 +60,12 @@ export default async function SearchPage({ searchParams }: Props) {
     const countryLabel = getLabel(Countries, country);
     const categoryLabel = getLabel(Categories, category);
 
-    const heading = q ? `Search Results for "${q}"` : topic ? `Topic: ${topic}` : "All Articles";
-    const filterText = (country !== "all" || category !== "all")
-        ? ` in ${country !== "all" ? countryLabel : ""} ${category !== "all" ? categoryLabel : ""}`.replace("  ", " ")
-        : "";
+    const heading = q ? `Search Results for "${q}"` : topic ? `Topic: ${topic}` : "Complete Archive";
+    const hasFilters = (country !== "all" && country !== "global") || (category !== "all" && category !== "global");
+
+    let filterText = hasFilters
+        ? ` in ${country !== "all" && country !== "global" ? countryLabel : ""} ${category !== "all" && category !== "global" ? categoryLabel : ""}`.replace("  ", " ")
+        : (category === "all" || category === "global" ? " Across All Categories" : "");
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
@@ -68,6 +94,11 @@ export default async function SearchPage({ searchParams }: Props) {
                             />
                         ))}
                     </div>
+
+                    <ArchivePagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                    />
                 </Suspense>
             ) : (
                 <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-500">

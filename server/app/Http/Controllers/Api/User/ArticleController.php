@@ -128,7 +128,6 @@ class ArticleController extends Controller
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
             ->select('id', 'title', 'summary as content', 'country', 'category', 'status', 'created_at as timestamp', 'image', 'views_count', 'keywords', 'original_url')
             ->orderBy('created_at', 'desc')
-            ->limit(5)
             ->get();
 
         $categoryCounts = Article::groupBy('category')
