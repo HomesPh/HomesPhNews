@@ -15,6 +15,8 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
     if (!main) return null;
 
     // 1 Article: Full Banner
+    const isUnoptimized = (src: string) => src.includes('wikimedia.org');
+
     if (articles.length === 1) {
         return (
             <div className="mb-8 md:h-[405px]">
@@ -27,6 +29,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         alt={main.title}
                         fill
                         priority
+                        unoptimized={isUnoptimized(main.image || '')}
                         sizes="100vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
@@ -115,6 +118,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         fill
                         priority
                         sizes="(max-width: 768px) 100vw, 50vw"
+                        unoptimized={isUnoptimized(main.image || '')}
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
@@ -150,6 +154,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 alt={article.title}
                                 fill
                                 sizes="(max-width: 768px) 100vw, 25vw"
+                                unoptimized={isUnoptimized(article.image || '')}
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">
@@ -195,6 +200,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                     fill
                     priority
                     sizes="(max-width: 768px) 100vw, 50vw"
+                    unoptimized={isUnoptimized(main.image || '')}
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
@@ -233,6 +239,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             alt={topSmall.title}
                             fill
                             sizes="(max-width: 768px) 100vw, 50vw"
+                            unoptimized={isUnoptimized(topSmall.image || '')}
                             className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">
@@ -269,6 +276,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 alt={article.title}
                                 fill
                                 sizes="(max-width: 768px) 50vw, 25vw"
+                                unoptimized={isUnoptimized(article.image || '')}
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">
