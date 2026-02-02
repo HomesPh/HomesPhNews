@@ -30,28 +30,18 @@ export default function ArticleDistribution({ sites, totalArticles }: ArticleDis
     const topSites = sortedSites.slice(0, 5);
     const hasMore = sites.length > 5;
 
-    const colors = ['#C10007', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
-
     return (
-        <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-5">
-            <h2 className="text-[16px] font-bold text-gray-900 mb-4 tracking-tight">Article Distribution</h2>
+        <div className="bg-white rounded-[12px] border border-[#f3f4f6] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] p-6 h-full">
+            <h2 className="text-[18px] font-bold text-[#111827] mb-6 tracking-[-0.5px]">Article Distribution</h2>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
                 {topSites.map((site, index) => (
-                    <div key={index}>
-                        <div className="flex justify-between items-end mb-1">
-                            <span className="text-[13px] font-bold text-gray-800">{site.name}</span>
-                            <span className="text-[11px] text-gray-400 font-bold">
-                                {site.totalViews.toLocaleString()} views
-                            </span>
-                        </div>
-                        <ProgressTracker
-                            label=""
-                            value={site.count}
-                            max={totalArticles || 1}
-                            color={index === 0 ? "bg-[#C10007]" : "bg-gray-300"}
-                        />
-                    </div>
+                    <ProgressTracker
+                        key={index}
+                        label={site.name}
+                        value={site.count}
+                        max={totalArticles}
+                    />
                 ))}
 
                 {sites.length === 0 && (
@@ -61,18 +51,18 @@ export default function ArticleDistribution({ sites, totalArticles }: ArticleDis
                 )}
             </div>
 
-            <div className="mt-6 pt-4 border-t border-gray-100 flex justify-center">
+            <div className="mt-6 flex justify-center">
                 <Dialog open={isOpen} onOpenChange={setIsOpen}>
                     <DialogTrigger asChild>
                         <button
-                            className="text-[12px] font-bold text-[#C10007] hover:underline"
+                            className="text-[14px] font-medium text-[#C10007] hover:underline tracking-[-0.5px]"
                         >
                             {hasMore ? `View All ${sites.length} Distributions` : 'View Detailed Distribution'}
                         </button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="force-light max-w-4xl max-h-[90vh] overflow-y-auto bg-white text-gray-900 border-[#f3f4f6]" aria-describedby={undefined}>
                         <DialogHeader>
-                            <DialogTitle className="text-2xl font-bold tracking-tight">Full Article Distribution</DialogTitle>
+                            <DialogTitle className="text-[20px] font-bold text-[#111827] tracking-[-0.5px]">Full Article Distribution</DialogTitle>
                         </DialogHeader>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
@@ -81,12 +71,12 @@ export default function ArticleDistribution({ sites, totalArticles }: ArticleDis
                                 {sortedSites.map((site, index) => (
                                     <div key={index} className="p-3 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
                                         <div className="flex justify-between items-end mb-1">
-                                            <span className="text-[14px] font-bold text-gray-900">{site.name}</span>
+                                            <span className="text-[14px] font-bold text-[#111827] tracking-[-0.5px]">{site.name}</span>
                                             <div className="text-right">
-                                                <span className="block text-[12px] text-gray-500 font-medium">
+                                                <span className="block text-[12px] text-gray-500 font-medium tracking-[-0.5px]">
                                                     {site.totalViews.toLocaleString()} total views
                                                 </span>
-                                                <span className="text-[11px] text-[#C10007] font-bold">
+                                                <span className="text-[11px] text-[#C10007] font-bold tracking-[-0.5px]">
                                                     {site.count} articles
                                                 </span>
                                             </div>
@@ -102,7 +92,7 @@ export default function ArticleDistribution({ sites, totalArticles }: ArticleDis
                             </div>
 
                             {/* Column 2: Graph */}
-                            <div className="bg-gray-50 rounded-xl p-6 flex flex-col items-center justify-center min-h-[400px]">
+                            <div className="bg-[#f9fafb] rounded-[12px] p-6 flex flex-col items-center justify-center min-h-[400px]">
                                 <h3 className="text-sm font-bold text-gray-500 mb-8 uppercase tracking-widest">Visual Overview</h3>
                                 <div className="w-full h-[300px]">
                                     <ResponsiveContainer width="100%" height="100%">
@@ -113,13 +103,13 @@ export default function ArticleDistribution({ sites, totalArticles }: ArticleDis
                                                 dataKey="name"
                                                 type="category"
                                                 width={100}
-                                                tick={{ fontSize: 10, fontWeight: 'bold' }}
+                                                tick={{ fontSize: 10, fontWeight: 'bold', fill: '#4b5563' }}
                                                 axisLine={false}
                                                 tickLine={false}
                                             />
                                             <Tooltip
                                                 cursor={{ fill: 'transparent' }}
-                                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                                                contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
                                             />
                                             <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={20}>
                                                 {sortedSites.map((_, index) => (
@@ -130,8 +120,8 @@ export default function ArticleDistribution({ sites, totalArticles }: ArticleDis
                                     </ResponsiveContainer>
                                 </div>
                                 <div className="mt-6 text-center">
-                                    <p className="text-[12px] text-gray-500">
-                                        Total of <span className="font-bold text-gray-900">{totalArticles}</span> articles distributed across <span className="font-bold text-gray-900">{sites.length}</span> partner sites.
+                                    <p className="text-[12px] text-gray-500 tracking-[-0.5px]">
+                                        Total of <span className="font-bold text-[#111827]">{totalArticles}</span> articles distributed across <span className="font-bold text-[#111827]">{sites.length}</span> partner sites.
                                     </p>
                                 </div>
                             </div>
