@@ -22,7 +22,7 @@ export default function ArchivePagination({ currentPage, totalPages }: ArchivePa
     if (totalPages <= 1) return null;
 
     return (
-        <div className="py-8 border-t border-gray-100 flex justify-center mt-8">
+        <div className="py-8 border-t border-gray-100 dark:border-gray-800 flex justify-center mt-8">
             <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

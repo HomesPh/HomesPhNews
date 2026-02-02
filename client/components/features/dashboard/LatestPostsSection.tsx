@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArticleResource } from "@/lib/api-v2";
+import { stripHtml } from '@/lib/utils';
 
 interface LatestPostsSectionProps {
     articles: ArticleResource[];
@@ -47,21 +48,21 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                                 <span className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg">
                                     {article.category}
                                 </span>
-                                <span className="bg-white text-black text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 shadow-lg">
+                                <span className="bg-white dark:bg-[#111827] text-black dark:text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors">
                                     {article.country || "Global"}
                                 </span>
                             </div>
                         </div>
                         <div className="flex flex-col">
-                            <h3 className="text-xl md:text-2xl font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors mb-4">
+                            <h3 className="text-xl md:text-2xl font-black uppercase leading-tight group-hover:text-[#cc0000] transition-colors mb-4">
                                 {article.title}
                             </h3>
                             <p className="text-gray-500 dark:text-gray-400 text-sm font-medium leading-relaxed line-clamp-3 mb-6">
-                                {article.summary}
+                                {stripHtml(article.summary)}
                             </p>
                             <div className="flex items-center space-x-4 text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-auto">
                                 <span className="flex items-center">
-                                    <span className="w-6 h-6 rounded-full bg-gray-200 mr-2"></span>
+                                    <span className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-800 mr-2 transition-colors"></span>
                                     By {article.source || "HomesPh News"}
                                 </span>
                                 <span>•</span>
@@ -81,7 +82,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                 <div className="pt-4 text-center">
                     <Link
                         href={viewAllHref}
-                        className="bg-[#cc0000] text-white px-10 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-black transition-all transform hover:-translate-y-1 shadow-xl shadow-red-500/10 inline-block"
+                        className="bg-[#cc0000] text-white px-10 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-black dark:hover:bg-red-700 transition-all transform hover:-translate-y-1 shadow-xl shadow-red-500/10 inline-block"
                     >
                         More Posts
                     </Link>
@@ -90,7 +91,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                 <div className="pt-4 text-center">
                     <button
                         onClick={handleLoadMore}
-                        className="bg-[#cc0000] text-white px-10 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-black transition-all transform hover:-translate-y-1 shadow-xl shadow-red-500/10"
+                        className="bg-[#cc0000] text-white px-10 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-black dark:hover:bg-red-700 transition-all transform hover:-translate-y-1 shadow-xl shadow-red-500/10"
                     >
                         Load More Posts
                     </button>

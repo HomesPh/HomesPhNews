@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArticleResource } from "@/lib/api-v2";
 import LandingBlockHeader from "./LandingBlockHeader";
+import { stripHtml } from '@/lib/utils';
 
 interface LandingNewsBlockProps {
     title: string;
@@ -39,12 +40,12 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                     <div className="bg-[#cc0000] text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter shadow-lg">
                                         {article.category}
                                     </div>
-                                    <div className="bg-white text-[#1a1a1a] text-[8px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 shadow-lg">
+                                    <div className="bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[8px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors">
                                         {article.country || "Global"}
                                     </div>
                                 </div>
                             </div>
-                            <h3 className="text-sm font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors line-clamp-2 mb-2">
+                            <h3 className="text-sm font-black uppercase leading-tight group-hover:text-[#cc0000] transition-colors line-clamp-2 mb-2">
                                 {article.title}
                             </h3>
                             <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-auto">
@@ -84,15 +85,15 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 <div className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg">
                                     {main.category}
                                 </div>
-                                <div className="bg-white text-[#1a1a1a] text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 shadow-lg">
+                                <div className="bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors">
                                     {main.country || "Global"}
                                 </div>
                             </div>
                         </div>
-                        <h3 className="text-xl font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors mb-3">
+                        <h3 className="text-xl font-black uppercase leading-tight group-hover:text-[#cc0000] transition-colors mb-3">
                             {main.title}
                         </h3>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs font-medium leading-relaxed line-clamp-2 mb-4">
+                        <p className="text-gray-500 text-xs font-medium leading-relaxed line-clamp-2 mb-4">
                             {main.content}
                         </p>
                         <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
@@ -123,13 +124,13 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                         <div className="bg-[#cc0000] text-white text-[8px] font-black uppercase px-1 py-0.5 tracking-tighter shadow-lg">
                                             {article.category}
                                         </div>
-                                        <div className="bg-white text-[#1a1a1a] text-[8px] font-black uppercase px-1 py-0.5 tracking-tighter border border-gray-100 shadow-lg">
+                                        <div className="bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[8px] font-black uppercase px-1 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors">
                                             {article.country || "Global"}
                                         </div>
                                     </div>
                                 </div>
                                 <div className="flex flex-col justify-center">
-                                    <h4 className="text-xs font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors line-clamp-2 mb-2">
+                                    <h4 className="text-xs font-black uppercase leading-tight group-hover:text-[#cc0000] transition-colors line-clamp-2 mb-2">
                                         {article.title}
                                     </h4>
                                     <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
@@ -170,7 +171,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 <div className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg">
                                     {article.category}
                                 </div>
-                                <div className="bg-white text-[#1a1a1a] text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 shadow-lg">
+                                <div className="bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors">
                                     {article.country || "Global"}
                                 </div>
                             </div>
