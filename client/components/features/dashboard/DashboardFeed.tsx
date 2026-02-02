@@ -9,6 +9,7 @@ import LatestPostsSection from "./LatestPostsSection";
 import AdSpace from "@/components/shared/AdSpace";
 import { use } from "react";
 import { ArticleResource, FeedResponse } from "@/lib/api-v2";
+import { mockSpecialtyContent } from "@/lib/api-v2/mock/mockArticles";
 
 type DashboardFeedProps = {
     country: string;
@@ -19,87 +20,140 @@ type DashboardFeedProps = {
 export default function DashboardFeed({ country, category, feed }: DashboardFeedProps) {
     const feedData = use(feed);
 
-    // Dummy data fallback for Blogs/Newsletters
-    const dummyArticles: ArticleResource[] = Array.from({ length: 20 }).map((_, i) => {
-        const availableCategories = ["Real Estate", "Business", "Politics", "Technology", "Economy", "Tourism", "Market Insight"];
-        const cat = availableCategories[i % availableCategories.length];
-        const isBlog = i % 3 === 0;
-        const isNewsletter = cat === "Market Insight";
+    // -------------------------------------------------------------------------
+    // DATA LOGIC: Dynamic Feed Assembly
+    // -------------------------------------------------------------------------
+    const realArticles = feedData?.latest_global || [];
 
-        let title = `Latest News in ${cat}: Update ${i + 1}`;
-        if (isNewsletter) title = `Global Newsletter: ${cat} Analysis Q1 2026`;
-        else if (isBlog) title = `Featured Blog: Modern ${cat} Trends`;
+    let mainListingSet: ArticleResource[] = [];
 
-        return {
-            id: `dummy-${i}`,
-            title,
-            summary: `Discover the latest trends in ${cat} with our comprehensive guide.`,
-            content: "Full content would go here...",
-            image: `https://placehold.co/800x450?text=${cat}+Image+${i + 1}`,
-            category: cat,
-            country: "Global",
-            status: "published",
-            views_count: 120 + i * 5,
-            topics: [cat, "Trends"],
-            keywords: `${cat.toLowerCase()}, trends`,
-            source: "HomesTV",
-            original_url: "#",
-            created_at: "2026-01-28T07:00:00.000Z",
-            published_sites: ""
-        };
-    });
+    // Filter mock content by country: Match selected country OR show if 'Global'
+    const countryFilteredMock = mockSpecialtyContent.filter(a =>
+        country === "Global" || a.country === country || a.country === "Global"
+    );
 
-    // Safely extract with fallbacks for empty responses
-    const rawFeed = feedData?.latest_global?.length ? feedData.latest_global : dummyArticles;
-
-    // Filter Feed based on active Category
-    const latest_global = rawFeed.filter(article => {
-        if (category === "All") return true;
-        if (category === "Articles") {
-            // Exclude Blogs and Newsletters
-            return !article.title.includes("Blog") &&
-                !article.title.includes("Newsletter") &&
-                article.category !== "Market Insight";
+    if (category === "All") {
+        const seenIds = new Set(realArticles.map(a => a.id));
+        const uniqueMock = countryFilteredMock.filter(a => !seenIds.has(a.id));
+        mainListingSet = [...realArticles, ...uniqueMock];
+    } else if (category === "Articles") {
+        mainListingSet = realArticles;
+    } else if (category === "Blogs") {
+        mainListingSet = countryFilteredMock.filter(a => a.id.includes('mock-blog') || a.id.includes('dummy-blog') || a.category === "Real Estate");
+    } else if (category === "Newsletters") {
+        mainListingSet = countryFilteredMock.filter(a => a.id.includes('mock-newsletter') || a.id.includes('dummy-newsletter') || a.category === "Business & Economy");
+    } else if (category === "Restaurants") {
+        mainListingSet = countryFilteredMock.filter(a => a.category === "Restaurant");
+    } else {
+        // Category views (e.g. Healthcare, Community)
+        mainListingSet = realArticles.filter(a => a.category === category);
+        if (mainListingSet.length === 0) {
+            mainListingSet = countryFilteredMock.filter(a => a.category === category);
         }
-        if (category === "Blogs") {
-            return article.title.includes("Blog") || article.category === "Blogs";
-        }
-        if (category === "Newsletters") {
-            return article.title.includes("Newsletter") || article.category === "Market Insight";
-        }
-        // Fallback for specific categories like "Real Estate" (if navigated directly)
-        return article.category === category;
-    });
+    }
 
-    const trending = feedData?.trending || [];
-    const most_read = feedData?.most_read || [];
+    const latest_global = mainListingSet;
 
-    // Filter dummy data for slides
-    const realEstateArticles = dummyArticles.filter(a => a.category === "Real Estate").slice(0, 4);
-    const marketInsightArticles = dummyArticles.filter(a => a.category === "Market Insight").slice(0, 4);
+    // -------------------------------------------------------------------------
+    // DYNAMIC CATEGORY COUNTS
+    // -------------------------------------------------------------------------
+    const sidebarCategorySet = category === "Articles" ? realArticles : mainListingSet;
+    const dynamicCategoryCounts = sidebarCategorySet.reduce((acc, article) => {
+        const cat = article.category;
+        if (cat) acc[cat] = (acc[cat] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
 
-    const slides = [
-        {
-            id: 'news',
-            label: 'Top Stories',
-            articles: latest_global.slice(0, 4)
-        },
-        {
-            id: 'real-estate',
-            label: 'Real Estate',
-            articles: realEstateArticles
-        },
-        {
-            id: 'market',
-            label: 'Market Insight',
-            articles: marketInsightArticles
-        }
+    // Helper for category matching since some dummy data has specific IDs
+    function articleMatchesCategory(article: ArticleResource, cat: string) {
+        if (cat === "Blogs") return article.id.includes('mock-blog') || article.category === "Real Estate";
+        if (cat === "Newsletters") return article.id.includes('mock-newsletter') || article.category === "Market Insight";
+        return article.category === cat;
+    }
+
+
+
+    // Dummy Data for Sidebar
+    const dummyMostRead = [
+        mockSpecialtyContent.find(a => a.id === 'mock-blog-1') || mockSpecialtyContent[0],
+        mockSpecialtyContent.find(a => a.id === 'mock-newsletter-1') || mockSpecialtyContent[1],
+        mockSpecialtyContent.find(a => a.id === 'mock-rest-1') || mockSpecialtyContent[2]
+    ].filter(Boolean);
+
+    const dummyTrending = [
+        { id: 't1', title: 'Real Estate Investment', topics: ['Investment'] },
+        { id: 't2', title: 'Urban Planning', topics: ['Urban Planning'] },
+        { id: 't3', title: 'Filipino Cuisine', topics: ['Food'] },
+        { id: 't4', title: 'Sustainable Living', topics: ['Sustainability'] },
+        { id: 't5', title: 'PropTech', topics: ['Technology'] }
     ];
+
+    // Strictly real for sidebars - no fallbacks to dummy data during assessment
+    const trending = feedData?.trending?.length ? feedData.trending : [];
+    const most_read = feedData?.most_read?.length ? feedData.most_read : [];
+
+    // Filter for carousel tabs - prioritize REAL data if available
+    // Filter for carousel tabs - STRICTLY REAL
+    let realEstateCarousel = realArticles.filter(a => a.category === "Real Estate").slice(0, 4);
+    let marketInsightCarousel = realArticles.filter(a => a.category === "Market Insight").slice(0, 4);
+
+    /* 
+    // ORIGINAL FALLBACK (Commented out)
+    if (realEstateCarousel.length === 0 && category === "All") {
+        realEstateCarousel = mockSpecialtyContent.filter(a => a.category === "Real Estate").slice(0, 4);
+    }
+    if (marketInsightCarousel.length === 0 && category === "All") {
+        marketInsightCarousel = mockSpecialtyContent.filter(a => a.category === "Market Insight").slice(0, 4);
+    }
+    */
+
+    const slides = [];
+
+    // 1. Headline News (Global latest)
+    const headlineArticles = latest_global.slice(0, 4);
+    if (headlineArticles.length > 0) {
+        slides.push({
+            id: 'news',
+            label: 'Headline News',
+            articles: headlineArticles
+        });
+    }
+
+    if (category === "All") {
+        const propPulse = realArticles.filter(a => a.category === "Real Estate").slice(0, 4);
+        const growthMarkets = realArticles.filter(a => a.category === "Business & Economy").slice(0, 4);
+
+        if (propPulse.length > 0) {
+            slides.push({
+                id: 'real-estate',
+                label: 'Property Pulse',
+                articles: propPulse
+            });
+        }
+        if (growthMarkets.length > 0) {
+            slides.push({
+                id: 'business',
+                label: 'Growth & Markets',
+                articles: growthMarkets
+            });
+        }
+    } else if (category === "Articles") {
+        // ARTICLES VIEW: Only add tabs if REAL articles exist
+        const propPulse = realArticles.filter(a => a.category === "Real Estate").slice(0, 4);
+        const growthMarkets = realArticles.filter(a => a.category === "Business & Economy").slice(0, 4);
+
+        if (propPulse.length > 0) {
+            slides.push({ id: 'real-estate', label: 'Property Pulse', articles: propPulse });
+        }
+        if (growthMarkets.length > 0) {
+            slides.push({ id: 'business', label: 'Growth & Markets', articles: growthMarkets });
+        }
+    }
 
     return (
         <div className="w-full max-w-[1280px] mx-auto px-4 py-8">
-            {/* Top Hero Carousel - Full Width in Container */}
-            {latest_global.length > 0 && (
+            {/* Top Hero Carousel - Filtered for empty slides */}
+            {slides.length > 0 && (
                 <LandingHeroCarousel slides={slides} />
             )}
 
@@ -108,48 +162,75 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
                 <div className="lg:col-span-8">
                     {latest_global.length > 0 ? (
                         <div className="space-y-12">
-                            {/* News Blocks - Sequence matching reference exactly */}
-                            <LandingNewsBlock
-                                title={category === "All" ? "Top Stories" : `Top ${category}`}
-                                articles={latest_global.slice(4, 10)}
-                                variant={1}
-                            />
-
-                            <LandingNewsBlock
-                                title={category === "All" ? "Featured Stories" : `Featured ${category}`}
-                                articles={latest_global.slice(10, 15)}
-                                variant={2}
-                            />
-
-                            <LandingNewsBlock
-                                title={category === "All" ? "Insights & Analysis" : `${category} Insights`}
-                                articles={latest_global.slice(15, 19)}
-                                variant={3}
-                            />
-
+                            {/* CATEGORY SPECIFIC BLOCKS ON HOME PAGE */}
                             {category === "All" && (
+                                <>
+                                    {mainListingSet.filter(a => a.category === "Community").length > 0 && (
+                                        <LandingNewsBlock
+                                            title="Community Spotlight"
+                                            articles={mainListingSet.filter(a => a.category === "Community").slice(0, 6)}
+                                            variant={1}
+                                        />
+                                    )}
+
+                                    {mainListingSet.filter(a => a.category === "Labor & Employment").length > 0 && (
+                                        <LandingNewsBlock
+                                            title="Workforce Watch"
+                                            articles={mainListingSet.filter(a => a.category === "Labor & Employment").slice(0, 5)}
+                                            variant={2}
+                                        />
+                                    )}
+
+                                    {mainListingSet.filter(a => a.category === "Healthcare").length > 0 && (
+                                        <LandingNewsBlock
+                                            title="Health & Wellness"
+                                            articles={mainListingSet.filter(a => a.category === "Healthcare").slice(0, 4)}
+                                            variant={3}
+                                        />
+                                    )}
+
+                                    {mainListingSet.filter(a => a.category === "Restaurant").length > 0 && (
+                                        <LandingNewsBlock
+                                            title="Culinary Corner"
+                                            articles={mainListingSet.filter(a => a.category === "Restaurant").slice(0, 6)}
+                                            variant={1}
+                                        />
+                                    )}
+
+                                    {mainListingSet.filter(a => a.category === "Success Stories").length > 0 && (
+                                        <LandingNewsBlock
+                                            title="OFW Success Stories"
+                                            articles={mainListingSet.filter(a => a.category === "Success Stories").slice(0, 6)}
+                                            variant={1}
+                                        />
+                                    )}
+                                </>
+                            )}
+
+                            {/* CATEGORY SPECIFIC BLOCKS ON CATEGORY PAGES */}
+                            {category !== "All" && category !== "Articles" && (
                                 <LandingNewsBlock
-                                    title="Latest Blogs"
-                                    articles={dummyArticles.filter(a => a.category === "Real Estate").slice(0, 6)}
+                                    title={`${category} Highlights`}
+                                    articles={latest_global.slice(4, 10)}
                                     variant={1}
                                 />
                             )}
 
-                            {category === "All" && (
+                            {/* ARTICLES PAGE (GENERAL LIST) BLOCKS */}
+                            {category === "Articles" && (
                                 <LandingNewsBlock
-                                    title="Community Newsletter"
-                                    articles={dummyArticles.filter(a => a.category === "Market Insight").slice(0, 5)}
-                                    variant={2}
+                                    title="Headline Roundup"
+                                    articles={latest_global.slice(4, 10)}
+                                    variant={1}
                                 />
                             )}
 
-                            <LandingNewsBlock
-                                title="More Updates"
-                                articles={latest_global.slice(5, 10)}
-                                variant={2}
+                            {/* GLOBAL FEED / MORE STORIES AREA */}
+                            <LatestPostsSection
+                                title="Complete Archive"
+                                articles={latest_global.slice(category === "All" ? 4 : 10)}
+                                viewAllHref={`/search?country=${country.toLowerCase() === 'global' ? 'all' : country.toLowerCase()}&category=${category.toLowerCase() === 'all' ? 'all' : category.toLowerCase()}`}
                             />
-
-                            <LatestPostsSection articles={latest_global.slice(0, 6)} />
                         </div>
                     ) : (
                         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-500">
@@ -176,8 +257,8 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
                         items={most_read.slice(0, 5).map((article) => ({
                             id: article.id || '',
                             title: article.title,
-                            imageUrl: article.image,
-                            views: article.views_count,
+                            imageUrl: article.image || 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7', // Fallback image
+                            views: article.views_count || 0,
                             timeAgo: article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently',
                         }))}
                     />
@@ -193,11 +274,7 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
                     />
 
                     <CategoriesSidebarCard
-                        counts={feedData?.category_counts || latest_global.reduce((acc, article) => {
-                            const cat = article.category;
-                            acc[cat] = (acc[cat] || 0) + 1;
-                            return acc;
-                        }, {} as Record<string, number>)}
+                        counts={dynamicCategoryCounts}
                     />
 
                     {/* Newsletter Section */}

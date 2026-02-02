@@ -92,7 +92,7 @@ class ArticleResource extends JsonResource
             'content' => (string) ($data['content'] ?? ''),
             'category' => (string) ($data['category'] ?? ''),
             'country' => (string) ($data['country'] ?? ($data['location'] ?? 'Global')),
-            'status' => (string) ($data['status'] ?? 'pending'),
+            'status' => (bool) ($data['is_deleted'] ?? false) ? 'deleted' : (string) ($data['status'] ?? 'pending'),
             'created_at' => $createdAt,
             'views_count' => (int) ($data['views_count'] ?? 0),
             
@@ -116,6 +116,7 @@ class ArticleResource extends JsonResource
             'keywords' => (string) ($data['keywords'] ?? ''),
             'source' => (string) ($data['source'] ?? ''),
             'original_url' => (string) ($data['original_url'] ?? ''),
+            'is_deleted' => (bool) ($data['is_deleted'] ?? false),
         ];
     }
 }

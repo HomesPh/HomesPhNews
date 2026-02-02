@@ -29,6 +29,7 @@ class Article extends Model
         'keywords',
         'topics',          // JSON array of topics
         'published_sites', // JSON array of site names
+        'is_deleted',
     ];
 
     /**
@@ -40,6 +41,7 @@ class Article extends Model
         'topics' => 'array',
         'published_sites' => 'array', // ["FilipinoHomes", "Rent.ph", ...]
         'views_count' => 'integer',
+        'is_deleted' => 'boolean',
     ];
 
     /**

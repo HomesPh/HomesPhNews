@@ -91,22 +91,65 @@ class RedisArticleService
      */
     public function searchArticles(string $query, int $limit = 20): array
     {
-        $allIds = Redis::smembers("{$this->prefix}all_articles");
-        $results = [];
-        $queryLower = strtolower($query);
+        return $this->filterArticles(['search' => $query], $limit);
+    }
 
-        foreach ($allIds as $articleId) {
+    /**
+     * Unified filtering for Redis articles.
+     * Supports search (title/content), country, and category.
+     */
+    public function filterArticles(array $filters, int $limit = 100): array
+    {
+        $search = strtolower($filters['search'] ?? '');
+        $country = strtolower($filters['country'] ?? '');
+        $category = strtolower($filters['category'] ?? '');
+
+        // Start with all articles or a specific index if available
+        if (!empty($category)) {
+            $categorySlug = $this->slugify($category);
+            $articleIds = Redis::smembers("{$this->prefix}category:{$categorySlug}");
+        } elseif (!empty($country)) {
+            $countrySlug = $this->slugify($country);
+            $articleIds = Redis::smembers("{$this->prefix}country:{$countrySlug}");
+        } else {
+            // No primary index filter, use latest
+            $articleIds = Redis::zrevrange("{$this->prefix}articles_by_time", 0, $limit * 10); // Check more than limit to allow filtering
+        }
+
+        $results = [];
+        foreach ($articleIds as $id) {
             if (count($results) >= $limit) break;
 
-            $article = $this->getArticle($articleId);
+            $article = $this->getArticle($id);
             if (!$article) continue;
 
-            $title = strtolower($article['title'] ?? '');
-            $content = strtolower($article['content'] ?? '');
-
-            if (str_contains($title, $queryLower) || str_contains($content, $queryLower)) {
-                $results[] = $article;
+            // Apply search filter (title/content)
+            if (!empty($search)) {
+                $title = strtolower($article['title'] ?? '');
+                $content = strtolower($article['content'] ?? '');
+                $summary = strtolower($article['summary'] ?? '');
+                if (!str_contains($title, $search) && !str_contains($content, $search) && !str_contains($summary, $search)) {
+                    continue;
+                }
             }
+
+            // Apply country filter (if not already used as primary index)
+            if (!empty($country) && empty($filters['country_index_used'])) {
+                $artCountry = strtolower($article['country'] ?? '');
+                if (!str_contains($artCountry, $country)) {
+                    continue;
+                }
+            }
+
+            // Apply category filter (if not already used as primary index)
+            if (!empty($category) && empty($filters['category_index_used'])) {
+                $artCategory = strtolower($article['category'] ?? '');
+                if (!str_contains($artCategory, $category)) {
+                    continue;
+                }
+            }
+
+            $results[] = $article;
         }
 
         return $results;

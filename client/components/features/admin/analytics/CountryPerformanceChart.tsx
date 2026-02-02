@@ -21,7 +21,7 @@ export default function CountryPerformanceChart({ data }: CountryPerformanceChar
         setMounted(true);
     }, []);
 
-    if (!mounted) return <div className="h-[300px] w-full bg-[#f9fafb] animate-pulse rounded-lg" />;
+    if (!mounted) return <div className="h-[400px] w-full bg-white animate-pulse rounded-2xl shadow-sm" />;
 
     return (
         <div className="bg-white border border-[#f3f4f6] rounded-[12px] p-6 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]">
