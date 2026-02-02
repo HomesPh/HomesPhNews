@@ -39,7 +39,7 @@ export default function PartnerPerformanceTable({ data }: PartnerPerformanceTabl
                             <th className="text-left px-8 py-5 text-[11px] font-extrabold text-[#9ca3af] uppercase tracking-widest border-b border-[#f3f4f6] text-right">Action</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#f3f4f6]">
+                    <tbody className="divide-y divide-gray-50">
                         {data.map((site, index) => (
                             <tr key={index} className="group hover:bg-[#f9fafb]/80 transition-all duration-200">
                                 <td className="px-8 py-6">
