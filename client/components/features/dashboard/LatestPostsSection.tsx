@@ -53,10 +53,10 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                             </div>
                         </div>
                         <div className="flex flex-col">
-                            <h3 className="text-xl md:text-2xl font-black uppercase leading-tight group-hover:text-[#cc0000] transition-colors mb-4">
+                            <h3 className="text-xl md:text-2xl font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors mb-4">
                                 {article.title}
                             </h3>
-                            <p className="text-gray-500 text-sm font-medium leading-relaxed line-clamp-3 mb-6">
+                            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium leading-relaxed line-clamp-3 mb-6">
                                 {article.summary}
                             </p>
                             <div className="flex items-center space-x-4 text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-auto">
