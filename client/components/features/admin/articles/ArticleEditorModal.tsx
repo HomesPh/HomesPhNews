@@ -267,20 +267,20 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
 
             // Helper to check if ID is a UUID (Redis articles have UUID IDs)
             const isUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-            
+
             // Check if this is a pending article from Redis
             // - Either status is 'pending' or 'pending review'  
             // - Or the ID is a UUID (Redis articles have UUID format)
-            const isPendingArticle = initialData?.status === 'pending' || 
-                                     initialData?.status === 'pending review' ||
-                                     (initialData?.id && isUUID(initialData.id));
+            const isPendingArticle = initialData?.status === 'pending' ||
+                initialData?.status === 'pending review' ||
+                (initialData?.id && isUUID(initialData.id));
 
-            console.log('handleSave debug:', { 
-                mode, 
-                status: initialData?.status, 
-                id: initialData?.id, 
+            console.log('handleSave debug:', {
+                mode,
+                status: initialData?.status,
+                id: initialData?.id,
                 isPendingArticle,
-                isPublish 
+                isPublish
             });
 
             if (mode === 'create') {
@@ -293,7 +293,7 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                     ...payload,
                     image_url: finalImage || undefined,
                 });
-                
+
                 // If publishing, also move from Redis to MySQL database
                 if (isPublish) {
                     if (articleData.publishTo.length === 0) {
@@ -322,7 +322,7 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
     };
 
     return (
-        <div className="fixed inset-0 bg-white z-[100] flex flex-col animate-in fade-in duration-200">
+        <div className="force-light fixed inset-0 bg-white z-[100] flex flex-col animate-in fade-in duration-200">
             {/* Full Screen Header */}
             <div className="h-[70px] border-b border-[#e5e7eb] px-6 flex items-center justify-between bg-white shrink-0">
                 <div className="flex items-center gap-4">
