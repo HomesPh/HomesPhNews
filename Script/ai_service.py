@@ -7,6 +7,7 @@ import os
 import re
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
+import json
 import google.generativeai as genai
 from PIL import Image, ImageDraw, ImageFont
 from dotenv import load_dotenv
@@ -120,9 +121,6 @@ class AIProcessor:
             # Parse comma-separated topics
             topics = [t.strip() for t in topics_text.split(',') if t.strip()]
             
-            # Limit to 4 topics max
-            topics = topics[:4]
-            
             if topics:
                 return topics
             return [category]  # Fallback to main category
@@ -130,6 +128,133 @@ class AIProcessor:
         except Exception as e:
             print(f"⚠️ Topic detection failed: {e}")
             return [category]  # Fallback to main category
+
+    def extract_restaurant_details(self, title, content, country, category):
+        """
+        Extracts REAL LOCAL restaurant data from food articles.
+        PRIORITY: Local/indie Filipino restaurants, NOT big chains like Jollibee.
+        """
+        prompt = f"""
+        ACT AS: A Filipino food blogger hunting for HIDDEN GEM restaurants for OFWs and Filipinos abroad.
+        Your mission: Extract a SPECIFIC LOCAL RESTAURANT from this article. 
+        
+        SOURCE Article Title: {title}
+        SOURCE Article Content: {content[:3000]}
+        Country: {country}
+        Category: {category}
+        
+        ═══════════════════════════════════════════════════════════════
+        🚫 BLACKLIST - DO NOT EXTRACT THESE (too common):
+        ═══════════════════════════════════════════════════════════════
+        - Jollibee (unless it's a NEW branch with a SPECIFIC address)
+        - Max's Restaurant
+        - Goldilocks
+        - Chowking
+        - Greenwich
+        - Red Ribbon
+        - Mang Inasal
+        - Any generic chain without specific location
+        
+        ✅ PRIORITIZE THESE INSTEAD:
+        - Local Filipino-owned restaurants (indie/small business)
+        - New restaurant openings
+        - Chef-owned establishments
+        - Pop-up restaurants
+        - Food trucks
+        - Hidden gems
+        - Any restaurant with a SPECIFIC STREET ADDRESS mentioned
+        
+        ═══════════════════════════════════════════════════════════════
+        CRITICAL RULES:
+        ═══════════════════════════════════════════════════════════════
+        1. COUNTRY MATCHING: The restaurant MUST be located in {country}. If the article is about a restaurant in a DIFFERENT country, return {{"name": null}}. 
+        2. ONLY extract if there's a SPECIFIC LOCAL RESTAURANT NAME mentioned (avoid big chains like Jollibee/Max's unless it's a very specific new local branch).
+        3. MUST have a REAL STREET ADDRESS. If the article doesn't give a specific street or building name, return null for name.
+        4. NO JUNK DATA: Do not return "Address not mentioned" or "Various" in the address field. Use null.
+        5. The address MUST be detailed enough for Google Maps in {country}.
+        
+        ═══════════════════════════════════════════════════════════════
+        RETURN VALID JSON ONLY (no markdown, no explanation):
+        ═══════════════════════════════════════════════════════════════
+        {{
+            "name": "SPECIFIC restaurant name. If only big chain mentioned or no real restaurant, return null",
+            "city": "City name where restaurant is located",
+            "cuisine_type": "{category}",
+            "description": "Write a 2-3 sentence CLICKBAIT-STYLE description. Make it emotional - mention OFW homesickness, comfort food, hidden gems!",
+            
+            "address": "MANDATORY: Full street address (e.g., '4/F Uptown Parade, 38th Street corner 9th Avenue, BGC, Taguig City, Metro Manila'). If no specific address, return null for name.",
+            
+            "is_filipino_owned": true/false,
+            "brand_story": "Story about the restaurant - when opened, founder story, mission. If it's a small business, mention that!",
+            "owner_info": "Owner/Chef name if mentioned",
+            
+            "specialty_dish": "Their signature dish",
+            "menu_highlights": "Top 3-5 dishes, comma-separated",
+            "food_topics": "Tags: pork-based, kare-kare, sinigang, lechon, seafood, vegetarian, halal, budget-friendly, boodle-fight, kamayan, etc.",
+            
+            "price_range": "₱ / ₱₱ / ₱₱₱ / ₱₱₱₱",
+            "budget_category": "Budget Friendly / Mid-Range / Expensive / Luxury",
+            "avg_meal_cost": "Local currency estimate per person",
+            
+            "rating": 4.5,
+            "clickbait_hook": "ONE viral-worthy sentence. Example: 'This hole-in-the-wall in Dubai makes BETTER sinigang than your lola! 🍲😭🇵🇭'",
+            "why_filipinos_love_it": "Why OFWs should visit - be emotional!",
+            
+            "contact_info": "Phone if available",
+            "website": "Website URL",
+            "social_media": "Instagram/Facebook"
+        }}
+        
+        ═══════════════════════════════════════════════════════════════
+        FINAL CHECK:
+        ═══════════════════════════════════════════════════════════════
+        - If restaurant is a major chain like Jollibee/Max's/Goldilocks → return {{"name": null}}
+        - If no SPECIFIC STREET ADDRESS found → return {{"name": null}}
+        - If article is a general food guide with no specific restaurant → return {{"name": null}}
+        - We want LOCAL GEMS, not corporate fast food!
+        """
+        try:
+            response = self.text_model.generate_content(prompt)
+            # Find JSON in response (handle nested braces)
+            text = response.text
+            # Find the first { and last }
+            start_idx = text.find('{')
+            end_idx = text.rfind('}')
+            if start_idx != -1 and end_idx != -1:
+                json_str = text[start_idx:end_idx + 1]
+                # Clean potential markdown
+                json_str = json_str.replace('```json', '').replace('```', '').strip()
+                data = json.loads(json_str)
+                
+                # Skip if no real restaurant found
+                if not data.get("name") or data.get("name") == "null" or data.get("name") is None:
+                    print(f"   ⏭️ Skipping: No specific local restaurant found")
+                    return None
+                
+                # Skip if it's a blacklisted chain
+                blacklist = ["jollibee", "max's", "goldilocks", "chowking", "greenwich", "red ribbon", "mang inasal"]
+                name_lower = data.get("name", "").lower()
+                if any(chain in name_lower for chain in blacklist):
+                    # Only skip if no specific new address
+                    address = data.get("address", "")
+                    if not address or "various" in address.lower() or address == "N/A":
+                        print(f"   ⏭️ Skipping: Chain restaurant without specific address")
+                        return None
+                
+                # Ensure required fields
+                data["country"] = country
+                
+                # Generate Google Maps URL if not present
+                if not data.get("google_maps_url") and data.get("name"):
+                    restaurant_name = data["name"].replace(" ", "+")
+                    city = data.get("city", country).replace(" ", "+")
+                    data["google_maps_url"] = f"https://www.google.com/maps/search/{restaurant_name}+{city}+{country.replace(' ', '+')}"
+                
+                return data
+            return None
+        except Exception as e:
+            print(f"⚠️ Restaurant extraction failed: {e}")
+            return None
 
     def rewrite_cnn_style(self, original_title, original_content, country, category, original_url=""):
         """
