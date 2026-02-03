@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Clock } from 'lucide-react'
+import ShareButtons from "@/components/shared/ShareButtons";
 
 interface ArticleCardProps {
   id: string
@@ -48,27 +49,36 @@ export default function ArticleCard({
           sizes="(max-width: 768px) 100vw, 288px"
           className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
-      </div>
-
-      {/* Content */}
-      <div className="flex flex-1 flex-col gap-3 justify-center">
-        {/* Category and Country */}
-        <div className="flex items-center gap-2">
+        {/* Tags - Bottom Left */}
+        <div className="absolute bottom-2 left-2 flex gap-1 z-10 transition-opacity">
           <Badge
             variant="outline"
-            className="rounded-[4px] border border-[#e5e7eb] bg-white px-2 py-1 text-[12px] font-semibold tracking-[-0.5px] text-[#111827] shadow-none hover:bg-white"
+            className="rounded-[4px] border border-[#e5e7eb] bg-white px-2 py-0.5 text-[10px] font-semibold tracking-[-0.5px] text-[#111827] shadow-lg hover:bg-white"
           >
             {category}
           </Badge>
           {location && (
-            <>
-              <span className="text-[14px] font-normal text-black tracking-[-0.5px]">|</span>
-              <span className="text-[12px] font-semibold text-black tracking-[-0.5px]">
-                {location.toUpperCase()}
-              </span>
-            </>
+            <Badge
+              variant="outline"
+              className="rounded-[4px] border border-[#e5e7eb] bg-white px-2 py-0.5 text-[10px] font-semibold tracking-[-0.5px] text-[#111827] shadow-lg hover:bg-white"
+            >
+              {location.toUpperCase()}
+            </Badge>
           )}
         </div>
+        {/* Share Icons - Bottom Right */}
+        <div className="absolute bottom-2 right-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20">
+          <ShareButtons
+            url={`/article?id=${id}`}
+            title={title}
+            description={description}
+            size="xs"
+          />
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex flex-1 flex-col gap-3 justify-center">
 
         {/* Title - Making it red by default to match screenshot */}
         <h3 className="line-clamp-2 text-[20px] font-bold leading-[1.4] text-[#c10007] tracking-[-0.5px] transition-colors group-hover:text-[#9a0005]">

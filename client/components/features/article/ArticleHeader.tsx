@@ -1,13 +1,11 @@
 "use client";
 
-import { Eye, Calendar, Facebook, Linkedin, Link2 } from "lucide-react";
+import { Eye, Calendar, Facebook, Linkedin, Share2 } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import CustomShareBoard from "@/components/shared/CustomShareBoard";
 
-const XIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-  </svg>
-);
+// XIcon removed
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -43,7 +41,9 @@ export default function ArticleHeader({
   views,
   forceLight = false,
 }: ArticleHeaderProps) {
-  const handleShare = (platform: 'facebook' | 'x' | 'linkedin' | 'whatsapp' | 'copy') => {
+  const [isBoardOpen, setIsBoardOpen] = useState(false);
+
+  const handleShare = (platform: 'facebook' | 'linkedin' | 'whatsapp' | 'share') => {
     const url = window.location.href;
     const articleTitle = title;
 
@@ -55,13 +55,7 @@ export default function ArticleHeader({
           'width=600,height=400'
         );
         break;
-      case 'x':
-        window.open(
-          `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(articleTitle)}`,
-          '_blank',
-          'width=600,height=400'
-        );
-        break;
+      // X removed
       case 'linkedin':
         window.open(
           `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
@@ -75,9 +69,23 @@ export default function ArticleHeader({
           '_blank'
         );
         break;
-      case 'copy':
-        navigator.clipboard.writeText(url);
-        alert('Link copied to clipboard!');
+      case 'share':
+        const shareData = {
+          title: articleTitle,
+          text: subtitle || articleTitle,
+          url: url
+        };
+
+        if (navigator.share) {
+          navigator.share(shareData).catch(err => {
+            console.error('Error sharing:', err);
+            if (err.name !== 'AbortError') {
+              setIsBoardOpen(true);
+            }
+          });
+        } else {
+          setIsBoardOpen(true);
+        }
         break;
     }
   };
@@ -146,25 +154,18 @@ export default function ArticleHeader({
         {/* Right: Social Share Icons */}
         <div className="flex items-center gap-4">
           <button
-            onClick={() => handleShare('facebook')}
-            className="size-[18px] cursor-pointer hover:opacity-80 transition-opacity"
-            title="Share on Facebook"
-          >
-            <Facebook className="w-full h-full text-[#155DFC]" />
-          </button>
-          <button
-            onClick={() => handleShare('x')}
-            className="size-[16px] cursor-pointer hover:opacity-80 transition-opacity"
-            title="Share on X"
-          >
-            <XIcon className={`w-full h-full text-black ${darkClass('dark:text-white')}`} />
-          </button>
-          <button
             onClick={() => handleShare('whatsapp')}
             className="size-[18px] cursor-pointer hover:opacity-80 transition-opacity"
             title="Share on WhatsApp"
           >
             <WhatsAppIcon className="w-full h-full text-[#25D366]" />
+          </button>
+          <button
+            onClick={() => handleShare('facebook')}
+            className="size-[18px] cursor-pointer hover:opacity-80 transition-opacity"
+            title="Share on Facebook"
+          >
+            <Facebook className="w-full h-full text-[#155DFC]" />
           </button>
           <button
             onClick={() => handleShare('linkedin')}
@@ -174,14 +175,21 @@ export default function ArticleHeader({
             <Linkedin className="w-full h-full text-[#1447E6]" />
           </button>
           <button
-            onClick={() => handleShare('copy')}
+            onClick={() => handleShare('share')}
             className="size-[18px] cursor-pointer hover:opacity-80 transition-opacity"
-            title="Copy Link"
+            title="Share"
           >
-            <Link2 className={`w-full h-full text-[#4A5565] ${darkClass('dark:text-gray-400')}`} />
+            <Share2 className={`w-full h-full text-[#4A5565] ${darkClass('dark:text-gray-400')}`} />
           </button>
         </div>
       </div>
+
+      <CustomShareBoard
+        isOpen={isBoardOpen}
+        onOpenChange={setIsBoardOpen}
+        url={typeof window !== 'undefined' ? window.location.pathname + window.location.search : ''}
+        title={title}
+      />
     </header>
   );
 }

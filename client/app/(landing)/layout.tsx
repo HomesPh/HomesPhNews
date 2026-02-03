@@ -3,7 +3,7 @@ import LandingHeader from "@/components/layout/header/LandingHeader";
 import LandingCountryNav from "@/components/layout/nav/LandingCountryNav";
 import LandingCategoryNav from "@/components/layout/nav/LandingCategoryNav";
 import LandingFooter from "@/components/layout/footer/LandingFooter";
-import { Categories, Countries } from "@/app/data";
+import { Categories, Countries } from "../data";
 
 export default function LandingLayout({
   children,

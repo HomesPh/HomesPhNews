@@ -13,7 +13,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 interface SiteDistribution {
     name: string;
     count: number;
-    totalViews: number;
+    totalViews?: number;
 }
 
 interface ArticleDistributionProps {
@@ -22,6 +22,9 @@ interface ArticleDistributionProps {
     className?: string;
 }
 
+/**
+ * ArticleDistribution component showing article counts across different sites with a detailed view modal
+ */
 export default function ArticleDistribution({ sites, totalArticles, className }: ArticleDistributionProps) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -55,7 +58,7 @@ export default function ArticleDistribution({ sites, totalArticles, className }:
                 <Dialog open={isOpen} onOpenChange={setIsOpen}>
                     <DialogTrigger asChild>
                         <button
-                            className="text-[14px] font-medium text-[#C10007] hover:underline tracking-[-0.5px]"
+                            className="text-[14px] font-semibold text-[#C10007] hover:text-[#a10006] tracking-[-0.5px]"
                         >
                             {hasMore ? `View All ${sites.length} Distributions` : 'View Detailed Distribution'}
                         </button>
@@ -73,9 +76,11 @@ export default function ArticleDistribution({ sites, totalArticles, className }:
                                         <div className="flex justify-between items-end mb-1">
                                             <span className="text-[14px] font-bold text-[#111827] tracking-[-0.5px]">{site.name}</span>
                                             <div className="text-right">
-                                                <span className="block text-[12px] text-gray-500 font-medium tracking-[-0.5px]">
-                                                    {site.totalViews.toLocaleString()} total views
-                                                </span>
+                                                {site.totalViews !== undefined && (
+                                                    <span className="block text-[12px] text-gray-500 font-medium tracking-[-0.5px]">
+                                                        {site.totalViews.toLocaleString()} total views
+                                                    </span>
+                                                )}
                                                 <span className="text-[11px] text-[#C10007] font-bold tracking-[-0.5px]">
                                                     {site.count} articles
                                                 </span>
