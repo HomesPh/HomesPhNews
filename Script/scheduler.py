@@ -9,14 +9,16 @@ import random
 import asyncio
 import uuid
 import hashlib
+import json
 import requests
 import os
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from typing import List, Dict
 
-from config import COUNTRIES, CATEGORIES
+from config import COUNTRIES, CATEGORIES, RESTAURANT_CATEGORIES
 from scraper import NewsScraper, clean_html
+from restaurant_scraper import RestaurantScraper
 from ai_service import AIProcessor, clean_markdown
 from storage import StorageHandler
 from database import redis_client, PREFIX
@@ -387,6 +389,106 @@ def process_single_country(country: str) -> Dict:
     return result
 
 
+def process_single_restaurant_country(country: str) -> Dict:
+    """
+    Process one country for restaurants:
+    1. Scrape restaurant links
+    2. Extract and structure data with AI
+    3. Save to Redis
+    """
+    scraper = RestaurantScraper()
+    ai = AIProcessor()
+    storage = StorageHandler()
+    
+    start_time = time.time()
+    # Pick a random restaurant category
+    category = random.choice(RESTAURANT_CATEGORIES)
+    
+    result = {
+        "country": country,
+        "category": category,
+        "status": "pending",
+        "restaurant_id": None,
+        "name": None,
+        "error": None,
+        "duration": 0
+    }
+    
+    try:
+        print(f"🍴 [{country}] Searching Restaurants... Category: {category}")
+        
+        # Step 1: Scrape potential restaurants
+        raw_items = scraper.fetch_restaurant_data(category, country)
+        if not raw_items:
+            result["status"] = "no_restaurants"
+            result["error"] = "No restaurants found"
+            return result
+            
+        # Step 2: Pick one and process
+        # For simplicity, we pick the first one not already processed (dedup)
+        target_item = None
+        for item in raw_items:
+            if not is_duplicate(item["url"], item["raw_title"]):
+                target_item = item
+                break
+        
+        if not target_item:
+            result["status"] = "all_duplicates"
+            return result
+
+        # Step 3: AI extraction - Try multiple items until we find a REAL restaurant
+        restaurant_data = None
+        processed_count = 0
+        max_attempts = min(5, len(raw_items))  # Try up to 5 items
+        
+        for item in raw_items:
+            if is_duplicate(item["url"], item["raw_title"]):
+                continue
+            
+            processed_count += 1
+            if processed_count > max_attempts:
+                break
+                
+            restaurant_data = scraper.process_with_ai(item)
+            
+            # If we got real restaurant data, use this item
+            if restaurant_data:
+                target_item = item
+                break
+        
+        # Skip if no real restaurant found in any article
+        if not restaurant_data:
+            result["status"] = "no_real_restaurant"
+            result["error"] = "No specific restaurant found in articles"
+            return result
+        
+        # Step 4: Save to Redis
+        rid = restaurant_data["id"]
+        
+        # Save structured data
+        redis_client.set(f"{PREFIX}restaurant:{rid}", json.dumps(restaurant_data))
+        # Add to global list
+        redis_client.sadd(f"{PREFIX}all_restaurants", rid)
+        # Add to country list
+        redis_client.sadd(f"{PREFIX}country:{country.lower().replace(' ', '_')}:restaurants", rid)
+        
+        # Mark as processed (dedup)
+        mark_as_processed(target_item["url"], target_item["raw_title"])
+        
+        result["status"] = "success"
+        result["restaurant_id"] = rid
+        result["name"] = restaurant_data["name"]
+        print(f"✅ [{country}] Saved Restaurant: {restaurant_data['name']}")
+        
+    except Exception as e:
+        result["status"] = "error"
+        result["error"] = str(e)
+        print(f"❌ [{country}] Restaurant Error: {e}")
+        
+    result["duration"] = round(time.time() - start_time, 2)
+    return result
+
+
 # ═══════════════════════════════════════════════════════════════
 # MAIN JOB (Hourly)
 # ═══════════════════════════════════════════════════════════════
@@ -478,4 +580,28 @@ async def run_hourly_job():
     if results and success_count > 0:
         send_discord_notification(results)
     
+    return results
+
+
+async def run_restaurant_job():
+    """Trigger job specifically for restaurants."""
+    # Similar logic to run_hourly_job but for restaurants
+    print("\n" + "=" * 70)
+    print(f"🍴 RESTAURANT JOB STARTED")
+    print("=" * 70)
+    
+    all_countries = list(COUNTRIES.keys())
+    # Test with a few countries first or all
+    countries = all_countries 
+    
+    loop = asyncio.get_event_loop()
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = [
+            loop.run_in_executor(executor, process_single_restaurant_country, country)
+            for country in countries
+        ]
+        results = await asyncio.gather(*futures)
+        
+    success_count = sum(1 for r in results if r["status"] == "success")
+    print(f"\n🍴 Restaurant Summary: {success_count} restaurants found.")
     return results

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\ArticleController as AdminArticleController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\EventController;
+use App\Http\Controllers\Api\Admin\RestaurantController;
 use App\Http\Controllers\Api\Admin\SiteController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\SubscriptionController;
@@ -104,6 +105,15 @@ Route::middleware(['auth:sanctum', 'is.admin'])
         Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
         // Restore soft-deleted article
         Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
+
+        // ═══════════════════════════════════════════════════════════════
+        // RESTAURANT ROUTES (Redis-based from Python Script)
+        // ═══════════════════════════════════════════════════════════════
+        Route::get('restaurants', [RestaurantController::class, 'index'])->name('restaurants.index');
+        Route::get('restaurants/stats', [RestaurantController::class, 'stats'])->name('restaurants.stats');
+        Route::get('restaurants/country/{country}', [RestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
+        Route::get('restaurants/{id}', [RestaurantController::class, 'show'])->name('restaurants.show');
+        Route::delete('restaurants/{id}', [RestaurantController::class, 'destroy'])->name('restaurants.destroy');
 
         // Upload Routes
         Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');

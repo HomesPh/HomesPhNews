@@ -33,6 +33,15 @@ CATEGORIES = [
     "Success Stories",
 ]
 
+# Restaurant Categories
+RESTAURANT_CATEGORIES = [
+    "Fine Dining",
+    "Casual Dining",
+    "Fast Food Industry",
+    "Chef Interviews",
+    "Michelin Guide",
+]
+
 # Trusted domains (optional filter for quality control)
 TRUSTED_DOMAINS = [
     "cnn.com", "bbc.co.uk", "reuters.com", "bloomberg.com",
