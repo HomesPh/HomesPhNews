@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArticleResource } from "@/lib/api-v2";
 import { stripHtml } from '@/lib/utils';
+import ShareButtons from "@/components/shared/ShareButtons";
 
 interface LatestPostsSectionProps {
     articles: ArticleResource[];
@@ -38,19 +39,28 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                     >
                         <div className="md:w-1/3 aspect-[4/3] shrink-0 overflow-hidden relative rounded-sm">
                             <Image
-                                src={article.image || 'https://placehold.co/800x600?text=No+Image'}
+                                src={article.image_url || article.image || 'https://placehold.co/800x600?text=No+Image'}
                                 alt={article.title}
                                 fill
                                 className="object-cover transition-transform duration-700 group-hover:scale-110"
                             />
-                            {/* Tags at bottom right of image */}
-                            <div className="absolute bottom-3 right-3 flex gap-1 z-10">
+                            {/* Tags at bottom left of image */}
+                            <div className="absolute bottom-3 left-3 flex gap-1 z-10 transition-opacity group-hover:opacity-100">
                                 <span className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg">
                                     {article.category}
                                 </span>
                                 <span className="bg-white dark:bg-[#111827] text-black dark:text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors">
                                     {article.country || "Global"}
                                 </span>
+                            </div>
+                            {/* Share Icons - Bottom Right */}
+                            <div className="absolute bottom-3 right-3 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20">
+                                <ShareButtons
+                                    url={`/article?id=${article.id}`}
+                                    title={article.title}
+                                    description={article.summary || article.content}
+                                    size="xs"
+                                />
                             </div>
                         </div>
                         <div className="flex flex-col">

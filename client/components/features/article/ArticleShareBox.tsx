@@ -1,12 +1,10 @@
 "use client";
 
-import { Facebook, Linkedin, Link2 } from "lucide-react";
+import { Facebook, Linkedin, Share2 } from "lucide-react";
+import { useState } from "react";
+import CustomShareBoard from "@/components/shared/CustomShareBoard";
 
-const XIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-  </svg>
-);
+// XIcon removed
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -15,7 +13,9 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 );
 
 export default function ArticleShareBox() {
-  const handleShare = (platform: 'facebook' | 'x' | 'linkedin' | 'whatsapp' | 'copy') => {
+  const [isBoardOpen, setIsBoardOpen] = useState(false);
+
+  const handleShare = (platform: 'facebook' | 'linkedin' | 'whatsapp' | 'share') => {
     const url = window.location.href;
     const title = document.title;
 
@@ -27,13 +27,7 @@ export default function ArticleShareBox() {
           'width=600,height=400'
         );
         break;
-      case 'x':
-        window.open(
-          `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
-          '_blank',
-          'width=600,height=400'
-        );
-        break;
+      // CASE 'x' removed
       case 'linkedin':
         window.open(
           `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
@@ -47,9 +41,23 @@ export default function ArticleShareBox() {
           '_blank'
         );
         break;
-      case 'copy':
-        navigator.clipboard.writeText(url);
-        alert('Link copied to clipboard!');
+      case 'share':
+        const shareData = {
+          title: title,
+          text: 'Check out this article on HomesPh News',
+          url: url
+        };
+
+        if (navigator.share) {
+          navigator.share(shareData).catch(err => {
+            console.error('Error sharing:', err);
+            if (err.name !== 'AbortError') {
+              setIsBoardOpen(true);
+            }
+          });
+        } else {
+          setIsBoardOpen(true);
+        }
         break;
     }
   };
@@ -65,25 +73,18 @@ export default function ArticleShareBox() {
 
       <div className="flex gap-[7px] items-center flex-wrap justify-center w-full">
         <button
-          onClick={() => handleShare('facebook')}
-          className="bg-[#155dfc] text-white px-[10px] py-[8px] rounded-[6px] font-medium text-[12px] tracking-[-0.5px] hover:opacity-90 transition-opacity flex gap-[10px] items-center justify-center w-full sm:w-auto min-w-[154px]"
-        >
-          <Facebook className="w-[15px] h-[15px]" />
-          Share on Facebook
-        </button>
-        <button
-          onClick={() => handleShare('x')}
-          className="bg-black dark:bg-black text-white px-[10px] py-[8px] rounded-[6px] font-medium text-[12px] tracking-[-0.5px] hover:opacity-90 transition-opacity flex gap-[10px] items-center justify-center w-full sm:w-auto min-w-[154px]"
-        >
-          <XIcon className="w-[14px] h-[14px]" />
-          Share on X
-        </button>
-        <button
           onClick={() => handleShare('whatsapp')}
           className="bg-[#25D366] text-white px-[10px] py-[8px] rounded-[6px] font-medium text-[12px] tracking-[-0.5px] hover:opacity-90 transition-opacity flex gap-[10px] items-center justify-center w-full sm:w-auto min-w-[154px]"
         >
           <WhatsAppIcon className="w-[15px] h-[15px]" />
           Share on WhatsApp
+        </button>
+        <button
+          onClick={() => handleShare('facebook')}
+          className="bg-[#155dfc] text-white px-[10px] py-[8px] rounded-[6px] font-medium text-[12px] tracking-[-0.5px] hover:opacity-90 transition-opacity flex gap-[10px] items-center justify-center w-full sm:w-auto min-w-[154px]"
+        >
+          <Facebook className="w-[15px] h-[15px]" />
+          Share on Facebook
         </button>
         <button
           onClick={() => handleShare('linkedin')}
@@ -92,7 +93,21 @@ export default function ArticleShareBox() {
           <Linkedin className="w-[15px] h-[15px]" />
           Share on LinkedIn
         </button>
+        <button
+          onClick={() => handleShare('share')}
+          className="bg-gray-600 text-white px-[10px] py-[8px] rounded-[6px] font-medium text-[12px] tracking-[-0.5px] hover:opacity-90 transition-opacity flex gap-[10px] items-center justify-center w-full sm:w-auto min-w-[154px]"
+        >
+          <Share2 className="w-[15px] h-[15px]" />
+          Share
+        </button>
       </div>
+
+      <CustomShareBoard
+        isOpen={isBoardOpen}
+        onOpenChange={setIsBoardOpen}
+        url={typeof window !== 'undefined' ? window.location.pathname + window.location.search : ''}
+        title={typeof document !== 'undefined' ? document.title : ''}
+      />
     </div>
   );
 }

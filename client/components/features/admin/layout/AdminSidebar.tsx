@@ -72,7 +72,7 @@ export default function AdminSidebar() {
           {!isCollapsed ? (
             <div className="flex items-center gap-3 px-2">
               <img
-                src="/images/HomesTV.png"
+                src="/images/HomesTVwhite.png"
                 alt="HomesTV"
                 className="w-10 h-10 object-contain"
               />
@@ -83,7 +83,7 @@ export default function AdminSidebar() {
           ) : (
             <div className="flex justify-center">
               <img
-                src="/images/HomesTV.png"
+                src="/images/HomesTVwhite.png"
                 alt="HomesTV"
                 className="w-10 h-10 object-contain"
               />
