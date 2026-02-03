@@ -27,7 +27,7 @@ export default async function SearchPage({ searchParams }: Props) {
         search: q || undefined,
         topic: topic || undefined,
         country: country !== "all" ? country : undefined,
-        category: category !== "all" ? category : undefined,
+        category: (category !== "all" && category.toLowerCase() !== "articles") ? category : undefined, // Treat 'articles' as all
         limit: perPage,
         page: page
     });
@@ -38,13 +38,13 @@ export default async function SearchPage({ searchParams }: Props) {
 
     // Mixed content strategy: if category is 'all' or specialty, mix in mock content for page 1
     let filteredArticles = realArticles;
-    if (page === 1 && (category === "all" || ["blogs", "newsletters", "restaurants"].includes(category.toLowerCase()))) {
+    if (page === 1 && (category === "all" || category.toLowerCase() === "articles" || ["blogs", "newsletters", "restaurants", "restaurant"].includes(category.toLowerCase()))) {
         const seenIds = new Set(realArticles.map(a => a.id));
         const uniqueMock = mockSpecialtyContent.filter(a => {
             const matchesCategory = category === "all" ||
                 (category.toLowerCase() === "blogs" && (a.id.includes('blog') || a.category === "Real Estate")) ||
                 (category.toLowerCase() === "newsletters" && (a.id.includes('newsletter') || a.category === "Business & Economy")) ||
-                (category.toLowerCase() === "restaurants" && a.category === "Restaurant");
+                ((category.toLowerCase() === "restaurants" || category.toLowerCase() === "restaurant") && a.category === "Restaurant");
 
             const matchesCountry = country === "all" || a.country === country || a.country === "Global";
 

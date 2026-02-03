@@ -1,0 +1,1 @@
+export { default as AdSpace } from "./components/AdSpace";
