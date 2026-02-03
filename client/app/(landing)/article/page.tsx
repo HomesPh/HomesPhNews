@@ -13,8 +13,60 @@ import ArticleDetailContent from "@/components/features/article/ArticleDetailCon
 import RelatedArticlesSidebar from "@/components/features/article/RelatedArticlesSidebar";
 import ArticleBreadcrumbContainer from "@/components/features/article/ArticleBreadcrumbContainer";
 
+import type { Metadata } from "next";
+import { getArticleById } from "@/lib/api-v2";
+
 interface Props {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const { id } = await searchParams;
+  const articleId = Array.isArray(id) ? id[0] : id;
+
+  if (!articleId) {
+    return {
+      title: "Article Not Found",
+    };
+  }
+
+  try {
+    const article = await getArticleById(articleId);
+
+    if (!article) {
+      return {
+        title: "Article Not Found",
+      };
+    }
+
+    const description = article.content
+      ? article.content.replace(/<[^>]*>/g, "").substring(0, 160) + "..."
+      : "";
+
+    return {
+      title: article.title,
+      description: description,
+      openGraph: {
+        title: article.title,
+        description: description,
+        images: article.image ? [article.image] : [],
+        type: "article",
+        publishedTime: article.created_at,
+        authors: ["HomesPh News"],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: article.title,
+        description: description,
+        images: article.image ? [article.image] : [],
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching article metadata:", error);
+    return {
+      title: "Error",
+    };
+  }
 }
 
 export default async function Article({ searchParams }: Props) {
