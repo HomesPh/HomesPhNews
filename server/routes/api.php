@@ -4,6 +4,7 @@
 use App\Http\Controllers\Api\Admin\AnalyticsController;
 // ✅ CORRECT CONTROLLER: Import the Admin Article Controller
 use App\Http\Controllers\Api\Admin\ArticleController as AdminArticleController;
+use App\Http\Controllers\Api\Admin\ArticlePublicationController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\EventController;
 use App\Http\Controllers\Api\Admin\RestaurantController;
@@ -90,6 +91,7 @@ Route::middleware(['auth:sanctum', 'is.admin'])
 
         // CRUD Resources
         Route::apiResource('events', EventController::class);
+        Route::apiResource('article-publications', ArticlePublicationController::class);
 
         Route::get('sites/names', [SiteController::class, 'names']);
         Route::patch('sites/{id}/toggle-status', [SiteController::class, 'toggleStatus']);
