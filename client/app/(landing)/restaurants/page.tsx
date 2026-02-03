@@ -129,11 +129,9 @@ export default async function RestaurantPage({ searchParams }: Props) {
                 {/* Sidebar Column (Right) */}
                 <aside className="lg:col-span-4 space-y-10">
                     <AdSpace
-                        className="h-[112px]"
-                        width="300x600"
-                        height="Leader board Ad"
+                        className="h-28"
+                        rotateInterval={10000}
                     />
-
                     <MostReadTodayCard
                         items={mostRead.slice(0, 5).map((article) => ({
                             id: article.id || '',
