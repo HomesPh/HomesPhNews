@@ -23,7 +23,7 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
 
   return (
     <div className="flex flex-col gap-[24px] mt-[40px]">
-      <h2 className="font-bold text-[24px] text-[#111827] tracking-[-0.5px] leading-[32px]">
+      <h2 className="font-bold text-[24px] text-[#111827] dark:text-white tracking-[-0.5px] leading-[32px]">
         Related Articles
       </h2>
 
@@ -32,7 +32,7 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
           <Link
             key={article.id}
             href={`/article?id=${article.id}`}
-            className="bg-white border border-[#f3f4f6] rounded-[12px] overflow-hidden cursor-pointer hover:shadow-md transition-shadow shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
+            className="bg-white dark:bg-[#1a1d2e] border border-[#f3f4f6] dark:border-[#2a2d3e] rounded-[12px] overflow-hidden cursor-pointer hover:shadow-md transition-shadow shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
           >
             {/* Image on top */}
             <div className="w-full h-[160px] overflow-hidden">
@@ -48,24 +48,24 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
             {/* Content below */}
             <div className="p-[16px] flex flex-col gap-[10px]">
               <div className="flex gap-[8px] items-center">
-                <span className="bg-white border border-[#e5e7eb] px-[8px] py-[3px] rounded-[4px] font-semibold text-[11px] text-black tracking-[-0.5px]">
+                <span className="bg-white dark:bg-[#252836] border border-[#e5e7eb] dark:border-[#374151] px-[8px] py-[3px] rounded-[4px] font-semibold text-[11px] text-black dark:text-white tracking-[-0.5px]">
                   {article.category}
                 </span>
                 {article.location && (
                   <>
-                    <p className="font-normal text-[12px] text-black tracking-[-0.5px]">|</p>
-                    <p className="font-semibold text-[11px] text-black tracking-[-0.5px]">
+                    <p className="font-normal text-[12px] text-black dark:text-gray-400 tracking-[-0.5px]">|</p>
+                    <p className="font-semibold text-[11px] text-black dark:text-white tracking-[-0.5px]">
                       {article.location.toUpperCase()}
                     </p>
                   </>
                 )}
               </div>
 
-              <h3 className="font-bold text-[16px] text-[#111827] tracking-[-0.5px] leading-[1.3] line-clamp-2">
+              <h3 className="font-bold text-[16px] text-[#111827] dark:text-white tracking-[-0.5px] leading-[1.3] line-clamp-2">
                 {article.title}
               </h3>
 
-              <div className="flex items-center gap-[6px] text-[#6b7280]">
+              <div className="flex items-center gap-[6px] text-[#6b7280] dark:text-gray-400">
                 <Clock className="size-[12px]" />
                 <p className="font-normal text-[12px] tracking-[-0.5px]">
                   {article.timeAgo}

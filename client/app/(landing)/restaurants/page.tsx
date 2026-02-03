@@ -258,8 +258,8 @@ export default async function RestaurantPage() {
                             <LatestPostsSection articles={latestPosts} />
                         </>
                     ) : (
-                        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-500">
-                            <p className="font-semibold text-lg text-gray-900 mb-1">
+                        <div className="bg-white dark:bg-[#1a1d2e] rounded-xl border border-gray-200 dark:border-[#2a2d3e] p-12 text-center text-gray-500 dark:text-gray-400">
+                            <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
                                 No restaurant articles found
                             </p>
                         </div>

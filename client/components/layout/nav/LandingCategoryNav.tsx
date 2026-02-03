@@ -12,7 +12,7 @@ export type LandingCategoryNavProps = {
 
 export default function LandingCategoryNav({ categories }: LandingCategoryNavProps) {
   return (
-    <div className="bg-white w-full">
+    <div className="bg-white dark:bg-[#1a1d2e] w-full">
       <Suspense fallback={<NavContentFallback categories={categories} />}>
         <NavContent categories={categories} />
       </Suspense>
@@ -55,7 +55,7 @@ function NavContent({ categories }: LandingCategoryNavProps) {
                 key={category.id}
                 onClick={() => handleChangeCategoryTab(category.id)}
                 className={`shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap transition-colors ${isActive
-                  ? "bg-[#030213] text-white px-[10px] py-[5px] rounded-[6px]"
+                  ? "bg-[#030213] dark:bg-white text-white dark:text-[#030213] px-[10px] py-[5px] rounded-[6px]"
                   : "text-[#374151] dark:text-gray-300 hover:text-[#c10007] dark:hover:text-[#c10007] px-0 py-px"
                   }`}
               >
@@ -75,7 +75,7 @@ function NavContentFallback({ categories }: LandingCategoryNavProps) {
       {categories.map((category) => (
         <div
           key={category.id}
-          className="shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap text-[#374151] px-0 py-px"
+          className="shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap text-[#374151] dark:text-gray-400 px-0 py-px"
         >
           {category.label}
         </div>

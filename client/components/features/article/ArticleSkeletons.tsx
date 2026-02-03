@@ -9,7 +9,7 @@ export function ArticleHeaderSkeleton() {
     <div className="space-y-4 mb-8">
       <div className="flex gap-4 items-center mb-6">
         <Skeleton className="h-8 w-24" />
-        <div className="h-5 w-px bg-gray-200" />
+        <div className="h-5 w-px bg-gray-200 dark:bg-gray-700" />
         <Skeleton className="h-5 w-32" />
       </div>
       <Skeleton className="h-[42px] md:h-[48px] w-full" />
@@ -17,7 +17,7 @@ export function ArticleHeaderSkeleton() {
       <Skeleton className="h-6 w-full mt-4" />
       <Skeleton className="h-6 w-1/2" />
 
-      <div className="flex items-center justify-between border-y border-[#e5e7eb] py-[20px] mt-12">
+      <div className="flex items-center justify-between border-y border-[#e5e7eb] dark:border-[#2a2d3e] py-[20px] mt-12">
         <div className="flex gap-8 items-center">
           <Skeleton className="h-5 w-24" />
           <Skeleton className="h-5 w-32" />
@@ -57,7 +57,7 @@ export function SidebarSkeleton() {
   return (
     <div className="space-y-8">
       <Skeleton className="h-[112px] w-full rounded-xl" />
-      <div className="bg-white rounded-xl border p-6 space-y-4">
+      <div className="bg-white dark:bg-[#1a1d2e] rounded-xl border dark:border-[#2a2d3e] p-6 space-y-4">
         <Skeleton className="h-6 w-32" />
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="flex gap-3">
