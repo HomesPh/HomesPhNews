@@ -180,23 +180,6 @@ export default function BaseArticleCard({
                     <span className="text-[16px]">•</span>
                     <span className="leading-[20px]">{viewsStr}</span>
                 </div>
-
-                {/* Published On */}
-                <div className="flex items-center gap-2">
-                    <span className="text-[12px] text-[#6b7280] leading-[20px] tracking-[-0.5px]">Published on:</span>
-                    <div className="flex flex-wrap gap-2">
-                        {sites.length > 0 ? sites.map((site, idx) => (
-                            <span
-                                key={idx}
-                                className="px-[14px] py-1 bg-[#f3f4f6] rounded-[4px] text-[12px] font-medium text-[#374151] tracking-[-0.5px]"
-                            >
-                                {site}
-                            </span>
-                        )) : (
-                            <span className="text-[12px] italic text-[#9ca3af]">None</span>
-                        )}
-                    </div>
-                </div>
             </div>
         </div>
     );
