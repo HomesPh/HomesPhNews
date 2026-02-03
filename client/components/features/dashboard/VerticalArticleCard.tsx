@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Clock } from "lucide-react";
 import { stripHtml } from "@/lib/utils";
+import ShareButtons from "@/components/shared/ShareButtons";
 
 interface VerticalArticleCardProps {
     id: string;
@@ -39,23 +40,30 @@ export default function VerticalArticleCard({
                     fill
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                 />
+                {/* Tags - Bottom Left */}
+                <div className="absolute bottom-2 left-2 flex gap-1 z-10">
+                    <span className="bg-white dark:bg-[#252836] border border-[#e5e7eb] dark:border-gray-700 px-2 py-0.5 rounded-[4px] font-semibold text-[10px] text-black dark:text-white tracking-[-0.5px] shadow-lg">
+                        {category}
+                    </span>
+                    {location && (
+                        <span className="bg-white dark:bg-[#252836] border border-[#e5e7eb] dark:border-gray-700 px-2 py-0.5 rounded-[4px] font-semibold text-[10px] text-black dark:text-white tracking-[-0.5px] shadow-lg">
+                            {location.toUpperCase()}
+                        </span>
+                    )}
+                </div>
+                {/* Share Icons - Bottom Right */}
+                <div className="absolute bottom-2 right-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20">
+                    <ShareButtons
+                        url={`/article?id=${id}`}
+                        title={title}
+                        description={description}
+                        size="xs"
+                    />
+                </div>
             </div>
 
             {/* Content below */}
             <div className="p-[16px] flex flex-col gap-[10px] flex-1">
-                <div className="flex gap-[8px] items-center">
-                    <span className="bg-white dark:bg-[#252836] border border-[#e5e7eb] dark:border-gray-700 px-[8px] py-[3px] rounded-[4px] font-semibold text-[11px] text-black dark:text-white tracking-[-0.5px]">
-                        {category}
-                    </span>
-                    {location && (
-                        <>
-                            <p className="font-normal text-[12px] text-black dark:text-gray-400 tracking-[-0.5px]">|</p>
-                            <p className="font-semibold text-[11px] text-black dark:text-white tracking-[-0.5px]">
-                                {location.toUpperCase()}
-                            </p>
-                        </>
-                    )}
-                </div>
 
                 <h3 className="font-bold text-[18px] text-[#111827] dark:text-white tracking-[-0.5px] leading-[1.3] line-clamp-2 transition-colors group-hover:text-[#c10007]">
                     {title}

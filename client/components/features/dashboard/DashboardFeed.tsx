@@ -256,7 +256,7 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
                         items={most_read.slice(0, 5).map((article) => ({
                             id: article.id || '',
                             title: article.title,
-                            imageUrl: article.image || 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7', // Fallback image
+                            imageUrl: article.image_url || article.image || 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7', // Fallback image
                             views: article.views_count || 0,
                             timeAgo: article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently',
                         }))}

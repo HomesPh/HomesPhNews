@@ -30,6 +30,20 @@ Route::middleware('site.auth')->get('/external/articles', [\App\Http\Controllers
 Route::get('/redis-test', [SystemController::class, 'redisTest']);
 Route::get('/db-test', [SystemController::class, 'dbTest']);
 
+// ═══════════════════════════════════════════════════════════════
+// SCHEDULER ROUTE (For Cloud Run / Cron Jobs)
+// ═══════════════════════════════════════════════════════════════
+Route::get('/scheduler/run', function () {
+    // ⚠️ Security Note: In production, you should protect this route!
+    // Example: if (request('key') !== env('CRON_KEY')) abort(403);
+    
+    \Illuminate\Support\Facades\Artisan::call('schedule:run');
+    return response()->json([
+        'message' => 'Schedule executed',
+        'output' => \Illuminate\Support\Facades\Artisan::output()
+    ]);
+});
+
 // Public login route
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 Route::get('/login', [AuthController::class, 'me'])->middleware('auth:sanctum')->name('login');
