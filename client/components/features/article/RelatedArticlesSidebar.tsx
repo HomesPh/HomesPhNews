@@ -1,6 +1,6 @@
 import { getArticleById, getArticlesList } from "@/lib/api-v2";
 import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
-import AdSpace from "@/components/shared/AdSpace";
+import AdSpace from "@/lib/ads/components/AdSpace";
 
 interface RelatedArticlesSidebarProps {
   id: string;
