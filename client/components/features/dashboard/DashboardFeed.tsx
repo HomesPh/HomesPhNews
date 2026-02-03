@@ -6,7 +6,7 @@ import TrendingTopicsCard from "@/components/features/dashboard/TrendingTopicsCa
 import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
 import CategoriesSidebarCard from "./CategoriesSidebarCard";
 import LatestPostsSection from "./LatestPostsSection";
-import AdSpace from "@/components/shared/AdSpace";
+import AdSpace from "@/lib/ads/components/AdSpace";
 import { use } from "react";
 import { ArticleResource, FeedResponse } from "@/lib/api-v2";
 import { mockSpecialtyContent } from "@/lib/api-v2/mock/mockArticles";
@@ -248,9 +248,8 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
                 {/* Sidebar Column (Right) */}
                 <aside className="lg:col-span-4 space-y-10">
                     <AdSpace
-                        className="h-[112px]"
-                        width="300x600"
-                        height="Leader board Ad"
+                        className="h-28"
+                        rotateInterval={10000}
                     />
 
                     <MostReadTodayCard
