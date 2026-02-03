@@ -66,7 +66,12 @@ export default function LandingHeader() {
                   <img
                     src="/images/HomesTV.png"
                     alt="HomesTV Logo"
-                    className="object-contain w-full h-full"
+                    className="dark:hidden object-contain w-full h-full"
+                  />
+                  <img
+                    src="/images/HomesTVwhite.png"
+                    alt="HomesTV Logo"
+                    className="hidden dark:block object-contain w-full h-full"
                   />
                 </div>
                 <div className="flex flex-col">
@@ -103,22 +108,21 @@ export default function LandingHeader() {
 
               {/* Search and Subscribe */}
               <div className="hidden lg:flex items-center gap-4">
-                <div className="relative group">
+                <form onSubmit={handleSearch} className="relative group">
                   <input
                     type="text"
                     placeholder="Search articles..."
                     value={searchQuery}
                     onChange={handleInputChange}
-                    onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
                     className="w-[200px] bg-gray-50 dark:bg-[#252836] border border-gray-200 dark:border-gray-700 rounded-full py-2 pl-4 pr-10 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all dark:text-white dark:placeholder:text-gray-500"
                   />
                   <button
-                    onClick={handleSearch}
+                    type="submit"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-600"
                   >
                     <Search size={18} />
                   </button>
-                </div>
+                </form>
 
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700" />
 

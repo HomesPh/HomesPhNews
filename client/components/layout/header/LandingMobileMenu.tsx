@@ -37,7 +37,12 @@ export default function LandingMobileMenu({
                         <img
                             src="/images/HomesTV.png"
                             alt="HomesTV"
-                            className="w-10 h-10 object-contain"
+                            className="w-10 h-10 object-contain dark:hidden"
+                        />
+                        <img
+                            src="/images/HomesTVwhite.png"
+                            alt="HomesTV"
+                            className="w-10 h-10 object-contain hidden dark:block"
                         />
                         <div className="flex flex-col">
                             <h1 className="text-[20px] font-bold text-gray-900 dark:text-white leading-[1.4] tracking-[-0.5px]">

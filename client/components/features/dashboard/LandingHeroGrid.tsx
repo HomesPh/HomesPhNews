@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArticleResource } from "@/lib/api-v2";
+import ShareButtons from "@/components/shared/ShareButtons";
 
 interface LandingHeroGridProps {
     articles: ArticleResource[];
@@ -48,10 +49,19 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         <h2 className="text-white text-3xl md:text-4xl font-black leading-tight uppercase group-hover:underline decoration-[#cc0000] decoration-2 underline-offset-4 max-w-4xl">
                             {main.title}
                         </h2>
-                        <div className="flex items-center mt-4 space-x-3 text-xs font-bold text-gray-300 uppercase">
-                            <span>By {main.source || "HomesPh News"}</span>
-                            <span>•</span>
-                            <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
+                        <div className="flex items-center justify-between mt-4">
+                            <div className="flex items-center space-x-3 text-xs font-bold text-gray-300 uppercase">
+                                <span>By {main.source || "HomesPh News"}</span>
+                                <span>•</span>
+                                <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
+                            </div>
+                            <ShareButtons
+                                url={`/article?id=${main.id}`}
+                                title={main.title}
+                                description={main.summary || main.content}
+                                size="sm"
+                                className="transition-opacity"
+                            />
                         </div>
                     </div>
                 </Link>
@@ -89,10 +99,19 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             <h2 className="text-white text-xl md:text-2xl font-black leading-tight uppercase group-hover:underline decoration-[#cc0000] decoration-2 underline-offset-4">
                                 {article.title}
                             </h2>
-                            <div className="flex items-center mt-3 space-x-3 text-[10px] font-bold text-gray-300 uppercase">
-                                <span>By {article.source || "HomesPh News"}</span>
-                                <span>•</span>
-                                <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                            <div className="flex items-center justify-between mt-3">
+                                <div className="flex items-center space-x-3 text-[10px] font-bold text-gray-300 uppercase">
+                                    <span>By {article.source || "HomesPh News"}</span>
+                                    <span>•</span>
+                                    <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                                </div>
+                                <ShareButtons
+                                    url={`/article?id=${article.id}`}
+                                    title={article.title}
+                                    description={article.summary || article.content}
+                                    size="sm"
+                                    className="transition-opacity"
+                                />
                             </div>
                         </div>
                     </Link>
@@ -133,10 +152,19 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         <h2 className="text-white text-xl md:text-2xl font-black leading-tight uppercase group-hover:underline decoration-[#cc0000] decoration-2 underline-offset-4">
                             {main.title}
                         </h2>
-                        <div className="flex items-center mt-3 space-x-3 text-[10px] font-bold text-gray-300 uppercase">
-                            <span>By {main.source || "HomesPh News"}</span>
-                            <span>•</span>
-                            <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
+                        <div className="flex items-center justify-between mt-3">
+                            <div className="flex items-center space-x-3 text-[10px] font-bold text-gray-300 uppercase">
+                                <span>By {main.source || "HomesPh News"}</span>
+                                <span>•</span>
+                                <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
+                            </div>
+                            <ShareButtons
+                                url={`/article?id=${main.id}`}
+                                title={main.title}
+                                description={main.summary || main.content}
+                                size="sm"
+                                className="transition-opacity"
+                            />
                         </div>
                     </div>
                 </Link>
@@ -169,10 +197,18 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 <h3 className="text-white text-sm font-black leading-tight uppercase group-hover:text-[#cc0000] transition-colors line-clamp-2">
                                     {article.title}
                                 </h3>
-                                <div className="flex items-center mt-2 space-x-2 text-[9px] font-bold text-gray-400 uppercase">
-                                    <span>By {article.source || "HomesPh News"}</span>
-                                    <span>•</span>
-                                    <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                                <div className="flex items-center justify-between mt-2">
+                                    <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase">
+                                        <span>By {article.source || "HomesPh News"}</span>
+                                        <span>•</span>
+                                        <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                                    </div>
+                                    <ShareButtons
+                                        url={`/article?id=${article.id}`}
+                                        title={article.title}
+                                        size="xs"
+                                        className="transition-opacity"
+                                    />
                                 </div>
                             </div>
                         </Link>
@@ -218,10 +254,19 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                     <h2 className="text-white text-xl md:text-2xl font-black leading-tight uppercase group-hover:underline decoration-[#cc0000] decoration-2 underline-offset-4">
                         {main.title}
                     </h2>
-                    <div className="flex items-center mt-3 space-x-3 text-[10px] font-bold text-gray-300 uppercase">
-                        <span>By {main.source || "HomesPh News"}</span>
-                        <span>•</span>
-                        <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
+                    <div className="flex items-center justify-between mt-3">
+                        <div className="flex items-center space-x-3 text-[10px] font-bold text-gray-300 uppercase">
+                            <span>By {main.source || "HomesPh News"}</span>
+                            <span>•</span>
+                            <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
+                        </div>
+                        <ShareButtons
+                            url={`/article?id=${main.id}`}
+                            title={main.title}
+                            description={main.summary || main.content}
+                            size="sm"
+                            className="transition-opacity"
+                        />
                     </div>
                 </div>
             </Link>
@@ -254,10 +299,19 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             <h3 className="text-white text-sm font-black leading-tight uppercase group-hover:text-[#cc0000] transition-colors line-clamp-2">
                                 {topSmall.title}
                             </h3>
-                            <div className="flex items-center mt-2 space-x-2 text-[9px] font-bold text-gray-400 uppercase">
-                                <span>By {topSmall.source || "HomesPh News"}</span>
-                                <span>•</span>
-                                <span>{topSmall.created_at ? new Date(topSmall.created_at).toLocaleDateString() : 'Recently'}</span>
+                            <div className="flex items-center justify-between mt-2">
+                                <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase">
+                                    <span>By {topSmall.source || "HomesPh News"}</span>
+                                    <span>•</span>
+                                    <span>{topSmall.created_at ? new Date(topSmall.created_at).toLocaleDateString() : 'Recently'}</span>
+                                </div>
+                                <ShareButtons
+                                    url={`/article?id=${topSmall.id}`}
+                                    title={topSmall.title}
+                                    description={topSmall.summary || topSmall.content}
+                                    size="xs"
+                                    className="transition-opacity"
+                                />
                             </div>
                         </div>
                     </Link>
@@ -291,8 +345,16 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 <h4 className="text-white text-[11px] font-black leading-tight uppercase line-clamp-2">
                                     {article.title}
                                 </h4>
-                                <div className="flex items-center mt-1 space-x-1.5 text-[8px] font-bold text-gray-400 uppercase">
-                                    <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                                <div className="flex items-center justify-between mt-1">
+                                    <div className="flex items-center space-x-1.5 text-[8px] font-bold text-gray-400 uppercase">
+                                        <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                                    </div>
+                                    <ShareButtons
+                                        url={`/article?id=${article.id}`}
+                                        title={article.title}
+                                        size="xs"
+                                        className="transition-opacity"
+                                    />
                                 </div>
                             </div>
                         </Link>

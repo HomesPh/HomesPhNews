@@ -217,9 +217,9 @@ export default async function RestaurantPage() {
 
     return (
         <div className="w-full max-w-[1280px] mx-auto px-4 py-8">
-            <header className="mb-0 border-b border-gray-200 pb-4">
-                <h1 className="text-3xl font-bold text-[#111827]">Restaurant News</h1>
-                <p className="text-gray-500 mt-2">Latest updates, reviews, and trends from the culinary world.</p>
+            <header className="mb-0 border-b border-gray-200 dark:border-slate-800 pb-4">
+                <h1 className="text-3xl font-bold text-[#111827] dark:text-white">Restaurant News</h1>
+                <p className="text-gray-500 dark:text-gray-400 mt-2">Latest updates, reviews, and trends from the culinary world.</p>
             </header>
 
             {/* Featured Hero Carousel Tab Section */}
@@ -258,8 +258,8 @@ export default async function RestaurantPage() {
                             <LatestPostsSection articles={latestPosts} />
                         </>
                     ) : (
-                        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-gray-500">
-                            <p className="font-semibold text-lg text-gray-900 mb-1">
+                        <div className="bg-white dark:bg-[#1a1d2e] rounded-xl border border-gray-200 dark:border-[#2a2d3e] p-12 text-center text-gray-500 dark:text-gray-400">
+                            <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
                                 No restaurant articles found
                             </p>
                         </div>
@@ -299,33 +299,33 @@ export default async function RestaurantPage() {
                         <div className="bg-[#cc0000] px-4 py-1 mb-6">
                             <h3 className="text-white text-xs font-black uppercase tracking-widest">Restaurant Categories</h3>
                         </div>
-                        <div className="flex flex-col divide-y divide-gray-100">
+                        <div className="flex flex-col divide-y divide-gray-100 dark:divide-slate-800">
                             {restaurantCategories.map((cat, idx) => (
                                 <Link
                                     key={idx}
                                     href={`/restaurants?topic=${encodeURIComponent(cat.label)}`}
-                                    className="flex items-center justify-between py-3 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-[#cc0000] transition-colors text-left"
+                                    className="flex items-center justify-between py-3 text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 hover:text-[#cc0000] dark:hover:text-[#cc0000] transition-colors text-left"
                                 >
                                     <span>{cat.label}</span>
-                                    <span className="text-gray-300">({cat.count})</span>
+                                    <span className="text-gray-300 dark:text-gray-600">({cat.count})</span>
                                 </Link>
                             ))}
                         </div>
                     </section>
 
                     {/* Newsletter Section */}
-                    <section className="bg-gray-50 p-6 border border-gray-100">
-                        <h3 className="text-[14px] font-black uppercase tracking-widest mb-4">Newsletter</h3>
-                        <p className="text-[10px] font-medium text-gray-500 mb-4 leading-relaxed">
+                    <section className="bg-gray-50 dark:bg-slate-900 p-6 border border-gray-100 dark:border-slate-800">
+                        <h3 className="text-[14px] font-black uppercase tracking-widest mb-4 dark:text-white">Newsletter</h3>
+                        <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">
                             Subscribe to our restaurant industry updates.
                         </p>
                         <div className="flex flex-col space-y-3">
                             <input
                                 type="email"
                                 placeholder="Email Address"
-                                className="w-full px-4 py-3 bg-white border border-gray-200 text-[10px] font-bold outline-none focus:border-[#cc0000]"
+                                className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-[10px] font-bold outline-none focus:border-[#cc0000] dark:text-white dark:placeholder:text-gray-600"
                             />
-                            <button className="w-full bg-[#1a1a1a] text-white py-3 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-[#cc0000] transition-colors">
+                            <button className="w-full bg-[#1a1a1a] dark:bg-slate-800 text-white py-3 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-[#cc0000] transition-colors">
                                 Subscribe
                             </button>
                         </div>

@@ -102,7 +102,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
             onClick={onClose}
         >
             <div
-                className="bg-white rounded-[24px] overflow-hidden max-w-[600px] w-full flex flex-col shadow-2xl relative animate-in fade-in zoom-in duration-300"
+                className="bg-white rounded-[24px] overflow-hidden max-w-[600px] w-full flex flex-col shadow-2xl relative animate-in fade-in zoom-in duration-300 force-light"
                 onClick={(e) => e.stopPropagation()}
             >
                 <style jsx>{`
