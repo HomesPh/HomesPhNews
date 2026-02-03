@@ -4,15 +4,23 @@ import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard
 import TrendingTopicsCard from "@/components/features/dashboard/TrendingTopicsCard";
 import LatestPostsSection from "@/components/features/dashboard/LatestPostsSection";
 import LandingHeroCarousel from "@/components/features/dashboard/LandingHeroCarousel";
-import AdSpace from "@/components/shared/AdSpace";
+import AdSpace from "@/lib/ads/components/AdSpace";
 import Link from 'next/link';
 import type { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
 
 export const dynamic = 'force-dynamic';
 
-export default async function RestaurantPage() {
+type Props = {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function RestaurantPage({ searchParams }: Props) {
+    const params = await searchParams;
+    const topic = (params.topic as string) || undefined;
+
     const feedData = await getArticlesFeed({
         category: "Restaurant",
+        topic: topic,
         limit: 30, // Increased limit to feed carousel + blocks
     });
 
@@ -22,159 +30,8 @@ export default async function RestaurantPage() {
 
     // --- DUMMY DATA FOR VISUAL VERIFICATION ---
     if (articles.length === 0) {
-        articles = [
-            {
-                id: 'dummy-rest-1',
-                title: 'Global Palate: Filipino Cuisine Takes Center Stage in Major Capitals',
-                summary: 'From New York to London, Filipino chefs are redefining fine dining with elevated takes on classic dishes like Adobo and Sinigang.',
-                content: `
-                    <p>Filipino cuisine is finally having its global moment. For years considered the "next big thing," it has now firmly arrived, with Filipino-owned restaurants opening in major culinary capitals around the world.</p>
-                    <h3>The Rise of Pinoy Flavors</h3>
-                    <p>Chefs are elevating traditional dishes like adobo, sinigang, and kare-kare, presenting them with modern techniques while staying true to their roots. In cities like Los Angeles/London, long queues are common outside establishments serving sizzling sisig and halo-halo.</p>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-                    <h3>Global Recognition</h3>
-                    <p>Critics are taking notice. several Filipino restaurants have recently received Michelin stars or Bib Gourmand mentions, validating the complexity and deliciousness of the cuisine.</p>
-                `,
-                image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80', // Chef/Food
-                category: "Restaurant",
-                country: "United Kingdom",
-                status: "published",
-                views_count: 1250,
-                topics: ["Filipino Food", "Global Dining", "Chefs"],
-                keywords: "filipino, restaurant, pinoy, food",
-                source: "HomesTV",
-                original_url: "#",
-                created_at: "2026-01-28T09:00:00.000Z",
-                published_sites: ""
-            },
-            {
-                id: 'dummy-rest-2',
-                title: 'Metro Manila Fine Dining: A Renaissance of Local Ingredients',
-                summary: 'A new wave of chefs is championing endemic ingredients, transforming the local dining landscape.',
-                content: `
-                    <p>Manila is no longer just a stopover; it is a destination for food lovers. The city's fine dining scene has exploded in recent years, driven by a new generation of chefs returning home from stints in top kitchens abroad.</p>
-                    <h3>Local Ingredients, World-Class Technique</h3>
-                    <p>These restaurants are highlighting local ingredients—from Bukidnon wagyu to Davao chocolate—showcasing the biodiversity of the Philippines.</p>
-                `,
-                image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80', // Restaurant Interior
-                category: "Restaurant",
-                country: "Philippines",
-                status: "published",
-                views_count: 980,
-                topics: ["Fine Dining", "Manila", "Luxury"],
-                keywords: "manila, dining, luxury",
-                source: "HomesTV",
-                original_url: "#",
-                created_at: "2026-01-27T14:30:00.000Z",
-                published_sites: ""
-            },
-            {
-                id: 'dummy-rest-3',
-                title: 'Sustainable Sourcing: Island Resorts Lean into Farm-to-Table',
-                summary: 'Resorts in Boracay and Palawan are establishing their own organic farms to ensure quality and sustainability.',
-                content: `
-                    <p>Sustainability is more than a buzzword for restaurants in the Philippines' top island destinations. With the ocean as their backyard, chefs are acutely aware of the need to protect marine resources.</p>
-                    <h3>Farm to Table, Ocean to Plate</h3>
-                    <p>Many establishments now work directly with local fisherfolk to ensure fair trade and sustainable catch methods. This not only helps the environment but ensures the freshest possible ingredients for diners.</p>
-                `,
-                image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80', // Fresh Food/Vegetables
-                category: "Restaurant",
-                country: "Philippines",
-                status: "published",
-                views_count: 850,
-                topics: ["Sustainability", "Seafood", "Island Life"],
-                keywords: "sustainable, seafood, boracay, palawan",
-                source: "HomesTV",
-                original_url: "#",
-                created_at: "2026-01-26T11:15:00.000Z",
-                published_sites: ""
-            },
-            {
-                id: 'dummy-rest-4',
-                title: 'Street Food Elevated: Reimagining Isaw and Balut for the Global Palate',
-                summary: 'How humble street food staples are finding their way onto tasting menus.',
-                content: `
-                    <p>Street food is the heart of Filipino food culture. Now, it's getting a gourmet makeover. From wagyu isaw to foie gras balut, chefs are reimagining humble snacks for upscale palates.</p>
-                `,
-                image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80', // Plated Food
-                category: "Restaurant",
-                country: "Philippines",
-                status: "published",
-                views_count: 1500,
-                topics: ["Street Food", "Innovation", "Culture"],
-                keywords: "street food, gourmet, manila",
-                source: "HomesTV",
-                original_url: "#",
-                created_at: "2026-01-25T16:45:00.000Z",
-                published_sites: ""
-            },
-            {
-                id: 'dummy-rest-5',
-                title: 'Jollibee Foods Corp Accelerates European Expansion Strategy',
-                summary: 'The fast-food giant considers new markets in Eastern Europe as Chickenjoy conquers the UK and Italy.',
-                content: `
-                    <p>Jollibee Foods Corporation shows no signs of slowing down. The fast-food giant has announced ambitious plans to expand its footprint in Europe, bringing Chickenjoy to more cities across the continent.</p>
-                `,
-                image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80', // Cafe/Fast Food vibe
-                category: "Restaurant",
-                country: "Italy",
-                status: "published",
-                views_count: 3000,
-                topics: ["Fast Food", "Business", "Expansion"],
-                keywords: "jollibee, business, food",
-                source: "HomesTV",
-                original_url: "#",
-                created_at: "2024-01-24T08:20:00.000Z",
-                published_sites: ""
-            },
-            {
-                id: 'dummy-rest-6',
-                title: 'Coffee Culture: The Third Wave Experience in Cebu',
-                summary: 'Local roasters in Cebu are putting Philippine coffee beans on the map, offering world-class brews in instagram-mable spaces.',
-                content: `
-                    <p>Cebu is known for lechon and beaches, but a quiet revolution is brewing—literally. A new wave of independent coffee shops is taking over the city.</p>
-                `,
-                image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&q=80', // Coffee shop
-                category: "Restaurant",
-                country: "Philippines",
-                status: "published",
-                views_count: 2200,
-                topics: ["Coffee", "Cafe", "Cebu"],
-                keywords: "coffee, cebu, cafe",
-                source: "HomesTV",
-                original_url: "#",
-                created_at: "2026-01-23T15:00:00.000Z",
-                published_sites: ""
-            }
-        ];
-
-        // Fill the rest with generated items to maintain volume for layout
-        const moreDummyArticles: ArticleResource[] = Array.from({ length: 25 }).map((_, i) => ({
-            id: `dummy-fill-${i}`,
-            title: `Culinary Discovery ${i + 6}: Exploring Regional Filipino Flavors`,
-            summary: "A deep dive into the diverse regional cuisines of the Philippines...",
-            content: `
-                <p>The Philippines has over 7,000 islands, and almost as many variations of adobo. Regional cuisine is a treasure trove of flavors waiting to be discovered.</p>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-                <h3>Highlighting Region ${i + 1}</h3>
-                <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
-            `,
-            image: i % 2 === 0
-                ? 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80'
-                : 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80',
-            category: "Restaurant",
-            country: "Qatar",
-            status: "published",
-            views_count: 100 + i * 5,
-            topics: ["Food", "Regional"],
-            keywords: "food, regional",
-            source: "HomesTV",
-            original_url: "#",
-            created_at: "2026-01-20T07:00:00.000Z",
-            published_sites: ""
-        }));
-
-        articles = [...articles, ...moreDummyArticles];
+        const { mockSpecialtyContent } = require('@/lib/api-v2/mock/mockArticles');
+        articles = mockSpecialtyContent.filter((a: ArticleResource) => a.category === "Restaurant");
     }
     // -------------------------------------------
 
@@ -255,7 +112,10 @@ export default async function RestaurantPage() {
                             />
 
                             {/* Latest Posts List (Standard List) */}
-                            <LatestPostsSection articles={latestPosts} />
+                            <LatestPostsSection
+                                articles={latestPosts}
+                                viewAllHref="/search?category=Restaurant"
+                            />
                         </>
                     ) : (
                         <div className="bg-white dark:bg-[#1a1d2e] rounded-xl border border-gray-200 dark:border-[#2a2d3e] p-12 text-center text-gray-500 dark:text-gray-400">

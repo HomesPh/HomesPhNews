@@ -324,5 +324,108 @@ export const mockSpecialtyContent: ArticleResource[] = [
             created_at: "2026-01-21T08:00:00.000Z",
             published_sites: "" as const
         };
-    })
+    }),
+    // Restaurant Dummy Data (Promoted from Restaurant Page)
+    {
+        id: 'dummy-rest-3',
+        title: 'Sustainable Sourcing: Island Resorts Lean into Farm-to-Table',
+        summary: 'Resorts in Boracay and Palawan are establishing their own organic farms to ensure quality and sustainability.',
+        content: `
+            <p>Sustainability is more than a buzzword for restaurants in the Philippines' top island destinations. With the ocean as their backyard, chefs are acutely aware of the need to protect marine resources.</p>
+            <h3>Farm to Table, Ocean to Plate</h3>
+            <p>Many establishments now work directly with local fisherfolk to ensure fair trade and sustainable catch methods. This not only helps the environment but ensures the freshest possible ingredients for diners.</p>
+        `,
+        image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80', // Fresh Food/Vegetables
+        category: "Restaurant",
+        country: "Philippines",
+        status: "published",
+        views_count: 850,
+        topics: ["Sustainability", "Seafood", "Island Life"],
+        keywords: "sustainable, seafood, boracay, palawan",
+        source: "HomesTV",
+        original_url: "#",
+        created_at: "2026-01-26T11:15:00.000Z",
+        published_sites: ""
+    },
+    {
+        id: 'dummy-rest-4',
+        title: 'Street Food Elevated: Reimagining Isaw and Balut for the Global Palate',
+        summary: 'How humble street food staples are finding their way onto tasting menus.',
+        content: `
+            <p>Street food is the heart of Filipino food culture. Now, it's getting a gourmet makeover. From wagyu isaw to foie gras balut, chefs are reimagining humble snacks for upscale palates.</p>
+        `,
+        image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80', // Plated Food
+        category: "Restaurant",
+        country: "Philippines",
+        status: "published",
+        views_count: 1500,
+        topics: ["Street Food", "Innovation", "Culture"],
+        keywords: "street food, gourmet, manila",
+        source: "HomesTV",
+        original_url: "#",
+        created_at: "2026-01-25T16:45:00.000Z",
+        published_sites: ""
+    },
+    {
+        id: 'dummy-rest-5',
+        title: 'Jollibee Foods Corp Accelerates European Expansion Strategy',
+        summary: 'The fast-food giant considers new markets in Eastern Europe as Chickenjoy conquers the UK and Italy.',
+        content: `
+            <p>Jollibee Foods Corporation shows no signs of slowing down. The fast-food giant has announced ambitious plans to expand its footprint in Europe, bringing Chickenjoy to more cities across the continent.</p>
+        `,
+        image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80', // Cafe/Fast Food vibe
+        category: "Restaurant",
+        country: "Italy",
+        status: "published",
+        views_count: 3000,
+        topics: ["Fast Food", "Business", "Expansion"],
+        keywords: "jollibee, business, food",
+        source: "HomesTV",
+        original_url: "#",
+        created_at: "2024-01-24T08:20:00.000Z",
+        published_sites: ""
+    },
+    {
+        id: 'dummy-rest-6',
+        title: 'Coffee Culture: The Third Wave Experience in Cebu',
+        summary: 'Local roasters in Cebu are putting Philippine coffee beans on the map, offering world-class brews in instagram-mable spaces.',
+        content: `
+            <p>Cebu is known for lechon and beaches, but a quiet revolution is brewing—literally. A new wave of independent coffee shops is taking over the city.</p>
+        `,
+        image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&q=80', // Coffee shop
+        category: "Restaurant",
+        country: "Philippines",
+        status: "published",
+        views_count: 2200,
+        topics: ["Coffee", "Cafe", "Cebu"],
+        keywords: "coffee, cebu, cafe",
+        source: "HomesTV",
+        original_url: "#",
+        created_at: "2026-01-23T15:00:00.000Z",
+        published_sites: ""
+    },
+    ...Array.from({ length: 25 }).map((_, i) => ({
+        id: `mock-rest-fill-${i}`, // helper to ensure ID uniqueness
+        title: `Culinary Discovery ${i + 6}: Exploring Regional Filipino Flavors`,
+        summary: "A deep dive into the diverse regional cuisines of the Philippines...",
+        content: `
+            <p>The Philippines has over 7,000 islands, and almost as many variations of adobo. Regional cuisine is a treasure trove of flavors waiting to be discovered.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+            <h3>Highlighting Region ${i + 1}</h3>
+            <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+        `,
+        image: i % 2 === 0
+            ? 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80'
+            : 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80',
+        category: "Restaurant",
+        country: "Qatar",
+        status: "published" as const,
+        views_count: 100 + i * 5,
+        topics: ["Food", "Regional"],
+        keywords: "food, regional",
+        source: "HomesTV",
+        original_url: "#",
+        created_at: "2026-01-20T07:00:00.000Z",
+        published_sites: "" as const
+    }))
 ];
