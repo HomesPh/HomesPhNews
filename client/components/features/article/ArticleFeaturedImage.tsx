@@ -19,7 +19,7 @@ export default function ArticleFeaturedImage({ src, alt, caption }: ArticleFeatu
         />
       </div>
       {caption && (
-        <p className="text-sm text-gray-500 mt-2 text-center italic">{caption}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 text-center italic">{caption}</p>
       )}
     </div>
   );

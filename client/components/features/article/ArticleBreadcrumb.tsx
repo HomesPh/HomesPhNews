@@ -25,14 +25,14 @@ export default function ArticleBreadcrumb({
   const finalCountryHref = countryHref || (countryId ? `/?country=${countryId}` : "/");
 
   return (
-    <p className="font-normal text-[16px] text-[#4b5563] tracking-[-0.5px] leading-[24px] mb-6">
-      <Link href={homeHref} className="hover:text-[#c10007] transition-colors">{homeLabel}</Link>
+    <p className="font-normal text-[16px] text-[#4b5563] dark:text-gray-400 tracking-[-0.5px] leading-[24px] mb-6">
+      <Link href={homeHref} className="hover:text-[#c10007] dark:hover:text-[#c10007] transition-colors">{homeLabel}</Link>
       {category && (
         <>
           {"  /  "}
           <Link
             href={finalCategoryHref}
-            className="hover:text-[#c10007] transition-colors shadow-none"
+            className="hover:text-[#c10007] dark:hover:text-[#c10007] transition-colors shadow-none"
           >
             {category}
           </Link>
@@ -43,7 +43,7 @@ export default function ArticleBreadcrumb({
           {"  /  "}
           <Link
             href={finalCountryHref}
-            className="hover:text-[#c10007] transition-colors"
+            className="hover:text-[#c10007] dark:hover:text-[#c10007] transition-colors"
           >
             {country}
           </Link>

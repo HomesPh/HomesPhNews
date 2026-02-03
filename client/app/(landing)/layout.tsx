@@ -12,7 +12,7 @@ export default function LandingLayout({
 }) {
   return (
     <div className="min-h-screen bg-[#f9fafb] dark:bg-[#030712] flex flex-col pt-[120px] transition-colors duration-300">
-      <Suspense fallback={<div className="h-[72px] bg-white border-b border-[#e5e7eb]" />}>
+      <Suspense fallback={<div className="h-[72px] bg-white dark:bg-[#1a1d2e] border-b border-[#e5e7eb] dark:border-[#2a2d3e]" />}>
         <LandingHeader />
       </Suspense>
       <LandingCountryNav countries={Countries} />
