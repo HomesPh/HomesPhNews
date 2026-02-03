@@ -34,3 +34,16 @@ export const Categories: { id: string; label: string; }[] = [
     { id: "Real Estate", label: "Real Estate" },
     { id: "Success Stories", label: "Success Stories" },
 ];
+
+/**
+ * Restaurant Categories for sub-navigation on the Restaurant page.
+ */
+export const RestaurantCategories: { id: string; label: string; count?: number; }[] = [
+    { id: "All", label: "All News" },
+    { id: "Fine Dining", label: "Fine Dining" },
+    { id: "Casual Dining", label: "Casual Dining" },
+    { id: "Fast Food", label: "Fast Food" },
+    { id: "Industry News", label: "Industry News" },
+    { id: "Chef Interviews", label: "Chef Interviews" },
+    { id: "Reviews", label: "Reviews" },
+];
