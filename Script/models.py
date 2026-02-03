@@ -18,12 +18,67 @@ class Article(BaseModel):
     original_url: Optional[str] = ""
     image_url: Optional[str] = ""
     timestamp: Optional[float] = 0
+    
+
+class Restaurant(BaseModel):
+    """Restaurant model - Enhanced for real restaurant data."""
+    id: str
+    name: str  # Actual restaurant name (e.g., "Jollibee BGC", "Kuya J Cebu")
+    country: str
+    city: Optional[str] = ""
+    cuisine_type: str  # Fine Dining, Casual Dining, Fast Food, etc.
+    description: str  # Clickbait-friendly, engaging description
+    
+    # Location & Maps
+    address: Optional[str] = ""  # Full street address for Google Maps
+    latitude: Optional[float] = None  # Geolocation
+    longitude: Optional[float] = None  # Geolocation
+    google_maps_url: Optional[str] = ""  # Direct Google Maps link
+    
+    # Business Info
+    is_filipino_owned: Optional[bool] = False  # Is it a Filipino-owned business?
+    brand_story: Optional[str] = ""  # About the restaurant/brand history
+    owner_info: Optional[str] = ""  # Owner name if mentioned
+    
+    # Food & Menu
+    specialty_dish: Optional[str] = ""
+    menu_highlights: Optional[str] = ""  # Comma-separated popular items
+    food_topics: Optional[str] = ""  # pork-based, vegetarian, seafood, halal, etc.
+    
+    # Pricing & Budget
+    price_range: Optional[str] = ""  # ₱, ₱₱, ₱₱₱, ₱₱₱₱
+    budget_category: Optional[str] = ""  # "Budget Friendly", "Mid-Range", "Expensive", "Luxury"
+    avg_meal_cost: Optional[str] = ""  # e.g., "₱200-400 per person"
+    
+    # Engagement
+    rating: Optional[float] = 0.0
+    clickbait_hook: Optional[str] = ""  # One-liner hook for social media
+    why_filipinos_love_it: Optional[str] = ""  # Why OFWs/Filipinos should visit
+    
+    # Contact
+    contact_info: Optional[str] = ""
+    website: Optional[str] = ""
+    social_media: Optional[str] = ""
+    
+    # Meta
+    image_url: Optional[str] = ""
+    original_url: Optional[str] = ""
+    timestamp: Optional[float] = 0
 
 
 class ImageGenerationRequest(BaseModel):
     """Request payload for AI image generation."""
     prompt: str
     n: int = 1
+
+
+class RestaurantSummary(BaseModel):
+    """Lightweight restaurant for lists."""
+    id: str
+    name: str
+    country: str
+    cuisine_type: str
+    image_url: Optional[str] = ""
 
 
 class ArticleSummary(BaseModel):
