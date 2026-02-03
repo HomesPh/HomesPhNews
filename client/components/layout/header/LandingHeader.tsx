@@ -66,7 +66,12 @@ export default function LandingHeader() {
                   <img
                     src="/images/HomesTV.png"
                     alt="HomesTV Logo"
-                    className="object-contain w-full h-full"
+                    className="dark:hidden object-contain w-full h-full"
+                  />
+                  <img
+                    src="/images/HomesTVwhite.png"
+                    alt="HomesTV Logo"
+                    className="hidden dark:block object-contain w-full h-full"
                   />
                 </div>
                 <div className="flex flex-col">

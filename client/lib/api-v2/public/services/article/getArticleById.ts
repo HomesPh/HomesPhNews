@@ -550,7 +550,7 @@ const DUMMY_ARTICLES: Record<string, ArticleByIdResponse> = {
         <h3>Welfare Improvements</h3>
         <p>Standardized wage protections and improved housing requirements are also part of the pact. Regular site inspections by joint monitoring teams will ensure that living conditions meet international labor standards.</p>
     `,
-    image: 'https://images.unsplash.com/photo-1541888946425-d81bb194806a?auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&q=80',
     category: "Labor & Employment",
     country: "Global",
     status: "published",
