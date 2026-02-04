@@ -10,6 +10,7 @@ import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import LandingMobileMenu from "./LandingMobileMenu";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { getArticlesList, type ArticleResource } from "@/lib/api-v2";
 
 export default function LandingHeader() {
   const router = useRouter();
@@ -19,17 +20,40 @@ export default function LandingHeader() {
   const [isSubscribeModalOpen, setIsSubscribeModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const breakingNews = [
+  const [breakingNews, setBreakingNews] = useState<string[]>([
     "AI Revolution: How Machine Learning is Transforming Healthcare in North America",
     "Canada researchers develop groundbreaking AI system for early cancer detection",
     "Global markets react to new tech regulations in major economies",
     "Future of smart cities: Singapore unveils integrated AI management platform"
-  ];
+  ]);
 
   // Sync state with URL parameter if it changes externally
   useEffect(() => {
     setSearchQuery(searchParams.get("q") || "");
   }, [searchParams]);
+
+  // Fetch dynamic breaking news
+  useEffect(() => {
+    const fetchBreakingNews = async () => {
+      try {
+        const response = await getArticlesList({
+          status: "published",
+          limit: 10,
+          sort_by: "created_at",
+          sort_direction: "desc"
+        });
+
+        if (response.data && response.data.data && response.data.data.length > 0) {
+          const titles = response.data.data.map((article: ArticleResource) => article.title);
+          setBreakingNews(titles);
+        }
+      } catch (error) {
+        console.error("Failed to fetch breaking news:", error);
+      }
+    };
+
+    fetchBreakingNews();
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

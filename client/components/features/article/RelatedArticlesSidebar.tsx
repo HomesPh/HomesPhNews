@@ -80,9 +80,8 @@ export default async function RelatedArticlesSidebar({ id }: RelatedArticlesSide
   return (
     <aside className="space-y-8">
       <AdSpace
-        className="h-[112px]"
-        width="300x600"
-        height="Leader board Ad"
+        className="h-28"
+        rotateInterval={3000}
       />
 
       {relatedArticles.length > 0 && (
@@ -96,7 +95,10 @@ export default async function RelatedArticlesSidebar({ id }: RelatedArticlesSide
         items={dummyNewsletters}
       />
 
-      <AdSpace width="300x600" height="Leader board Ad" />
+      <AdSpace
+        className="h-28"
+        rotateInterval={3000}
+      />
     </aside>
   );
 }

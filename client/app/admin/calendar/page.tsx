@@ -12,6 +12,7 @@ import EventDetailModal from "../../../components/features/admin/calendar/EventD
 import { ViewMode, CalendarEvent } from "@/components/features/admin/calendar/event-types";
 import { mockEvents } from "./data";
 import useUrlFilters from '@/hooks/useUrlFilters';
+import { getScheduledArticles } from '@/lib/api-v2/admin/service/article-publications';
 
 // Filter configuration for Calendar
 const CALENDAR_FILTERS_CONFIG = {
@@ -28,6 +29,7 @@ const CALENDAR_FILTERS_CONFIG = {
 };
 
 export default function CalendarPage() {
+    const router = useRouter();
     const { filters, setFilters, setFilter } = useUrlFilters(CALENDAR_FILTERS_CONFIG);
 
     // View state from URL
@@ -39,10 +41,49 @@ export default function CalendarPage() {
     const [showCreateModal, setShowCreateModal] = useState(false);
 
     // Event State
-    const [events, setEvents] = useState<CalendarEvent[]>(mockEvents);
+    const [events, setEvents] = useState<CalendarEvent[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
     const [showEventDetail, setShowEventDetail] = useState(false);
     const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+
+    // Fetch publications
+    useEffect(() => {
+        const fetchSchedules = async () => {
+            setIsLoading(true);
+            try {
+                const response = await getScheduledArticles();
+                const mappedEvents: CalendarEvent[] = response.data.map(pub => {
+                    // Extract date and time
+                    const dt = new Date(pub.scheduled_at);
+                    const timeStr = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+                    return {
+                        id: pub.id,
+                        title: `Publish: ${pub.title}`,
+                        date: pub.scheduled_at.split('T')[0],
+                        time: timeStr,
+                        location: pub.country || '',
+                        details: `Article ID: ${pub.article_id}\nCategory: ${pub.category}`,
+                        category: pub.category || 'Article',
+                        country: pub.country || 'Global',
+                        status: pub.status,
+                        color: pub.status === 'published' ? '#059669' : pub.status === 'failed' ? '#dc2626' : '#2563eb',
+                        bgColor: pub.status === 'published' ? '#ecfdf5' : pub.status === 'failed' ? '#fef2f2' : '#eff6ff',
+                        borderColor: pub.status === 'published' ? '#10b981' : pub.status === 'failed' ? '#f87171' : '#3b82f6',
+                        isPublicHoliday: false
+                    } as CalendarEvent;
+                });
+                setEvents([...mockEvents, ...mappedEvents]);
+            } catch (error) {
+                console.error("Failed to fetch schedules", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchSchedules();
+    }, []);
 
     // Navigation and state helpers
     const setViewMode = (mode: ViewMode) => setFilter('view', mode);
@@ -125,7 +166,7 @@ export default function CalendarPage() {
                 title="Event Calendar"
                 description="Manage events and view public holidays across all countries"
                 actionLabel="Create Event"
-                onAction={() => setShowCreateModal(true)}
+                onAction={() => router.push('/admin/calendar/create')}
                 actionIcon={Plus}
             />
 

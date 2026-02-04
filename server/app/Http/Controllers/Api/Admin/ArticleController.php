@@ -29,25 +29,21 @@ class ArticleController extends Controller
     public function index(ArticleQueryRequest $request): JsonResponse|ArticleCollection
     {
         $validated = $request->validated();
-        $status = $validated['status'] ?? null;
+        $status = $validated['status'] ?? $request->query('status');
+        \Illuminate\Support\Facades\Log::info('Admin API Index: Status = ' . ($status ?? 'NULL'));
         $perPage = $validated['per_page'] ?? 10;
         $page = $request->input('page', 1);
         $sortBy = $validated['sort_by'] ?? 'created_at';
         $sortDirection = $validated['sort_direction'] ?? 'desc';
 
+        // Redirect to specialized Redis fetcher if status is 'pending'
+        // This ensures we get the full list from the scraper/Redis
+        if ($status === 'pending') {
+            return $this->getPendingArticlesFromRedis($validated, $perPage, (int)$page);
+        }
+
         // Apply common filters (Search, Dates, Topics)
         $query = Article::query()
-            ->when($status === 'deleted', 
-                fn ($q) => $q->where('is_deleted', true),
-                fn ($q) => $q->where('is_deleted', false)
-            )
-            ->when($status && !in_array($status, ['all', 'deleted']), function($q) use ($status) {
-                if ($status === 'pending') {
-                    $q->whereIn('status', ['pending', 'pending review']);
-                } else {
-                    $q->where('status', $status);
-                }
-            })
             ->when($validated['search'] ?? null, function ($q, $s) {
                 $q->where(function ($sub) use ($s) {
                     $sub->where('title', 'LIKE', "%{$s}%")
@@ -62,9 +58,31 @@ class ArticleController extends Controller
             ->when($validated['category'] ?? null, fn ($q, $c) => $q->where('category', $c))
             ->when($validated['country'] ?? null, fn ($q, $c) => $q->where('country', 'like', "%{$c}%"));
 
-        // Get filter counts before pagination
-        $availableCategories = (clone $query)->distinct()->whereNotNull('category')->pluck('category')->sort()->values();
-        $availableCountries = (clone $query)->distinct()->whereNotNull('country')->pluck('country')->sort()->values();
+        // Get filter counts before pagination (from database)
+        $availableCategories = (clone $query)->distinct()->whereNotNull('category')->pluck('category')->sort()->values()->toArray();
+        $availableCountries = (clone $query)->distinct()->whereNotNull('country')->pluck('country')->sort()->values()->toArray();
+
+        // Merge Redis filters if fetching 'all' or 'pending' status
+        if (!$status || $status === 'all' || $status === 'pending') {
+            try {
+                $redisCountries = collect($this->redisService->getCountries())->pluck('name')->toArray();
+                $redisCategories = collect($this->redisService->getCategories())->pluck('name')->toArray();
+                
+                // Merge and deduplicate
+                $availableCategories = collect(array_merge($availableCategories, $redisCategories))
+                    ->unique()
+                    ->sort()
+                    ->values()
+                    ->toArray();
+                $availableCountries = collect(array_merge($availableCountries, $redisCountries))
+                    ->unique()
+                    ->sort()
+                    ->values()
+                    ->toArray();
+            } catch (\Exception $e) {
+                \Log::warning('Failed to get Redis filters: ' . $e->getMessage());
+            }
+        }
 
         // Paginate DB results - Eager load to prevent N+1 queries
         $articles = $query
@@ -73,8 +91,8 @@ class ArticleController extends Controller
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage);
 
-        // Merge Redis articles if on early page of 'all' or 'pending'
-        if (((!$status || $status === 'all') || $status === 'pending') && $page == 1) {
+        // Merge Redis articles if on early page of 'all'
+        if (((!$status || $status === 'all')) && $page == 1) {
             try {
                 // Pass all active filters to Redis filterArticles
                 $redisRaw = $this->redisService->filterArticles([
@@ -118,7 +136,7 @@ class ArticleController extends Controller
             'data' => ArticleResource::collection($articles->getCollection()),
             'current_page' => $articles->currentPage(),
             'per_page' => $articles->perPage(),
-            'total' => $articles->total() + ((!$status || $status === 'all' || $status === 'pending') ? 50 : 0), // Estimate total for UI if merging
+            'total' => $articles->total() + ((!$status || $status === 'all') ? 20 : 0), // Estimate total for UI if merging
             'last_page' => $articles->lastPage(),
             'from' => $articles->firstItem(),
             'to' => $articles->lastItem(),
@@ -139,33 +157,12 @@ class ArticleController extends Controller
         $country = $filters['country'] ?? null;
         $search = $filters['search'] ?? null;
 
-        // Get articles from Redis
-        if ($country) {
-            $articles = $this->redisService->getArticlesByCountry($country, 100);
-        } elseif ($category) {
-            $articles = $this->redisService->getArticlesByCategory($category, 100);
-        } elseif ($search) {
-            $articles = $this->redisService->searchArticles($search, 100);
-        } else {
-            $articles = $this->redisService->getLatestArticles(100);
-        }
-
-        // Apply additional filters
-        if ($country && $category) {
-            $articles = array_filter($articles, fn ($a) => stripos($a['country'] ?? '', $country) !== false
-            );
-        }
-        if ($category && ! $country) {
-            // Already filtered by category
-        }
-
-        // Filter by search if combined with other filters
-        if ($search && ($country || $category)) {
-            $searchLower = strtolower($search);
-            $articles = array_filter($articles, fn ($a) => str_contains(strtolower($a['title'] ?? ''), $searchLower) ||
-                str_contains(strtolower($a['content'] ?? ''), $searchLower)
-            );
-        }
+        // Use the unified filterArticles method which handles search, category, and country correctly
+        $articles = $this->redisService->filterArticles([
+            'search' => $search,
+            'category' => $category,
+            'country' => $country,
+        ], 100);
 
         // Re-index array
         $articles = array_values($articles);
@@ -199,10 +196,9 @@ class ArticleController extends Controller
             ];
         }, $paginatedArticles);
 
-        // Optimization: Avoid Redis::keys() as it is slow.
-        // For now, return empty or common filters.
-        $availableCountries = ['Global', 'Philippines', 'USA', 'Australia', 'Canada'];
-        $availableCategories = ['Real Estate', 'Business', 'Technology', 'Economy', 'Tourism'];
+        // Get actual available filters from Redis
+        $redisCountries = collect($this->redisService->getCountries())->pluck('name')->toArray();
+        $redisCategories = collect($this->redisService->getCategories())->pluck('name')->toArray();
 
         \Illuminate\Support\Facades\Log::info('Admin API: Fetched '.count($formattedArticles).' pending articles from Redis.');
 
@@ -218,8 +214,8 @@ class ArticleController extends Controller
             'from' => $total > 0 ? $offset + 1 : null,
             'to' => $total > 0 ? min($offset + $perPage, $total) : null,
             'available_filters' => [
-                'categories' => $availableCategories,
-                'countries' => $availableCountries,
+                'categories' => $redisCategories,
+                'countries' => $redisCountries,
             ],
             'status_counts' => $statusCounts,
         ]);
