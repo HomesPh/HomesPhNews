@@ -16,6 +16,10 @@ export interface RestaurantSummary {
   // Quick engagement fields
   clickbait_hook?: string;
   is_filipino_owned?: boolean;
+
+  // Status & detailed pricing
+  status?: 'published' | 'draft' | 'deleted' | 'archived';
+  avg_meal_cost?: string;
 }
 
 export interface Restaurant {
@@ -56,11 +60,19 @@ export interface Restaurant {
   contact_info?: string;
   website?: string;
   social_media?: string;
+  opening_hours?: string;
 
   // Meta
   image_url: string;
   original_url: string;
   timestamp: number;
+
+  // New standardized fields
+  category?: string;
+  location?: string;
+  status?: 'published' | 'draft' | 'deleted' | 'archived';
+  tags?: string[];
+  features?: string[];
 }
 
 export interface RestaurantStats {
