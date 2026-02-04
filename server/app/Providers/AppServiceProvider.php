@@ -38,9 +38,16 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
-        // 🛡️ Global API Rate Limiter
+        // 🛡️ Advanced API Rate Limiter (FAANG-inspired fingerprinting)
+        // Differentiates users sharing the same IP (e.g., offices, public WiFi)
         RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+            $fingerprint = sha1(implode('|', [
+                $request->ip(),
+                $request->header('User-Agent', 'unknown'),
+                $request->header('Accept-Language', 'none')
+            ]));
+
+            return Limit::perMinute(300)->by($fingerprint);
         });
 
         // 🛑 Strict Login Rate Limiter (Max 5 attempts per minute)
