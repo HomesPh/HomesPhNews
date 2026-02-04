@@ -6,13 +6,16 @@ use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\ArticleController as AdminArticleController;
 use App\Http\Controllers\Api\Admin\ArticlePublicationController;
 use App\Http\Controllers\Api\Admin\DashboardController;
-use App\Http\Controllers\Api\Admin\EventController;
+// use App\Http\Controllers\Api\Admin\EventController;
 use App\Http\Controllers\Api\Admin\RestaurantController;
 use App\Http\Controllers\Api\Admin\SiteController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\UploadController;
+use App\Http\Controllers\Api\Admin\AdController as AdminAdController;
+use App\Http\Controllers\Api\Admin\CampaignController as AdminCampaignController;
+use App\Http\Controllers\Api\User\AdController as UserAdController;
 use App\Http\Controllers\Api\User\ArticleController as UserArticleController;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Route;
@@ -74,6 +77,9 @@ Route::get('/article', [UserArticleController::class, 'index']);
 // Statistics
 Route::get('/stats', [UserArticleController::class, 'stats']);
 
+// Ads (Public)
+Route::get('/ads', [UserAdController::class, 'index']);
+
 // ═══════════════════════════════════════════════════════════════
 // ADMIN ROUTES (Database-based for article management)
 // ═══════════════════════════════════════════════════════════════
@@ -90,7 +96,7 @@ Route::middleware(['auth:sanctum', 'is.admin'])
         Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
 
         // CRUD Resources
-        Route::apiResource('events', EventController::class);
+        // Route::apiResource('events', EventController::class);
         Route::apiResource('article-publications', ArticlePublicationController::class);
 
         Route::get('sites/names', [SiteController::class, 'names']);
@@ -98,6 +104,8 @@ Route::middleware(['auth:sanctum', 'is.admin'])
         Route::patch('sites/{id}/refresh-key', [SiteController::class, 'refreshKey']);
         Route::apiResource('sites', SiteController::class);
         Route::apiResource('articles', AdminArticleController::class);
+        Route::apiResource('ads', AdminAdController::class);
+        Route::apiResource('campaigns', AdminCampaignController::class);
         
         // Custom Article Actions
         Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);

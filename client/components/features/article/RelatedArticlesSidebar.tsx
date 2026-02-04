@@ -1,4 +1,5 @@
 import { getArticleById, getArticlesList } from "@/lib/api-v2";
+import { mockSpecialtyContent } from "@/lib/api-v2/mock/mockArticles";
 import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
 import AdSpace from "@/lib/ads/components/AdSpace";
 
@@ -42,40 +43,28 @@ export default async function RelatedArticlesSidebar({ id }: RelatedArticlesSide
     console.error("Error fetching related articles:", error);
   }
 
-  // Dummy data for Blogs and Newsletters
-  const dummyBlogs = [
-    {
-      id: "b1",
-      title: "How to Build a Modern Real Estate Portfolio",
-      views: 1240,
-      imageUrl: "https://placehold.co/400x400?text=Blog+1",
-      timeAgo: "2 days ago",
-    },
-    {
-      id: "b2",
-      title: "Top 10 Investment Tips for 2026",
-      views: 850,
-      imageUrl: "https://placehold.co/400x400?text=Blog+2",
-      timeAgo: "5 days ago",
-    },
-  ];
+  // Filter mock content for Blogs and Newsletters
+  const dummyBlogs = mockSpecialtyContent
+    .filter((a) => a.id.startsWith("dummy-blog"))
+    .slice(0, 6)
+    .map((a) => ({
+      id: a.id,
+      title: a.title,
+      views: a.views_count,
+      imageUrl: a.image || "https://placehold.co/400x400?text=No+Image",
+      timeAgo: new Date(a.created_at).toLocaleDateString(),
+    }));
 
-  const dummyNewsletters = [
-    {
-      id: "n1",
-      title: "Weekly Market Insights - January Edition",
-      views: 5400,
-      imageUrl: "https://placehold.co/400x400?text=Newsletter+1",
-      timeAgo: "1 week ago",
-    },
-    {
-      id: "n2",
-      title: "HomesPh Updates: Real Estate Trends in SEA",
-      views: 3200,
-      imageUrl: "https://placehold.co/400x400?text=Newsletter+2",
-      timeAgo: "2 weeks ago",
-    },
-  ];
+  const dummyNewsletters = mockSpecialtyContent
+    .filter((a) => a.id.startsWith("dummy-newsletter"))
+    .slice(0, 6)
+    .map((a) => ({
+      id: a.id,
+      title: a.title,
+      views: a.views_count,
+      imageUrl: a.image || "https://placehold.co/400x400?text=No+Image",
+      timeAgo: new Date(a.created_at).toLocaleDateString(),
+    }));
 
   return (
     <aside className="space-y-8">

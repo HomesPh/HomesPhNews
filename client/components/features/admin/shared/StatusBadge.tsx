@@ -54,6 +54,12 @@ export default function StatusBadge({ status, className }: StatusBadgeProps) {
             textColor: '#374151',
             borderColor: '#e5e7eb',
         },
+        draft: {
+            label: 'Draft',
+            bgColor: '#f3f4f6',
+            textColor: '#374151',
+            borderColor: '#e5e7eb',
+        },
         suspended: {
             label: 'Suspended',
             bgColor: '#fee2e2',

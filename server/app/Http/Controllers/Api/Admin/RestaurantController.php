@@ -51,6 +51,9 @@ class RestaurantController extends Controller
                     'clickbait_hook' => $restaurant['clickbait_hook'] ?? '',
                     'is_filipino_owned' => $restaurant['is_filipino_owned'] ?? false,
                     'budget_category' => $restaurant['budget_category'] ?? 'Mid-Range',
+                    // Missing fields fixed
+                    'avg_meal_cost' => $restaurant['avg_meal_cost'] ?? '',
+                    'status' => $restaurant['status'] ?? 'draft', // Default to draft if missing
                 ];
             }
         }
@@ -115,6 +118,7 @@ class RestaurantController extends Controller
             'image_url' => $restaurant['image_url'] ?? '',
             'original_url' => $restaurant['original_url'] ?? '',
             'timestamp' => $restaurant['timestamp'] ?? 0,
+            'status' => $restaurant['status'] ?? 'draft',
         ]);
     }
 
