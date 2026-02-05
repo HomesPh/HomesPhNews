@@ -51,4 +51,40 @@ class AdController extends Controller
             'data' => $campaigns
         ]);
     }
+
+    /**
+     * Get a specific campaign by name with its active ads.
+     */
+    public function showByName(string $name): JsonResponse
+    {
+        $campaign = Campaign::where('name', $name)
+            ->where('is_active', true)
+            ->where(function ($query) {
+                // Check if campaign is within date range (if set)
+                $query->where(function ($q) {
+                    $q->whereNull('start_date')
+                      ->orWhere('start_date', '<=', now());
+                })->where(function ($q) {
+                    $q->whereNull('end_date')
+                      ->orWhere('end_date', '>=', now());
+                });
+            })
+            ->with(['ads' => function ($query) {
+                $query->where('is_active', true);
+            }])
+            ->firstOrFail();
+
+        $ads = $campaign->ads;
+
+        if ($campaign->rotation_type === 'random') {
+            $ads = $ads->shuffle();
+        }
+
+        return response()->json([
+            'id' => $campaign->id,
+            'name' => $campaign->name,
+            'rotation_type' => $campaign->rotation_type,
+            'ads' => $ads->values(),
+        ]);
+    }
 }
