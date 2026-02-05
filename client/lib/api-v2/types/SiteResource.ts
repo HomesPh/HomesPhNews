@@ -10,6 +10,7 @@ export interface SiteResource {
   contact?: string | null; // Composite field from server
   description: string | null;
   categories: string[]; // Fixed from unknown[] to string[]
+  country?: string[]; // Updated to support multiple countries
   requested: string;
   articles: number; // Renamed from articles_count (or rather, matches server)
   articles_count?: number; // Alias for backward compatibility if needed
