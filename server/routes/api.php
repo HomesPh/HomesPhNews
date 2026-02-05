@@ -79,6 +79,7 @@ Route::get('/stats', [UserArticleController::class, 'stats']);
 
 // Ads (Public)
 Route::get('/ads', [UserAdController::class, 'index']);
+Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
 
 // ═══════════════════════════════════════════════════════════════
 // ADMIN ROUTES (Database-based for article management)
