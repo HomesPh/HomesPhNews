@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 
-export type UserTab = 'all' | 'verified' | 'pending' | 'suspended';
+export type UserTab = 'all' | 'active' | 'suspended' | 'banned';
 
 interface UsersTabsProps {
     activeTab: UserTab;
@@ -13,9 +13,9 @@ interface UsersTabsProps {
 export default function UsersTabs({ activeTab, setActiveTab, counts }: UsersTabsProps) {
     const tabs = [
         { id: 'all' as UserTab, label: 'All Users' },
-        { id: 'verified' as UserTab, label: 'Verified' },
-        { id: 'pending' as UserTab, label: 'Pending Verification' },
+        { id: 'active' as UserTab, label: 'Active' },
         { id: 'suspended' as UserTab, label: 'Suspended' },
+        { id: 'banned' as UserTab, label: 'Banned' },
     ];
 
     return (
