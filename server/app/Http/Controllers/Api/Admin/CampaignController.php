@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class CampaignController extends Controller
 {
@@ -17,7 +17,7 @@ class CampaignController extends Controller
         $campaigns = Campaign::withCount('ads')
             ->latest()
             ->paginate($request->input('per_page', 10));
-            
+
         return response()->json($campaigns);
     }
 
@@ -27,7 +27,7 @@ class CampaignController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required', 'string', 'max:255', 'regex:/^\S*$/'],
             'is_active' => 'boolean',
             'rotation_type' => 'required|string|in:random,ordered',
             'start_date' => 'nullable|date',
@@ -45,6 +45,7 @@ class CampaignController extends Controller
     public function show(string $id): JsonResponse
     {
         $campaign = Campaign::with('ads')->findOrFail($id);
+
         return response()->json($campaign);
     }
 
@@ -56,7 +57,7 @@ class CampaignController extends Controller
         $campaign = Campaign::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
+            'name' => ['sometimes', 'string', 'max:255', 'regex:/^\S*$/'],
             'is_active' => 'boolean',
             'rotation_type' => 'sometimes|string|in:random,ordered',
             'start_date' => 'nullable|date',
@@ -74,10 +75,10 @@ class CampaignController extends Controller
     public function destroy(string $id): JsonResponse
     {
         $campaign = Campaign::findOrFail($id);
-        
+
         // Optional: Block delete if has ads, or they will be set to null due to nullOnDelete
         // For now, let's allow it, ads will become orphaned (campaign_id = null)
-        
+
         $campaign->delete();
 
         return response()->json(null, 204);
