@@ -1,109 +1,95 @@
 export interface AdminUser {
-    id: number;
+    id: string;
     name: string;
     email: string;
     role: 'Admin' | 'Blogger';
-    status: 'verified' | 'pending' | 'suspended';
-    emailVerified: boolean;
-    documentsVerified: boolean;
+    status: 'active' | 'suspended' | 'banned';
     joinedDate: string;
     blogsPublished: number;
     lastActive: string;
-    verificationIdUrl: string | null;
 }
 
 export const mockUsers: AdminUser[] = [
     {
-        id: 1,
+        id: '1',
         name: 'Maria Santos',
         email: 'maria.santos@email.com',
         role: 'Blogger',
-        status: 'verified',
-        emailVerified: true,
-        documentsVerified: true,
+        status: 'active',
         joinedDate: 'Jan 15, 2026',
         blogsPublished: 12,
         lastActive: '2 hours ago',
-        verificationIdUrl: 'https://placehold.co/400x600?text=Gov+ID+1',
     },
     {
-        id: 2,
+        id: '2',
         name: 'Juan Dela Cruz',
         email: 'juan.delacruz@email.com',
         role: 'Blogger',
-        status: 'pending',
-        emailVerified: true,
-        documentsVerified: false,
+        status: 'active',
         joinedDate: 'Jan 20, 2026',
         blogsPublished: 2,
         lastActive: '1 day ago',
-        verificationIdUrl: 'https://placehold.co/400x600?text=Gov+ID+2',
     },
     {
-        id: 3,
+        id: '3',
         name: 'Anna Reyes',
         email: 'anna.reyes@email.com',
         role: 'Blogger',
-        status: 'verified',
-        emailVerified: true,
-        documentsVerified: true,
+        status: 'active',
         joinedDate: 'Jan 10, 2026',
         blogsPublished: 24,
         lastActive: '5 hours ago',
-        verificationIdUrl: 'https://placehold.co/400x600?text=Gov+ID+3',
     },
     {
-        id: 4,
+        id: '4',
         name: 'Carlos Garcia',
         email: 'carlos.garcia@email.com',
         role: 'Blogger',
         status: 'suspended',
-        emailVerified: true,
-        documentsVerified: true,
         joinedDate: 'Dec 5, 2025',
         blogsPublished: 8,
         lastActive: '3 days ago',
-        verificationIdUrl: 'https://placehold.co/400x600?text=Gov+ID+4',
     },
     {
-        id: 5,
+        id: '5',
         name: 'Lisa Fernandez',
         email: 'lisa.fernandez@email.com',
         role: 'Blogger',
-        status: 'verified',
-        emailVerified: true,
-        documentsVerified: true,
+        status: 'active',
         joinedDate: 'Jan 5, 2026',
         blogsPublished: 18,
         lastActive: '1 hour ago',
-        verificationIdUrl: 'https://placehold.co/400x600?text=Gov+ID+5',
     },
     {
-        id: 6,
+        id: '6',
         name: 'Roberto Cruz',
         email: 'roberto.cruz@email.com',
         role: 'Blogger',
-        status: 'pending',
-        emailVerified: true,
-        documentsVerified: false,
+        status: 'active',
         joinedDate: 'Jan 22, 2026',
         blogsPublished: 0,
         lastActive: '6 hours ago',
-        verificationIdUrl: 'https://placehold.co/400x600?text=Gov+ID+6',
     },
     {
-        id: 7,
+        id: '7',
         name: 'Elena Martinez',
         email: 'elena.martinez@email.com',
         role: 'Admin',
-        status: 'verified',
-        emailVerified: true,
-        documentsVerified: true,
+        status: 'active',
         joinedDate: 'Dec 1, 2025',
         blogsPublished: 0,
         lastActive: '30 mins ago',
-        verificationIdUrl: null,
     },
+    {
+        id: '8',
+        name: 'Ramon Bautista',
+        email: 'ramon.b@email.com',
+        role: 'Blogger',
+        status: 'banned',
+        joinedDate: 'Dec 10, 2023',
+        lastActive: '1 month ago',
+        blogsPublished: 2,
+    }
 ];
 
 export interface AdminBlog {
