@@ -43,51 +43,52 @@ class RestaurantScraper(NewsScraper):
 
     def build_restaurant_query(self, category, country):
         """
-        Builds SPECIFIC queries to find LOCAL Filipino restaurants.
-        Avoids generic chains, focuses on indie/local spots.
+        Builds SPECIFIC queries to find LOCAL Filipino restaurants with addresses.
+        Focus on queries that return articles with restaurant locations/maps.
         """
-        # Different query strategies to get variety
+        # Different query strategies - focus on NEW openings and SPECIFIC locations
         query_templates = [
-            # Local/indie focus
-            f"new Filipino restaurant opened {country} 2025 2026",
-            f"best local Filipino restaurant {country} hidden gem",
-            f"Filipino food truck {country} review",
-            f"Filipino pop-up restaurant {country}",
-            f"Filipino owned restaurant {country} featured",
-            f"authentic Filipino restaurant {country} must try",
-            f"pinoy restaurant {country} lechon adobo sinigang",
-            # Category specific
-            f"{category} Filipino restaurant {country}",
-            # News/review focus
-            f"Filipino restaurant {country} grand opening 2025",
-            f"Filipino chef opens restaurant {country}",
+            # OPENING/NEW focus (more likely to have addresses in articles)
+            f'Filipino restaurant "{country}" opening address location',
+            f'new Filipino restaurant opened "{country}" 2025 2026 where',
+            f'Filipino restaurant "{country}" opens at address',
+            f'Filipino cafe "{country}" grand opening location',
+            # REVIEW focus (reviews often include address)
+            f'Filipino restaurant "{country}" review address location map',
+            f'Filipino food "{country}" restaurant review where find',
+            f'best Filipino restaurant "{country}" location address',
+            # SPECIFIC location queries
+            f'Filipino owned restaurant "{country}" street address',
+            f'Filipino dining "{country}" restaurant location map',
+            f'where eat Filipino food "{country}" restaurant address',
         ]
         
-        # Pick based on category
+        # Category-specific queries optimized for finding addresses
         if category == "Chef Interviews":
-            return f"Filipino chef opens restaurant {country}"
+            return f'Filipino chef opens restaurant "{country}" location address 2025 2026'
         elif category == "Michelin Guide":
-            return f"Filipino restaurant Michelin star {country}"
+            return f'Filipino restaurant "{country}" Michelin guide location where'
         elif category == "Fine Dining":
-            return f"upscale Filipino restaurant {country} tasting menu"
+            return f'Filipino fine dining restaurant "{country}" opening location address'
         elif category == "Casual Dining":
-            return f"new casual Filipino restaurant {country} grand opening"
+            return f'new Filipino casual restaurant "{country}" grand opening where location'
         elif category == "Fast Food Industry":
-            # Avoid Jollibee - look for local fast food Filipino spots
-            return f"Filipino fast food restaurant {country} NOT Jollibee local"
+            return f'Filipino fast casual restaurant "{country}" opening location NOT Jollibee'
         else:
             # Random variety
             return random.choice(query_templates)
 
     def fetch_restaurant_data(self, category, country, use_cache=True):
-        """Fetches potential restaurant data from news/web sources."""
+        """
+        Fetches potential restaurant data from Google News RSS.
+        Uses news articles to find real restaurants with proper addresses.
+        """
         query = self.build_restaurant_query(category, country)
         
-        # We reuse fetch_news logic but with a different query style
+        # Use Google News RSS - more reliable than Gemini search
         raw_results = self.fetch_news(query, country, use_cache=use_cache)
         
         restaurant_items = []
-        
         for item in raw_results:
             restaurant_items.append({
                 "raw_title": item["title"],
@@ -100,25 +101,80 @@ class RestaurantScraper(NewsScraper):
             
         return restaurant_items
 
+    def extract_coords_from_maps_url(self, maps_url):
+        """
+        Extracts latitude and longitude from Google Maps URLs.
+        Supports multiple formats:
+        - https://www.google.com/maps?q=22.282013,114.152195
+        - https://maps.google.com/maps?q=22.282013,114.152195
+        - https://goo.gl/maps/... (shortened URLs - will return None, needs geocoding)
+        - https://www.google.com/maps/place/Name/@22.282013,114.152195,17z
+        """
+        if not maps_url:
+            return None, None
+        
+        import re
+        
+        # Pattern 1: ?q=lat,lng
+        match = re.search(r'[?&]q=([-\d.]+),([-\d.]+)', maps_url)
+        if match:
+            lat = float(match.group(1))
+            lng = float(match.group(2))
+            print(f"   📍 Extracted from Maps URL: ({lat:.6f}, {lng:.6f})")
+            return lat, lng
+        
+        # Pattern 2: /@lat,lng,zoom
+        match = re.search(r'/@([-\d.]+),([-\d.]+),[\d.]+z', maps_url)
+        if match:
+            lat = float(match.group(1))
+            lng = float(match.group(2))
+            print(f"   📍 Extracted from Maps URL: ({lat:.6f}, {lng:.6f})")
+            return lat, lng
+        
+        # Pattern 3: /place/Name/@lat,lng
+        match = re.search(r'/place/[^/]+/@([-\d.]+),([-\d.]+)', maps_url)
+        if match:
+            lat = float(match.group(1))
+            lng = float(match.group(2))
+            print(f"   📍 Extracted from Maps URL: ({lat:.6f}, {lng:.6f})")
+            return lat, lng
+        
+        return None, None
+    
     def geocode_address(self, address, restaurant_name="", city="", country=""):
         """
         Uses Google Maps Geocoding API to get lat/long from address.
+        Improved to handle more address formats and fallbacks.
         """
-        if not self.google_maps_key or not address:
-            return None, None, address
-            
-        # Clean address - if it contains junk phrases, skip geocoding
-        junk_phrases = ["not provided", "not mentioned", "unknown", "n/a", "specific address", "various", "unnamed"]
-        if any(phrase in address.lower() for phrase in junk_phrases):
+        if not self.google_maps_key:
             return None, None, address
         
+        # Handle None or empty address
+        if not address:
+            address = ""
+        
+        # Clean address - if it contains junk phrases, try to construct from available info
+        junk_phrases = ["not provided", "not mentioned", "unknown", "n/a", "specific address", "various", "unnamed"]
+        if address and any(phrase in address.lower() for phrase in junk_phrases):
+            address = ""  # Clear junk address
+        
         # Build search query - prefer full address, fallback to restaurant+city+country
-        search_query = address
-        if not address or len(address) < 10:
+        search_query = address.strip() if address else ""
+        
+        # If address is too short or empty, try to construct from available info
+        if not search_query or len(search_query) < 10:
             if restaurant_name and city:
                 search_query = f"{restaurant_name}, {city}, {country}"
+            elif restaurant_name:
+                search_query = f"{restaurant_name}, {country}"
+            elif city:
+                search_query = f"{city}, {country}"
             else:
-                return None, None, address
+                return None, None, address if address else ""
+        
+        # Ensure country is in the query
+        if country and country.lower() not in search_query.lower():
+            search_query = f"{search_query}, {country}"
         
         try:
             url = "https://maps.googleapis.com/maps/api/geocode/json"
@@ -161,7 +217,7 @@ class RestaurantScraper(NewsScraper):
         if not content or len(content) < 50:
             content = raw_item["description"] or raw_item["raw_title"]
         
-        # 2. Ask AI to extract REAL restaurant details
+        # 2. Ask AI to extract REAL restaurant details from article
         details = self.ai.extract_restaurant_details(
             raw_item["raw_title"], 
             content, 
@@ -173,37 +229,58 @@ class RestaurantScraper(NewsScraper):
         if not details:
             return None
         
-        # 3. GEOCODING - Get real lat/long coordinates!
+        # 3. PRIORITY: Extract coordinates from Google Maps URL in article (most accurate!)
         address = details.get("address", "")
         city = details.get("city", "")
         restaurant_name = details.get("name", "")
         country = raw_item["country"]
+        google_maps_url = details.get("google_maps_url", "")
         
-        latitude, longitude, formatted_address = self.geocode_address(
-            address, 
-            restaurant_name, 
-            city, 
-            country
-        )
+        latitude, longitude = None, None
+        formatted_address = address
         
-        # Update address if we got a better one
+        # STEP 1: Try to extract lat/long from Maps URL in article (BEST SOURCE)
+        if google_maps_url:
+            print(f"   🔗 Found Google Maps URL in article: {google_maps_url[:60]}...")
+            latitude, longitude = self.extract_coords_from_maps_url(google_maps_url)
+        
+        # STEP 2: If no Maps URL or couldn't extract coords, try geocoding
+        if not latitude:
+            print(f"   🌐 No coords from Maps URL, trying geocoding...")
+            # Try geocoding with the address from article
+            latitude, longitude, formatted_address = self.geocode_address(
+                address, 
+                restaurant_name, 
+                city, 
+                country
+            )
+            
+            # If geocoding failed, try with restaurant name + city + country
+            if not latitude and restaurant_name and city:
+                print(f"   🔄 Retrying geocoding with restaurant name...")
+                latitude, longitude, formatted_address = self.geocode_address(
+                    f"{restaurant_name}, {city}, {country}",
+                    restaurant_name,
+                    city,
+                    country
+                )
+        
+        # Update address if we got a better one from geocoding
         if formatted_address and formatted_address != address:
             details["address"] = formatted_address
         
-        # 4. Generate Google Maps URL with coordinates if available
+        # 4. Generate/update Google Maps URL
         if latitude and longitude:
-            google_maps_url = f"https://www.google.com/maps?q={latitude},{longitude}"
+            # If we extracted coords from article URL, keep the original URL
+            if not google_maps_url:
+                google_maps_url = f"https://www.google.com/maps?q={latitude},{longitude}"
         else:
-            # Fallback to search URL
-            search_term = f"{restaurant_name} {city} {country}".replace(" ", "+")
-            google_maps_url = f"https://www.google.com/maps/search/{search_term}"
+            # Fallback to search URL if we don't have coordinates
+            if not google_maps_url:
+                search_term = f"{restaurant_name} {city} {country}".replace(" ", "+")
+                google_maps_url = f"https://www.google.com/maps/search/{search_term}"
         
-        # 5. Generate image for the restaurant
-        food_type = details.get('food_topics', details.get('cuisine_type', 'Filipino food'))
-        img_prompt = f"Professional food photography, {food_type} dishes, Filipino restaurant in {raw_item['country']}, appetizing plating, warm lighting, Instagram-worthy presentation, delicious comfort food"
-        img_url = self.ai.generate_image(img_prompt, str(uuid.uuid4()))
-        
-        # 6. Build the full Restaurant model data with ALL new fields
+        # 5. Build the full Restaurant model data with ALL new fields (no image - restaurants added manually)
         restaurant_data = {
             "id": str(uuid.uuid4()),
             "name": details.get("name"),
@@ -228,10 +305,10 @@ class RestaurantScraper(NewsScraper):
             "menu_highlights": details.get("menu_highlights", ""),
             "food_topics": details.get("food_topics", ""),
             
-            # Pricing & Budget
-            "price_range": details.get("price_range", "₱₱"),
+            # Pricing & Budget (NO PESO SIGNS)
+            "price_range": self._clean_price_range(details.get("price_range", "2")),
             "budget_category": details.get("budget_category", "Mid-Range"),
-            "avg_meal_cost": details.get("avg_meal_cost", ""),
+            "avg_meal_cost": self._clean_meal_cost(details.get("avg_meal_cost", "")),
             
             # Engagement
             "rating": float(details.get("rating", 4.0)) if details.get("rating") else 4.0,
@@ -244,12 +321,31 @@ class RestaurantScraper(NewsScraper):
             "social_media": details.get("social_media", ""),
             
             # Meta
-            "image_url": img_url if img_url and "placehold" not in img_url else "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4",
             "original_url": raw_item["url"],
             "timestamp": time.time()
         }
         
         return restaurant_data
+
+    def _clean_price_range(self, price_range):
+        """
+        Clean price range - keeps actual price ranges like '15-30 USD' or '50-80 SGD'.
+        Removes peso signs and other unwanted characters.
+        """
+        if not price_range:
+            return ""
+        # Remove peso signs and clean
+        cleaned = str(price_range).replace("₱", "").strip()
+        # Return as-is (should be format like "15-30 USD" or "50-80 SGD")
+        return cleaned
+
+    def _clean_meal_cost(self, meal_cost):
+        """Remove peso signs from meal cost."""
+        if not meal_cost:
+            return ""
+        # Remove peso signs
+        cleaned = str(meal_cost).replace("₱", "").strip()
+        return cleaned
 
     def run_restaurant_crawl(self, countries=None, categories=None):
         """Runs the specialized crawl for restaurants."""

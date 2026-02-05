@@ -45,10 +45,10 @@ class Restaurant(BaseModel):
     menu_highlights: Optional[str] = ""  # Comma-separated popular items
     food_topics: Optional[str] = ""  # pork-based, vegetarian, seafood, halal, etc.
     
-    # Pricing & Budget
-    price_range: Optional[str] = ""  # ₱, ₱₱, ₱₱₱, ₱₱₱₱
+    # Pricing & Budget (NO PESO SIGNS)
+    price_range: Optional[str] = ""  # 1, 2, 3, 4 (1=Budget, 2=Mid-Range, 3=Expensive, 4=Luxury)
     budget_category: Optional[str] = ""  # "Budget Friendly", "Mid-Range", "Expensive", "Luxury"
-    avg_meal_cost: Optional[str] = ""  # e.g., "₱200-400 per person"
+    avg_meal_cost: Optional[str] = ""  # e.g., "200-400 PHP per person" or "50 USD" (NO peso signs)
     
     # Engagement
     rating: Optional[float] = 0.0
@@ -61,7 +61,6 @@ class Restaurant(BaseModel):
     social_media: Optional[str] = ""
     
     # Meta
-    image_url: Optional[str] = ""
     original_url: Optional[str] = ""
     timestamp: Optional[float] = 0
 
@@ -78,7 +77,6 @@ class RestaurantSummary(BaseModel):
     name: str
     country: str
     cuisine_type: str
-    image_url: Optional[str] = ""
 
 
 class ArticleSummary(BaseModel):
