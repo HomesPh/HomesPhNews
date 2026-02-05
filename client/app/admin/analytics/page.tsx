@@ -3,17 +3,24 @@
 import { useEffect, useState } from 'react';
 import StatCard from "@/components/features/admin/shared/StatCard";
 import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
-import { ChevronDown, Download, Loader2 } from 'lucide-react';
+import { ChevronDown, Download, Loader2, Filter } from 'lucide-react';
 import TrafficTrendsChart from "@/components/features/admin/analytics/TrafficTrendsChart";
 import CategoryDistributionChart from "@/components/features/admin/analytics/CategoryDistributionChart";
 import CountryPerformanceChart from "@/components/features/admin/analytics/CountryPerformanceChart";
 import PartnerPerformanceTable from "@/components/features/admin/analytics/PartnerPerformanceTable";
+import ContentPerformanceTable from "@/components/features/admin/analytics/ContentPerformanceTable";
+import VisitorBreakdownChart from "@/components/features/admin/analytics/VisitorBreakdownChart";
+import TrafficSourcesChart from "@/components/features/admin/analytics/TrafficSourcesChart";
 import ArticleDistribution from "@/components/features/admin/dashboard/ArticleDistribution";
 import { getAdminAnalytics, AdminAnalyticsResponse } from "@/lib/api-v2/admin/service/analytics/getAdminAnalytics";
 import { Skeleton } from "@/components/ui/skeleton";
+import { contentPerformanceData } from './data';
+import { Categories, Countries } from '@/app/data';
 
 export default function AnalyticsPage() {
     const [dateRange, setDateRange] = useState('Last 7 Days');
+    const [category, setCategory] = useState('All');
+    const [country, setCountry] = useState('All');
     const [exportFormat, setExportFormat] = useState('CSV');
     const [isLoading, setIsLoading] = useState(true);
     const [data, setData] = useState<AdminAnalyticsResponse | null>(null);
@@ -31,7 +38,11 @@ export default function AnalyticsPage() {
             setIsLoading(true);
             try {
                 const period = rangeMap[dateRange] || '7d';
-                const response = await getAdminAnalytics({ period });
+                const response = await getAdminAnalytics({
+                    period,
+                    category: category === 'All' ? undefined : category,
+                    country: country === 'All' ? undefined : country
+                });
                 setData(response.data);
             } catch (error) {
                 console.error("Failed to fetch analytics", error);
@@ -41,14 +52,23 @@ export default function AnalyticsPage() {
         };
 
         fetchData();
-    }, [dateRange]);
+    }, [dateRange, category, country]);
 
-    // Map backend data to component formats
+    // Calculate Custom Metrics
+    const totalPublished = (data?.overview.total_page_news || 0) + (data?.overview.total_blogs || 0) + (data?.overview.total_newsletters || 0);
+    const totalClicks = data?.overview.total_clicks || 0;
+
+    // Use backend provided unique_visitors (which switches to Views Sum when filtered)
+    const totalViews = data?.overview.unique_visitors || 0;
+
+    // Formula: (Total Clicks + Total Views) / 30
+    const avgEngagementScore = totalViews > 0 ? ((totalClicks + totalViews) / 30).toFixed(1) : "0.0";
+
     const stats = data ? [
-        { title: "News Published", value: data.overview.total_page_news, trend: data.overview.total_page_news_trend, iconName: "FileText" as const, iconColor: "text-blue-600", iconBgColor: "bg-blue-50" },
-        { title: "Total Reach", value: data.overview.unique_visitors.toLocaleString(), trend: data.overview.unique_visitors_trend, iconName: "Eye" as const, iconColor: "text-purple-600", iconBgColor: "bg-purple-50" },
-        { title: "Engagement", value: data.overview.total_clicks.toLocaleString(), trend: data.overview.total_clicks_trend, iconName: "MousePointerClick" as const, iconColor: "text-emerald-600", iconBgColor: "bg-emerald-50" },
-        { title: "Engagement Rate", value: `${data.overview.avg_engagement}%`, trend: data.overview.avg_engagement_trend, iconName: "TrendingUp" as const, iconColor: "text-orange-600", iconBgColor: "bg-orange-50" }
+        { title: "Content Published", value: totalPublished, trend: data.overview.total_page_news_trend, iconName: "FileText" as const, iconColor: "text-blue-600", iconBgColor: "bg-blue-50" },
+        { title: "Total Views", value: totalViews.toLocaleString(), trend: data.overview.unique_visitors_trend, iconName: "Eye" as const, iconColor: "text-purple-600", iconBgColor: "bg-purple-50" },
+        { title: "Total Clicks", value: totalClicks.toLocaleString(), trend: data.overview.total_clicks_trend, iconName: "MousePointerClick" as const, iconColor: "text-emerald-600", iconBgColor: "bg-emerald-50" },
+        { title: "Avg Engagement", value: avgEngagementScore, trend: data.overview.avg_engagement_trend, iconName: "TrendingUp" as const, iconColor: "text-orange-600", iconBgColor: "bg-orange-50" }
     ] : [];
 
     const trafficData = data?.traffic_trends.map(t => ({
@@ -72,20 +92,25 @@ export default function AnalyticsPage() {
 
     const partnerData = data?.partner_performance ?? [];
 
+    const contentPerfData = data?.content_performance || contentPerformanceData;
+
     const distributionSites = data?.partner_performance.map(p => ({
         name: p.site,
         count: p.articlesShared,
         totalViews: p.monthlyViews
     })) ?? [];
 
+    const deviceData = data?.device_breakdown || [];
+    const sourceData = data?.traffic_sources || [];
+
     const handleExportData = () => {
         if (!data) return;
         if (exportFormat === 'CSV') {
             let csv = 'Metric,Value\n';
-            csv += `Total Page News,${data.overview.total_page_news}\n`;
-            csv += `Unique Visitors,${data.overview.unique_visitors}\n`;
-            csv += `Total Clicks,${data.overview.total_clicks}\n`;
-            csv += `Avg Engagement,${data.overview.avg_engagement}%\n`;
+            csv += `Total Content Published,${totalPublished}\n`;
+            csv += `Total Views,${totalViews}\n`;
+            csv += `Total Clicks,${totalClicks}\n`;
+            csv += `Avg Engagement Score,${avgEngagementScore}\n`;
 
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
@@ -103,15 +128,45 @@ export default function AnalyticsPage() {
         <div className="p-8 bg-[#f9fafb] min-h-screen">
             <AdminPageHeader
                 title="Growth Analytics"
-                description="Monitoring your impact across the globe."
+                description="Comprehensive insights into your content performance and audience."
             >
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
+                    {/* Category Filter */}
+                    <div className="relative">
+                        <select
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value)}
+                            className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.3px] cursor-pointer min-w-[140px]"
+                        >
+                            <option value="All">All Categories</option>
+                            {Categories.map((cat) => (
+                                <option key={cat.id} value={cat.label}>{cat.label}</option>
+                            ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
+                    </div>
+
+                    {/* Country Filter */}
+                    <div className="relative">
+                        <select
+                            value={country}
+                            onChange={(e) => setCountry(e.target.value)}
+                            className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.3px] cursor-pointer min-w-[140px]"
+                        >
+                            <option value="All">All Countries</option>
+                            {Countries.map((c) => (
+                                <option key={c.id} value={c.label}>{c.label}</option>
+                            ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
+                    </div>
+
                     {/* Date Range Filter */}
                     <div className="relative">
                         <select
                             value={dateRange}
                             onChange={(e) => setDateRange(e.target.value)}
-                            className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[16px] text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] cursor-pointer"
+                            className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.3px] cursor-pointer"
                         >
                             <option>Last 7 Days</option>
                             <option>Last 30 Days</option>
@@ -123,29 +178,28 @@ export default function AnalyticsPage() {
                     </div>
 
                     {/* Export Format Filter */}
-                    <div className="relative">
+                    <div className="relative hidden md:block">
                         <select
                             value={exportFormat}
                             onChange={(e) => setExportFormat(e.target.value)}
-                            className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[16px] text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] cursor-pointer"
+                            className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.3px] cursor-pointer w-[100px]"
                         >
                             <option>CSV</option>
                             <option>PDF</option>
-                            <option>Excel</option>
                         </select>
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
                     </div>
-                </div>
 
-                {/* Export Data Button */}
-                <button
-                    onClick={handleExportData}
-                    disabled={isLoading}
-                    className="flex items-center gap-2 px-5 h-[50px] bg-[#C10007] text-white rounded-[6px] hover:bg-[#a10006] transition-colors disabled:opacity-50"
-                >
-                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                    <span className="text-[16px] font-medium tracking-[-0.5px]">Export Data</span>
-                </button>
+                    {/* Export Data Button */}
+                    <button
+                        onClick={handleExportData}
+                        disabled={isLoading}
+                        className="flex items-center gap-2 px-5 h-[50px] bg-[#C10007] text-white rounded-[6px] hover:bg-[#a10006] transition-colors disabled:opacity-50"
+                    >
+                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                        <span className="hidden md:inline text-[14px] font-medium tracking-[-0.3px]">Export</span>
+                    </button>
+                </div>
             </AdminPageHeader>
 
             {/* Analytics Stats Grid */}
@@ -178,6 +232,21 @@ export default function AnalyticsPage() {
                 )}
             </div>
 
+            {/* New Charts: Visitors & Sources */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {isLoading ? (
+                    <>
+                        <Skeleton className="h-[400px] rounded-[12px] bg-white shadow-sm" />
+                        <Skeleton className="h-[400px] rounded-[12px] bg-white shadow-sm" />
+                    </>
+                ) : (
+                    <>
+                        <VisitorBreakdownChart data={deviceData} />
+                        <TrafficSourcesChart data={sourceData} />
+                    </>
+                )}
+            </div>
+
             {/* Country and Article Distribution Grid */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
                 {isLoading ? (
@@ -188,8 +257,17 @@ export default function AnalyticsPage() {
                 ) : (
                     <>
                         <CountryPerformanceChart data={countryPerformanceData} />
-                        <ArticleDistribution sites={distributionSites} totalArticles={data?.overview.total_page_news ?? 1} className="h-full" />
+                        <ArticleDistribution sites={distributionSites} totalArticles={totalPublished} className="h-full" />
                     </>
+                )}
+            </div>
+
+            {/* Content Performance Table */}
+            <div className="mb-8">
+                {isLoading ? (
+                    <Skeleton className="h-[400px] rounded-[12px] bg-white shadow-sm" />
+                ) : (
+                    <ContentPerformanceTable data={contentPerfData} />
                 )}
             </div>
 

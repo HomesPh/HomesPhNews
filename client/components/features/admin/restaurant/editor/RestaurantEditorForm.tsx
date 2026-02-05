@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { Upload, Loader2, Info, MapPin } from 'lucide-react';
+import { Countries } from "@/app/data";
 
 interface RestaurantEditorFormProps {
     data: any;
@@ -238,8 +239,9 @@ export default function RestaurantEditorForm({ data, onDataChange }: RestaurantE
                                 onChange={(e) => onDataChange('country', e.target.value)}
                                 className="w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] bg-white text-[14px]"
                             >
-                                <option value="Philippines">Philippines</option>
-                                <option value="International">International</option>
+                                {Countries.map((country) => (
+                                    <option key={country.id} value={country.id}>{country.label}</option>
+                                ))}
                             </select>
                         </div>
                     </div>

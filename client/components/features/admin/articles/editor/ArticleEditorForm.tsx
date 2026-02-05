@@ -8,6 +8,7 @@ import { uploadArticleImage } from "@/lib/api-v2";
 import { ContentBlock } from "../ArticleEditorModal";
 import ArticleRichTextEditor from "./ArticleRichTextEditor";
 import ImageGeneratorDialog from "./ImageGeneratorDialog";
+import { Categories, Countries } from "@/app/data";
 
 interface ArticleEditorFormProps {
     data: {
@@ -210,23 +211,7 @@ export default function ArticleEditorForm({
                             />
                         </div>
 
-                        {/* Slug */}
-                        <div>
-                            <label className="flex items-center gap-2 text-[14px] font-bold text-[#111827] mb-2 tracking-[-0.5px]">
-                                Slug
-                                <Info className="w-3.5 h-3.5 text-[#9ca3af]" />
-                            </label>
-                            <input
-                                type="text"
-                                value={data.slug}
-                                onChange={(e) => onDataChange('slug', e.target.value)}
-                                placeholder="article-slug"
-                                className="w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#3b82f6] focus:border-transparent tracking-[-0.5px]"
-                            />
-                            <p className="text-[12px] text-[#9ca3af] mt-1 tracking-[-0.5px]">
-                                globalnews.com/articles/blog/{data.slug || 'your-article-slug'}
-                            </p>
-                        </div>
+
 
                         {/* Summary */}
                         <div>
@@ -573,11 +558,9 @@ export default function ArticleEditorForm({
                                     className="w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px] text-[#111827] bg-white"
                                 >
                                     <option value="">Select Category</option>
-                                    <option value="All News">All News</option>
-                                    <option value="Real Estate">Real Estate</option>
-                                    <option value="Business">Business</option>
-                                    <option value="Politics">Politics</option>
-                                    <option value="Technology">Technology</option>
+                                    {Categories.filter(c => c.id !== 'All').map((category) => (
+                                        <option key={category.id} value={category.label}>{category.label}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div>
@@ -589,10 +572,9 @@ export default function ArticleEditorForm({
                                     onChange={(e) => onDataChange('country', e.target.value)}
                                     className="w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px] text-[#111827] bg-white"
                                 >
-                                    <option value="Philippines">Philippines</option>
-                                    <option value="USA">USA</option>
-                                    <option value="Singapore">Singapore</option>
-                                    <option value="Global">Global</option>
+                                    {Countries.map((country) => (
+                                        <option key={country.id} value={country.id}>{country.label}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
