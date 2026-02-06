@@ -85,6 +85,14 @@ export default function AnalyticsPage() {
                         iconColor: "text-purple-500"
                     },
                     {
+                        title: "Total Views",
+                        value: overview.total_page_news,
+                        trend: overview.total_page_news_trend,
+                        iconName: "Eye",
+                        iconBgColor: "bg-indigo-50",
+                        iconColor: "text-indigo-500"
+                    },
+                    {
                         title: "Total Clicks",
                         value: overview.total_clicks,
                         trend: overview.total_clicks_trend,
@@ -105,8 +113,8 @@ export default function AnalyticsPage() {
                         value: overview.avg_read_duration,
                         trend: "+0%",
                         iconName: "Clock",
-                        iconBgColor: "bg-indigo-50",
-                        iconColor: "text-indigo-500"
+                        iconBgColor: "bg-teal-50", // Changed color to distinguish
+                        iconColor: "text-teal-500"
                     }
                 ]);
 
@@ -324,9 +332,9 @@ export default function AnalyticsPage() {
 
 
             {/* Analytics Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
                 {isLoading ? (
-                    Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-[140px] rounded-[12px] bg-white shadow-sm" />)
+                    Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-[140px] rounded-[12px] bg-white shadow-sm" />)
                 ) : (
                     stats.map((stat, index) => (
                         <StatCard
