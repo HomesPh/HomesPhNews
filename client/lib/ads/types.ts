@@ -17,4 +17,5 @@ export type Campaign = {
   is_active: boolean;
   rotation_type: RotationType;
   ads: Ad[];
+  ads_count: number;
 }
