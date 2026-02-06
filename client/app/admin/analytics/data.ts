@@ -34,7 +34,7 @@ export interface PartnerPerformance {
 export interface ContentPerformance {
     id: string;
     title: string;
-    type: 'Article' | 'Blog' | 'Newsletter';
+    type: 'Article' | 'Blog' | 'Newsletter' | 'Restaurant';
     views: number;
     clicks: number;
     read_time: string;
@@ -128,4 +128,5 @@ export const contentPerformanceData: ContentPerformance[] = [
     { id: '5', title: 'Understanding Property Taxes', type: 'Blog', views: 6500, clicks: 850, read_time: '7m 00s', country: 'USA' },
     { id: '6', title: 'Luxury Homes Features', type: 'Article', views: 15400, clicks: 4200, read_time: '3m 50s', country: 'UAE' },
     { id: '7', title: 'Monthly Newsletter - January', type: 'Newsletter', views: 4800, clicks: 750, read_time: '4m 15s', country: 'Global' },
+    { id: '8', title: 'Top 5 Fine Dining Spots in BGC', type: 'Restaurant', views: 3200, clicks: 450, read_time: '5m 20s', country: 'Philippines' },
 ];

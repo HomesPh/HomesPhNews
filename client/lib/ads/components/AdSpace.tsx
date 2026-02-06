@@ -1,25 +1,46 @@
 'use client';
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import useAds from "../hooks/useAds";
+import { cn } from "@/lib/utils";
 
-function AdContent() {
+interface AdSpaceProps {
+  className?: string;
+  rotateInterval?: number;
+}
+
+function AdContent({ className, rotateInterval }: AdSpaceProps) {
   const { ads, isLoading, error } = useAds({ campaign: "news-homes-ph-ads" });
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Pick a random ad on each render
-  const ad = useMemo(() => {
-    if (ads.length === 0) return null;
-    return ads[Math.floor(Math.random() * ads.length)];
+  // Initialize random index when ads are loaded
+  useEffect(() => {
+    if (ads.length > 0) {
+      setCurrentIndex(Math.floor(Math.random() * ads.length));
+    }
   }, [ads]);
+
+  // Handle rotation
+  useEffect(() => {
+    if (ads.length <= 1 || !rotateInterval || rotateInterval <= 0) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % ads.length);
+    }, rotateInterval);
+
+    return () => clearInterval(interval);
+  }, [ads.length, rotateInterval]);
+
+  const ad = ads.length > 0 ? ads[currentIndex] : null;
 
   if (isLoading) {
     return (
-      <Card className="overflow-hidden">
+      <Card className={cn("overflow-hidden", className)}>
         <Skeleton className="aspect-3/2 w-full" />
         <CardContent className="p-3">
           <Skeleton className="h-4 w-3/4" />
@@ -30,7 +51,7 @@ function AdContent() {
 
   if (error || !ad) {
     return (
-      <Card className="overflow-hidden">
+      <Card className={cn("overflow-hidden", className)}>
         <div className="flex aspect-3/2 w-full items-center justify-center bg-muted">
           <p className="text-xs text-muted-foreground">Advertisement</p>
         </div>
@@ -45,7 +66,7 @@ function AdContent() {
       rel="noopener noreferrer sponsored"
       className="group block"
     >
-      <Card className="overflow-hidden transition-shadow hover:shadow-lg">
+      <Card className={cn("overflow-hidden transition-shadow hover:shadow-lg", className)}>
         <div className="relative aspect-3/2 w-full overflow-hidden bg-muted">
           <Image
             src={ad.image_url}
@@ -71,11 +92,11 @@ function AdContent() {
   );
 }
 
-export default function AdSpace() {
+export default function AdSpace({ className, rotateInterval }: AdSpaceProps) {
   return (
     <Suspense
       fallback={
-        <Card className="overflow-hidden">
+        <Card className={cn("overflow-hidden", className)}>
           <Skeleton className="aspect-3/2 w-full" />
           <CardContent className="p-3">
             <Skeleton className="h-4 w-3/4" />
@@ -83,7 +104,7 @@ export default function AdSpace() {
         </Card>
       }
     >
-      <AdContent />
+      <AdContent className={className} rotateInterval={rotateInterval} />
     </Suspense>
   );
 }
