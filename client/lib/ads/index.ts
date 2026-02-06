@@ -1,1 +1,1 @@
-export { default as AdSpace } from "./components/AdSpace";
+export { AdSpace } from "./components/AdSpace";

@@ -121,7 +121,7 @@ function AdContent({ className, rotateInterval }: AdSpaceProps) {
   );
 }
 
-export default function AdSpace({ className, rotateInterval }: AdSpaceProps) {
+export function AdSpace({ className, rotateInterval }: AdSpaceProps) {
   return (
     <Suspense
       fallback={<AdSkeleton className={className} />}
