@@ -8,6 +8,7 @@ interface CountryPerformance {
     country: string;
     articlesPublished: number;
     totalViews: number;
+    percentage?: string;
 }
 
 interface CountryPerformanceChartProps {
@@ -58,7 +59,12 @@ export default function CountryPerformanceChart({ data }: CountryPerformanceChar
                                 borderRadius: '8px',
                                 fontSize: '14px'
                             }}
-                            formatter={(value: any) => value.toLocaleString()}
+                            formatter={(value: any, name: any, props: any) => {
+                                if (name === 'Total Views') {
+                                    return [`${value.toLocaleString()} (${props.payload.percentage})`, 'Views'];
+                                }
+                                return [value.toLocaleString(), name];
+                            }}
                         />
                         <Bar
                             dataKey="totalViews"

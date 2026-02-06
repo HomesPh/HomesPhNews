@@ -15,6 +15,30 @@ from config import AI_WRITING_STYLE, COUNTRIES
 
 load_dotenv()
 
+# Currency mapping for each country
+COUNTRY_CURRENCIES = {
+    "Philippines": "PHP",
+    "Singapore": "SGD",
+    "Hong Kong": "HKD",
+    "United Arab Emirates": "AED",
+    "Saudi Arabia": "SAR",
+    "Qatar": "QAR",
+    "Kuwait": "KWD",
+    "United States": "USD",
+    "Canada": "CAD",
+    "United Kingdom": "GBP",
+    "Australia": "AUD",
+    "Japan": "JPY",
+    "South Korea": "KRW",
+    "Taiwan": "TWD",
+    "Malaysia": "MYR",
+    "Italy": "EUR",
+}
+
+def get_currency_for_country(country):
+    """Get the currency code for a specific country."""
+    return COUNTRY_CURRENCIES.get(country, "USD")  # Default to USD if country not found
+
 def clean_markdown(text):
     """Remove markdown formatting characters from text."""
     if not text:
@@ -134,6 +158,7 @@ class AIProcessor:
         Extracts REAL LOCAL restaurant data from food articles.
         PRIORITY: Local/indie Filipino restaurants, NOT big chains like Jollibee.
         """
+        currency = get_currency_for_country(country)
         prompt = f"""
         ACT AS: A Filipino food blogger hunting for HIDDEN GEM restaurants for OFWs and Filipinos abroad.
         Your mission: Extract a SPECIFIC LOCAL RESTAURANT from this article. 
@@ -169,9 +194,42 @@ class AIProcessor:
         ═══════════════════════════════════════════════════════════════
         1. COUNTRY MATCHING: The restaurant MUST be located in {country}. If the article is about a restaurant in a DIFFERENT country, return {{"name": null}}. 
         2. ONLY extract if there's a SPECIFIC LOCAL RESTAURANT NAME mentioned (avoid big chains like Jollibee/Max's unless it's a very specific new local branch).
-        3. MUST have a REAL STREET ADDRESS. If the article doesn't give a specific street or building name, return null for name.
-        4. NO JUNK DATA: Do not return "Address not mentioned" or "Various" in the address field. Use null.
-        5. The address MUST be detailed enough for Google Maps in {country}.
+        3. ADDRESS EXTRACTION: You MUST extract the FULL STREET ADDRESS. Look for:
+           - Street names, building names, floor numbers
+           - Neighborhood/district names (e.g., "BGC", "Makati", "Quezon City")
+           - City and country
+           - If only partial info (e.g., just "BGC"), try to construct: "BGC, Taguig City, Metro Manila, Philippines"
+           - If NO address found, try searching the web or use restaurant name + city + country as fallback
+        4. GOOGLE MAPS LINK: Look for Google Maps links in the article (https://maps.google.com, https://goo.gl/maps, https://www.google.com/maps). Extract the EXACT URL if found.
+        5. NO JUNK DATA: Do not return "Address not mentioned", "Various", "N/A", or "Unknown" in the address field. If truly not found, construct from available info (restaurant name + city + country).
+        6. The address MUST be detailed enough for Google Maps geocoding in {country}.
+        7. CURRENCY CODES - Use the CORRECT currency for {country}:
+           - Philippines: PHP
+           - Singapore: SGD
+           - Hong Kong: HKD
+           - United Arab Emirates: AED
+           - Saudi Arabia: SAR
+           - Qatar: QAR
+           - Kuwait: KWD
+           - United States: USD
+           - Canada: CAD
+           - United Kingdom: GBP
+           - Australia: AUD
+           - Japan: JPY
+           - South Korea: KRW
+           - Taiwan: TWD
+           - Malaysia: MYR
+           - Italy: EUR
+        8. PRICE EXTRACTION: Look for ACTUAL PRICES mentioned in the article. Examples:
+           - "appetizers start at $15" → price_range: "15-25 {currency}"
+           - "tasting menu for $85" → avg_meal_cost: "85 {currency}"
+           - "mains range from 500-800 pesos" → price_range: "500-800 {currency}"
+           - "dishes around £20-30" → price_range: "20-30 {currency}"
+           - "affordable at under 1000 yen" → price_range: "500-1000 {currency}"
+           If no prices in article, estimate realistically:
+           - Budget/Casual: 10-30 {currency} for most countries
+           - Mid-Range: 30-70 {currency}
+           - Fine Dining: 80-200+ {currency}
         
         ═══════════════════════════════════════════════════════════════
         RETURN VALID JSON ONLY (no markdown, no explanation):
@@ -183,6 +241,7 @@ class AIProcessor:
             "description": "Write a 2-3 sentence CLICKBAIT-STYLE description. Make it emotional - mention OFW homesickness, comfort food, hidden gems!",
             
             "address": "MANDATORY: Full street address (e.g., '4/F Uptown Parade, 38th Street corner 9th Avenue, BGC, Taguig City, Metro Manila'). If no specific address, return null for name.",
+            "google_maps_url": "EXTRACT the exact Google Maps URL from article if found. Examples: https://maps.google.com/..., https://goo.gl/maps/..., https://www.google.com/maps/... Leave empty if not found.",
             
             "is_filipino_owned": true/false,
             "brand_story": "Story about the restaurant - when opened, founder story, mission. If it's a small business, mention that!",
@@ -192,9 +251,9 @@ class AIProcessor:
             "menu_highlights": "Top 3-5 dishes, comma-separated",
             "food_topics": "Tags: pork-based, kare-kare, sinigang, lechon, seafood, vegetarian, halal, budget-friendly, boodle-fight, kamayan, etc.",
             
-            "price_range": "₱ / ₱₱ / ₱₱₱ / ₱₱₱₱",
-            "budget_category": "Budget Friendly / Mid-Range / Expensive / Luxury",
-            "avg_meal_cost": "Local currency estimate per person",
+            "price_range": "EXTRACT ACTUAL PRICES from article/reviews. Format: 'min-max {currency}' (e.g., '15-30 {currency}', '50-80 {currency}'). Look for: 'appetizers start at...', 'mains cost...', 'dishes range from...'. If no prices in article, estimate realistically for {category} in {country}.",
+            "budget_category": "Budget Friendly / Mid-Range / Expensive / Luxury (based on the price_range)",
+            "avg_meal_cost": "Average cost per person including 1-2 dishes. Format: 'number {currency}' (e.g., '25 {currency}', '65 {currency}'). EXTRACT from article if prices mentioned. If not, estimate based on restaurant type.",
             
             "rating": 4.5,
             "clickbait_hook": "ONE viral-worthy sentence. Example: 'This hole-in-the-wall in Dubai makes BETTER sinigang than your lola! 🍲😭🇵🇭'",
@@ -243,6 +302,25 @@ class AIProcessor:
                 
                 # Ensure required fields
                 data["country"] = country
+                
+                # Clean peso signs from price fields
+                if data.get("price_range"):
+                    data["price_range"] = str(data["price_range"]).replace("₱", "").strip()
+                if data.get("avg_meal_cost"):
+                    data["avg_meal_cost"] = str(data["avg_meal_cost"]).replace("₱", "").strip()
+                
+                # Improve address if missing or incomplete
+                # NOTE: We only use addresses from article content (Google News RSS).
+                # Do NOT ask Gemini to "search" for addresses - it will hallucinate wrong data.
+                if not data.get("address") or len(data.get("address", "")) < 10:
+                    # Construct from available info (from article only, no AI search)
+                    name = data.get("name", "")
+                    city = data.get("city", "")
+                    if name and city:
+                        data["address"] = f"{name}, {city}, {country}"
+                    elif name:
+                        data["address"] = f"{name}, {country}"
+                    # If still no address, geocoding in restaurant_scraper will try to find it via Google Maps API
                 
                 # Generate Google Maps URL if not present
                 if not data.get("google_maps_url") and data.get("name"):

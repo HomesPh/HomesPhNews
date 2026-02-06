@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 
 import ArticleViewCounter from "@/components/features/article/ArticleViewCounter";
-import AdSpace from "@/lib/ads/components/AdSpace";
+import { AdSpace } from "@/lib/ads/components/AdSpace";
 import { notFound } from "next/navigation";
 import {
   ArticleHeaderSkeleton,
@@ -78,7 +78,7 @@ export default async function Article({ searchParams }: Props) {
   }
 
   return (
-    <div className="max-w-[1440px] mx-auto px-4 md:px-[110px] py-8">
+    <div className="max-w-360 mx-auto px-4 md:px-27.5 py-8">
       <Suspense fallback={null}>
         <ArticleViewCounter articleId={articleId} />
       </Suspense>

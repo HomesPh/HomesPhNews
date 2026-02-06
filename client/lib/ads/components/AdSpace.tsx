@@ -1,113 +1,132 @@
-"use client";
+'use client';
 
+import { Suspense, useMemo, useState, useEffect } from "react";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import useAds from "../hooks/useAds";
-import type { AdPlacement } from "../types";
+import { cn } from "@/lib/utils";
 
 interface AdSpaceProps {
-    className?: string;
-    placement?: AdPlacement;
-    /** Auto-rotate ads at this interval (ms). Set to 0 to disable. */
-    rotateInterval?: number;
-    /** Show placeholder when no ads available */
-    showPlaceholder?: boolean;
+  className?: string;
+  rotateInterval?: number;
 }
 
-export default function AdSpace({
-    className,
-    placement = "sidebar-top",
-    rotateInterval = 0,
-    showPlaceholder = true,
-}: AdSpaceProps) {
-    const { ad, isLoading, trackClick } = useAds({
-        placement,
-        rotateInterval,
-    });
+function AdSkeleton({ className }: { className?: string }) {
+  return (
+    <Card className={cn("relative w-full overflow-hidden border-none bg-muted/30", className)}>
+      <Skeleton className="h-full w-full absolute inset-0" />
+      <div className="relative z-10 flex h-full w-full items-center justify-center p-4">
+        <Skeleton className="h-8 w-8 rounded-full opacity-20" />
+      </div>
+    </Card>
+  );
+}
 
-    // Loading state
-    if (isLoading) {
-        return (
-            <div
-                className={cn(
-                    "bg-white dark:bg-[#1a1d2e] rounded-[12px] border border-dashed border-[#e5e7eb] dark:border-[#2a2d3e] shadow-sm p-[25px] flex items-center justify-center animate-pulse",
-                    className
-                )}
-            >
-                <div className="w-8 h-8 border-2 border-gray-300 dark:border-gray-600 border-t-transparent rounded-full animate-spin" />
-            </div>
-        );
+function AdPlaceholder({ className, message = "Space Available" }: { className?: string, message?: string }) {
+  return (
+    <Card className={cn("relative w-full overflow-hidden border-dashed border-2", className)}>
+      <div className="flex h-full w-full items-center justify-center bg-muted/10 p-4">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest text-center">
+          {message}
+        </p>
+      </div>
+    </Card>
+  );
+}
+
+function AdContent({ className, rotateInterval }: AdSpaceProps) {
+  const { ads, isLoading, error } = useAds({ campaign: "news-homes-ph-ads" });
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Initialize random index when ads are loaded
+  useEffect(() => {
+    if (ads && ads.length > 0) {
+      setCurrentIndex(Math.floor(Math.random() * ads.length));
     }
+  }, [ads]);
 
-    // No ad available - show placeholder or nothing
-    if (!ad) {
-        if (!showPlaceholder) return null;
+  // Handle rotation
+  useEffect(() => {
+    if (!ads || ads.length <= 1 || !rotateInterval || rotateInterval <= 0 || isHovered) return;
 
-        return (
-            <div
-                className={cn(
-                    "bg-white dark:bg-[#1a1d2e] rounded-[12px] border border-dashed border-[#e5e7eb] dark:border-[#2a2d3e] shadow-sm p-[25px] text-center flex flex-col items-center justify-center",
-                    className
-                )}
-            >
-                <p className="font-semibold text-[16px] text-[#111827] dark:text-white tracking-[-0.5px] mb-2">
-                    Advertisement Space
-                </p>
-                <p className="font-normal text-[12px] text-[#6b7280] dark:text-gray-400 tracking-[-0.5px]">
-                    {placement}
-                </p>
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % ads.length);
+    }, rotateInterval);
+
+    return () => clearInterval(interval);
+  }, [ads?.length, rotateInterval, isHovered]);
+
+  const ad = (ads && ads.length > 0) ? ads[currentIndex] : null;
+
+  if (isLoading) {
+    return <AdSkeleton className={className} />;
+  }
+
+  if (error) {
+    return <AdPlaceholder className={className} message="Failed to load ads" />;
+  }
+
+  if (!ad) {
+    return <AdPlaceholder className={className} />;
+  }
+
+  return (
+    <Link
+      href={ad.destination_url}
+      target="_blank"
+      rel="noopener noreferrer sponsored"
+      className={cn("group block h-full w-full", className)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <Card className={cn("relative h-full w-full overflow-hidden border-0 bg-black/5 shadow-sm transition-all duration-300 hover:shadow-md dark:bg-zinc-900/50", className)}>
+
+        {/* Main Content Layer */}
+        <div className="relative z-10 flex h-full w-full flex-col">
+          <div className="relative h-full w-full overflow-hidden">
+            <Image
+              src={ad.image_url}
+              alt={ad.title}
+              fill
+              className="object-cover transition-transform duration-500 will-change-transform group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, 500px"
+              priority={true}
+            />
+          </div>
+
+          {/* Badges & Overlay Info */}
+          <Badge
+            variant="secondary"
+            className="absolute right-2 top-2 z-20 bg-black/50 text-[10px] uppercase tracking-wider text-white backdrop-blur-md hover:bg-black/70 border-white/10"
+          >
+            Sponsored
+          </Badge>
+
+          {/* Title Overlay - Appears on Hover for clean look */}
+          <div className="absolute bottom-0 left-0 right-0 z-20 translate-y-full transform bg-linear-to-t from-black/90 via-black/60 to-transparent px-4 pb-3 pt-6 transition-transform duration-300 ease-out group-hover:translate-y-0">
+            <p className="line-clamp-2 text-sm font-semibold text-white drop-shadow-md">
+              {ad.title}
+            </p>
+            <div className="mt-1 flex items-center gap-1">
+              <span className="text-[10px] text-zinc-300">Visit Site &rarr;</span>
             </div>
-        );
-    }
-
-    // Render the ad
-    const handleClick = () => {
-        trackClick();
-        if (ad.link) {
-            window.open(ad.link, "_blank", "noopener,noreferrer");
-        }
-    };
-
-    return (
-        <div
-            className={cn(
-                "bg-white dark:bg-[#1a1d2e] rounded-[12px] border border-[#e5e7eb] dark:border-[#2a2d3e] shadow-sm overflow-hidden cursor-pointer transition-transform hover:scale-[1.01] hover:shadow-md",
-                className
-            )}
-            onClick={handleClick}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === "Enter" && handleClick()}
-            aria-label={`Advertisement: ${ad.name}`}
-        >
-            {ad.type === "image" && (
-                <div className="relative w-full h-full min-h-[100px]">
-                    <Image
-                        src={ad.content}
-                        alt={ad.alt || ad.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 300px"
-                    />
-                    {/* Subtle "Ad" label */}
-                    <span className="absolute bottom-1 right-1 text-[10px] font-medium text-white/70 bg-black/30 px-1.5 py-0.5 rounded">
-                        Ad
-                    </span>
-                </div>
-            )}
-
-            {ad.type === "html" && (
-                <div
-                    className="w-full h-full"
-                    dangerouslySetInnerHTML={{ __html: ad.content }}
-                />
-            )}
-
-            {ad.type === "script" && (
-                <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                    Script ads not supported in preview
-                </div>
-            )}
+          </div>
         </div>
-    );
+      </Card>
+    </Link>
+  );
+}
+
+export function AdSpace({ className, rotateInterval }: AdSpaceProps) {
+  return (
+    <Suspense
+      fallback={<AdSkeleton className={className} />}
+    >
+      <AdContent className={className} rotateInterval={rotateInterval} />
+    </Suspense>
+  );
 }

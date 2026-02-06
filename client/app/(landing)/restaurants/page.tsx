@@ -4,7 +4,7 @@ import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard
 import TrendingTopicsCard from "@/components/features/dashboard/TrendingTopicsCard";
 import LatestPostsSection from "@/components/features/dashboard/LatestPostsSection";
 import LandingHeroCarousel from "@/components/features/dashboard/LandingHeroCarousel";
-import AdSpace from "@/lib/ads/components/AdSpace";
+import { AdSpace } from "@/lib/ads/components/AdSpace";
 import Link from 'next/link';
 import type { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
 
@@ -171,23 +171,7 @@ export default async function RestaurantPage({ searchParams }: Props) {
                         </div>
                     </section>
 
-                    {/* Newsletter Section */}
-                    <section className="bg-gray-50 dark:bg-slate-900 p-6 border border-gray-100 dark:border-slate-800">
-                        <h3 className="text-[14px] font-black uppercase tracking-widest mb-4 dark:text-white">Newsletter</h3>
-                        <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">
-                            Subscribe to our restaurant industry updates.
-                        </p>
-                        <div className="flex flex-col space-y-3">
-                            <input
-                                type="email"
-                                placeholder="Email Address"
-                                className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-[10px] font-bold outline-none focus:border-[#cc0000] dark:text-white dark:placeholder:text-gray-600"
-                            />
-                            <button className="w-full bg-[#1a1a1a] dark:bg-slate-800 text-white py-3 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-[#cc0000] transition-colors">
-                                Subscribe
-                            </button>
-                        </div>
-                    </section>
+
                 </aside>
             </div>
         </div>

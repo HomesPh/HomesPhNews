@@ -6,6 +6,8 @@ import type { Article } from "../../../types/Article";
 
 export type AdminAnalyticsParams = {
   period?: string; // e.g. "7d"
+  category?: string;
+  country?: string;
 };
 
 export interface AdminAnalyticsOverview {
@@ -25,9 +27,29 @@ export interface AdminAnalyticsTrafficTrend {
   unique_visitors: string | number;
 }
 
+export interface AdminAnalyticsContentPerformance {
+  id: string;
+  title: string;
+  type: 'Article' | 'Blog' | 'Newsletter' | 'Restaurant';
+  views: number;
+  clicks: number;
+  read_time: string;
+  country: string;
+}
+
+export interface ChartDataPoint {
+  name: string;
+  value: number;
+  color?: string;
+}
+
 export interface AdminAnalyticsResponse {
   range: string | null;
-  overview: AdminAnalyticsOverview;
+  overview: AdminAnalyticsOverview & {
+    total_blogs: number;
+    total_newsletters: number;
+    avg_read_duration: string;
+  };
   traffic_trends: AdminAnalyticsTrafficTrend[];
   content_by_category: Array<{
     category: string;
@@ -37,6 +59,7 @@ export interface AdminAnalyticsResponse {
     country: string;
     total_views: number;
   }>;
+  content_performance: AdminAnalyticsContentPerformance[];
   partner_performance: Array<{
     site: string;
     articlesShared: number;
@@ -44,6 +67,8 @@ export interface AdminAnalyticsResponse {
     revenueGenerated: string;
     avgEngagement: string;
   }>;
+  device_breakdown: ChartDataPoint[];
+  traffic_sources: ChartDataPoint[];
 }
 
 /**

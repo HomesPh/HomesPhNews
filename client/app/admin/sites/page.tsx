@@ -122,6 +122,14 @@ export default function SitesPage() {
         }
     };
 
+    // Format compact number (e.g., 1.2M, 850K)
+    const formatCompactNumber = (number: number) => {
+        return new Intl.NumberFormat('en-US', {
+            notation: "compact",
+            maximumFractionDigits: 1
+        }).format(number);
+    };
+
     return (
         <div className="p-8 bg-[#f9fafb] min-h-screen">
             <AdminPageHeader
@@ -166,7 +174,7 @@ export default function SitesPage() {
                         />
                         <StatCard
                             title="Total Monthly Reach"
-                            value={`${(totalMonthlyViews / 1000000).toFixed(1)}M`}
+                            value={formatCompactNumber(totalMonthlyViews)}
                             trend="Combined views/month"
                             iconName="Users"
                             iconColor="text-[#8b5cf6]"

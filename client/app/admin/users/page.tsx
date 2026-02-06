@@ -9,48 +9,78 @@ import UsersTabs, { UserTab } from "@/components/features/admin/users/UsersTabs"
 import UsersTable from "@/components/features/admin/users/UsersTable";
 import UserDetailsModal from "@/components/features/admin/users/UserDetailsModal";
 import AddUserModal from "@/components/features/admin/users/AddUserModal";
-import { mockUsers, AdminUser } from "@/app/admin/users/data";
+import EditUserModal from "@/components/features/admin/users/EditUserModal";
+import ChangePasswordModal from "@/components/features/admin/users/ChangePasswordModal";
+import { AdminUser } from "@/app/admin/users/data";
 import usePagination from '@/hooks/usePagination';
+import { useUserManagement } from '@/hooks/useUserManagement';
 
 export default function UsersPage() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<UserTab>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [roleFilter, setRoleFilter] = useState('All Roles');
-    const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+
+    // Modal states
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [selectedUserForView, setSelectedUserForView] = useState<AdminUser | null>(null);
+    const [selectedUserForEdit, setSelectedUserForEdit] = useState<AdminUser | null>(null);
+    const [selectedUserForPassword, setSelectedUserForPassword] = useState<AdminUser | null>(null);
+
+    // Use the custom hook for user state management
+    const {
+        users,
+        addUser,
+        updateUser,
+        deleteUser,
+        changePassword,
+        suspendUser,
+        banUser,
+        unsuspendUser
+    } = useUserManagement();
 
     const pagination = usePagination();
 
     const filteredUsers = useMemo(() => {
-        return mockUsers.filter(user => {
+        return users.filter(user => {
             const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 user.email.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesRole = roleFilter === 'All Roles' || user.role === roleFilter;
             const matchesTab = activeTab === 'all' || user.status === activeTab;
             return matchesSearch && matchesRole && matchesTab;
         });
-    }, [activeTab, searchQuery, roleFilter]);
+    }, [users, activeTab, searchQuery, roleFilter]);
 
     const counts = useMemo(() => ({
-        all: mockUsers.length,
-        verified: mockUsers.filter(u => u.status === 'verified').length,
-        pending: mockUsers.filter(u => u.status === 'pending').length,
-        suspended: mockUsers.filter(u => u.status === 'suspended').length,
-    }), []);
+        all: users.length,
+        active: users.filter(u => u.status === 'active').length,
+        suspended: users.filter(u => u.status === 'suspended').length,
+        banned: users.filter(u => u.status === 'banned').length,
+    }), [users]);
 
-    const handleVerifyUser = (user: AdminUser) => {
-        alert(`User ${user.name} verified!`);
-    };
-
+    // Handlers
     const handleSuspendUser = (user: AdminUser) => {
-        if (confirm(`Are you sure you want to suspend ${user.name}?`)) {
-            alert(`${user.name} suspended!`);
+        if (confirm(`Are you sure you want to suspend ${user.name}? They will not be able to log in.`)) {
+            suspendUser(user.id);
         }
     };
 
     const handleUnsuspendUser = (user: AdminUser) => {
-        alert(`${user.name} unsuspended!`);
+        if (confirm(`Restore access for ${user.name}?`)) {
+            unsuspendUser(user.id);
+        }
+    };
+
+    const handleBanUser = (user: AdminUser) => {
+        if (confirm(`DANGER: Are you sure you want to BAN ${user.name}? This is a severe action.`)) {
+            banUser(user.id);
+        }
+    };
+
+    const handleUnbanUser = (user: AdminUser) => {
+        if (confirm(`Unban ${user.name}?`)) {
+            unsuspendUser(user.id); // Reusing unsuspend logic which sets status to active
+        }
     };
 
     const handleViewBlogs = (userName: string) => {
@@ -58,21 +88,37 @@ export default function UsersPage() {
     };
 
     const handleAddUser = (userData: any) => {
-        alert(`User ${userData.name} added successfully!`);
+        const newUser = addUser(userData);
+        alert(`User ${newUser.name} added successfully! Email invitation sent.`);
         setIsAddModalOpen(false);
+    };
+
+    const handleEditUser = (id: string, updates: Partial<AdminUser>) => {
+        updateUser(id, updates);
+        alert('User updated successfully!');
+    };
+
+    const handleDeleteUser = (user: AdminUser) => {
+        if (confirm(`PERMANENTLY DELETE ${user.name}? This cannot be undone.`)) {
+            deleteUser(user.id);
+        }
+    };
+
+    const handleChangePassword = (id: string, password: string) => {
+        changePassword(id, password);
     };
 
     return (
         <div className="p-8 bg-[#f9fafb] min-h-screen">
             <AdminPageHeader
                 title="User Management"
-                description="Manage bloggers and verify user accounts"
+                description="Manage bloggers and user accounts"
                 actionLabel="Add User"
                 onAction={() => setIsAddModalOpen(true)}
                 actionIcon={Plus}
             />
 
-            <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
+            <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-visible shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
                 <UsersTabs
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}
@@ -107,11 +153,15 @@ export default function UsersPage() {
 
                 <UsersTable
                     users={filteredUsers.slice((pagination.currentPage - 1) * 10, pagination.currentPage * 10)}
-                    onViewDetails={setSelectedUser}
-                    onVerify={handleVerifyUser}
+                    onViewDetails={setSelectedUserForView}
                     onSuspend={handleSuspendUser}
                     onUnsuspend={handleUnsuspendUser}
+                    onBan={handleBanUser}
+                    onUnban={handleUnbanUser}
                     onViewBlogs={handleViewBlogs}
+                    onEdit={setSelectedUserForEdit}
+                    onDelete={handleDeleteUser}
+                    onChangePassword={setSelectedUserForPassword}
                 />
             </div>
 
@@ -123,11 +173,11 @@ export default function UsersPage() {
                 />
             </div>
 
-            {selectedUser && (
+            {/* Modals */}
+            {selectedUserForView && (
                 <UserDetailsModal
-                    user={selectedUser}
-                    onClose={() => setSelectedUser(null)}
-                    onApprove={handleVerifyUser}
+                    user={selectedUserForView}
+                    onClose={() => setSelectedUserForView(null)}
                 />
             )}
 
@@ -135,6 +185,22 @@ export default function UsersPage() {
                 <AddUserModal
                     onClose={() => setIsAddModalOpen(false)}
                     onAdd={handleAddUser}
+                />
+            )}
+
+            {selectedUserForEdit && (
+                <EditUserModal
+                    user={selectedUserForEdit}
+                    onClose={() => setSelectedUserForEdit(null)}
+                    onSave={handleEditUser}
+                />
+            )}
+
+            {selectedUserForPassword && (
+                <ChangePasswordModal
+                    user={selectedUserForPassword}
+                    onClose={() => setSelectedUserForPassword(null)}
+                    onChangePassword={handleChangePassword}
                 />
             )}
         </div>

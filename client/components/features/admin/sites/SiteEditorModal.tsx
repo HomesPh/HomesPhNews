@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { X, Upload } from 'lucide-react';
-import { FormInput, FormTextarea } from "@/components/features/admin/shared/FormFields";
+import { FormInput, FormTextarea, FormSelect, FormMultiSelect } from "@/components/features/admin/shared/FormFields";
 import { SiteResource } from "@/lib/api-v2/types/SiteResource";
+import { Countries, Categories } from "@/app/data";
 
 interface SiteEditorModalProps {
     isOpen: boolean;
@@ -20,7 +21,8 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
         contactName: initialData?.contact_name || '',
         contactEmail: initialData?.contact_email || '',
         description: initialData?.description || '',
-        categories: initialData?.categories?.join(', ') || '',
+        categories: initialData?.categories || [],
+        country: initialData?.country || ['Philippines'],
         logoUrl: initialData?.image || '',
     });
 
@@ -32,7 +34,8 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
                 contactName: initialData.contact_name || '',
                 contactEmail: initialData.contact_email || '',
                 description: initialData.description || '',
-                categories: initialData.categories?.join(', ') || '',
+                categories: initialData.categories || [],
+                country: initialData.country || ['Philippines'],
                 logoUrl: initialData.image || '',
             });
         } else if (isOpen && mode === 'create') {
@@ -42,7 +45,8 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
                 contactName: '',
                 contactEmail: '',
                 description: '',
-                categories: '',
+                categories: [],
+                country: ['Philippines'],
                 logoUrl: '',
             });
         }
@@ -57,7 +61,8 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
             contact_name: formData.contactName,
             contact_email: formData.contactEmail,
             description: formData.description,
-            categories: formData.categories.split(',').map(c => c.trim()).filter(c => c),
+            categories: formData.categories,
+            country: formData.country,
             image: formData.logoUrl || "/images/HomesTV.png",
             // Remove legacy fields if not in request type, or keep if harmless? 
             // Better to match request type. Status is handled by updateSite but mainly via toggle?
@@ -130,12 +135,26 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         />
 
-                        <FormInput
+                        <FormMultiSelect
+                            label="Countries"
+                            required
+                            placeholder="Select countries..."
+                            options={Countries.map(c => ({ value: c.id, label: c.label }))}
+                            value={Array.isArray(formData.country) ? formData.country : [formData.country].filter(Boolean)}
+                            onChange={(vals) => setFormData({ ...formData, country: vals })}
+                            helperText="Select one or more countries"
+                            allLabel="All Countries"
+                        />
+
+                        <FormMultiSelect
                             label="Categories"
-                            placeholder="Real Estate, Business, Economy (comma separated)"
+                            required
+                            placeholder="Select categories..."
+                            options={Categories.map(c => ({ value: c.id, label: c.label }))}
                             value={formData.categories}
-                            onChange={(e) => setFormData({ ...formData, categories: e.target.value })}
-                            helperText="Separate multiple categories with commas"
+                            onChange={(vals) => setFormData({ ...formData, categories: vals })}
+                            helperText="Select one or more categories"
+                            allLabel="All Categories"
                         />
 
                         {/* Logo Upload */}

@@ -13,9 +13,17 @@ interface CategoryData {
 
 interface CategoryDistributionChartProps {
     data: CategoryData[];
+    title?: string;
+    description?: string;
+    centerLabel?: string;
 }
 
-export default function CategoryDistributionChart({ data }: CategoryDistributionChartProps) {
+export default function CategoryDistributionChart({
+    data,
+    title = "Content Mix",
+    description = "Distribution by category",
+    centerLabel = "Total Articles"
+}: CategoryDistributionChartProps) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -30,8 +38,8 @@ export default function CategoryDistributionChart({ data }: CategoryDistribution
         <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h3 className="text-xl font-bold text-gray-900 tracking-tight">Content Mix</h3>
-                    <p className="text-sm text-gray-500 font-medium">Distribution by category</p>
+                    <h3 className="text-xl font-bold text-gray-900 tracking-tight">{title}</h3>
+                    <p className="text-sm text-gray-500 font-medium">{description}</p>
                 </div>
                 <div className="p-2 bg-purple-50 rounded-lg">
                     <Layers className="w-5 h-5 text-purple-600" />
@@ -71,7 +79,7 @@ export default function CategoryDistributionChart({ data }: CategoryDistribution
                 {/* Center Text */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-10">
                     <span className="text-3xl font-extrabold text-gray-900">{total}</span>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Articles</span>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{centerLabel}</span>
                 </div>
             </div>
 

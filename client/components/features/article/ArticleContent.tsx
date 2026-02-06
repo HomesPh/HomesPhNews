@@ -1,5 +1,6 @@
 "use client";
 
+import { AdSpace } from "@/lib/ads";
 import { cn } from "@/lib/utils";
 
 interface ArticleContentProps {
@@ -9,19 +10,7 @@ interface ArticleContentProps {
   forceLight?: boolean;
 }
 
-const AdPlaceholder = ({ label, forceLight }: { label: string, forceLight?: boolean }) => {
-  const darkClass = (cls: string) => !forceLight ? cls : '';
-  return (
-    <div className={`bg-white ${darkClass('dark:bg-[#1a1d2e]')} border border-dashed border-[#e5e7eb] ${darkClass('dark:border-[#2a2d3e]')} rounded-[12px] p-[40px] text-center shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] my-8`}>
-      <p className={`font-semibold text-[16px] text-[#111827] ${darkClass('dark:text-white')} tracking-[-0.5px] leading-[20px] mb-[10px]`}>
-        Advertisement Space
-      </p>
-      <p className={`font-normal text-[12px] text-[#6b7280] ${darkClass('dark:text-gray-400')} tracking-[-0.5px]`}>
-        {label}
-      </p>
-    </div>
-  );
-};
+
 
 export default function ArticleContent({ content, topics, originalUrl, forceLight = false }: ArticleContentProps) {
   const darkClass = (cls: string) => !forceLight ? cls : '';
@@ -46,7 +35,10 @@ export default function ArticleContent({ content, topics, originalUrl, forceLigh
            which won't match normal elements unless they have that class. */
       `}</style>
       {/* Advertisement Top */}
-      <AdPlaceholder label="300x600 Leaderboard Ad" forceLight={forceLight} />
+      <AdSpace
+        className="h-28"
+        rotateInterval={10000}
+      />
 
       {/* Main Content */}
       <div className="prose prose-lg max-w-none mb-12">
