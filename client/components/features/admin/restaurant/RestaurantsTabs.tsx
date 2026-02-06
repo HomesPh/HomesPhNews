@@ -20,9 +20,9 @@ export default function RestaurantsTabs({ activeTab, setActiveTab, counts }: Res
     const tabs: { id: RestaurantTab; label: string; count?: number }[] = [
         { id: 'all', label: 'All', count: counts?.all },
         { id: 'published', label: 'Published', count: counts?.published },
-        { id: 'draft', label: 'Drafts', count: counts?.draft },
+        { id: 'draft', label: 'Pending Review', count: counts?.draft },
         // { id: 'archived', label: 'Archived', count: counts?.archived },
-        { id: 'deleted', label: 'Trash', count: counts?.deleted },
+        { id: 'deleted', label: 'Deleted', count: counts?.deleted },
     ];
 
     return (

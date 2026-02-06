@@ -199,7 +199,7 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
                         className="flex items-center gap-2 px-4 py-2 bg-white border border-[#d1d5db] text-[#374151] rounded-[8px] hover:bg-gray-50 transition-all text-[14px] font-bold tracking-[-0.5px] shadow-sm"
                     >
                         <Save className="w-4 h-4" />
-                        Save Draft
+                        Save as Pending Review
                     </button>
                     <button
                         onClick={() => handleSave(true)}
