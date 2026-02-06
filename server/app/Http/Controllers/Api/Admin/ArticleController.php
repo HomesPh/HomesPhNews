@@ -44,6 +44,21 @@ class ArticleController extends Controller
 
         // Apply common filters (Search, Dates, Topics)
         $query = Article::query()
+            // Filter by status if specified (except 'all' and 'deleted' which handle is_deleted)
+            // Note: 'pending' is redirected to getPendingArticlesFromRedis at line 41.
+            ->when($status === 'published', fn ($q) => $q->where('status', 'published'))
+            ->when($status === 'pending review', fn ($q) => $q->where('status', 'pending review'))
+            ->when($status === 'rejected', fn ($q) => $q->where('status', 'rejected'))
+            ->when(!$status || $status === 'all', function ($q) {
+                // For "All", only show active primary statuses to match getStatusCounts logic
+                // This excludes 'rejected' articles from the general 'All' view
+                return $q->whereIn('status', ['published', 'pending review']);
+            })
+            
+            // Filter by is_deleted based on status
+            ->when($status === 'deleted', fn ($q) => $q->where('is_deleted', true))
+            ->when($status !== 'deleted', fn ($q) => $q->where('is_deleted', false))
+
             ->when($validated['search'] ?? null, function ($q, $s) {
                 $q->where(function ($sub) use ($s) {
                     $sub->where('title', 'LIKE', "%{$s}%")
