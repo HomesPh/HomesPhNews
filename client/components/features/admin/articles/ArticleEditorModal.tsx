@@ -55,7 +55,7 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
         if (isOpen && initialData) {
             setArticleData({
                 title: initialData.title || '',
-                slug: initialData.slug || '',
+                slug: initialData.slug || (initialData.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
                 summary: initialData.summary || initialData.description || '',
                 content: initialData.content || '',
                 category: initialData.category || '',

@@ -211,6 +211,20 @@ export default function ArticleEditorForm({
                             />
                         </div>
 
+                        {/* Slug */}
+                        <div>
+                            <label className="block text-[14px] font-bold text-[#111827] mb-2 tracking-[-0.5px]">
+                                Slug <span className="text-[#ef4444]">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={data.slug}
+                                onChange={(e) => onDataChange('slug', e.target.value)}
+                                placeholder="article-url-slug"
+                                className="w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#3b82f6] focus:border-transparent tracking-[-0.5px] bg-gray-50"
+                            />
+                        </div>
+
 
 
                         {/* Summary */}

@@ -30,7 +30,7 @@ export interface AdminAnalyticsTrafficTrend {
 export interface AdminAnalyticsContentPerformance {
   id: string;
   title: string;
-  type: 'Article' | 'Blog' | 'Newsletter';
+  type: 'Article' | 'Blog' | 'Newsletter' | 'Restaurant';
   views: number;
   clicks: number;
   read_time: string;
