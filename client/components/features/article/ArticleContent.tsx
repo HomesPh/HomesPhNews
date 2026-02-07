@@ -1,6 +1,6 @@
 "use client";
 
-import { AdSpace } from "@/lib/ads";
+import { AdSpace } from "@/app/admin/ads";
 import { cn } from "@/lib/utils";
 
 interface ArticleContentProps {

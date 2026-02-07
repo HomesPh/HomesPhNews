@@ -1,7 +1,6 @@
 "use client";
 
-import { Search, ChevronDown } from 'lucide-react';
-import { adSettings } from "@/app/admin/ads/data";
+import { Search } from 'lucide-react';
 
 interface AdsFiltersProps {
     searchQuery: string;
@@ -49,8 +48,8 @@ export default function AdsFilters({
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`px-5 py-2.5 rounded-[8px] text-[14px] font-medium tracking-[-0.5px] transition-colors ${activeTab === tab.id
-                                    ? 'bg-[#C10007] text-white'
-                                    : 'bg-white text-[#6b7280] border border-[#e5e7eb] hover:bg-gray-50'
+                                ? 'bg-[#C10007] text-white'
+                                : 'bg-white text-[#6b7280] border border-[#e5e7eb] hover:bg-gray-50'
                                 }`}
                         >
                             {tab.label} ({counts[tab.id]})

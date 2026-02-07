@@ -1,7 +1,7 @@
 import { getArticleById, getArticlesList } from "@/lib/api-v2";
 import { mockSpecialtyContent } from "@/lib/api-v2/mock/mockArticles";
 import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
-import { AdSpace } from "@/lib/ads";
+import { AdSpace } from "@/app/admin/ads";
 
 interface RelatedArticlesSidebarProps {
   id: string;

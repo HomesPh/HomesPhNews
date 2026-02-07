@@ -26,19 +26,19 @@ class UploadController extends Controller
         try {
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
-                $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
-                
+                $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
+
                 // Store in S3 bucket under homestv/articles directory
                 $path = $file->storeAs('homestv/articles', $filename, 's3');
-                
+
                 // Construct the full S3 URL
                 $url = Storage::disk('s3')->url($path);
-                
+
                 return response()->json([
                     'message' => 'Image uploaded successfully',
                     'url' => $url,
                     'filename' => $filename,
-                    'path' => $path
+                    'path' => $path,
                 ], 200);
             }
 
@@ -46,7 +46,7 @@ class UploadController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Upload failed',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
