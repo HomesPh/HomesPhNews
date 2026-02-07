@@ -4,7 +4,7 @@ import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard
 import TrendingTopicsCard from "@/components/features/dashboard/TrendingTopicsCard";
 import LatestPostsSection from "@/components/features/dashboard/LatestPostsSection";
 import LandingHeroCarousel from "@/components/features/dashboard/LandingHeroCarousel";
-import { AdSpace } from "@/lib/ads/components/AdSpace";
+import AdSpace from "@/components/features/admin/ads/AdSpace";
 import Link from 'next/link';
 import type { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
 

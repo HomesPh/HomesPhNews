@@ -1,274 +1,255 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { X, Upload, Calendar, Search, Check, Image as ImageIcon } from 'lucide-react';
-import { FormInput, FormLabel, FormSelect } from "@/components/features/admin/shared/FormFields";
-import { adSettings, Ad } from "@/app/admin/ads/data";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Ad } from "@/lib/ads/types";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+// import { uploadArticleImage } from "@/lib/api-v2/admin/service/upload/uploadArticleImage";
+
+const formSchema = z.object({
+  title: z.string().min(2, { message: "Title must be at least 2 characters." }),
+  image_url: z.url({ message: "Please enter a valid URL." }).or(z.literal("")),
+  destination_url: z.url({ message: "Please enter a valid URL." }),
+  is_active: z.boolean().default(false),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface AdEditorModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    mode: 'create' | 'edit';
-    initialData?: Ad;
-    onSave: (data: any) => void;
+  isOpen: boolean;
+  mode: 'create' | 'edit';
+  initialData?: Ad;
+  onClose: () => void;
+  onSave: (data: any) => void;
 }
 
 export default function AdEditorModal({ isOpen, onClose, mode, initialData, onSave }: AdEditorModalProps) {
-    const [formData, setFormData] = useState({
-        title: initialData?.title || '',
-        client: initialData?.client || '',
-        type: initialData?.type || adSettings.types[0],
-        targetUrl: '', // New field from reference
-        placements: {
-            newsPortalTop: true,
-            newsPortalSidebar: false,
-            newsPortalBottom: false,
-            articlePagesBottom: false,
-            articlePagesTop: false,
-            articlePagesInFeed: false,
-            sidebarAllPages: false,
-            categoryPagesTop: false,
-            homepageBanner: false,
-            homepageSidebar: false
-        },
-        startDate: '',
-        endDate: '',
-        revenue: '',
-        status: initialData?.status || 'active',
-        image: initialData?.image || null
-    });
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema) as any,
+    defaultValues: {
+      title: "",
+      image_url: "",
+      destination_url: "",
+      is_active: false,
+    },
+  });
 
-    useEffect(() => {
-        if (isOpen && initialData) {
-            setFormData(prev => ({
-                ...prev,
-                title: initialData.title,
-                client: initialData.client,
-                type: initialData.type,
-                status: initialData.status,
-                image: initialData.image
-            }));
-        }
-    }, [isOpen, initialData]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const imageUrl = form.watch('image_url');
 
-    if (!isOpen) return null;
+  useEffect(() => {
+    setImageError(false);
+  }, [imageUrl]);
 
-    const handlePlacementChange = (placement: keyof typeof formData.placements) => {
-        setFormData({
-            ...formData,
-            placements: {
-                ...formData.placements,
-                [placement]: !formData.placements[placement]
-            }
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIsUploading(true);
+      try {
+        // Since this is still down, we'll use placehold.co
+        // const response = await uploadArticleImage(file);
+        form.setValue('image_url', `https://placehold.co/600x400?text=${encodeURIComponent(file.name)}`, { shouldValidate: true, shouldDirty: true });
+      } catch (error) {
+        console.error("Failed to upload image", error);
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        form.reset({
+          title: initialData.title,
+          image_url: initialData.image_url || "",
+          destination_url: initialData.destination_url,
+          is_active: initialData.is_active,
         });
-    };
+      } else {
+        form.reset({
+          title: "",
+          image_url: "",
+          destination_url: "",
+          is_active: false,
+        });
+      }
+    }
+  }, [isOpen, initialData, form]);
 
-    const handleSave = () => {
-        onSave(formData);
-        onClose();
-    };
+  function onSubmit(data: FormValues) {
+    onSave(data);
+  }
 
-    return (
-        <div className="fixed inset-0 bg-[#00000066] flex items-center justify-center z-[110] p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-[16px] shadow-[0px_25px_50px_0px_rgba(0,0,0,0.25)] w-full max-w-[560px] max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
-                {/* Header */}
-                <div className="px-8 py-6 border-b border-[#e5e7eb] flex items-center justify-between sticky top-0 bg-white z-10">
-                    <h2 className="text-[24px] font-bold text-[#111827] tracking-[-0.5px] leading-[32px]">
-                        {mode === 'create' ? 'Create New Advertisement' : 'Edit Advertisement'}
-                    </h2>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors group"
-                    >
-                        <X className="w-5 h-5 text-[#6b7280] group-hover:text-[#111827]" />
-                    </button>
-                </div>
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
+    }
+  };
 
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto px-8 pt-8 pb-8 custom-scrollbar">
-                    <div className="space-y-6">
-                        <FormInput
-                            label="Ad Name / Campaign Title"
-                            required
-                            placeholder="Real Estate Expo 2026"
-                            value={formData.title}
-                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                        />
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {mode === 'create' ? 'Create New Advertisement' : 'Edit Advertisement'}
+          </DialogTitle>
+        </DialogHeader>
 
-                        <FormInput
-                            label="Client / Advertiser Name"
-                            required
-                            placeholder="Dubai Property Developers"
-                            value={formData.client}
-                            onChange={(e) => setFormData({ ...formData, client: e.target.value })}
-                        />
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ad Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Real Estate Expo 2026" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                        <FormSelect
-                            label="Ad Size"
-                            required
-                            options={adSettings.types.map(t => ({ value: t, label: t }))}
-                            value={formData.type}
-                            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                        />
-
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <FormLabel required>Ad Image</FormLabel>
-                                <button className="text-[14px] font-semibold text-[#3b82f6] hover:underline tracking-[-0.5px]">
-                                    Generate Image
-                                </button>
-                            </div>
-                            <div className="border-2 border-dashed border-[#d1d5db] rounded-[12px] bg-[#f9fafb] py-7 px-6 text-center hover:bg-gray-50 transition-colors cursor-pointer">
-                                {formData.image ? (
-                                    <div className="relative group mx-auto w-full max-w-[200px]">
-                                        <img src={formData.image} alt="Preview" className="w-full h-auto rounded border" />
-                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                            <span className="text-white text-[12px] font-medium">Change Image</span>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col items-center gap-1">
-                                        <p className="text-[16px] font-medium text-[#374151] tracking-[-0.5px]">
-                                            Drag image here or click to browse
-                                        </p>
-                                        <Upload className="w-8 h-8 text-[#9ca3af] my-2" />
-                                        <p className="text-[14px] text-[#6b7280] tracking-[-0.5px]">
-                                            Recommended: 300×250, max 5MB
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
+            <FormField
+              control={form.control}
+              name="image_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image</FormLabel>
+                  <FormControl>
+                    <div className="flex flex-col gap-4">
+                      {field.value && !imageError && (
+                        <div className="relative w-full h-48 bg-gray-100 rounded-md overflow-hidden border">
+                          <Image
+                            src={field.value}
+                            alt="Ad Preview"
+                            fill
+                            className="object-cover"
+                            onError={() => setImageError(true)}
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-2 right-2"
+                            onClick={() => field.onChange("")}
+                          >
+                            Remove Image
+                          </Button>
                         </div>
-
-                        {/* Image URL Field */}
-                        <div className="relative">
-                            <FormInput
-                                label="Or enter image URL:"
-                                placeholder="https://example.com/ad-image.jpg"
-                                value={formData.image || ''}
-                                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                      )}
+                      {field.value && imageError && (
+                        <div className="relative w-full h-48 bg-red-50 rounded-md border border-red-200 flex flex-col items-center justify-center gap-2">
+                          <span className="text-red-500 font-medium">Invalid or Error Loading Image</span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="text-red-500 border-red-200 hover:bg-red-50"
+                            onClick={() => field.onChange("")}
+                          >
+                            Remove & Try Again
+                          </Button>
+                        </div>
+                      )}
+                      {!field.value && (
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              disabled={isUploading}
+                              onChange={handleImageUpload}
+                              className="cursor-pointer"
                             />
-                            <div className="absolute right-4 top-[42px]">
-                                <ImageIcon className="w-5 h-5 text-[#9ca3af]" />
-                            </div>
+                            {isUploading && <span className="text-sm text-muted-foreground">Uploading...</span>}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Upload an image for the advertisement. Supported formats: JPG, PNG, WEBP.
+                          </p>
                         </div>
-
-                        <FormInput
-                            label="Target URL"
-                            required
-                            placeholder="https://example.com/landing-page"
-                            helperText="Where users will be redirected when clicking the ad"
-                            value={formData.targetUrl}
-                            onChange={(e) => setFormData({ ...formData, targetUrl: e.target.value })}
-                        />
-
-                        <div>
-                            <FormLabel required>Ad Placement</FormLabel>
-                            <p className="text-[12px] text-[#6b7280] mb-4 tracking-[-0.5px] leading-[16px]">
-                                Select where this ad should appear (choose one or more)
-                            </p>
-                            <div className="bg-[#f9fafb] rounded-[12px] p-6 grid grid-cols-2 gap-y-4 gap-x-6">
-                                {Object.entries(formData.placements).map(([key, value]) => (
-                                    <label key={key} className="flex items-center gap-3 cursor-pointer group">
-                                        <div className="relative w-4 h-4">
-                                            <input
-                                                type="checkbox"
-                                                checked={value}
-                                                onChange={() => handlePlacementChange(key as keyof typeof formData.placements)}
-                                                className="peer w-4 h-4 rounded-[1px] border-[0.5px] border-black appearance-none checked:bg-[#111827] checked:border-[#111827] cursor-pointer"
-                                            />
-                                            <Check className="absolute inset-0 w-4 h-4 text-white p-0.5 hidden peer-checked:block pointer-events-none" />
-                                        </div>
-                                        <span className="text-[14px] text-[#111827] tracking-[-0.5px] group-hover:font-medium transition-all">
-                                            {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                                        </span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-6">
-                            <FormInput
-                                label="Start Date"
-                                required
-                                placeholder="mm/ dd / yyyy"
-                                value={formData.startDate}
-                                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                            />
-                            <FormInput
-                                label="End Date"
-                                required
-                                placeholder="mm/ dd / yyyy"
-                                value={formData.endDate}
-                                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                            />
-                        </div>
-
-                        <FormInput
-                            label="Campaign Revenue (₱)"
-                            placeholder="0"
-                            helperText="Expected or actual revenue from this ad campaign"
-                            value={formData.revenue}
-                            onChange={(e) => setFormData({ ...formData, revenue: e.target.value })}
-                        />
+                      )}
                     </div>
-                </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                {/* Footer */}
-                <div className="border-t border-[#e5e7eb] px-8 py-8 flex flex-col gap-6">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                        <div className="relative w-4 h-4 mt-1">
-                            <input
-                                type="checkbox"
-                                checked={formData.status === 'active'}
-                                onChange={(e) => setFormData({ ...formData, status: e.target.checked ? 'active' : 'inactive' })}
-                                className="peer w-4 h-4 rounded-[1px] border-[0.5px] border-black appearance-none checked:bg-[#C10007] checked:border-[#C10007] cursor-pointer"
-                            />
-                            <Check className="absolute inset-0 w-4 h-4 text-white p-0.5 hidden peer-checked:block pointer-events-none" />
-                        </div>
-                        <div>
-                            <span className="text-[14px] font-semibold text-[#111827] tracking-[-0.5px] block">
-                                Set ad as active immediately
-                            </span>
-                            <p className="text-[12px] text-[#6b7280] tracking-[-0.5px]">
-                                Active ads will be displayed on selected placements
-                            </p>
-                        </div>
-                    </label>
+            <FormField
+              control={form.control}
+              name="destination_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Destination URL</FormLabel>
+                  <FormControl>
+                    <Input placeholder="http://example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                    <div className="flex items-center justify-end gap-3 pt-6 border-t border-[#e5e7eb]">
-                        <button
-                            onClick={onClose}
-                            className="px-6 py-2.5 text-[14px] font-medium text-[#6b7280] hover:text-[#111827] transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-[#3b82f6] text-white rounded-[8px] text-[14px] font-medium hover:bg-[#2563eb] transition-all active:scale-95 shadow-sm"
-                        >
-                            <span className="text-[20px] leading-none">+</span>
-                            {mode === 'create' ? 'Create Advertisement' : 'Save Changes'}
-                        </button>
+            <div className="border-t pt-6">
+              <FormField
+                control={form.control}
+                name="is_active"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-[#C10007] data-[state=checked]:border-[#C10007]"
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Set ad as active immediately
+                      </FormLabel>
+                      <FormDescription>
+                        Active ads will be displayed on selected placements
+                      </FormDescription>
                     </div>
-                </div>
+                  </FormItem>
+                )}
+              />
             </div>
 
-            <style jsx>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #d1d5db;
-                    border-radius: 10px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #9ca3af;
-                }
-            `}</style>
-        </div>
-    );
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button type="button" variant="ghost" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
+                {mode === 'create' ? '+ Create Advertisement' : 'Save Changes'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
 }

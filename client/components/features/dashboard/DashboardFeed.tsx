@@ -6,7 +6,7 @@ import TrendingTopicsCard from "@/components/features/dashboard/TrendingTopicsCa
 import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
 import CategoriesSidebarCard from "./CategoriesSidebarCard";
 import LatestPostsSection from "./LatestPostsSection";
-import { AdSpace } from "@/lib/ads";
+import AdSpace from "@/components/features/admin/ads/AdSpace";
 import { use } from "react";
 import { ArticleResource, FeedResponse } from "@/lib/api-v2";
 import { mockSpecialtyContent } from "@/lib/api-v2/mock/mockArticles";
