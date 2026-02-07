@@ -1,7 +1,7 @@
 "use client";
 
 import { Edit, Trash2, ToggleLeft, ToggleRight, Repeat } from 'lucide-react';
-import { Campaign } from "@/app/admin/ads/types";
+import { Campaign } from "@/lib/ads/types";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 
 interface CampaignListItemProps {

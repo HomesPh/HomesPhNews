@@ -21,7 +21,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Ad } from "../types";
+import { Ad } from "@/lib/ads/types";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 // import { uploadArticleImage } from "@/lib/api-v2/admin/service/upload/uploadArticleImage";

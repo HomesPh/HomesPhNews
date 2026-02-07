@@ -4,8 +4,8 @@ import { useState } from 'react';
 import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
 import StatCard from "@/components/features/admin/shared/StatCard";
 import Pagination from "@/components/features/admin/shared/Pagination";
-import useAdsAdmin from './hooks/useAdsAdmin';
-import useCampaignAdmin from './hooks/useCampaignAdmin';
+import useAdsAdmin from '../../../lib/ads/useAdsAdmin';
+import useCampaignAdmin from '../../../lib/ads/useCampaignAdmin';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AdsFilters,
@@ -13,8 +13,8 @@ import {
   AdEditorModal,
   CampaignListItem,
   CampaignFilters
-} from "@/app/admin/ads/components";
-import { Ad } from './types';
+} from "@/components/features/admin/ads";
+import { Ad } from '../../../lib/ads/types';
 
 export default function AdsPage() {
   // Logic for fetching ads and campaigns

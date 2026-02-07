@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 
 import ArticleViewCounter from "@/components/features/article/ArticleViewCounter";
-import AdSpace from "@/app/admin/ads/components/AdSpace";
+import AdSpace from "@/components/features/admin/ads/AdSpace";
 import { notFound } from "next/navigation";
 import {
   ArticleHeaderSkeleton,

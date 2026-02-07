@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import useAds from "../hooks/useAds";
+import useAds from "@/lib/ads/useAds";
 import { cn } from "@/lib/utils";
 import AdSkeleton from "./AdSkeleton";
 import AdPlaceholder from "./AdPlaceholder";

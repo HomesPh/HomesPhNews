@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducer, useEffect, useCallback } from "react";
-import { Campaign } from "../types";
+import { Campaign } from "./types";
 import AXIOS_INSTANCE_ADMIN from "@/lib/api-v2/admin/axios-instance";
 
 // ============================================================================

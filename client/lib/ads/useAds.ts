@@ -2,7 +2,7 @@
 
 import AXIOS_INSTANCE_PUBLIC from "@/lib/api-v2/public/axios-instance";
 import { useEffect, useState } from "react";
-import { Ad } from "../types";
+import { Ad } from "./types";
 
 interface Params {
   campaign: string;

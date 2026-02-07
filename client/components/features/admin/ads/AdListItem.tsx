@@ -1,7 +1,7 @@
 "use client";
 
 import { Edit, Trash2, ToggleLeft, ToggleRight, ExternalLink } from 'lucide-react';
-import { Ad } from "@/app/admin/ads/types";
+import { Ad } from "@/lib/ads/types";
 import { cn } from "@/lib/utils";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 
