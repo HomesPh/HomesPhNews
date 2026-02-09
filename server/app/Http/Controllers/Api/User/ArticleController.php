@@ -150,7 +150,11 @@ class ArticleController extends Controller
         // Eager load relationships to prevent N+1
         $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])
             ->where('is_deleted', false)
-            ->find($id);
+            ->where(function ($query) use ($id) {
+                $query->where('id', $id)
+                    ->orWhere('slug', $id);
+            })
+            ->first();
 
         if (! $article) {
             // Fallback to Redis if not found in DB
@@ -170,7 +174,9 @@ class ArticleController extends Controller
      */
     public function incrementViews(string $id): JsonResponse
     {
-        $article = Article::find($id);
+        $article = Article::where('id', $id)
+            ->orWhere('slug', $id)
+            ->first();
 
         if (! $article) {
             return response()->json(['error' => 'Article not found'], 404);

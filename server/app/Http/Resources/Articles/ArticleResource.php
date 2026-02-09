@@ -87,6 +87,7 @@ class ArticleResource extends JsonResource
 
         return [
             'id' => (string) $get('id', ''),
+            'slug' => (string) $get('slug', ''),
             'article_id' => (string) $get('article_id', $get('id', '')),
             'title' => (string) $get('title', ''),
             'summary' => (string) $get('summary', $get('content', '')),
