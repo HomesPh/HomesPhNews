@@ -14,18 +14,32 @@ import {
   CampaignListItem,
   CampaignFilters
 } from "@/components/features/admin/ads";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Ad } from '../../../lib/ads/types';
 
 export default function AdsPage() {
   // Logic for fetching ads and campaigns
   const {
-    data: adsData,
+    data: adsList,
+    pagination: adsPagination,
     isLoading: adsLoading,
     error: adsError,
     refetch: refetchAds,
-    currentPage: adsPage,
-    setPage: setAdsPage
+    setPage: setAdsPage,
+    createAd,
+    updateAd,
+    deleteAd
   } = useAdsAdmin();
+
   const {
     data: campaignsData,
     isLoading: campaignsLoading,
@@ -43,8 +57,24 @@ export default function AdsPage() {
     console.log("Toggle status functionality temporarily disabled", id);
   };
 
-  const handleDelete = (id: string) => {
-    console.log("Delete functionality temporarily disabled", id);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const handleDeleteAd = (id: string) => {
+    setDeleteId(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteCampaign = (id: string) => {
+    console.log("Campaign deletion temporarily disabled", id);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteId) {
+      await deleteAd(deleteId);
+      setIsDeleteDialogOpen(false);
+      setDeleteId(null);
+    }
   };
 
   const handlePageChangeAds = (page: number) => {
@@ -69,13 +99,22 @@ export default function AdsPage() {
     setSelectedAd(null);
   }
 
-  const handleSave = (data: Ad) => {
-    console.log("Saving ad: ", data);
+  const handleSave = async (data: any) => {
+    try {
+      if (selectedAd) {
+        await updateAd(selectedAd.id, data);
+      } else {
+        await createAd(data);
+      }
+      handleCloseAdEditor();
+    } catch (error) {
+      console.error("Failed to save ad:", error);
+    }
   };
 
   // Default stats (placeholders)
   const counts = {
-    all: adsData?.total || 0,
+    all: adsPagination?.total || 0,
     active: 0,
     inactive: 0,
   };
@@ -86,7 +125,7 @@ export default function AdsPage() {
     inactive: 0,
   };
 
-  const adsList = adsData?.data || [];
+  // adsList is already Ad[], campaignsData is Response object
   const campaignsList = campaignsData?.data || [];
 
   // Loading state
@@ -110,6 +149,8 @@ export default function AdsPage() {
       </div>
     );
   }
+
+  const adsPage = adsPagination?.current_page || 1;
 
   return (
     <div className="p-8 bg-[#f9fafb] min-h-screen">
@@ -182,7 +223,7 @@ export default function AdsPage() {
                   key={campaign.id}
                   campaign={campaign}
                   onToggleStatus={handleToggleStatus}
-                  onDelete={handleDelete}
+                  onDelete={handleDeleteCampaign}
                   onEdit={(c) => {
                     console.log("Edit action temporarily disabled", c);
                   }}
@@ -222,10 +263,8 @@ export default function AdsPage() {
                   key={ad.id}
                   ad={ad}
                   onToggleStatus={handleToggleStatus}
-                  onDelete={handleDelete}
-                  onEdit={(ad) => {
-                    console.log("Edit action temporarily disabled", ad);
-                  }}
+                  onDelete={handleDeleteAd}
+                  onEdit={handleOpenAdEditor}
                 />
               ))
             ) : (
@@ -239,14 +278,14 @@ export default function AdsPage() {
           <div className="mt-8">
             <Pagination
               currentPage={adsPage}
-              totalPages={adsData ? Math.ceil(adsData.total / adsData.per_page) : 1}
+              totalPages={adsPagination?.last_page || 1}
               onPageChange={handlePageChangeAds}
             />
           </div>
         </TabsContent>
       </Tabs>
 
-      {/* Ad Editor Modal - Disabled/Hidden for now as state is removed */}
+      {/* Ad Editor Modal */}
       {
         selectedAd ?
           <AdEditorModal
@@ -264,6 +303,24 @@ export default function AdsPage() {
             onSave={handleSave}
           />
       }
+
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the selected item.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteId(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

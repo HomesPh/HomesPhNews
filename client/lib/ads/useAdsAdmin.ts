@@ -5,28 +5,54 @@ import { Ad } from "./types";
 import AXIOS_INSTANCE_ADMIN from "@/lib/api-v2/admin/axios-instance";
 
 // ============================================================================
-// Reducer
+// Types
 // ============================================================================
+
+export interface PaginationMeta {
+  current_page: number;
+  from: number | null;
+  last_page: number;
+  per_page: number;
+  to: number | null;
+  total: number;
+}
+
+export interface AdResponse {
+  data: Ad[];
+  current_page: number;
+  per_page: number;
+  total: number;
+  last_page: number;
+  from: number | null;
+  to: number | null;
+}
+
+export interface MutateAdPayload {
+  title: string;
+  image_url: string;
+  destination_url: string;
+  is_active?: boolean;
+  campaign_ids?: number[] | null;
+}
+
 interface State {
-  data: Response | null;
+  data: Ad[];
+  pagination: PaginationMeta | null;
   isLoading: boolean;
   error: string | null;
-  currentPage: number;
 }
 
 type Action =
   | { type: "FETCH_INIT" }
-  | { type: "FETCH_SUCCESS"; payload: Response }
+  | { type: "FETCH_SUCCESS"; payload: AdResponse }
   | { type: "FETCH_FAILURE"; payload: string }
-  | { type: "SET_PAGE"; payload: number }
-  | { type: "NEXT_PAGE" }
-  | { type: "PREV_PAGE" };
+  | { type: "SET_PAGE"; payload: number };
 
 const initialState: State = {
-  data: null,
+  data: [],
+  pagination: null,
   isLoading: false,
   error: null,
-  currentPage: 1,
 };
 
 const reducer = (state: State, action: Action): State => {
@@ -35,33 +61,40 @@ const reducer = (state: State, action: Action): State => {
       return { ...state, isLoading: true, error: null };
 
     case "FETCH_SUCCESS":
-      return { ...state, isLoading: false, data: action.payload };
+      return {
+        ...state,
+        isLoading: false,
+        data: action.payload.data,
+        pagination: {
+          current_page: action.payload.current_page,
+          from: action.payload.from,
+          last_page: action.payload.last_page,
+          per_page: action.payload.per_page,
+          to: action.payload.to,
+          total: action.payload.total,
+        },
+      };
 
     case "FETCH_FAILURE":
       return { ...state, isLoading: false, error: action.payload };
 
     case "SET_PAGE":
-      return { ...state, currentPage: action.payload };
-
-    case "NEXT_PAGE":
-      return { ...state, currentPage: state.currentPage + 1 };
-
-    case "PREV_PAGE":
-      return { ...state, currentPage: Math.max(1, state.currentPage - 1) };
+      // We can optimistically update page here if we want,
+      // but usually we wait for fetch.
+      // However, to trigger effect, we might need a separate page state
+      // or just call fetch with new page.
+      // Let's keep page in state if needed, or rely on pagination meta.
+      // If we rely on pagination meta, we can't "set" page before fetch.
+      // So we might need a separate 'page' state for the request.
+      return {
+        ...state,
+        pagination: state.pagination ? { ...state.pagination, current_page: action.payload } : null
+      };
 
     default:
       return state;
   }
 };
-
-// ============================================================================
-// The Hook
-// =============================================================================
-interface Response {
-  data: Ad[];
-  per_page: number;
-  total: number;
-}
 
 /**
  * Hook for fetching ads on the admin side.
@@ -69,55 +102,102 @@ interface Response {
 export default function useAdsAdmin() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // Helper functions for pagination
-  const setPage = useCallback((page: number) => {
-    dispatch({ type: "SET_PAGE", payload: page });
-  }, []);
-
-  const nextPage = useCallback(() => {
-    dispatch({ type: "NEXT_PAGE" });
-  }, []);
-
-  const prevPage = useCallback(() => {
-    dispatch({ type: "PREV_PAGE" });
-  }, []);
-
-  // mark:  i call this: the all-in-one get ads for admin hook
-  //        and i'm not even sure if it's necessary to add pagination here too
-  const fetchAds = useCallback(async () => {
-    // initialize loading state
+  const fetchAds = useCallback(async (page: number = 1) => {
     dispatch({ type: "FETCH_INIT" });
-
-    // try to fetch ads
     try {
-      const response = await AXIOS_INSTANCE_ADMIN.get<Response>("/admin/ads", {
-        params: { page: state.currentPage },
+      const response = await AXIOS_INSTANCE_ADMIN.get<AdResponse>("/admin/ads", {
+        params: { page },
       });
       dispatch({ type: "FETCH_SUCCESS", payload: response.data });
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || error.message || "Failed to fetch ads";
+      dispatch({ type: "FETCH_FAILURE", payload: errorMessage });
     }
-    // if any mishaps happen...
-    catch (error: any) {
-      // gemini 3 pro: axios error handling might already be wrapped, but let's be safe
-      // mark: u motherf...
-      const errorMessage = error.response?.data?.message || error.message || "Failed to fetch ads";
-      dispatch({
-        type: "FETCH_FAILURE",
-        payload: errorMessage
-      });
-    }
+  }, []);
 
-  }, [state.currentPage]);
-
-  // runs once on mount and when page changes
+  // Initial fetch
   useEffect(() => {
-    fetchAds();
-  }, [fetchAds]);
+    // Only fetch if not already loaded or if we want initial load
+    // But usually we want to fetch on mount.
+    // To avoid double fetch if strict mode, we can use a ref or just let it consist.
+    fetchAds(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Helper functions for pagination
+  const setPage = useCallback(
+    (page: number) => {
+      fetchAds(page);
+    },
+    [fetchAds]
+  );
+
+  const nextPage = useCallback(() => {
+    if (state.pagination && state.pagination.current_page < state.pagination.last_page) {
+      fetchAds(state.pagination.current_page + 1);
+    }
+  }, [fetchAds, state.pagination]);
+
+  const prevPage = useCallback(() => {
+    if (state.pagination && state.pagination.current_page > 1) {
+      fetchAds(state.pagination.current_page - 1);
+    }
+  }, [fetchAds, state.pagination]);
+
+  // CRUD Operations
+  const createAd = useCallback(
+    async (payload: MutateAdPayload) => {
+      try {
+        await AXIOS_INSTANCE_ADMIN.post("/admin/ads", payload);
+        // Refetch current page or go to first? Usually first or stay.
+        // Let's refetch current page.
+        fetchAds(state.pagination?.current_page || 1);
+        return { success: true };
+      } catch (error: any) {
+        console.error("Failed to create ad:", error);
+        throw error;
+      }
+    },
+    [fetchAds, state.pagination]
+  );
+
+  const updateAd = useCallback(
+    async (id: string | number, payload: MutateAdPayload) => {
+      try {
+        await AXIOS_INSTANCE_ADMIN.put(`/admin/ads/${id}`, payload);
+        fetchAds(state.pagination?.current_page || 1);
+        return { success: true };
+      } catch (error: any) {
+        console.error("Failed to update ad:", error);
+        throw error;
+      }
+    },
+    [fetchAds, state.pagination]
+  );
+
+  const deleteAd = useCallback(
+    async (id: string | number) => {
+      try {
+        await AXIOS_INSTANCE_ADMIN.delete(`/admin/ads/${id}`);
+        fetchAds(state.pagination?.current_page || 1);
+        return { success: true };
+      } catch (error: any) {
+        console.error("Failed to delete ad:", error);
+        throw error;
+      }
+    },
+    [fetchAds, state.pagination]
+  );
 
   return {
     ...state,
-    refetch: fetchAds,
+    refetch: () => fetchAds(state.pagination?.current_page || 1),
     setPage,
     nextPage,
     prevPage,
+    createAd,
+    updateAd,
+    deleteAd,
   };
 }
