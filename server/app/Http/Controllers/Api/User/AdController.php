@@ -13,28 +13,25 @@ class AdController extends Controller
      */
     public function index(): JsonResponse
     {
-        $campaigns = Campaign::where('is_active', true)
-            ->where(function ($query) {
-                // Check if campaign is within date range (if set)
-                $query->where(function ($q) {
-                    $q->whereNull('start_date')
-                      ->orWhere('start_date', '<=', now());
-                })->where(function ($q) {
-                    $q->whereNull('end_date')
-                      ->orWhere('end_date', '>=', now());
-                });
-            })
-            ->with(['ads' => function ($query) {
-                $query->where('is_active', true);
-            }])
+        $campaigns = Campaign::where(function ($query) {
+            // Check if campaign is within date range (if set)
+            $query->where(function ($q) {
+                $q->whereNull('start_date')
+                    ->orWhere('start_date', '<=', now());
+            })->where(function ($q) {
+                $q->whereNull('end_date')
+                    ->orWhere('end_date', '>=', now());
+            });
+        })
+            ->with('ads')
             ->get()
             ->map(function ($campaign) {
                 // Apply rotation logic if needed
                 // For now, we return all active ads for the campaign
                 // The frontend can handle display rotation based on 'rotation_type'
-                
+
                 $ads = $campaign->ads;
-                
+
                 if ($campaign->rotation_type === 'random') {
                     $ads = $ads->shuffle();
                 }
@@ -48,7 +45,7 @@ class AdController extends Controller
             });
 
         return response()->json([
-            'data' => $campaigns
+            'data' => $campaigns,
         ]);
     }
 
@@ -58,20 +55,17 @@ class AdController extends Controller
     public function showByName(string $name): JsonResponse
     {
         $campaign = Campaign::where('name', $name)
-            ->where('is_active', true)
             ->where(function ($query) {
                 // Check if campaign is within date range (if set)
                 $query->where(function ($q) {
                     $q->whereNull('start_date')
-                      ->orWhere('start_date', '<=', now());
+                        ->orWhere('start_date', '<=', now());
                 })->where(function ($q) {
                     $q->whereNull('end_date')
-                      ->orWhere('end_date', '>=', now());
+                        ->orWhere('end_date', '>=', now());
                 });
             })
-            ->with(['ads' => function ($query) {
-                $query->where('is_active', true);
-            }])
+            ->with('ads')
             ->firstOrFail();
 
         $ads = $campaign->ads;

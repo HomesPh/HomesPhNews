@@ -28,15 +28,24 @@ class CampaignController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'regex:/^\S*$/'],
-            'is_active' => 'boolean',
             'rotation_type' => 'required|string|in:random,ordered',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
+            'ads' => 'nullable|array',
+            'ads.*' => 'exists:ads,id',
         ]);
+
+        if (empty($validated['start_date'])) {
+            $validated['start_date'] = now();
+        }
 
         $campaign = Campaign::create($validated);
 
-        return response()->json($campaign, 201);
+        if (!empty($validated['ads'])) {
+            $campaign->ads()->sync($validated['ads']);
+        }
+
+        return response()->json($campaign->load('ads'), 201);
     }
 
     /**
@@ -58,15 +67,20 @@ class CampaignController extends Controller
 
         $validated = $request->validate([
             'name' => ['sometimes', 'string', 'max:255', 'regex:/^\S*$/'],
-            'is_active' => 'boolean',
             'rotation_type' => 'sometimes|string|in:random,ordered',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
+            'ads' => 'nullable|array',
+            'ads.*' => 'exists:ads,id',
         ]);
 
         $campaign->update($validated);
 
-        return response()->json($campaign);
+        if (isset($validated['ads'])) {
+            $campaign->ads()->sync($validated['ads']);
+        }
+
+        return response()->json($campaign->load('ads'));
     }
 
     /**
