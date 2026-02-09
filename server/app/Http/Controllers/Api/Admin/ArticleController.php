@@ -260,6 +260,10 @@ class ArticleController extends Controller
         unset($validated['date']);
         unset($validated['slug']);
 
+        if (empty($validated['slug'])) {
+            $validated['slug'] = \Illuminate\Support\Str::slug($validated['title']);
+        }
+
         $validated['is_deleted'] = false;
         $article = Article::create($validated);
 
@@ -438,6 +442,7 @@ class ArticleController extends Controller
             'status' => 'published',
             'views_count' => 0,
             'is_deleted' => false,
+            'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
         ]);
 
         $siteNames = $validated['published_sites'] ?? [];
@@ -503,7 +508,9 @@ class ArticleController extends Controller
                         'country' => $redisArticle['country'] ?? '',
                         'source' => $redisArticle['source'] ?? '',
                         'status' => 'pending review',
+                        'status' => 'pending review',
                         'is_deleted' => true,
+                        'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
                     ]);
                     
                     $this->redisService->deleteArticle($id);

@@ -1,20 +1,20 @@
 <?php
 
 // routes/api.php
-use App\Http\Controllers\Api\Admin\AnalyticsController;
+use App\Http\Controllers\Api\Admin\AdController as AdminAdController;
 // ✅ CORRECT CONTROLLER: Import the Admin Article Controller
+use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\ArticleController as AdminArticleController;
 use App\Http\Controllers\Api\Admin\ArticlePublicationController;
-use App\Http\Controllers\Api\Admin\DashboardController;
 // use App\Http\Controllers\Api\Admin\EventController;
+use App\Http\Controllers\Api\Admin\CampaignController as AdminCampaignController;
+use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\RestaurantController;
 use App\Http\Controllers\Api\Admin\SiteController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\UploadController;
-use App\Http\Controllers\Api\Admin\AdController as AdminAdController;
-use App\Http\Controllers\Api\Admin\CampaignController as AdminCampaignController;
 use App\Http\Controllers\Api\User\AdController as UserAdController;
 use App\Http\Controllers\Api\User\ArticleController as UserArticleController;
 use Illuminate\Support\Facades\Redis;
@@ -41,11 +41,12 @@ Route::get('/db-test', [SystemController::class, 'dbTest']);
 Route::get('/scheduler/run', function () {
     // ⚠️ Security Note: In production, you should protect this route!
     // Example: if (request('key') !== env('CRON_KEY')) abort(403);
-    
+
     \Illuminate\Support\Facades\Artisan::call('schedule:run');
+
     return response()->json([
         'message' => 'Schedule executed',
-        'output' => \Illuminate\Support\Facades\Artisan::output()
+        'output' => \Illuminate\Support\Facades\Artisan::output(),
     ]);
 });
 
@@ -107,7 +108,7 @@ Route::middleware(['auth:sanctum', 'is.admin'])
         Route::apiResource('articles', AdminArticleController::class);
         Route::apiResource('ads', AdminAdController::class);
         Route::apiResource('campaigns', AdminCampaignController::class);
-        
+
         // Custom Article Actions
         Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
         // Edit pending (Redis) article without touching the main database

@@ -10,6 +10,7 @@ class Article extends Model
     use HasFactory;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -30,6 +31,7 @@ class Article extends Model
         'topics',          // JSON array of topics
         'published_sites', // JSON array of site names
         'is_deleted',
+        'slug',
     ];
 
     /**
@@ -88,5 +90,4 @@ class Article extends Model
         // Fallback for single record access
         return $this->publishedSites()->pluck('site_name')->toArray();
     }
-
 }
