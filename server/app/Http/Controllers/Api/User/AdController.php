@@ -55,17 +55,20 @@ class AdController extends Controller
     public function showByName(string $name): JsonResponse
     {
         $campaign = Campaign::where('name', $name)
+            ->where('is_active', true)
             ->where(function ($query) {
                 // Check if campaign is within date range (if set)
                 $query->where(function ($q) {
                     $q->whereNull('start_date')
-                        ->orWhere('start_date', '<=', now());
+                      ->orWhere('start_date', '<=', now());
                 })->where(function ($q) {
                     $q->whereNull('end_date')
-                        ->orWhere('end_date', '>=', now());
+                      ->orWhere('end_date', '>=', now());
                 });
             })
-            ->with('ads')
+            ->with(['ads' => function ($query) {
+                $query->where('is_active', true);
+            }])
             ->firstOrFail();
 
         $ads = $campaign->ads;

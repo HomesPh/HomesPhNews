@@ -12,6 +12,7 @@ interface ArticleContentProps {
 
 
 
+
 export default function ArticleContent({ content, topics, originalUrl, forceLight = false }: ArticleContentProps) {
   const darkClass = (cls: string) => !forceLight ? cls : '';
 

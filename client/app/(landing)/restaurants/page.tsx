@@ -172,6 +172,7 @@ export default async function RestaurantPage({ searchParams }: Props) {
                     </section>
 
 
+
                 </aside>
             </div>
         </div>

@@ -18,6 +18,7 @@ class CampaignController extends Controller
             ->latest()
             ->paginate($request->input('per_page', 10));
 
+
         return response()->json($campaigns);
     }
 
@@ -55,6 +56,7 @@ class CampaignController extends Controller
     {
         $campaign = Campaign::with('ads')->findOrFail($id);
 
+
         return response()->json($campaign);
     }
 
@@ -90,8 +92,10 @@ class CampaignController extends Controller
     {
         $campaign = Campaign::findOrFail($id);
 
+
         // Optional: Block delete if has ads, or they will be set to null due to nullOnDelete
         // For now, let's allow it, ads will become orphaned (campaign_id = null)
+
 
         $campaign->delete();
 
