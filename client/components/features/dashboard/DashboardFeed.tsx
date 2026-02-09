@@ -6,7 +6,7 @@ import TrendingTopicsCard from "@/components/features/dashboard/TrendingTopicsCa
 import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
 import CategoriesSidebarCard from "./CategoriesSidebarCard";
 import LatestPostsSection from "./LatestPostsSection";
-import { AdSpace } from "@/lib/ads";
+import AdSpace from "@/components/features/admin/ads/AdSpace";
 import { use } from "react";
 import { ArticleResource, FeedResponse } from "@/lib/api-v2";
 import { mockSpecialtyContent } from "@/lib/api-v2/mock/mockArticles";
@@ -255,6 +255,7 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
                     <MostReadTodayCard
                         items={most_read.slice(0, 5).map((article) => ({
                             id: article.id || '',
+                            slug: article.slug,
                             title: article.title,
                             imageUrl: article.image_url || article.image || 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7', // Fallback image
                             views: article.views_count || 0,
@@ -275,6 +276,7 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
                     <CategoriesSidebarCard
                         counts={dynamicCategoryCounts}
                     />
+
 
 
 

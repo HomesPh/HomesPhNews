@@ -10,6 +10,7 @@ export interface UpdateArticleRequest {
   content?: string | null;
   category?: string | null;
   country?: string | null;
+  slug?: string;
   image?: string | null;
   image_url?: string | null;
   status?: "published" | "pending review" | "rejected" | null;
@@ -17,6 +18,12 @@ export interface UpdateArticleRequest {
   topics?: string[] | null;
   keywords?: string | null;
   published_sites?: string[] | null;
+  author?: string;
+  date?: string;
+  gallery_images?: any[];
+  split_images?: any[];
+  content_blocks?: any[];
+  template?: string;
 }
 
 export interface UpdateArticleResponse {

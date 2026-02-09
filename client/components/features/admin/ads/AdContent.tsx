@@ -1,43 +1,21 @@
 'use client';
 
-import { Suspense, useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import useAds from "../hooks/useAds";
+import useAds from "@/lib/ads/useAds";
 import { cn } from "@/lib/utils";
+import AdSkeleton from "./AdSkeleton";
+import AdPlaceholder from "./AdPlaceholder";
 
-interface AdSpaceProps {
+interface Props {
   className?: string;
   rotateInterval?: number;
 }
 
-function AdSkeleton({ className }: { className?: string }) {
-  return (
-    <Card className={cn("relative w-full overflow-hidden border-none bg-muted/30", className)}>
-      <Skeleton className="h-full w-full absolute inset-0" />
-      <div className="relative z-10 flex h-full w-full items-center justify-center p-4">
-        <Skeleton className="h-8 w-8 rounded-full opacity-20" />
-      </div>
-    </Card>
-  );
-}
-
-function AdPlaceholder({ className, message = "Space Available" }: { className?: string, message?: string }) {
-  return (
-    <Card className={cn("relative w-full overflow-hidden border-dashed border-2", className)}>
-      <div className="flex h-full w-full items-center justify-center bg-muted/10 p-4">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest text-center">
-          {message}
-        </p>
-      </div>
-    </Card>
-  );
-}
-
-function AdContent({ className, rotateInterval }: AdSpaceProps) {
+export default function AdContent({ className, rotateInterval }: Props) {
   const { ads, isLoading, error } = useAds({ campaign: "news-homes-ph-ads" });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -62,14 +40,17 @@ function AdContent({ className, rotateInterval }: AdSpaceProps) {
 
   const ad = (ads && ads.length > 0) ? ads[currentIndex] : null;
 
+  // loading state
   if (isLoading) {
     return <AdSkeleton className={className} />;
   }
 
+  // error state
   if (error) {
     return <AdPlaceholder className={className} message="Failed to load ads" />;
   }
 
+  // no ads state
   if (!ad) {
     return <AdPlaceholder className={className} />;
   }
@@ -118,15 +99,5 @@ function AdContent({ className, rotateInterval }: AdSpaceProps) {
         </div>
       </Card>
     </Link>
-  );
-}
-
-export function AdSpace({ className, rotateInterval }: AdSpaceProps) {
-  return (
-    <Suspense
-      fallback={<AdSkeleton className={className} />}
-    >
-      <AdContent className={className} rotateInterval={rotateInterval} />
-    </Suspense>
   );
 }

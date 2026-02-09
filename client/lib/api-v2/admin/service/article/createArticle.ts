@@ -10,10 +10,17 @@ export interface StoreArticleRequest {
   content: string;
   category: string;
   country: string;
+  slug?: string;
   image?: string | null;
   status?: "published" | "pending review" | null;
   topics?: string[] | null;
   published_sites?: string[] | null;
+  author?: string;
+  date?: string;
+  gallery_images?: any[];
+  split_images?: any[];
+  content_blocks?: any[];
+  template?: string;
 }
 
 export interface CreateArticleResponse {

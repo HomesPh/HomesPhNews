@@ -9,6 +9,7 @@ import ShareButtons from "@/components/shared/ShareButtons";
 
 interface ArticleCardProps {
   id: string
+  slug?: string
   category: string
   location?: string
   title: string
@@ -22,6 +23,7 @@ interface ArticleCardProps {
 
 export default function ArticleCard({
   id,
+  slug,
   category,
   location,
   title,
@@ -34,7 +36,7 @@ export default function ArticleCard({
 }: ArticleCardProps) {
   return (
     <Link
-      href={`/article?id=${id}`}
+      href={slug ? `/article?slug=${slug}` : `/article?id=${id}`}
       className={cn(
         'group flex gap-6 rounded-[12px] border border-[#f3f4f6] bg-white p-6 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all hover:bg-transparent',
         className
@@ -69,7 +71,7 @@ export default function ArticleCard({
         {/* Share Icons - Bottom Right */}
         <div className="absolute bottom-2 right-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20">
           <ShareButtons
-            url={`/article?id=${id}`}
+            url={slug ? `/article?slug=${slug}` : `/article?id=${id}`}
             title={title}
             description={description}
             size="xs"

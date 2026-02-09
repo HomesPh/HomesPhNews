@@ -1,7 +1,7 @@
 import { getArticleById, getArticlesList } from "@/lib/api-v2";
 import { mockSpecialtyContent } from "@/lib/api-v2/mock/mockArticles";
 import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
-import { AdSpace } from "@/lib/ads";
+import AdSpace from "@/components/features/admin/ads/AdSpace";
 
 interface RelatedArticlesSidebarProps {
   id: string;
@@ -34,6 +34,7 @@ export default async function RelatedArticlesSidebar({ id }: RelatedArticlesSide
       .slice(0, 4)
       .map((a) => ({
         id: a.id,
+        slug: a.slug,
         title: a.title,
         views: a.views_count,
         imageUrl: a.image || "/healthcare.jpg",

@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 
 import ArticleViewCounter from "@/components/features/article/ArticleViewCounter";
-import { AdSpace } from "@/lib/ads/components/AdSpace";
-import { notFound } from "next/navigation";
+import AdSpace from "@/components/features/admin/ads/AdSpace";
+import { notFound, redirect } from "next/navigation";
 import {
   ArticleHeaderSkeleton,
   ArticleContentSkeleton,
@@ -21,8 +21,8 @@ interface Props {
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const { id } = await searchParams;
-  const articleId = Array.isArray(id) ? id[0] : id;
+  const { id, slug } = await searchParams;
+  const articleId = (Array.isArray(slug) ? slug[0] : slug) || (Array.isArray(id) ? id[0] : id);
 
   if (!articleId) {
     return {
@@ -70,43 +70,62 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 }
 
 export default async function Article({ searchParams }: Props) {
-  const { id } = await searchParams;
-  const articleId = Array.isArray(id) ? id[0] : id;
+  const { id, slug } = await searchParams;
+  const articleId = (Array.isArray(slug) ? slug[0] : slug) || (Array.isArray(id) ? id[0] : id);
 
   if (!articleId) {
     notFound();
   }
 
+  // If accessed by ID, but has a slug, redirect to the slug URL
+  let redirectTo = null;
+  if (id && !slug) {
+    try {
+      const article = await getArticleById(Array.isArray(id) ? id[0] : id);
+      if (article && article.slug) {
+        redirectTo = `/article?slug=${article.slug}`;
+      }
+    } catch (error) {
+      console.error("Error checking for slug redirect:", error);
+    }
+  }
+
+  if (redirectTo) {
+    redirect(redirectTo);
+  }
+
   return (
     <div className="max-w-360 mx-auto px-4 md:px-27.5 py-8">
-      <Suspense fallback={null}>
-        <ArticleViewCounter articleId={articleId} />
-      </Suspense>
+      <div className="max-w-360 mx-auto px-4 md:px-27.5 py-8">
+        <Suspense fallback={null}>
+          <ArticleViewCounter articleId={articleId} />
+        </Suspense>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content Component Area */}
-        <div className="lg:col-span-2 space-y-8">
-          <Suspense fallback={<BreadcrumbSkeleton />}>
-            <ArticleBreadcrumbContainer id={articleId} />
-          </Suspense>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content Component Area */}
+          <div className="lg:col-span-2 space-y-8">
+            <Suspense fallback={<BreadcrumbSkeleton />}>
+              <ArticleBreadcrumbContainer id={articleId} />
+            </Suspense>
 
-          <Suspense fallback={
-            <div className="space-y-8">
-              <ArticleHeaderSkeleton />
-              <ArticleContentSkeleton />
-            </div>
-          }>
-            <ArticleDetailContent id={articleId} />
-          </Suspense>
-        </div>
+            <Suspense fallback={
+              <div className="space-y-8">
+                <ArticleHeaderSkeleton />
+                <ArticleContentSkeleton />
+              </div>
+            }>
+              <ArticleDetailContent id={articleId} />
+            </Suspense>
+          </div>
 
-        {/* Sidebar Area */}
-        <div className="lg:col-span-1">
-          <Suspense fallback={<SidebarSkeleton />}>
-            <RelatedArticlesSidebar id={articleId} />
-          </Suspense>
+          {/* Sidebar Area */}
+          <div className="lg:col-span-1">
+            <Suspense fallback={<SidebarSkeleton />}>
+              <RelatedArticlesSidebar id={articleId} />
+            </Suspense>
+          </div>
         </div>
       </div>
-    </div >
+    </div>
   );
 }
