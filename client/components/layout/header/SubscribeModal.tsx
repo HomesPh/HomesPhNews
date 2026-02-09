@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { X, Mail, Briefcase, ArrowLeft, CheckCircle2, ChevronDown } from "lucide-react";
-import { Categories, Countries } from "@/app/data";
+import { X, Mail, Briefcase, ArrowLeft, CheckCircle2, ChevronDown, Clock, Calendar } from "lucide-react";
+import { Categories, Countries, RestaurantCategories } from "@/app/data";
 
 interface SubscribeModalProps {
     isOpen: boolean;
@@ -18,7 +18,9 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
         name: "",
         service: "General Inquiry",
         categories: [] as string[],
-        countries: [] as string[]
+        countries: [] as string[],
+        frequency: "daily",
+        deliveryTime: "08:00"
     });
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +39,9 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
             name: "",
             service: "General Inquiry",
             categories: [],
-            countries: []
+            countries: [],
+            frequency: "daily",
+            deliveryTime: "08:00"
         });
     };
 
@@ -221,23 +225,36 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                         }}
                                                     >
                                                         <option value="" disabled>Choose...</option>
-                                                        {Categories.filter(c => c.id !== "All" && !formData.categories.includes(c.id)).map((category) => (
-                                                            <option key={category.id} value={category.id}>
-                                                                {category.label}
-                                                            </option>
-                                                        ))}
+                                                        {([
+                                                            ...Categories.filter(c => c.id !== "All").map(c => ({ ...c, displayName: c.label })),
+                                                            ...RestaurantCategories.filter(c => c.id !== "All").map(c => ({ id: c.label, label: c.label, displayName: `Restaurant (${c.label})` }))
+                                                        ])
+                                                            .filter(c => !formData.categories.includes(c.id))
+                                                            .map((category) => (
+                                                                <option key={`${category.id}-${category.label}`} value={category.id}>
+                                                                    {category.displayName}
+                                                                </option>
+                                                            ))}
                                                     </select>
                                                     <div className="absolute right-[12px] top-1/2 -translate-y-1/2 pointer-events-none text-[#9ca3af]">
                                                         <ChevronDown className="w-4 h-4" />
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-wrap gap-1.5 mt-2">
-                                                    {formData.categories.map((catId) => (
-                                                        <div key={catId} className="flex items-center gap-1 bg-[#fef2f2] text-[#c10007] px-2 py-0.5 rounded-full text-[11px] font-bold border border-[#fee2e2]">
-                                                            {Categories.find(c => c.id === catId)?.label}
-                                                            <X className="w-2.5 h-2.5 cursor-pointer" onClick={() => setFormData({ ...formData, categories: formData.categories.filter(id => id !== catId) })} />
-                                                        </div>
-                                                    ))}
+                                                    {formData.categories.map((catId) => {
+                                                        const allCats = [
+                                                            ...Categories.filter(c => c.id !== "All").map(c => ({ ...c, displayName: c.label })),
+                                                            ...RestaurantCategories.filter(c => c.id !== "All").map(c => ({ id: c.label, label: c.label, displayName: `Restaurant (${c.label})` }))
+                                                        ];
+                                                        const matched = allCats.find(c => c.id === catId);
+                                                        const label = matched ? matched.displayName : catId;
+                                                        return (
+                                                            <div key={catId} className="flex items-center gap-1 bg-[#fef2f2] text-[#c10007] px-2 py-0.5 rounded-full text-[11px] font-bold border border-[#fee2e2]">
+                                                                {label}
+                                                                <X className="w-2.5 h-2.5 cursor-pointer" onClick={() => setFormData({ ...formData, categories: formData.categories.filter(id => id !== catId) })} />
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
 
@@ -291,6 +308,45 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                 placeholder="your@email.com"
                                                 className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#c10007] transition-all"
                                             />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-[12px]">
+                                            <div>
+                                                <div className="flex items-center gap-1.5 mb-[4px]">
+                                                    <Calendar className="w-3 h-3 text-gray-400" />
+                                                    <label className="block font-semibold text-[13px] text-[#374151] tracking-[-0.3px]">
+                                                        Frequency
+                                                    </label>
+                                                </div>
+                                                <div className="relative">
+                                                    <select
+                                                        className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#c10007] bg-white text-gray-900 transition-all appearance-none cursor-pointer"
+                                                        value={formData.frequency}
+                                                        onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+                                                    >
+                                                        <option value="daily" className="text-gray-900">Daily</option>
+                                                        <option value="3days" className="text-gray-900">Every 3 Days</option>
+                                                        <option value="5days" className="text-gray-900">Every 5 Days</option>
+                                                        <option value="weekly" className="text-gray-900">Weekly</option>
+                                                    </select>
+                                                    <ChevronDown className="absolute right-[12px] top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div className="flex items-center gap-1.5 mb-[4px]">
+                                                    <Clock className="w-3 h-3 text-gray-400" />
+                                                    <label className="block font-semibold text-[13px] text-[#374151] tracking-[-0.3px]">
+                                                        Time
+                                                    </label>
+                                                </div>
+                                                <input
+                                                    type="time"
+                                                    value={formData.deliveryTime}
+                                                    onChange={(e) => setFormData({ ...formData, deliveryTime: e.target.value })}
+                                                    className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#c10007] bg-white text-gray-900 transition-all"
+                                                />
+                                            </div>
                                         </div>
 
                                         <button
