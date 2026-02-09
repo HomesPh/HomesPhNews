@@ -14,7 +14,7 @@ class AdController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $ads = Ad::with('campaign')
+        $ads = Ad::with('campaigns')
             ->latest()
             ->paginate($request->input('per_page', 10));
 
@@ -31,12 +31,17 @@ class AdController extends Controller
             'image_url' => 'required|url',
             'destination_url' => 'required|url',
             'is_active' => 'boolean',
-            'campaign_id' => 'nullable|exists:campaigns,id',
+            'campaign_ids' => 'nullable|array',
+            'campaign_ids.*' => 'exists:campaigns,id',
         ]);
 
         $ad = Ad::create($validated);
 
-        return response()->json($ad, 201);
+        if (!empty($validated['campaign_ids'])) {
+            $ad->campaigns()->sync($validated['campaign_ids']);
+        }
+
+        return response()->json($ad->load('campaigns'), 201);
     }
 
     /**
@@ -44,7 +49,7 @@ class AdController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $ad = Ad::with('campaign')->findOrFail($id);
+        $ad = Ad::with('campaigns')->findOrFail($id);
 
         return response()->json($ad);
     }
@@ -61,12 +66,17 @@ class AdController extends Controller
             'image_url' => 'sometimes|url',
             'destination_url' => 'sometimes|url',
             'is_active' => 'boolean',
-            'campaign_id' => 'nullable|exists:campaigns,id',
+            'campaign_ids' => 'nullable|array',
+            'campaign_ids.*' => 'exists:campaigns,id',
         ]);
 
         $ad->update($validated);
 
-        return response()->json($ad);
+        if (isset($validated['campaign_ids'])) {
+            $ad->campaigns()->sync($validated['campaign_ids']);
+        }
+
+        return response()->json($ad->load('campaigns'));
     }
 
     /**

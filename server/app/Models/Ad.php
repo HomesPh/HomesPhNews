@@ -14,15 +14,14 @@ class Ad extends Model
         'image_url',
         'destination_url',
         'is_active',
-        'campaign_id',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
     ];
 
-    public function campaign()
+    public function campaigns()
     {
-        return $this->belongsTo(Campaign::class);
+        return $this->belongsToMany(Campaign::class, 'ad_campaign');
     }
 }
