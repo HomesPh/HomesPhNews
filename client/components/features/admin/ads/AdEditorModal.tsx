@@ -24,7 +24,9 @@ import { Input } from "@/components/ui/input";
 import { Ad } from "@/lib/ads/types";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-// import { uploadArticleImage } from "@/lib/api-v2/admin/service/upload/uploadArticleImage";
+import { uploadImage } from "@/lib/api-v2/admin/service/upload/uploadImage";
+import { Loader2 } from "lucide-react";
+
 
 const formSchema = z.object({
   title: z.string().min(2, { message: "Title must be at least 2 characters." }),
@@ -40,7 +42,7 @@ interface AdEditorModalProps {
   mode: 'create' | 'edit';
   initialData?: Ad;
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: FormValues) => Promise<void>;
 }
 
 export default function AdEditorModal({ isOpen, onClose, mode, initialData, onSave }: AdEditorModalProps) {
@@ -55,6 +57,7 @@ export default function AdEditorModal({ isOpen, onClose, mode, initialData, onSa
   });
 
   const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [imageError, setImageError] = useState(false);
   const imageUrl = form.watch('image_url');
 
@@ -62,14 +65,18 @@ export default function AdEditorModal({ isOpen, onClose, mode, initialData, onSa
     setImageError(false);
   }, [imageUrl]);
 
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setIsUploading(true);
       try {
-        // Since this is still down, we'll use placehold.co
-        // const response = await uploadArticleImage(file);
-        form.setValue('image_url', `https://placehold.co/600x400?text=${encodeURIComponent(file.name)}`, { shouldValidate: true, shouldDirty: true });
+        const response = await uploadImage(file);
+        form.setValue('image_url', response.data.url, { shouldValidate: true, shouldDirty: true });
+        // also set the title to the filename if it's empty
+        if (!form.getValues('title')) {
+          form.setValue('title', file.name.split('.').slice(0, -1).join('.'));
+        }
       } catch (error) {
         console.error("Failed to upload image", error);
       } finally {
@@ -98,8 +105,15 @@ export default function AdEditorModal({ isOpen, onClose, mode, initialData, onSa
     }
   }, [isOpen, initialData, form]);
 
-  function onSubmit(data: FormValues) {
-    onSave(data);
+  async function onSubmit(data: FormValues) {
+    try {
+      setIsSaving(true);
+      await onSave(data);
+    } catch (error) {
+      console.error("Error saving ad:", error);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   const handleOpenChange = (open: boolean) => {
@@ -240,11 +254,19 @@ export default function AdEditorModal({ isOpen, onClose, mode, initialData, onSa
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t">
-              <Button type="button" variant="ghost" onClick={onClose}>
+              <Button type="button" variant="ghost" onClick={onClose} disabled={isSaving}>
                 Cancel
               </Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
-                {mode === 'create' ? '+ Create Advertisement' : 'Save Changes'}
+              <Button
+                type="submit"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={isSaving || isUploading}
+              >
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSaving
+                  ? (mode === 'create' ? 'Creating...' : 'Saving...')
+                  : (mode === 'create' ? '+ Create Advertisement' : 'Save Changes')
+                }
               </Button>
             </div>
           </form>
