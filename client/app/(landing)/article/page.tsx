@@ -2,7 +2,7 @@ import { Suspense } from "react";
 
 import ArticleViewCounter from "@/components/features/article/ArticleViewCounter";
 import AdSpace from "@/components/features/admin/ads/AdSpace";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   ArticleHeaderSkeleton,
   ArticleContentSkeleton,
@@ -21,8 +21,8 @@ interface Props {
 }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const { id } = await searchParams;
-  const articleId = Array.isArray(id) ? id[0] : id;
+  const { id, slug } = await searchParams;
+  const articleId = (Array.isArray(slug) ? slug[0] : slug) || (Array.isArray(id) ? id[0] : id);
 
   if (!articleId) {
     return {
@@ -70,11 +70,28 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 }
 
 export default async function Article({ searchParams }: Props) {
-  const { id } = await searchParams;
-  const articleId = Array.isArray(id) ? id[0] : id;
+  const { id, slug } = await searchParams;
+  const articleId = (Array.isArray(slug) ? slug[0] : slug) || (Array.isArray(id) ? id[0] : id);
 
   if (!articleId) {
     notFound();
+  }
+
+  // If accessed by ID, but has a slug, redirect to the slug URL
+  let redirectTo = null;
+  if (id && !slug) {
+    try {
+      const article = await getArticleById(Array.isArray(id) ? id[0] : id);
+      if (article && article.slug) {
+        redirectTo = `/article?slug=${article.slug}`;
+      }
+    } catch (error) {
+      console.error("Error checking for slug redirect:", error);
+    }
+  }
+
+  if (redirectTo) {
+    redirect(redirectTo);
   }
 
   return (

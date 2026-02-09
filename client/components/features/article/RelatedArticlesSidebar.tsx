@@ -34,6 +34,7 @@ export default async function RelatedArticlesSidebar({ id }: RelatedArticlesSide
       .slice(0, 4)
       .map((a) => ({
         id: a.id,
+        slug: a.slug,
         title: a.title,
         views: a.views_count,
         imageUrl: a.image || "/healthcare.jpg",

@@ -248,7 +248,7 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
 
             const payload = {
                 title: articleData.title,
-                slug: articleData.slug,
+                slug: articleData.slug || articleData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
                 summary: articleData.summary,
                 content: articleData.content,
                 category: articleData.category,
