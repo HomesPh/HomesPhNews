@@ -9,18 +9,22 @@ interface SubscribeModalProps {
     onClose: () => void;
 }
 
-type Step = 'choice' | 'email' | 'service';
+type Step = 'choice' | 'email' | 'service' | 'configure';
 
 export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps) {
     const [step, setStep] = useState<Step>('choice');
     const [formData, setFormData] = useState({
         email: "",
         name: "",
+        companyName: "",
         service: "General Inquiry",
         categories: [] as string[],
         countries: [] as string[],
         frequency: "daily",
-        deliveryTime: "08:00"
+        deliveryTime: "08:00",
+        plan: "",
+        price: 0,
+        logo: null as File | null
     });
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -37,12 +41,27 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
         setFormData({
             email: "",
             name: "",
+            companyName: "",
             service: "General Inquiry",
             categories: [],
             countries: [],
             frequency: "daily",
-            deliveryTime: "08:00"
+            deliveryTime: "08:00",
+            plan: "",
+            price: 0,
+            logo: null
         });
+    };
+
+    const handleSelectPlan = (plan: string, price: number) => {
+        setFormData({ ...formData, plan, price });
+        setStep('configure');
+    };
+
+    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setFormData({ ...formData, logo: e.target.files[0] });
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -85,9 +104,42 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                 } else {
                     alert(data.message || 'Something went wrong. Please try again.');
                 }
+            } else if (step === 'configure') {
+                // Handle service subscription with file upload
+                const form = new FormData();
+                form.append('email', formData.email);
+                form.append('name', formData.name); // Although not in backend explicitly, nice to have
+                form.append('company_name', formData.companyName); // Add Company Name
+                // Add categories
+                formData.categories.forEach(cat => form.append('categories[]', cat));
+                formData.countries.forEach(country => form.append('countries[]', country));
+                form.append('features', formData.service); // Using service type as features
+                form.append('time', '09:00'); // Default time for business
+                form.append('plan', formData.plan);
+                form.append('price', formData.price.toString());
+
+                if (formData.logo) {
+                    form.append('logo', formData.logo);
+                }
+
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/subscribe`, {
+                    method: 'POST',
+                    body: form,
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    setIsSubmitted(true);
+                    setTimeout(() => {
+                        handleReset();
+                        onClose();
+                    }, 3000);
+                } else {
+                    alert(data.message || 'Something went wrong. Please try again.');
+                }
             } else {
-                // For service inquiry, we could add another endpoint later
-                // For now, let's just simulate success or implement if needed
+                // Fallback
                 setIsSubmitted(true);
                 setTimeout(() => {
                     handleReset();
@@ -154,7 +206,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                     </button>
                 )}
 
-                <div className="p-[30px] flex-1">
+                <div className="p-5 md:p-[30px] flex-1">
                     {!isSubmitted ? (
                         <>
                             {step === 'choice' && (
@@ -181,18 +233,17 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                         </button>
 
                                         <button
-                                            disabled
-                                            className="group flex items-center gap-[16px] p-[20px] bg-gray-50 border border-[#e5e7eb] rounded-[20px] text-left transition-all cursor-not-allowed opacity-70"
+                                            onClick={() => setStep('service')}
+                                            className="group flex items-center gap-[16px] p-[20px] bg-white border border-[#e5e7eb] rounded-[20px] text-left transition-all hover:border-[#c10007] hover:shadow-xl"
                                         >
-                                            <div className="w-[50px] h-[50px] bg-gray-200 rounded-[12px] flex items-center justify-center text-gray-400 grayscale">
+                                            <div className="w-[50px] h-[50px] bg-[#fef2f2] rounded-[12px] flex items-center justify-center text-[#c10007] transition-all group-hover:scale-110">
                                                 <Briefcase className="w-7 h-7" />
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-center justify-between">
-                                                    <h3 className="font-bold text-[17px] text-gray-400 tracking-[-0.5px]">Avail our Services</h3>
-                                                    <span className="text-[10px] font-bold bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full uppercase tracking-wider">Soon</span>
+                                                    <h3 className="font-bold text-[17px] text-[#111827] tracking-[-0.5px]">Avail our Services</h3>
                                                 </div>
-                                                <p className="text-gray-400 text-[13px] leading-snug">Professional real estate solutions.</p>
+                                                <p className="text-[#6b7280] text-[13px] leading-snug">Professional real estate solutions.</p>
                                             </div>
                                         </button>
                                     </div>
@@ -365,28 +416,162 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                             {step === 'service' && (
                                 <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                                     <h2 className="font-bold text-[22px] text-[#111827] tracking-[-1px] mb-[8px]">
-                                        Service Inquiry
+                                        Choose Your Plan
+                                    </h2>
+                                    <p className="text-[#6b7280] text-[14px] mb-[20px] leading-[20px]">
+                                        Unlock premium features and grow your business with our tailored solutions.
+                                    </p>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-[16px] md:gap-[12px] mb-[20px]">
+                                        {/* Basic Plan */}
+                                        <div className="border border-[#e5e7eb] rounded-[16px] p-[16px] flex flex-col hover:border-[#c10007] transition-all group relative overflow-hidden">
+                                            <div className="mb-[12px]">
+                                                <h3 className="font-bold text-[16px] text-[#111827]">Basic</h3>
+                                                <p className="text-[12px] text-[#6b7280]">Essential tools for starters.</p>
+                                            </div>
+                                            <div className="mb-[16px]">
+                                                <span className="text-[24px] font-bold text-[#111827]">₱499</span>
+                                                <span className="text-[12px] text-[#6b7280] font-medium">/mo</span>
+                                            </div>
+                                            <ul className="space-y-[8px] mb-[16px] flex-1">
+                                                <li className="flex items-start gap-[8px] text-[12px] text-[#374151]">
+                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    Daily News Updates
+                                                </li>
+                                                <li className="flex items-start gap-[8px] text-[12px] text-[#374151]">
+                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    5 credits
+                                                </li>
+                                                <li className="flex items-start gap-[8px] text-[12px] text-[#374151]">
+                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    Article management
+                                                </li>
+                                            </ul>
+                                            <button
+                                                onClick={() => handleSelectPlan('Basic', 499.00)}
+                                                className="w-full py-[8px] border border-[#e5e7eb] rounded-[8px] text-[13px] font-semibold text-[#374151] hover:bg-gray-50 transition-colors"
+                                            >
+                                                Select Basic
+                                            </button>
+                                        </div>
+
+                                        {/* Professional Plan */}
+                                        <div className="border border-[#c10007] bg-[#fff5f5] rounded-[16px] p-[16px] flex flex-col relative shadow-lg md:scale-105 z-10">
+                                            <div className="absolute top-0 right-0 bg-[#c10007] text-white text-[10px] font-bold px-2 py-1 rounded-bl-[10px] rounded-tr-[15px]">
+                                                POPULAR
+                                            </div>
+                                            <div className="mb-[12px]">
+                                                <h3 className="font-bold text-[16px] text-[#c10007]">Professional</h3>
+                                                <p className="text-[12px] text-[#6b7280]">For growing businesses.</p>
+                                            </div>
+                                            <div className="mb-[16px]">
+                                                <span className="text-[24px] font-bold text-[#111827]">₱2,499</span>
+                                                <span className="text-[12px] text-[#6b7280] font-medium">/mo</span>
+                                            </div>
+                                            <ul className="space-y-[8px] mb-[16px] flex-1">
+                                                <li className="flex items-start gap-[8px] text-[12px] text-[#374151] font-medium">
+                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    Everything in Basic
+                                                </li>
+                                                <li className="flex items-start gap-[8px] text-[12px] text-[#374151] font-medium">
+                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    +15 credits
+                                                </li>
+                                                <li className="flex items-start gap-[8px] text-[12px] text-[#374151] font-medium">
+                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    Priority Support
+                                                </li>
+                                            </ul>
+                                            <button
+                                                onClick={() => handleSelectPlan('Professional', 2499.00)}
+                                                className="w-full py-[8px] bg-[#c10007] text-white rounded-[8px] text-[13px] font-semibold hover:bg-[#a00006] transition-colors shadow-md"
+                                            >
+                                                Select Pro
+                                            </button>
+                                        </div>
+
+                                        {/* Enterprise Plan */}
+                                        <div className="border border-[#e5e7eb] rounded-[16px] p-[16px] flex flex-col hover:border-[#c10007] transition-all group">
+                                            <div className="mb-[12px]">
+                                                <h3 className="font-bold text-[16px] text-[#111827]">Enterprise</h3>
+                                                <p className="text-[12px] text-[#6b7280]">Maximum power & scale.</p>
+                                            </div>
+                                            <div className="mb-[16px]">
+                                                <span className="text-[24px] font-bold text-[#111827]">₱4,999</span>
+                                                <span className="text-[12px] text-[#6b7280] font-medium">/mo</span>
+                                            </div>
+                                            <ul className="space-y-[8px] mb-[16px] flex-1">
+                                                <li className="flex items-start gap-[8px] text-[12px] text-[#374151]">
+                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    Everything in Pro
+                                                </li>
+                                                <li className="flex items-start gap-[8px] text-[12px] text-[#374151]">
+                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    +30 credits
+                                                </li>
+                                                <li className="flex items-start gap-[8px] text-[12px] text-[#374151]">
+                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    Custom API Access
+                                                </li>
+                                            </ul>
+                                            <button
+                                                onClick={() => handleSelectPlan('Enterprise', 4999.00)}
+                                                className="w-full py-[8px] border border-[#e5e7eb] rounded-[8px] text-[13px] font-semibold text-[#374151] hover:bg-gray-50 transition-colors"
+                                            >
+                                                Select Enterprise
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="text-center">
+                                        <p className="text-[11px] text-[#9ca3af]">
+                                            Need a custom plan? <a href="#" className="text-[#c10007] font-medium hover:underline">Contact us</a> for more details.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {step === 'configure' && (
+                                <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                                    <h2 className="font-bold text-[22px] text-[#111827] tracking-[-1px] mb-[8px]">
+                                        Configure {formData.plan}
                                     </h2>
                                     <p className="text-[#6b7280] text-[14px] mb-[16px] leading-[20px]">
-                                        Tell us about your needs and our team will get back to you soon.
+                                        Complete your profile to get started.
                                     </p>
 
                                     <form onSubmit={handleSubmit} className="space-y-[12px]">
+                                        {/* Logo Upload */}
+                                        <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:border-[#c10007] transition-colors cursor-pointer relative" onClick={() => document.getElementById('logo-upload')?.click()}>
+                                            <input
+                                                type="file"
+                                                id="logo-upload"
+                                                className="hidden"
+                                                accept="image/*"
+                                                onChange={handleLogoChange}
+                                            />
+                                            {formData.logo ? (
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
+                                                        <img src={URL.createObjectURL(formData.logo)} alt="Logo" className="w-full h-full object-cover" />
+                                                    </div>
+                                                    <span className="text-sm text-gray-700 font-medium">{formData.logo.name}</span>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-1">
+                                                    <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-400">
+                                                        <div className="w-5 h-5 border-2 border-current rounded-sm"></div>
+                                                    </div>
+                                                    <p className="text-sm text-gray-500 font-medium">Upload Brand Logo</p>
+                                                    <p className="text-xs text-gray-400">PNG, JPG up to 2MB</p>
+                                                </div>
+                                            )}
+                                        </div>
+
+
+
                                         <div className="grid grid-cols-2 gap-[12px]">
                                             <div className="col-span-2">
-                                                <label className="block font-semibold text-[13px] text-[#374151] mb-[4px] tracking-[-0.3px]">
-                                                    Full Name
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    value={formData.name}
-                                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                    placeholder="Ricar Doe"
-                                                    className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#c10007] transition-all"
-                                                />
-                                            </div>
-                                            <div className="col-span-1">
                                                 <label className="block font-semibold text-[13px] text-[#374151] mb-[4px] tracking-[-0.3px]">
                                                     Email Address
                                                 </label>
@@ -399,30 +584,79 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                     className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#c10007] transition-all"
                                                 />
                                             </div>
-                                            <div className="col-span-1">
+                                            <div className="col-span-2">
                                                 <label className="block font-semibold text-[13px] text-[#374151] mb-[4px] tracking-[-0.3px]">
-                                                    Service Type
+                                                    Company Name
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    value={formData.companyName}
+                                                    onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                                                    placeholder="Company Name"
+                                                    className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#c10007] transition-all"
+                                                />
+                                            </div>
+
+                                            {/* Categories (Simplified for Configure Step) */}
+                                            <div className="col-span-2">
+                                                <label className="block font-semibold text-[13px] text-[#374151] mb-[4px] tracking-[-0.3px]">
+                                                    Category
+                                                </label>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {Categories.filter(c => c.id !== "All").map((category) => (
+                                                        <button
+                                                            key={category.id}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFormData({ ...formData, categories: [category.id] });
+                                                            }}
+                                                            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${formData.categories.includes(category.id)
+                                                                ? 'bg-[#fef2f2] border-[#c10007] text-[#c10007]'
+                                                                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                                                                }`}
+                                                        >
+                                                            {category.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="col-span-2">
+                                                <label className="block font-semibold text-[13px] text-[#374151] mb-[4px] tracking-[-0.3px]">
+                                                    Target Country
                                                 </label>
                                                 <select
                                                     className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#c10007] bg-white transition-all cursor-pointer"
-                                                    value={formData.service}
-                                                    onChange={(e) => setFormData({ ...formData, service: e.target.value })}
+                                                    onChange={(e) => {
+                                                        if (e.target.value && !formData.countries.includes(e.target.value)) {
+                                                            setFormData({ ...formData, countries: [e.target.value] }); // Single region for simplicity now
+                                                        }
+                                                    }}
                                                 >
-                                                    <option>Property Management</option>
-                                                    <option>Consultation</option>
-                                                    <option>Buy/Sell</option>
-                                                    <option>Advertising</option>
-                                                    <option>Other</option>
+                                                    <option value="">Select Country...</option>
+                                                    {Countries.filter(c => c.id !== "Global").map((country) => (
+                                                        <option key={country.id} value={country.id}>
+                                                            {country.label}
+                                                        </option>
+                                                    ))}
                                                 </select>
                                             </div>
                                         </div>
-                                        <button
-                                            type="submit"
-                                            disabled={isLoading}
-                                            className="w-full bg-[#c10007] text-white py-[12px] rounded-[10px] font-bold text-[16px] tracking-[-0.5px] hover:bg-[#a00006] transition-all shadow-md active:scale-[0.98] mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                                        >
-                                            {isLoading ? "Sending..." : "Send Request"}
-                                        </button>
+
+                                        <div className="bg-gray-50 rounded-xl p-4 mt-4 flex items-center justify-between border border-gray-100">
+                                            <div>
+                                                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Monthly</p>
+                                                <p className="text-xl font-bold text-gray-900">₱{formData.price.toLocaleString()}</p>
+                                            </div>
+                                            <button
+                                                type="submit"
+                                                disabled={isLoading}
+                                                className="bg-[#c10007] text-white px-6 py-2.5 rounded-[10px] font-bold text-[14px] hover:bg-[#a00006] transition-all shadow-md active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                                            >
+                                                {isLoading ? "Processing..." : "Confirm & Pay"}
+                                            </button>
+                                        </div>
                                     </form>
                                 </div>
                             )}

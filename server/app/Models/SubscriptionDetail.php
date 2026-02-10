@@ -25,8 +25,13 @@ class SubscriptionDetail extends Model
         'category',
         'country',
         'email',
+        'company_name',
         'features',
         'time',
+        'plan',
+        'logo',
+        'price',
+        'status',
     ];
 
     /**

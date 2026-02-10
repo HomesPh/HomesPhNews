@@ -140,10 +140,14 @@ class SubscriptionController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
+            'company_name' => 'nullable|string',
             'categories' => 'required|array',
             'countries' => 'required|array',
             'features' => 'nullable|string',
             'time' => 'nullable|string',
+            'plan' => 'nullable|string',
+            'price' => 'nullable|numeric',
+            'logo' => 'nullable|image|max:2048', // 2MB max
         ]);
 
         if ($validator->fails()) {
@@ -194,12 +198,23 @@ class SubscriptionController extends Controller
             }
 
             // Save new subscription to database
+            $logoPath = null;
+            if ($request->hasFile('logo')) {
+                $logoPath = $request->file('logo')->store('subscription-logos', 'public');
+            }
+
+            // Save new subscription to database
             $subscription = SubscriptionDetail::create([
                 'email' => $request->email,
+                'company_name' => $request->company_name,
                 'category' => $request->categories,
                 'country' => $request->countries,
                 'features' => $request->features,
                 'time' => $request->time,
+                'plan' => $request->plan,
+                'price' => $request->price ?? 0.00,
+                'logo' => $logoPath,
+                'status' => 'active',
             ]);
 
             // Store in cache for algorithm purpose only
