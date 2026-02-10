@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
+use App\Http\Resources\Articles\ArticleCollection;
+
 class SiteContentController extends Controller
 {
     public function getArticles(Request $request)
@@ -25,7 +27,7 @@ class SiteContentController extends Controller
                 'url' => $site->site_url,
                 'description' => $site->site_description,
             ],
-            'data' => $articles
+            'data' => new ArticleCollection($articles)
         ]);
     }
 }
