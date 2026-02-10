@@ -60,7 +60,9 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                     body: JSON.stringify({
                         email: formData.email,
                         categories: formData.categories,
-                        countries: formData.countries
+                        countries: formData.countries,
+                        features: formData.frequency,
+                        time: formData.deliveryTime,
                     }),
                 });
 

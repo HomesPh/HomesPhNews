@@ -25,6 +25,8 @@ class SubscriptionDetail extends Model
         'category',
         'country',
         'email',
+        'features',
+        'time',
     ];
 
     /**

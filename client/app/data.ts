@@ -26,7 +26,7 @@ export const Countries: { id: string; label: string; }[] = [
  * Categories for navigation.
  */
 export const Categories: { id: string; label: string; }[] = [
-    { id: "General", label: "General" },
+    { id: "All", label: "All News" },
     { id: "Community", label: "Community" },
     { id: "Labor & Employment", label: "Labor & Employment" },
     { id: "Healthcare", label: "Healthcare" },
