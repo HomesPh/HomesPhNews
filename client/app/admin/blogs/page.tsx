@@ -108,9 +108,11 @@ function BlogsPageContent() {
     );
 }
 
+import { SearchSkeleton } from '@/components/features/dashboard/DashboardSkeletons';
+
 export default function BlogsPage() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div className="p-8 bg-[#f9fafb] min-h-screen"><SearchSkeleton /></div>}>
             <BlogsPageContent />
         </Suspense>
     );

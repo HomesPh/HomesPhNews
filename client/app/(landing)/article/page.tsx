@@ -9,6 +9,7 @@ import {
   SidebarSkeleton,
   BreadcrumbSkeleton
 } from "@/components/features/article/ArticleSkeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import ArticleDetailContent from "@/components/features/article/ArticleDetailContent";
 import RelatedArticlesSidebar from "@/components/features/article/RelatedArticlesSidebar";
 import ArticleBreadcrumbContainer from "@/components/features/article/ArticleBreadcrumbContainer";
@@ -97,7 +98,7 @@ export default async function Article({ searchParams }: Props) {
   return (
     <div className="max-w-360 mx-auto px-4 md:px-27.5 py-8">
       <div className="max-w-360 mx-auto px-4 md:px-27.5 py-8">
-        <Suspense fallback={null}>
+        <Suspense fallback={<Skeleton className="h-0 w-0" />}>
           <ArticleViewCounter articleId={articleId} />
         </Suspense>
 
