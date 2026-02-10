@@ -42,6 +42,7 @@ class Article extends Model
         'custom_titles' => 'array',
         'topics' => 'array',
         'published_sites' => 'array', // ["FilipinoHomes", "Rent.ph", ...]
+        'image' => 'array',
         'views_count' => 'integer',
         'is_deleted' => 'boolean',
     ];
