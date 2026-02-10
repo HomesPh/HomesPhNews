@@ -39,25 +39,25 @@ class ArticleController extends Controller
         // Redirect to specialized Redis fetcher if status is 'pending'
         // This ensures we get the full list from the scraper/Redis
         if ($status === 'pending') {
-            return $this->getPendingArticlesFromRedis($validated, $perPage, (int)$page);
+            return $this->getPendingArticlesFromRedis($validated, $perPage, (int) $page);
         }
 
         // Apply common filters (Search, Dates, Topics)
         $query = Article::query()
             // Filter by status if specified (except 'all' and 'deleted' which handle is_deleted)
             // Note: 'pending' is redirected to getPendingArticlesFromRedis at line 41.
-            ->when($status === 'published', fn ($q) => $q->where('status', 'published'))
-            ->when($status === 'pending review', fn ($q) => $q->where('status', 'pending review'))
-            ->when($status === 'rejected', fn ($q) => $q->where('status', 'rejected'))
+            ->when($status === 'published', fn($q) => $q->where('status', 'published'))
+            ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
+            ->when($status === 'rejected', fn($q) => $q->where('status', 'rejected'))
             ->when(!$status || $status === 'all', function ($q) {
                 // For "All", only show active primary statuses to match getStatusCounts logic
                 // This excludes 'rejected' articles from the general 'All' view
                 return $q->whereIn('status', ['published', 'pending review']);
             })
-            
+
             // Filter by is_deleted based on status
-            ->when($status === 'deleted', fn ($q) => $q->where('is_deleted', true))
-            ->when($status !== 'deleted', fn ($q) => $q->where('is_deleted', false))
+            ->when($status === 'deleted', fn($q) => $q->where('is_deleted', true))
+            ->when($status !== 'deleted', fn($q) => $q->where('is_deleted', false))
 
             ->when($validated['search'] ?? null, function ($q, $s) {
                 $q->where(function ($sub) use ($s) {
@@ -68,10 +68,10 @@ class ArticleController extends Controller
                         ->orWhere('topics', 'LIKE', "%{$s}%");
                 });
             })
-            ->when($validated['start_date'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '>=', $d))
-            ->when($validated['end_date'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '<=', $d))
-            ->when($validated['category'] ?? null, fn ($q, $c) => $q->where('category', $c))
-            ->when($validated['country'] ?? null, fn ($q, $c) => $q->where('country', 'like', "%{$c}%"));
+            ->when($validated['start_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '>=', $d))
+            ->when($validated['end_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '<=', $d))
+            ->when($validated['category'] ?? null, fn($q, $c) => $q->where('category', $c))
+            ->when($validated['country'] ?? null, fn($q, $c) => $q->where('country', 'like', "%{$c}%"));
 
         // Get filter counts before pagination (from database)
         $availableCategories = (clone $query)->distinct()->whereNotNull('category')->pluck('category')->sort()->values()->toArray();
@@ -82,7 +82,7 @@ class ArticleController extends Controller
             try {
                 $redisCountries = collect($this->redisService->getCountries())->pluck('name')->toArray();
                 $redisCategories = collect($this->redisService->getCategories())->pluck('name')->toArray();
-                
+
                 // Merge and deduplicate
                 $availableCategories = collect(array_merge($availableCategories, $redisCategories))
                     ->unique()
@@ -118,7 +118,7 @@ class ArticleController extends Controller
 
                 $redisItems = collect($redisRaw)->map(function ($a) {
                     return [
-                        'id' => (string)($a['id'] ?? ''),
+                        'id' => (string) ($a['id'] ?? ''),
                         'title' => $a['title'] ?? 'Untitled',
                         'summary' => isset($a['content']) ? substr($a['content'], 0, 150) . '...' : '',
                         'content' => $a['content'] ?? '',
@@ -127,9 +127,9 @@ class ArticleController extends Controller
                         'category' => $a['category'] ?? 'General',
                         'country' => $a['country'] ?? 'Global',
                         'status' => 'pending',
-                        'created_at' => (isset($a['timestamp']) && is_numeric($a['timestamp'])) 
-                                        ? date('Y-m-d H:i:s', (int)$a['timestamp']) 
-                                        : ($a['timestamp'] ?? now()->toIso8601String()),
+                        'created_at' => (isset($a['timestamp']) && is_numeric($a['timestamp']))
+                            ? date('Y-m-d H:i:s', (int) $a['timestamp'])
+                            : ($a['timestamp'] ?? now()->toIso8601String()),
                         'views_count' => 0,
                         'published_sites' => [],
                     ];
@@ -183,7 +183,7 @@ class ArticleController extends Controller
         $articles = array_values($articles);
 
         // Sort by timestamp (newest first)
-        usort($articles, fn ($a, $b) => ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0));
+        usort($articles, fn($a, $b) => ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0));
 
         // Manual pagination
         $total = count($articles);
@@ -191,31 +191,13 @@ class ArticleController extends Controller
         $paginatedArticles = array_slice($articles, $offset, $perPage);
 
         // Format for admin display (add status field)
-        $formattedArticles = array_map(function ($article) {
-            return [
-                'id' => $article['id'] ?? '',
-                'title' => $article['title'] ?? '',
-                'summary' => substr($article['content'] ?? '', 0, 200).'...',
-                'category' => $article['category'] ?? '',
-                'country' => $article['country'] ?? '',
-                'topics' => $article['topics'] ?? [],
-                'keywords' => $article['keywords'] ?? '',
-                'image_url' => $article['image_url'] ?? '',
-                'original_url' => $article['original_url'] ?? '',
-                'source' => $article['source'] ?? '',
-                'status' => 'pending', // All Redis articles are pending
-                'created_at' => isset($article['timestamp'])
-                    ? date('Y-m-d H:i:s', (int) $article['timestamp'])
-                    : null,
-                'views_count' => 0,
-            ];
-        }, $paginatedArticles);
+        $formattedArticles = ArticleResource::collection($paginatedArticles);
 
         // Get actual available filters from Redis
         $redisCountries = collect($this->redisService->getCountries())->pluck('name')->toArray();
         $redisCategories = collect($this->redisService->getCategories())->pluck('name')->toArray();
 
-        \Illuminate\Support\Facades\Log::info('Admin API: Fetched '.count($formattedArticles).' pending articles from Redis.');
+        \Illuminate\Support\Facades\Log::info('Admin API: Fetched ' . count($formattedArticles) . ' pending articles from Redis.');
 
         // Calculate status counts
         $statusCounts = $this->getStatusCounts();
@@ -243,14 +225,14 @@ class ArticleController extends Controller
     {
         $validated = $request->validated();
         $validated['status'] = $validated['status'] ?? 'pending review';
-        
+
         // Generate UUID for the article ID
         $validated['id'] = \Illuminate\Support\Str::uuid()->toString();
         $validated['article_id'] = $validated['id'];
 
         $siteNames = $validated['published_sites'] ?? [];
         unset($validated['published_sites']);
-        
+
         // Remove fields that don't exist in the articles table
         unset($validated['gallery_images']);
         unset($validated['split_images']);
@@ -267,7 +249,7 @@ class ArticleController extends Controller
         $validated['is_deleted'] = false;
         $article = Article::create($validated);
 
-        if (! empty($siteNames)) {
+        if (!empty($siteNames)) {
             $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
             $article->publishedSites()->sync($siteIds);
         }
@@ -292,7 +274,7 @@ class ArticleController extends Controller
      */
     public function show($id): JsonResponse|ArticleResource
     {
-        if (is_numeric($id) || ! \Illuminate\Support\Str::isUuid($id)) {
+        if (is_numeric($id) || !\Illuminate\Support\Str::isUuid($id)) {
             $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])->find($id);
             if ($article) {
                 return new ArticleResource($article);
@@ -319,19 +301,19 @@ class ArticleController extends Controller
      */
     public function updatePending(UpdateArticleRequest $request, string $id): JsonResponse|ArticleResource
     {
-        if (! \Illuminate\Support\Str::isUuid($id)) {
+        if (!\Illuminate\Support\Str::isUuid($id)) {
             return response()->json(['message' => 'Only pending Redis articles can be edited via this endpoint'], 400);
         }
 
         $payload = $request->validated();
 
-        if (! isset($payload['content']) && isset($payload['summary'])) {
+        if (!isset($payload['content']) && isset($payload['summary'])) {
             $payload['content'] = $payload['summary'];
         }
 
         $updated = $this->redisService->updateArticle($id, $payload);
 
-        if (! $updated) {
+        if (!$updated) {
             return response()->json(['message' => 'Article not found'], 404);
         }
 
@@ -356,7 +338,7 @@ class ArticleController extends Controller
         if (isset($validated['galleryImages']) && is_array($validated['galleryImages'])) {
             // Remove old images
             $article->images()->delete();
-            
+
             // Add new images
             foreach ($validated['galleryImages'] as $imagePath) {
                 if (!empty($imagePath)) {
@@ -390,7 +372,7 @@ class ArticleController extends Controller
      */
     public function publish(ArticleActionRequest $request, string $id): JsonResponse|ArticleResource
     {
-        if (! \Illuminate\Support\Str::isUuid($id)) {
+        if (!\Illuminate\Support\Str::isUuid($id)) {
             return response()->json(['message' => 'Invalid article ID format'], 400);
         }
 
@@ -405,23 +387,23 @@ class ArticleController extends Controller
                 'is_deleted' => false,
                 'status' => 'published'
             ]);
-            
+
             // Sync sites if provided
             $siteNames = $validated['published_sites'] ?? [];
-            if (! empty($siteNames)) {
+            if (!empty($siteNames)) {
                 $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
                 $existing->publishedSites()->sync($siteIds);
             }
 
             // Cleanup Redis if it's still there
             $this->redisService->deleteArticle($id);
-            
+
             return new ArticleResource($existing);
         }
 
         // 2. If not in DB, check Redis (Source of Truth for new scraper articles)
         $redisArticle = $this->redisService->getArticle($id);
-        if (! $redisArticle) {
+        if (!$redisArticle) {
             return response()->json(['message' => 'Article not found in database or pending queue'], 404);
         }
 
@@ -446,7 +428,7 @@ class ArticleController extends Controller
         ]);
 
         $siteNames = $validated['published_sites'] ?? [];
-        if (! empty($siteNames)) {
+        if (!empty($siteNames)) {
             $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
             $article->publishedSites()->sync($siteIds);
         }
@@ -470,7 +452,7 @@ class ArticleController extends Controller
 
         $this->redisService->deleteArticle($id);
 
-        \Illuminate\Support\Facades\Log::info("Article {$id} published to sites: ".implode(', ', $siteNames));
+        \Illuminate\Support\Facades\Log::info("Article {$id} published to sites: " . implode(', ', $siteNames));
 
         return (new ArticleResource($article))->response()->setStatusCode(201);
     }
@@ -512,7 +494,7 @@ class ArticleController extends Controller
                         'is_deleted' => true,
                         'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
                     ]);
-                    
+
                     $this->redisService->deleteArticle($id);
                     $deletedFromRedis = true;
                 }
@@ -538,7 +520,7 @@ class ArticleController extends Controller
     public function restore(string $id): JsonResponse
     {
         $article = Article::find($id);
-        
+
         if (!$article) {
             return response()->json(['message' => 'Article not found'], 404);
         }
@@ -598,7 +580,7 @@ class ArticleController extends Controller
 
         return [
             'all' => $allCount,
-            'published' => $publishedCount, 
+            'published' => $publishedCount,
             'pending' => $pendingCount + $pendingReviewCount,
             'deleted' => $deletedCount,
         ];
