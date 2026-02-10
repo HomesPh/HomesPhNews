@@ -53,6 +53,8 @@ class SubscriptionController extends Controller
         $validator = Validator::make($request->all(), [
             'categories' => 'required|array',
             'countries' => 'required|array',
+            'features' => 'nullable|string',
+            'time' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -67,6 +69,8 @@ class SubscriptionController extends Controller
             $subscription->update([
                 'category' => $request->categories,
                 'country' => $request->countries,
+                'features' => $request->features,
+                'time' => $request->time,
             ]);
 
             // Store in cache for algorithm purpose only
@@ -138,6 +142,8 @@ class SubscriptionController extends Controller
             'email' => 'required|email',
             'categories' => 'required|array',
             'countries' => 'required|array',
+            'features' => 'nullable|string',
+            'time' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -192,6 +198,8 @@ class SubscriptionController extends Controller
                 'email' => $request->email,
                 'category' => $request->categories,
                 'country' => $request->countries,
+                'features' => $request->features,
+                'time' => $request->time,
             ]);
 
             // Store in cache for algorithm purpose only

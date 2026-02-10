@@ -6,6 +6,8 @@ export interface SubscriptionData {
   email: string;
   category: string | string[];
   country: string | string[];
+  features?: string;
+  time?: string;
 }
 
 export interface GetSubscriptionResponse extends SubscriptionData {
@@ -15,6 +17,8 @@ export interface GetSubscriptionResponse extends SubscriptionData {
 export interface UpdateSubscriptionRequest {
   categories: string[];
   countries: string[];
+  features?: string;
+  time?: string;
 }
 
 /**
