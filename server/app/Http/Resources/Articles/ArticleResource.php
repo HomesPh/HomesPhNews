@@ -52,6 +52,22 @@ class ArticleResource extends JsonResource
             $sites = is_array($sitesData) ? $sitesData : [];
         }
 
+        // Filter sites for external API: Only show the authenticated site
+        // This prevents exposing other sites that also published the same article
+        if ($request->attributes->has('site')) {
+            $authenticatedSite = $request->attributes->get('site');
+            $authenticatedSiteName = $authenticatedSite->site_name ?? null;
+            
+            if ($authenticatedSiteName) {
+                // Filter to only include the authenticated site
+                $sites = array_filter($sites, function($siteName) use ($authenticatedSiteName) {
+                    return strval($siteName) === strval($authenticatedSiteName);
+                });
+                // Re-index array to ensure sequential keys
+                $sites = array_values($sites);
+            }
+        }
+
         // Handle images (robust)
         $images = [];
         if ($isModel) {
@@ -85,13 +101,27 @@ class ArticleResource extends JsonResource
         $isDeleted = (bool) $get('is_deleted', false);
         $status = (string) $get('status', 'pending');
 
+        // Check if this is an external API call (has authenticated site)
+        $isExternalApi = $request->attributes->has('site');
+
+        // Get raw content values
+        $rawContent = (string) $get('content', '');
+        $rawSummary = (string) $get('summary', $get('content', ''));
+        $rawDescription = (string) $get('summary', $get('content', ''));
+
+        // Sanitize HTML tags for external API calls only
+        // This removes all HTML tags (<p>, <b>, <i>, <ul>, <ol>, etc.) and converts to plain text
+        $content = $isExternalApi ? $this->stripHtmlTags($rawContent) : $rawContent;
+        $summary = $isExternalApi ? $this->stripHtmlTags($rawSummary) : $rawSummary;
+        $description = $isExternalApi ? $this->stripHtmlTags($rawDescription) : $rawDescription;
+
         return [
             'id' => (string) $get('id', ''),
             'slug' => (string) $get('slug', ''),
             'article_id' => (string) $get('article_id', $get('id', '')),
             'title' => (string) $get('title', ''),
-            'summary' => (string) $get('summary', $get('content', '')),
-            'content' => (string) $get('content', ''),
+            'summary' => $summary,
+            'content' => $content,
             'category' => (string) $get('category', 'All'),
             'country' => (string) $get('country', $get('location', 'Global')),
             'status' => $isDeleted ? 'deleted' : $status,
@@ -100,7 +130,7 @@ class ArticleResource extends JsonResource
             'image_url' => $this->sanitizeImageUrl($data['image_url'] ?? $data['image'] ?? ''),
             'image' => $this->sanitizeImageUrl($data['image'] ?? $data['image_url'] ?? ''),
             'location' => (string) $get('country', $get('location', 'Global')),
-            'description' => (string) $get('summary', $get('content', '')),
+            'description' => $description,
             'date' => (string) $date,
             'views' => number_format((int) $get('views_count', 0)) . ' views',
             'published_sites' => array_map('strval', $sites),
@@ -145,5 +175,34 @@ class ArticleResource extends JsonResource
         }
 
         return $str;
+    }
+
+    /**
+     * Strip all HTML tags from text content for external API responses.
+     * Removes tags like <p>, <b>, <i>, <ul>, <ol>, <br>, etc. and converts to plain text.
+     * Also cleans up extra whitespace and line breaks.
+     *
+     * @param string $html The HTML content to sanitize
+     * @return string Plain text with all HTML tags removed
+     */
+    protected function stripHtmlTags(string $html): string
+    {
+        if (empty($html)) {
+            return '';
+        }
+
+        // Remove all HTML tags
+        $text = strip_tags($html);
+
+        // Decode HTML entities (e.g., &nbsp; → space, &amp; → &)
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        // Replace multiple whitespace characters with single space
+        $text = preg_replace('/\s+/', ' ', $text);
+
+        // Trim whitespace from start and end
+        $text = trim($text);
+
+        return $text;
     }
 }
