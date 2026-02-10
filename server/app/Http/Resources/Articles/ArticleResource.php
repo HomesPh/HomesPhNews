@@ -92,7 +92,7 @@ class ArticleResource extends JsonResource
             'title' => (string) $get('title', ''),
             'summary' => (string) $get('summary', $get('content', '')),
             'content' => (string) $get('content', ''),
-            'category' => (string) $get('category', 'General'),
+            'category' => (string) $get('category', 'All'),
             'country' => (string) $get('country', $get('location', 'Global')),
             'status' => $isDeleted ? 'deleted' : $status,
             'created_at' => (string) $date,
