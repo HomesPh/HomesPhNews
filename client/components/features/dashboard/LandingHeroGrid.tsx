@@ -7,11 +7,12 @@ import { ArticleResource } from "@/lib/api-v2";
 import ShareButtons from "@/components/shared/ShareButtons";
 import { sanitizeImageUrl } from "@/lib/utils";
 
-interface LandingHeroGridProps {
+export interface LandingHeroGridProps {
     articles: ArticleResource[];
+    basePath?: string;
 }
 
-export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
+export default function LandingHeroGrid({ articles, basePath = '/article' }: LandingHeroGridProps) {
     const main = articles[0];
 
     if (!main) return null;
@@ -25,7 +26,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
         return (
             <div className="mb-8 md:h-[405px]">
                 <Link
-                    href={main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`}
+                    href={basePath === '/article' ? (main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`) : `${basePath}/${main.id}`}
                     className="relative group cursor-pointer block w-full h-full overflow-hidden"
                 >
                     <Image
@@ -59,7 +60,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
                             </div>
                             <ShareButtons
-                                url={main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`}
+                                url={basePath === '/article' ? (main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`) : `${basePath}/${main.id}`}
                                 title={main.title}
                                 description={main.summary || main.content}
                                 size="sm"
@@ -79,7 +80,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                 {articles.map((article) => (
                     <Link
                         key={article.id}
-                        href={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                        href={basePath === '/article' ? (article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`) : `${basePath}/${article.id}`}
                         className="relative group cursor-pointer overflow-hidden h-full min-w-[90vw] md:min-w-auto snap-center shrink-0 block"
                     >
                         <Image
@@ -109,7 +110,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                     <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                 </div>
                                 <ShareButtons
-                                    url={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                                    url={basePath === '/article' ? (article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`) : `${basePath}/${article.id}`}
                                     title={article.title}
                                     description={article.summary || article.content}
                                     size="sm"
@@ -131,7 +132,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
             <div className="flex overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-4 gap-1 mb-8 h-[400px] md:h-[405px] scrollbar-hide">
                 {/* Main Article (Left Half) */}
                 <Link
-                    href={main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`}
+                    href={basePath === '/article' ? (main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`) : `${basePath}/${main.id}`}
                     className="md:col-span-2 relative group cursor-pointer overflow-hidden h-full min-w-[90vw] md:min-w-auto snap-center shrink-0 block"
                 >
                     <Image
@@ -162,7 +163,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
                             </div>
                             <ShareButtons
-                                url={main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`}
+                                url={basePath === '/article' ? (main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`) : `${basePath}/${main.id}`}
                                 title={main.title}
                                 description={main.summary || main.content}
                                 size="sm"
@@ -177,7 +178,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                     {[side1, side2].map((article) => (
                         <Link
                             key={article.id}
-                            href={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                            href={basePath === '/article' ? (article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`) : `${basePath}/${article.id}`}
                             className="relative group cursor-pointer overflow-hidden h-full block"
                         >
                             <Image
@@ -207,7 +208,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                         <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                     </div>
                                     <ShareButtons
-                                        url={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                                        url={basePath === '/article' ? (article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`) : `${basePath}/${article.id}`}
                                         title={article.title}
                                         size="xs"
                                         className="transition-opacity"
@@ -230,7 +231,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
         <div className="flex overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-4 gap-1 mb-8 h-[400px] md:h-[405px] scrollbar-hide">
             {/* Large Main Article */}
             <Link
-                href={main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`}
+                href={basePath === '/article' ? (main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`) : `${basePath}/${main.id}`}
                 className="md:col-span-2 relative group cursor-pointer overflow-hidden h-full min-w-[90vw] md:min-w-auto snap-center shrink-0 block"
             >
                 <Image
@@ -264,7 +265,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
                         </div>
                         <ShareButtons
-                            url={main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`}
+                            url={basePath === '/article' ? (main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`) : `${basePath}/${main.id}`}
                             title={main.title}
                             description={main.summary || main.content}
                             size="sm"
@@ -279,7 +280,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                 {/* Top Medium Article */}
                 {topSmall && (
                     <Link
-                        href={topSmall.slug ? `/article?slug=${topSmall.slug}` : `/article?id=${topSmall.id}`}
+                        href={basePath === '/article' ? (topSmall.slug ? `/article?slug=${topSmall.slug}` : `/article?id=${topSmall.id}`) : `${basePath}/${topSmall.id}`}
                         className="relative group cursor-pointer overflow-hidden h-[200px] block"
                     >
                         <Image
@@ -309,7 +310,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                     <span>{topSmall.created_at ? new Date(topSmall.created_at).toLocaleDateString() : 'Recently'}</span>
                                 </div>
                                 <ShareButtons
-                                    url={topSmall.slug ? `/article?slug=${topSmall.slug}` : `/article?id=${topSmall.id}`}
+                                    url={basePath === '/article' ? (topSmall.slug ? `/article?slug=${topSmall.slug}` : `/article?id=${topSmall.id}`) : `${basePath}/${topSmall.id}`}
                                     title={topSmall.title}
                                     description={topSmall.summary || topSmall.content}
                                     size="xs"
@@ -325,7 +326,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                     {[bottomSmall1, bottomSmall2].map((article, idx) => article ? (
                         <Link
                             key={article.id || idx}
-                            href={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                            href={basePath === '/article' ? (article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`) : `${basePath}/${article.id}`}
                             className="relative group cursor-pointer overflow-hidden block"
                         >
                             <Image
@@ -353,7 +354,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                         <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                     </div>
                                     <ShareButtons
-                                        url={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                                        url={basePath === '/article' ? (article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`) : `${basePath}/${article.id}`}
                                         title={article.title}
                                         size="xs"
                                         className="transition-opacity"

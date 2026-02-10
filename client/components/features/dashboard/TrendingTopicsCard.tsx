@@ -6,13 +6,19 @@ import { useRouter } from "next/navigation";
 interface TrendingTopicsProps {
     items: { id: number | string; label: string; }[]
     className?: string;
+    title?: string;
+    basePath?: string;
 }
 
-export default function TrendingTopicsCard({ items, className }: TrendingTopicsProps) {
+export default function TrendingTopicsCard({ items, className, title = "Trending Topics", basePath = '/search' }: TrendingTopicsProps) {
     const router = useRouter();
 
     const handleItemClick = (label: string) => {
-        router.push(`/search?q=${encodeURIComponent(label)}`);
+        if (basePath === '/search') {
+            router.push(`/search?q=${encodeURIComponent(label)}`);
+        } else {
+            router.push(`${basePath}?topic=${encodeURIComponent(label)}`);
+        }
     };
 
     return (
@@ -20,7 +26,7 @@ export default function TrendingTopicsCard({ items, className }: TrendingTopicsP
             <div className="bg-[#cc0000] px-4 py-1 mb-6">
                 <h3 className="text-white text-xs font-black uppercase tracking-widest flex items-center gap-2">
                     <Flame className="w-3 h-3" />
-                    Trending Topics
+                    {title}
                 </h3>
             </div>
 

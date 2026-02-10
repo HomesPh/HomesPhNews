@@ -13,9 +13,10 @@ interface HeroSlide {
 
 interface LandingHeroCarouselProps {
     slides: HeroSlide[];
+    basePath?: string;
 }
 
-export default function LandingHeroCarousel({ slides }: LandingHeroCarouselProps) {
+export default function LandingHeroCarousel({ slides, basePath }: LandingHeroCarouselProps) {
     const [current, setCurrent] = useState(0);
     const [isHovered, setIsHovered] = useState(false);
 
@@ -63,7 +64,7 @@ export default function LandingHeroCarousel({ slides }: LandingHeroCarouselProps
                                 We might want a header or just the grid. 
                                 The grid doesn't currently include a header. 
                             */}
-                            <LandingHeroGrid articles={slide.articles} />
+                            <LandingHeroGrid articles={slide.articles} basePath={basePath} />
                         </div>
                     ))}
                 </div>

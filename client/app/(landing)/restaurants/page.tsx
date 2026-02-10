@@ -1,4 +1,4 @@
-import { getArticlesFeed } from "@/lib/api-v2/public/services/article/getArticlesFeed";
+import { getRestaurants } from "@/lib/api-v2/public/services/restaurant/getRestaurants";
 import LandingNewsBlock from "@/components/features/dashboard/LandingNewsBlock";
 import MostReadTodayCard from "@/components/features/dashboard/MostReadTodayCard";
 import TrendingTopicsCard from "@/components/features/dashboard/TrendingTopicsCard";
@@ -7,6 +7,7 @@ import LandingHeroCarousel from "@/components/features/dashboard/LandingHeroCaro
 import AdSpace from "@/components/features/admin/ads/AdSpace";
 import Link from 'next/link';
 import type { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
+import type { Restaurant } from "@/lib/api-v2/types/RestaurantResource";
 
 export const dynamic = 'force-dynamic';
 
@@ -14,114 +15,167 @@ type Props = {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
+// Helper to safely parse JSON fields that might be strings or arrays
+const parseJsonField = (field: any): any[] => {
+    if (Array.isArray(field)) return field;
+    if (typeof field === 'string') {
+        try {
+            const parsed = JSON.parse(field);
+            if (Array.isArray(parsed)) return parsed;
+        } catch (e) {
+            return field ? [field] : [];
+        }
+    }
+    return [];
+};
+
+// Helper to map Restaurant to ArticleResource for UI components
+const mapRestaurantToArticle = (restaurant: Restaurant): ArticleResource => {
+    const images = parseJsonField(restaurant.image_url);
+    const cuisines = parseJsonField(restaurant.cuisine_type);
+
+    return {
+        id: restaurant.id,
+        title: restaurant.name,
+        slug: undefined, // undefined to fall back to ID routing
+        summary: restaurant.description,
+        content: restaurant.description,
+        image: images[0] || '',
+        image_url: images[0] || '',
+        category: cuisines[0] || "Restaurant",
+        country: restaurant.country,
+        // Convert timestamp (seconds) to ISO string
+        created_at: restaurant.timestamp ? new Date(restaurant.timestamp * 1000).toISOString() : new Date().toISOString(),
+        source: restaurant.city || "HomesPh",
+        views_count: Math.floor(restaurant.rating * 100) || 0, // Mock views from rating
+        topics: cuisines,
+        status: 'published',
+        keywords: '',
+        original_url: '',
+        published_sites: []
+    };
+};
+
 export default async function RestaurantPage({ searchParams }: Props) {
     const params = await searchParams;
-    const topic = (params.topic as string) || undefined;
+    const topic = Array.isArray(params.topic) ? params.topic[0] : params.topic;
+    const country = Array.isArray(params.country) ? params.country[0] : params.country;
+    const search = Array.isArray(params.search) ? params.search[0] : params.search;
+    const page = Number(params.page) || 1;
 
-    const feedData = await getArticlesFeed({
-        category: "Restaurant",
+    const response = await getRestaurants({
+        limit: 30,
+        page: page,
         topic: topic,
-        limit: 30, // Increased limit to feed carousel + blocks
+        country: country,
+        search: search,
     });
 
-    let articles = feedData.latest_global || [];
-    const trending = feedData.trending || [];
-    const mostRead = feedData.most_read || [];
-
-    // --- DUMMY DATA FOR VISUAL VERIFICATION ---
-    if (articles.length === 0) {
-        const { mockSpecialtyContent } = require('@/lib/api-v2/mock/mockArticles');
-        articles = mockSpecialtyContent.filter((a: ArticleResource) => a.category === "Restaurant");
-    }
-    // -------------------------------------------
+    const restaurants: Restaurant[] = response.data.data;
+    const mappedRestaurants = restaurants.map(mapRestaurantToArticle);
 
     // Prepare Slides for the Featured Hero Carousel
-    // We simulate different "Tabs" of content
+    // We simulate different "Tabs" of content based on indices
     const heroSlides = [
         {
             id: 'featured',
             label: 'Featured',
-            articles: articles.slice(0, 4)
+            articles: mappedRestaurants.slice(0, 4)
         },
         {
-            id: 'reviews',
-            label: 'Reviews',
-            articles: articles.slice(4, 8)
+            id: 'new',
+            label: 'New Arrivals',
+            articles: mappedRestaurants.slice(4, 8)
         },
         {
-            id: 'dining',
-            label: 'Fine Dining',
-            articles: articles.slice(8, 12)
+            id: 'popular',
+            label: 'Popular',
+            articles: mappedRestaurants.slice(8, 12)
         }
-    ];
+    ].filter(slide => slide.articles.length > 0);
 
-    // Data Slicing for Rest of Page
-    // We offset the offsets used in carousel to avoid duplication if real data, 
-    // but for visual fullness often overlap is fine or we slice further down.
-    const topStories = articles.slice(12, 18);
-    const communityNewsletter = articles.slice(18, 23);
-    const moreUpdates = articles.slice(23, 27);
-    const latestPosts = articles.slice(27, 35); // Just remixing for the bottom list
+    const topStories = mappedRestaurants.slice(0, 6);
+    const communityNewsletter = mappedRestaurants.slice(6, 11);
+    const moreUpdates = mappedRestaurants.slice(11, 15);
+    const latestPosts = mappedRestaurants.slice(15, 25);
+
+    // Simulate trending based on what we have
+    const trending = mappedRestaurants.slice(0, 5);
+    const mostRead = mappedRestaurants.slice().sort((a, b) => (b.views_count || 0) - (a.views_count || 0)).slice(0, 5);
 
     const restaurantCategories = [
         { label: "Fine Dining", count: 4 },
         { label: "Casual Dining", count: 8 },
         { label: "Fast Food", count: 12 },
-        { label: "Industry News", count: 5 },
-        { label: "Chef Interviews", count: 3 },
-        { label: "Reviews", count: 15 },
+        { label: "Cafe", count: 5 },
+        { label: "Buffet", count: 3 },
+        { label: "Bar", count: 15 },
     ];
 
     return (
         <div className="w-full max-w-[1280px] mx-auto px-4 py-8">
             <header className="mb-0 border-b border-gray-200 dark:border-slate-800 pb-4">
-                <h1 className="text-3xl font-bold text-[#111827] dark:text-white">Restaurant News</h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-2">Latest updates, reviews, and trends from the culinary world.</p>
+                <h1 className="text-3xl font-bold text-[#111827] dark:text-white">Restaurant Discovery</h1>
+                <p className="text-gray-500 dark:text-gray-400 mt-2">Explore the best culinary experiences around the world.</p>
             </header>
 
             {/* Featured Hero Carousel Tab Section */}
-            <div className="mt-8">
-                <LandingHeroCarousel slides={heroSlides} />
-            </div>
+            {heroSlides.length > 0 && (
+                <div className="mt-8">
+                    <LandingHeroCarousel slides={heroSlides} basePath="/restaurants" />
+                </div>
+            )}
 
             <div className="flex flex-col lg:flex-row gap-12 mt-12">
                 {/* Main Content Column (Left/Center) */}
                 <div className="flex-1 min-w-0 space-y-12">
 
-                    {articles.length > 0 ? (
+                    {mappedRestaurants.length > 0 ? (
                         <>
-                            {/* 1. LATEST BLOGS (Grid Style - Variant 1) */}
+                            {/* 1. LATEST (Grid Style - Variant 1) */}
                             <LandingNewsBlock
-                                title="Latest Blogs"
+                                title="Latest Additions"
                                 articles={topStories}
                                 variant={1}
+                                basePath="/restaurants"
                             />
 
-                            {/* 2. COMMUNITY NEWSLETTER (Split Style - Variant 2) */}
-                            <LandingNewsBlock
-                                title="Community Newsletter"
-                                articles={communityNewsletter}
-                                variant={2}
-                            />
+                            {/* 2. FEATURED (Split Style - Variant 2) */}
+                            {communityNewsletter.length > 0 && (
+                                <LandingNewsBlock
+                                    title="Editor's Picks"
+                                    articles={communityNewsletter}
+                                    variant={2}
+                                    basePath="/restaurants"
+                                />
+                            )}
 
-                            {/* 3. Top Stories / More Updates */}
-                            <LandingNewsBlock
-                                title="Top Stories"
-                                articles={moreUpdates}
-                                variant={1}
-                            />
+                            {/* 3. MORE (Variant 1) */}
+                            {moreUpdates.length > 0 && (
+                                <LandingNewsBlock
+                                    title="More Places"
+                                    articles={moreUpdates}
+                                    variant={1}
+                                    basePath="/restaurants"
+                                />
+                            )}
 
                             {/* Latest Posts List (Standard List) */}
-                            <LatestPostsSection
-                                articles={latestPosts}
-                                viewAllHref="/search?category=Restaurant"
-                            />
+                            {latestPosts.length > 0 && (
+                                <LatestPostsSection
+                                    articles={latestPosts}
+                                    title="All Restaurants"
+                                    viewAllHref={undefined} // Pagination not fully implemented in UI yet
+                                    basePath="/restaurants"
+                                />
+                            )}
                         </>
                     ) : (
                         <div className="bg-white dark:bg-[#1a1d2e] rounded-xl border border-gray-200 dark:border-[#2a2d3e] p-12 text-center text-gray-500 dark:text-gray-400">
                             <p className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
-                                No restaurant articles found
+                                No restaurants found
                             </p>
+                            <p>Try adjusting your filters.</p>
                         </div>
                     )}
                 </div>
@@ -134,23 +188,24 @@ export default async function RestaurantPage({ searchParams }: Props) {
                         rotateInterval={10000}
                     />
                     <MostReadTodayCard
-                        items={mostRead.slice(0, 5).map((article) => ({
+                        title="Popular Places"
+                        items={mostRead.map((article) => ({
                             id: article.id || '',
                             title: article.title,
                             imageUrl: article.image || article.image_url || '',
                             views: article.views_count,
                             timeAgo: article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently',
                         }))}
+                        basePath="/restaurants"
                     />
 
                     <TrendingTopicsCard
-                        items={trending.slice(0, 5).map((article) => ({
+                        title="Cuisines"
+                        items={trending.map((article) => ({
                             id: article.id || '',
-                            label:
-                                article.topics && Array.isArray(article.topics) && article.topics.length > 0
-                                    ? String(article.topics[0])
-                                    : article.title,
+                            label: article.category || "General",
                         }))}
+                        basePath="/restaurants"
                     />
 
                     {/* Custom Restaurant Categories Sidebar */}
@@ -171,9 +226,6 @@ export default async function RestaurantPage({ searchParams }: Props) {
                             ))}
                         </div>
                     </section>
-
-
-
                 </aside>
             </div>
         </div>

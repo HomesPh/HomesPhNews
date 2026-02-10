@@ -27,7 +27,7 @@ export interface Restaurant {
   name: string;
   country: string;
   city: string;
-  cuisine_type: string;
+  cuisine_type: string | string[];
   description: string;
 
   // Location & Maps
@@ -55,6 +55,7 @@ export interface Restaurant {
   rating: number;
   clickbait_hook?: string;
   why_filipinos_love_it?: string;
+  review_count?: number; // Added temporarily for compatibility
 
   // Contact
   contact_info?: string;
@@ -63,7 +64,7 @@ export interface Restaurant {
   opening_hours?: string;
 
   // Meta
-  image_url: string;
+  image_url: string | string[];
   original_url: string;
   timestamp: number;
 

@@ -11,9 +11,10 @@ interface LatestPostsSectionProps {
     articles: ArticleResource[];
     title?: string;
     viewAllHref?: string;
+    basePath?: string;
 }
 
-export default function LatestPostsSection({ articles, title, viewAllHref }: LatestPostsSectionProps) {
+export default function LatestPostsSection({ articles, title, viewAllHref, basePath = '/article' }: LatestPostsSectionProps) {
     const [visibleCount, setVisibleCount] = useState(3);
     const visibleArticles = articles.slice(0, visibleCount);
     const hasMore = visibleCount < articles.length;
@@ -34,7 +35,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                 {visibleArticles.map((article) => (
                     <Link
                         key={article.id}
-                        href={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                        href={basePath === '/article' ? (article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`) : `${basePath}/${article.id}`}
                         className="group cursor-pointer flex flex-col md:flex-row gap-8 pb-10 border-b border-gray-300 dark:border-gray-700 last:border-0"
                     >
                         <div className="md:w-1/3 aspect-[4/3] shrink-0 overflow-hidden relative rounded-sm">
@@ -56,7 +57,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                             {/* Share Icons - Bottom Right */}
                             <div className="absolute bottom-3 right-3 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20">
                                 <ShareButtons
-                                    url={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                                    url={basePath === '/article' ? (article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`) : `${basePath}/${article.id}`}
                                     title={article.title}
                                     description={article.summary || article.content}
                                     size="xs"
