@@ -86,13 +86,13 @@ class ArticleResource extends JsonResource
         $status = (string) $get('status', 'pending');
 
         return [
-            'id' => $this->sanitizeImageUrl($get('id', '')),
-            'slug' => $this->sanitizeImageUrl($get('slug', '')),
-            'article_id' => $this->sanitizeImageUrl($get('article_id', $get('id', ''))),
+            'id' => (string) $get('id', ''),
+            'slug' => (string) $get('slug', ''),
+            'article_id' => (string) $get('article_id', $get('id', '')),
             'title' => (string) $get('title', ''),
             'summary' => (string) $get('summary', $get('content', '')),
             'content' => (string) $get('content', ''),
-            'category' => (string) $get('category', 'General'),
+            'category' => (string) $get('category', 'All'),
             'country' => (string) $get('country', $get('location', 'Global')),
             'status' => $isDeleted ? 'deleted' : $status,
             'created_at' => (string) $date,
@@ -127,11 +127,21 @@ class ArticleResource extends JsonResource
 
         $str = trim((string) $value);
 
+        // Case 1: JSON array string '["url"]'
         if (str_starts_with($str, '["') && str_ends_with($str, '"]')) {
             $decoded = json_decode($str, true);
             if (is_array($decoded) && !empty($decoded)) {
-                return (string) $decoded[0];
+                return (string) ($decoded[0] ?? '');
             }
+        }
+
+        // Case 2: Quoted JSON string '"url"' (happens with MySQL JSON columns)
+        if (str_starts_with($str, '"') && str_ends_with($str, '"')) {
+            $decoded = json_decode($str);
+            if (is_string($decoded)) {
+                return $decoded;
+            }
+            return trim($str, '"');
         }
 
         return $str;

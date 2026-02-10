@@ -247,10 +247,6 @@ class ArticleController extends Controller
             $validated['slug'] = \Illuminate\Support\Str::slug($validated['slug']);
         }
 
-        if (isset($validated['image']) && is_string($validated['image'])) {
-            $validated['image'] = [$validated['image']];
-        }
-
         $validated['is_deleted'] = false;
         $article = Article::create($validated);
 
