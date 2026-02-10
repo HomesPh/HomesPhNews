@@ -3,6 +3,7 @@ import ArticleHeader from "./ArticleHeader";
 import ArticleFeaturedImage from "./ArticleFeaturedImage";
 import ArticleContent from "./ArticleContent";
 import ArticleShareBox from "./ArticleShareBox";
+import { stripHtml } from "@/lib/utils";
 import { Categories, Countries } from "@/app/data";
 import { notFound } from "next/navigation";
 
@@ -47,7 +48,7 @@ export default async function ArticleDetailContent({ id }: ArticleDetailContentP
         countryId={article.country}
         title={article.title}
         subtitle={
-          article.content ? article.content.replace(/<[^>]*>/g, "").substring(0, 160) + "..." : ""
+          article.summary || (stripHtml(article.content).substring(0, 160) + "...")
         }
         author={{ name: "HomesPh News" }}
         date={new Date(article.created_at || Date.now()).toLocaleDateString("en-US", {

@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -19,16 +18,16 @@ return new class extends Migration
             $table->text('summary')->nullable();
             $table->longText('content')->nullable();
             $table->string('image')->nullable();
-            
+
             $table->string('category')->nullable();
             $table->string('country')->nullable();
             $table->string('source')->nullable();
             $table->string('original_url', 1000)->nullable();
-            
+
             $table->json('keywords')->nullable(); // AI Keywords as JSON
             $table->string('status')->default('published');
             $table->unsignedBigInteger('views_count')->default(0);
-            
+
             $table->timestamps();
         });
     }

@@ -97,8 +97,8 @@ class ArticleResource extends JsonResource
             'status' => $isDeleted ? 'deleted' : $status,
             'created_at' => (string) $date,
             'views_count' => (int) $get('views_count', 0),
-            'image_url' => $this->sanitizeImageUrl($get('image_url', '') ?? $get('image', '')),
-            'image' => $this->sanitizeImageUrl($get('image', '') ?? $get('image_url', '')),
+            'image_url' => $this->sanitizeImageUrl($data['image_url'] ?? $data['image'] ?? ''),
+            'image' => $this->sanitizeImageUrl($data['image'] ?? $data['image_url'] ?? ''),
             'location' => (string) $get('country', $get('location', 'Global')),
             'description' => (string) $get('summary', $get('content', '')),
             'date' => (string) $date,
@@ -119,7 +119,7 @@ class ArticleResource extends JsonResource
      * Sanitize image URL that may be stored as a JSON array string.
      * e.g. '["https://example.com/img.png"]' → 'https://example.com/img.png'
      */
-    private function sanitizeImageUrl(mixed $value): string
+    protected function sanitizeImageUrl(mixed $value): string
     {
         if (is_array($value)) {
             return (string) ($value[0] ?? '');
