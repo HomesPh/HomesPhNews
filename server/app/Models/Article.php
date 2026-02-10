@@ -58,7 +58,11 @@ class Article extends Model
      */
     public function getImageUrlAttribute(): ?string
     {
-        return $this->attributes['image'] ?? null;
+        $image = $this->image; // Uses automatic casting
+        if (is_array($image)) {
+            return $image[0] ?? null;
+        }
+        return is_string($image) ? $image : null;
     }
 
     /**
