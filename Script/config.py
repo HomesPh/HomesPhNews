@@ -31,6 +31,7 @@ CATEGORIES = [
     "Business & Economy",
     "Real Estate",
     "Success Stories",
+    "Sports",
 ]
 
 # Restaurant Categories
