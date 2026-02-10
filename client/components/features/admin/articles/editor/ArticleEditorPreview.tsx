@@ -194,7 +194,7 @@ export default function ArticleEditorPreview({ data, template, onDataChange }: A
                                             {block.type === 'text' ? (
                                                 <div
                                                     className={cn(
-                                                        "prose max-w-none text-gray-700 leading-relaxed break-words",
+                                                        "prose max-w-none text-gray-700 leading-relaxed break-words [&_ul]:list-disc [&_ul]:ml-6 [&_ol]:list-decimal [&_ol]:ml-6 [&_li]:mb-1 [&_p[style*='text-align: center']]:text-center [&_p[style*='text-align: right']]:text-right [&_p[style*='text-align: justify']]:text-justify [&_div[style*='text-align: center']]:text-center [&_div[style*='text-align: right']]:text-right [&_div[style*='text-align: justify']]:text-justify",
                                                         idx === 0 && "drop-cap"
                                                     )}
                                                     dangerouslySetInnerHTML={{ __html: block.content || 'Text section content...' }}
@@ -243,7 +243,7 @@ export default function ArticleEditorPreview({ data, template, onDataChange }: A
                                                 )}
                                                 <div
                                                     className={cn(
-                                                        "prose max-w-none text-gray-700 leading-relaxed break-words",
+                                                        "prose max-w-none text-gray-700 leading-relaxed break-words [&_ul]:list-disc [&_ul]:ml-6 [&_ol]:list-decimal [&_ol]:ml-6 [&_li]:mb-1 [&_p[style*='text-align: center']]:text-center [&_p[style*='text-align: right']]:text-right [&_p[style*='text-align: justify']]:text-justify [&_div[style*='text-align: center']]:text-center [&_div[style*='text-align: right']]:text-right [&_div[style*='text-align: justify']]:text-justify",
                                                         idx === 0 && "drop-cap"
                                                     )}
                                                     dangerouslySetInnerHTML={{ __html: block.content || "Content flowing around image..." }}
@@ -281,7 +281,7 @@ export default function ArticleEditorPreview({ data, template, onDataChange }: A
                                                 {(block.type === 'text' || block.type === 'image-caption') && (
                                                     <div
                                                         className={cn(
-                                                            "prose max-w-none text-gray-700 leading-relaxed break-words",
+                                                            "prose max-w-none text-gray-700 leading-relaxed break-words [&_ul]:list-disc [&_ul]:ml-6 [&_ol]:list-decimal [&_ol]:ml-6 [&_li]:mb-1 [&_p[style*='text-align: center']]:text-center [&_p[style*='text-align: right']]:text-right [&_p[style*='text-align: justify']]:text-justify [&_div[style*='text-align: center']]:text-center [&_div[style*='text-align: right']]:text-right [&_div[style*='text-align: justify']]:text-justify",
                                                             idx === 0 && "drop-cap"
                                                         )}
                                                         dangerouslySetInnerHTML={{ __html: block.content || (block.type === 'text' ? 'Content section...' : 'Content after image...') }}

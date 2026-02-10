@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Clock } from "lucide-react";
-import { stripHtml } from "@/lib/utils";
+import { decodeHtml } from "@/lib/utils";
 import ShareButtons from "@/components/shared/ShareButtons";
 
 interface VerticalArticleCardProps {
@@ -72,9 +72,10 @@ export default function VerticalArticleCard({
                 </h3>
 
                 {description && (
-                    <p className="text-[14px] text-[#4b5563] dark:text-gray-400 line-clamp-2 leading-[1.4] tracking-[-0.5px]">
-                        {stripHtml(description)}
-                    </p>
+                    <div
+                        className="text-[14px] text-[#4b5563] dark:text-gray-400 line-clamp-2 leading-[1.4] tracking-[-0.5px] prose prose-sm max-w-none [&>p]:m-0 [&>p]:inline"
+                        dangerouslySetInnerHTML={{ __html: decodeHtml(description) }}
+                    />
                 )}
 
                 <div className="mt-auto pt-[10px] flex items-center gap-[6px] text-[#6b7280] dark:text-gray-500">

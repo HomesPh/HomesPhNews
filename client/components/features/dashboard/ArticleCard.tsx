@@ -3,7 +3,7 @@
 import { Badge } from '@/components/ui/badge'
 import Image from 'next/image'
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
+import { cn, decodeHtml } from '@/lib/utils'
 import { Clock } from 'lucide-react'
 import ShareButtons from "@/components/shared/ShareButtons";
 
@@ -88,9 +88,10 @@ export default function ArticleCard({
         </h3>
 
         {/* Description / Excerpt */}
-        <p className="line-clamp-2 text-[16px] font-normal leading-[1.5] text-[#4b5563] tracking-[-0.5px]">
-          {description}
-        </p>
+        <div
+          className="line-clamp-2 text-[16px] font-normal leading-[1.5] text-[#4b5563] tracking-[-0.5px] prose prose-sm max-w-none [&>p]:m-0 [&>p]:inline"
+          dangerouslySetInnerHTML={{ __html: decodeHtml(description) }}
+        />
 
         {/* Meta */}
         <div className="flex items-center gap-2 text-[#6b7280] mt-1">

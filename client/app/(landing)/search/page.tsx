@@ -73,7 +73,7 @@ export default async function SearchPage({ searchParams }: Props) {
         : (category === "all" || category === "global" ? " Across All Categories" : "");
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+        <div className="w-full max-w-[1280px] mx-auto px-4 py-12 space-y-8">
             <h1 className="text-[32px] font-bold text-[#111827] dark:text-white tracking-tight">
                 {heading}{filterText}
             </h1>

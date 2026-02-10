@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useEffect, useState } from 'react';
-import { Bold, Italic, Underline, List, ListOrdered, AlignLeft, AlignCenter, Link as LinkIcon, RotateCcw, RotateCw, ExternalLink } from 'lucide-react';
-import { cn } from "@/lib/utils";
+import { Bold, Italic, Underline, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, AlignJustify, Link as LinkIcon, RotateCcw, RotateCw, ExternalLink } from 'lucide-react';
+import { cn, decodeHtml } from "@/lib/utils";
 import {
     Dialog,
     DialogContent,
@@ -35,8 +35,11 @@ export default function ArticleRichTextEditor({
 
     // Sync external value with internal HTML only when externally changed
     useEffect(() => {
-        if (editorRef.current && editorRef.current.innerHTML !== value) {
-            editorRef.current.innerHTML = value || '';
+        if (editorRef.current) {
+            const decodedValue = decodeHtml(value || '');
+            if (editorRef.current.innerHTML !== decodedValue) {
+                editorRef.current.innerHTML = decodedValue;
+            }
         }
     }, [value]);
 
@@ -118,7 +121,7 @@ export default function ArticleRichTextEditor({
     return (
         <div className={cn("overflow-hidden border border-[#d1d5db] rounded-[6px] bg-white relative", className)}>
             {/* Toolbar */}
-            <div className="border-b border-[#d1d5db] px-3 py-2 flex items-center gap-1 flex-wrap bg-[#f9fafb]">
+            <div className="border-b border-[#d1d5db] px-3 py-2 flex items-center gap-0.5 flex-wrap bg-[#f9fafb]">
                 <select
                     className="px-2 py-1 text-[13px] border border-[#d1d5db] rounded bg-white focus:outline-none cursor-pointer"
                     onChange={(e) => {
@@ -133,7 +136,7 @@ export default function ArticleRichTextEditor({
                     <option value="h1">Heading 1</option>
                     <option value="h2">Heading 2</option>
                 </select>
-                <div className="w-px h-6 bg-[#d1d5db] mx-1" />
+                <div className="w-px h-6 bg-[#d1d5db] mx-0.5" />
                 <button
                     type="button"
                     onMouseDown={(e) => { e.preventDefault(); execCommand('bold'); }}
@@ -158,7 +161,7 @@ export default function ArticleRichTextEditor({
                 >
                     <Underline className="w-4 h-4 text-[#374151] group-hover:text-[#111827]" />
                 </button>
-                <div className="w-px h-6 bg-[#d1d5db] mx-1" />
+                <div className="w-px h-6 bg-[#d1d5db] mx-0.5" />
                 <button
                     type="button"
                     onMouseDown={(e) => { e.preventDefault(); execCommand('insertUnorderedList'); }}
@@ -175,7 +178,7 @@ export default function ArticleRichTextEditor({
                 >
                     <ListOrdered className="w-4 h-4 text-[#374151] group-hover:text-[#111827]" />
                 </button>
-                <div className="w-px h-6 bg-[#d1d5db] mx-1" />
+                <div className="w-px h-6 bg-[#d1d5db] mx-0.5" />
                 <button
                     type="button"
                     onMouseDown={(e) => { e.preventDefault(); execCommand('justifyLeft'); }}
@@ -192,7 +195,23 @@ export default function ArticleRichTextEditor({
                 >
                     <AlignCenter className="w-4 h-4 text-[#374151] group-hover:text-[#111827]" />
                 </button>
-                <div className="w-px h-6 bg-[#d1d5db] mx-1" />
+                <button
+                    type="button"
+                    onMouseDown={(e) => { e.preventDefault(); execCommand('justifyRight'); }}
+                    className="p-1.5 hover:bg-gray-200 rounded transition-colors group"
+                    title="Align Right"
+                >
+                    <AlignRight className="w-4 h-4 text-[#374151] group-hover:text-[#111827]" />
+                </button>
+                <button
+                    type="button"
+                    onMouseDown={(e) => { e.preventDefault(); execCommand('justifyFull'); }}
+                    className="p-1.5 hover:bg-gray-200 rounded transition-colors group"
+                    title="Justify"
+                >
+                    <AlignJustify className="w-4 h-4 text-[#374151] group-hover:text-[#111827]" />
+                </button>
+                <div className="w-px h-6 bg-[#d1d5db] mx-0.5" />
                 <button
                     type="button"
                     onMouseDown={(e) => { e.preventDefault(); openLinkDialog(); }}
@@ -226,7 +245,7 @@ export default function ArticleRichTextEditor({
                 contentEditable
                 onInput={handleInput}
                 onFocus={handleFocus}
-                className="w-full px-4 py-3 text-[15px] text-[#111827] focus:outline-none overflow-y-auto prose prose-sm max-w-none break-words prose-p:mb-6 [&_b]:font-bold [&_i]:italic [&_u]:underline [&_a]:text-blue-600 [&_a]:underline"
+                className="w-full px-4 py-3 text-[15px] text-[#111827] focus:outline-none min-h-[400px] overflow-y-auto prose prose-sm max-w-none break-words prose-p:mb-6 [&_b]:font-bold [&_i]:italic [&_u]:underline [&_a]:text-blue-600 [&_a]:underline [&_ul]:list-disc [&_ul]:ml-6 [&_ol]:list-decimal [&_ol]:ml-6 [&_li]:mb-1 [&_p[style*='text-align: center']]:text-center [&_p[style*='text-align: right']]:text-right [&_p[style*='text-align: justify']]:text-justify [&_div[style*='text-align: center']]:text-center [&_div[style*='text-align: right']]:text-right [&_div[style*='text-align: justify']]:text-justify"
                 style={heightStyle}
             />
 
