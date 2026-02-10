@@ -8,14 +8,16 @@ export type Ad = {
   is_active: boolean;
   created_at: string;
   updated_at: string;
-  campaign_id: string;
+  campaigns?: Campaign[];
 }
 
 export type Campaign = {
   id: string;
   name: string;
-  is_active: boolean;
   rotation_type: RotationType;
-  ads: Ad[];
-  ads_count: number;
+  start_date: string;
+  end_date?: string;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
 }
