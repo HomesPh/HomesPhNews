@@ -1,5 +1,5 @@
 # Use FrankenPHP for a high-performance, single-container setup
-FROM dunglas/frankenphp:1.1-php8.4-alpine
+FROM dunglas/frankenphp:1-php8.4-alpine
 
 # Install system dependencies
 RUN apk add --no-cache \

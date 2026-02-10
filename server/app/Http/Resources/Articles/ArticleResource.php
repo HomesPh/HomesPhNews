@@ -21,15 +21,15 @@ class ArticleResource extends JsonResource
     {
         $res = $this->resource;
         $isModel = $res instanceof \Illuminate\Database\Eloquent\Model;
-        
+
         // Extract raw data safely
         if ($isModel) {
             $data = $res->getAttributes();
         } else {
             $data = (array) $res;
         }
-        
-        $get = function($key, $default = null) use ($data) {
+
+        $get = function ($key, $default = null) use ($data) {
             return $data[$key] ?? $default;
         };
 
@@ -39,8 +39,8 @@ class ArticleResource extends JsonResource
         if ($isModel) {
             if ($res->relationLoaded('publishedSites')) {
                 $rel = $res->getRelation('publishedSites');
-                $sites = ($rel instanceof \Illuminate\Support\Collection) 
-                    ? $rel->pluck('site_name')->toArray() 
+                $sites = ($rel instanceof \Illuminate\Support\Collection)
+                    ? $rel->pluck('site_name')->toArray()
                     : (is_array($rel) ? $rel : []);
             } else {
                 // Use the accessor if relation not loaded, ensuring we treat it as an array
@@ -57,8 +57,8 @@ class ArticleResource extends JsonResource
         if ($isModel) {
             if ($res->relationLoaded('images')) {
                 $rel = $res->getRelation('images');
-                $images = ($rel instanceof \Illuminate\Support\Collection) 
-                    ? $rel->pluck('image_path')->toArray() 
+                $images = ($rel instanceof \Illuminate\Support\Collection)
+                    ? $rel->pluck('image_path')->toArray()
                     : (is_array($rel) ? $rel : []);
             } else {
                 $images = []; // Not loaded
@@ -72,7 +72,7 @@ class ArticleResource extends JsonResource
         $date = $get('created_at');
         if (empty($date) && isset($data['timestamp'])) {
             $ts = $data['timestamp'];
-            $date = is_numeric($ts) ? date('Y-m-d H:i:s', (int)$ts) : (string)$ts;
+            $date = is_numeric($ts) ? date('Y-m-d H:i:s', (int) $ts) : (string) $ts;
         }
 
         // Topics logic
@@ -84,6 +84,26 @@ class ArticleResource extends JsonResource
 
         $isDeleted = (bool) $get('is_deleted', false);
         $status = (string) $get('status', 'pending');
+
+        // Sanitize image URL — handles cases where the value is stored as a
+        // JSON-encoded array (e.g. '["https://..."]') instead of a plain string.
+        $sanitizeImageUrl = function ($value): string {
+            if (is_array($value)) {
+                return (string) ($value[0] ?? '');
+            }
+            $str = (string) $value;
+            // Detect JSON array wrapper: ["url"]
+            if (str_starts_with($str, '["') && str_ends_with($str, '"]')) {
+                $decoded = json_decode($str, true);
+                if (is_array($decoded) && !empty($decoded)) {
+                    return (string) $decoded[0];
+                }
+            }
+            return $str;
+        };
+
+        $imageUrl = $sanitizeImageUrl($get('image_url') ?? $get('image', ''));
+        $image = $sanitizeImageUrl($get('image') ?? $get('image_url', ''));
 
         return [
             'id' => (string) $get('id', ''),
@@ -97,8 +117,8 @@ class ArticleResource extends JsonResource
             'status' => $isDeleted ? 'deleted' : $status,
             'created_at' => (string) $date,
             'views_count' => (int) $get('views_count', 0),
-            'image_url' => (string) ($get('image_url') ?? $get('image', '')),
-            'image' => (string) ($get('image') ?? $get('image_url', '')),
+            'image_url' => $imageUrl,
+            'image' => $image,
             'location' => (string) $get('country', $get('location', 'Global')),
             'description' => (string) $get('summary', $get('content', '')),
             'date' => (string) $date,
