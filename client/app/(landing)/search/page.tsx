@@ -6,6 +6,7 @@ import { getArticlesList, type ArticleResource } from "@/lib/api-v2";
 import { Categories, Countries } from "@/app/data";
 import { mockSpecialtyContent } from "@/lib/api-v2/mock/mockArticles";
 import ArchivePagination from "@/components/features/dashboard/ArchivePagination";
+import { SearchSkeleton } from "@/components/features/dashboard/DashboardSkeletons";
 
 type Props = {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -78,7 +79,7 @@ export default async function SearchPage({ searchParams }: Props) {
             </h1>
 
             {filteredArticles.length > 0 ? (
-                <Suspense fallback={<div className="py-12 text-center text-gray-500">Loading Results...</div>}>
+                <Suspense fallback={<SearchSkeleton />}>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
                         {filteredArticles.map((article: ArticleResource) => (
                             <VerticalArticleCard

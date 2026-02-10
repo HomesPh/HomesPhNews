@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 
 import DashboardFeed from "@/components/features/dashboard/DashboardFeed";
 import { getArticlesFeed } from "@/lib/api-v2";
+import { DashboardSkeleton } from "@/components/features/dashboard/DashboardSkeletons";
 
 type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -22,7 +23,7 @@ export default async function Dashboard({ searchParams }: Props) {
   });
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<DashboardSkeleton />}>
       <DashboardFeed
         country={country}
         category={category}
