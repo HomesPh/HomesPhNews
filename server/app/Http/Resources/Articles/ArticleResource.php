@@ -86,9 +86,9 @@ class ArticleResource extends JsonResource
         $status = (string) $get('status', 'pending');
 
         return [
-            'id' => (string) $get('id', ''),
-            'slug' => (string) $get('slug', ''),
-            'article_id' => (string) $get('article_id', $get('id', '')),
+            'id' => $this->sanitizeImageUrl($get('id', '')),
+            'slug' => $this->sanitizeImageUrl($get('slug', '')),
+            'article_id' => $this->sanitizeImageUrl($get('article_id', $get('id', ''))),
             'title' => (string) $get('title', ''),
             'summary' => (string) $get('summary', $get('content', '')),
             'content' => (string) $get('content', ''),
