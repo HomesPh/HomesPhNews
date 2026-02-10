@@ -131,6 +131,9 @@ class AIProcessor:
         Example topics for Technology: AI & ML, Fintech, Blockchain, Cybersecurity, 
         Cloud Computing, IoT, Robotics, 5G, Software, Hardware
         
+        Example topics for Sports: Basketball, Football, PBA, NBA, Olympics, 
+        Boxing, Esports, Sports Development, Athletes, Training
+        
         Title: {title}
         Content: {content[:800]}
         Category: {category}
@@ -342,7 +345,7 @@ class AIProcessor:
         
         # Determine Headline Mode based on Category
         strict_categories = ["Politics", "Health", "Migration", "Crime", "Policy", "Government", "Legal"]
-        balanced_categories = ["Business", "Real Estate", "Education", "Tech", "Economy", "Environment"]
+        balanced_categories = ["Business", "Real Estate", "Education", "Tech", "Economy", "Environment", "Sports"]
         # All others (Lifestyle, Success Stories, Entertainment, etc.) fall into Engagement/Catchy mode
         
         headline_mode = "ENGAGEMENT"

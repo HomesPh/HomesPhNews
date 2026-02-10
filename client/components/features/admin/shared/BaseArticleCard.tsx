@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Calendar, Eye, MapPin } from 'lucide-react';
-import { cn } from "@/lib/utils";
+import { cn, sanitizeImageUrl } from "@/lib/utils";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 
 interface BaseArticleCardProps {
@@ -62,7 +62,7 @@ export default function BaseArticleCard({
     const isCompact = variant === 'compact';
 
     // Normalize field names (support both new and legacy)
-    const imageUrl = article.image_url || article.image || 'https://placehold.co/800x450?text=No+Image';
+    const imageUrl = sanitizeImageUrl(article.image_url || article.image || 'https://placehold.co/800x450?text=No+Image');
     const location = article.country || article.location || 'Unknown';
     const description = article.summary || article.description || '';
     const dateStr = article.created_at || article.date || null;
