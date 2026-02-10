@@ -225,7 +225,6 @@ class ArticleController extends Controller
     {
         $validated = $request->validated();
         $validated['status'] = $validated['status'] ?? 'pending review';
-        $validated['category'] = $validated['category'] ?? 'General';
 
         // Generate UUID for the article ID
         $validated['id'] = \Illuminate\Support\Str::uuid()->toString();
@@ -245,10 +244,6 @@ class ArticleController extends Controller
             $validated['slug'] = \Illuminate\Support\Str::slug($validated['title']);
         } else {
             $validated['slug'] = \Illuminate\Support\Str::slug($validated['slug']);
-        }
-
-        if (isset($validated['image']) && is_string($validated['image'])) {
-            $validated['image'] = [$validated['image']];
         }
 
         $validated['is_deleted'] = false;
@@ -352,11 +347,7 @@ class ArticleController extends Controller
                     ]);
                 }
             }
-            unset($validated['galleryImages']);
-        }
-
-        if (isset($validated['image']) && is_string($validated['image'])) {
-            $validated['image'] = [$validated['image']];
+            unset($validated['galleryImages']); // Don't try to update article table with this
         }
 
         $article->update($validated);
@@ -423,7 +414,7 @@ class ArticleController extends Controller
             'original_title' => $redisArticle['title'] ?? '',
             'summary' => $redisArticle['summary'] ?? substr($redisArticle['content'] ?? '', 0, 500),
             'content' => $redisArticle['content'] ?? '',
-            'image' => is_array($img = $redisArticle['image_url'] ?? $redisArticle['image'] ?? []) ? $img : [$img],
+            'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? '',
             'category' => $redisArticle['category'] ?? '',
             'country' => $redisArticle['country'] ?? '',
             'source' => $redisArticle['source'] ?? '',
