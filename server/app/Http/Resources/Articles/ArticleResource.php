@@ -21,15 +21,15 @@ class ArticleResource extends JsonResource
     {
         $res = $this->resource;
         $isModel = $res instanceof \Illuminate\Database\Eloquent\Model;
-        
+
         // Extract raw data safely
         if ($isModel) {
             $data = $res->getAttributes();
         } else {
             $data = (array) $res;
         }
-        
-        $get = function($key, $default = null) use ($data) {
+
+        $get = function ($key, $default = null) use ($data) {
             return $data[$key] ?? $default;
         };
 
@@ -39,8 +39,8 @@ class ArticleResource extends JsonResource
         if ($isModel) {
             if ($res->relationLoaded('publishedSites')) {
                 $rel = $res->getRelation('publishedSites');
-                $sites = ($rel instanceof \Illuminate\Support\Collection) 
-                    ? $rel->pluck('site_name')->toArray() 
+                $sites = ($rel instanceof \Illuminate\Support\Collection)
+                    ? $rel->pluck('site_name')->toArray()
                     : (is_array($rel) ? $rel : []);
             } else {
                 // Use the accessor if relation not loaded, ensuring we treat it as an array
@@ -48,7 +48,7 @@ class ArticleResource extends JsonResource
                 $sites = is_array($attr) ? $attr : [];
             }
         } else {
-            $sitesData = $get('published_sites') ?? $get('sites', []);
+            $sitesData = $get('published_sites', []) ?? $get('sites', []);
             $sites = is_array($sitesData) ? $sitesData : [];
         }
 
@@ -57,22 +57,22 @@ class ArticleResource extends JsonResource
         if ($isModel) {
             if ($res->relationLoaded('images')) {
                 $rel = $res->getRelation('images');
-                $images = ($rel instanceof \Illuminate\Support\Collection) 
-                    ? $rel->pluck('image_path')->toArray() 
+                $images = ($rel instanceof \Illuminate\Support\Collection)
+                    ? $rel->pluck('image_path')->toArray()
                     : (is_array($rel) ? $rel : []);
             } else {
                 $images = []; // Not loaded
             }
         } else {
-            $imgs = $get('galleryImages') ?? $get('gallery_images') ?? [];
+            $imgs = $get('galleryImages', []) ?? $get('gallery_images', []) ?? [];
             $images = is_array($imgs) ? $imgs : [];
         }
 
         // Date logic (Redis uses 'timestamp', DB uses 'created_at')
-        $date = $get('created_at');
+        $date = $get('created_at', null);
         if (empty($date) && isset($data['timestamp'])) {
             $ts = $data['timestamp'];
-            $date = is_numeric($ts) ? date('Y-m-d H:i:s', (int)$ts) : (string)$ts;
+            $date = is_numeric($ts) ? date('Y-m-d H:i:s', (int) $ts) : (string) $ts;
         }
 
         // Topics logic
@@ -86,9 +86,9 @@ class ArticleResource extends JsonResource
         $status = (string) $get('status', 'pending');
 
         return [
-            'id' => (string) $get('id', ''),
-            'slug' => (string) $get('slug', ''),
-            'article_id' => (string) $get('article_id', $get('id', '')),
+            'id' => $this->sanitizeImageUrl($get('id', '')),
+            'slug' => $this->sanitizeImageUrl($get('slug', '')),
+            'article_id' => $this->sanitizeImageUrl($get('article_id', $get('id', ''))),
             'title' => (string) $get('title', ''),
             'summary' => (string) $get('summary', $get('content', '')),
             'content' => (string) $get('content', ''),
@@ -97,8 +97,8 @@ class ArticleResource extends JsonResource
             'status' => $isDeleted ? 'deleted' : $status,
             'created_at' => (string) $date,
             'views_count' => (int) $get('views_count', 0),
-            'image_url' => (string) ($get('image_url') ?? $get('image', '')),
-            'image' => (string) ($get('image') ?? $get('image_url', '')),
+            'image_url' => $this->sanitizeImageUrl($get('image_url', '') ?? $get('image', '')),
+            'image' => $this->sanitizeImageUrl($get('image', '') ?? $get('image_url', '')),
             'location' => (string) $get('country', $get('location', 'Global')),
             'description' => (string) $get('summary', $get('content', '')),
             'date' => (string) $date,
@@ -113,5 +113,27 @@ class ArticleResource extends JsonResource
             'is_deleted' => $isDeleted,
             'is_redis' => !$isModel,
         ];
+    }
+
+    /**
+     * Sanitize image URL that may be stored as a JSON array string.
+     * e.g. '["https://example.com/img.png"]' → 'https://example.com/img.png'
+     */
+    private function sanitizeImageUrl(mixed $value): string
+    {
+        if (is_array($value)) {
+            return (string) ($value[0] ?? '');
+        }
+
+        $str = trim((string) $value);
+
+        if (str_starts_with($str, '["') && str_ends_with($str, '"]')) {
+            $decoded = json_decode($str, true);
+            if (is_array($decoded) && !empty($decoded)) {
+                return (string) $decoded[0];
+            }
+        }
+
+        return $str;
     }
 }
