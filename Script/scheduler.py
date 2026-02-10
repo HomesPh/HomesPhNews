@@ -255,16 +255,12 @@ def send_discord_notification(results: List[Dict]):
 # COUNTRY PROCESSOR
 # ═══════════════════════════════════════════════════════════════
 
-def process_single_country(country: str) -> Dict:
+def process_single_country(country: str, category: str = None) -> Dict:
     """
     Process one country:
-    1. Pick random category
+    1. Pick random category (if not provided)
     2. Scrape articles
-    3. Check for duplicates
-    4. AI processing (rewrite + image)
-    5. Save to Redis
-    
-    Returns dict with status and results.
+    ...
     """
     # Initialize services (thread-safe)
     scraper = NewsScraper()
@@ -272,7 +268,10 @@ def process_single_country(country: str) -> Dict:
     storage = StorageHandler()
     
     start_time = time.time()
-    category = random.choice(CATEGORIES)
+    
+    # Use provided category or pick a random one
+    if not category:
+        category = random.choice(CATEGORIES)
     
     result = {
         "country": country,
@@ -604,4 +603,27 @@ async def run_restaurant_job():
         
     success_count = sum(1 for r in results if r["status"] == "success")
     print(f"\n🍴 Restaurant Summary: {success_count} restaurants found.")
+    return results
+
+
+async def run_sports_job():
+    """Trigger job specifically for category: Sports."""
+    print("\n" + "=" * 70)
+    print(f"⚽ SPORTS GENERATION JOB STARTED")
+    print("=" * 70)
+    
+    all_countries = list(COUNTRIES.keys())
+    # Process all countries for Sports
+    countries = all_countries 
+    
+    loop = asyncio.get_event_loop()
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = [
+            loop.run_in_executor(executor, process_single_country, country, "Sports")
+            for country in countries
+        ]
+        results = await asyncio.gather(*futures)
+        
+    success_count = sum(1 for r in results if r["status"] == "success")
+    print(f"\n⚽ Sports Summary: {success_count} articles published.")
     return results

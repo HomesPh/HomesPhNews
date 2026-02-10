@@ -388,6 +388,30 @@ async def trigger_restaurant_job():
     }
 
 
+@router.post("/trigger/sports", tags=["Admin"])
+async def trigger_sports_job():
+    """
+    Manually trigger the sports-specific generation job.
+    """
+    from scheduler import run_sports_job
+    import time
+    
+    start_time = time.time()
+    results = await run_sports_job()
+    duration = round(time.time() - start_time, 2)
+    
+    success = sum(1 for r in results if r["status"] == "success")
+    
+    return {
+        "status": "completed",
+        "message": f"Sports Job completed in {duration}s. {success} articles published.",
+        "duration_seconds": duration,
+        "success_count": success,
+        "results": results,
+        "timestamp": str(__import__('datetime').datetime.now())
+    }
+
+
 @router.get("/status", tags=["Admin"])
 async def get_status():
     """Get current job status and statistics."""
