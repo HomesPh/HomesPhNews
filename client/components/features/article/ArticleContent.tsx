@@ -1,7 +1,7 @@
 "use client";
 
 import AdSpace from "@/components/features/admin/ads/AdSpace";
-import { cn } from "@/lib/utils";
+import { cn, decodeHtml } from "@/lib/utils";
 
 interface ArticleContentProps {
   content: string;
@@ -37,39 +37,44 @@ export default function ArticleContent({ content, topics, originalUrl, forceLigh
       `}</style>
       {/* Advertisement Top */}
       <AdSpace
-        className="h-28"
+        className="mb-6"
+        width={728}
+        height={90}
         rotateInterval={10000}
       />
 
       {/* Main Content */}
       <div className="prose prose-lg max-w-none mb-12">
-        {content.includes('<') ? (
-          <div
-            className={`text-[18px] leading-[32px] text-[#0c0c0c] ${darkClass('dark:text-gray-100')} drop-cap break-words [&>p]:mb-6 [&>b]:font-bold [&>i]:italic [&>u]:underline [&>h1]:text-3xl [&>h1]:font-bold [&>h1]:mb-4 ${darkClass('[&>h1]:dark:text-white')} [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mb-3 ${darkClass('[&>h2]:dark:text-white')}`}
-            dangerouslySetInnerHTML={{ __html: content }}
-          />
-        ) : (
-          (() => {
-            const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim());
+        {(() => {
+          const decodedContent = decodeHtml(content);
+          return decodedContent.includes('<') ? (
+            <div
+              className={`text-[18px] leading-[32px] text-[#0c0c0c] ${darkClass('dark:text-gray-100')} drop-cap break-words [&>b]:font-bold [&>i]:italic [&>u]:underline [&>a]:text-blue-600 [&>a]:underline [&_ul]:list-disc [&_ul]:ml-6 [&_ol]:list-decimal [&_ol]:ml-6 [&_li]:mb-1 [&_p[style*='text-align: center']]:text-center [&_p[style*='text-align: right']]:text-right [&_p[style*='text-align: justify']]:text-justify [&_div[style*='text-align: center']]:text-center [&_div[style*='text-align: right']]:text-right [&_div[style*='text-align: justify']]:text-justify [&>h1]:text-3xl [&>h1]:font-bold [&>h1]:mb-4 ${darkClass('[&>h1]:dark:text-white')} [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mb-3 ${darkClass('[&>h2]:dark:text-white')}`}
+              dangerouslySetInnerHTML={{ __html: decodedContent }}
+            />
+          ) : (
+            (() => {
+              const paragraphs = decodedContent.split(/\n\s*\n/).filter(p => p.trim());
 
-            return paragraphs.map((para, idx) => {
-              const trimmed = para.trim();
-              if (!trimmed) return null;
+              return paragraphs.map((para, idx) => {
+                const trimmed = para.trim();
+                if (!trimmed) return null;
 
-              return (
-                <p
-                  key={idx}
-                  className={cn(
-                    `text-[18px] leading-[32px] text-[#0c0c0c] ${darkClass('dark:text-gray-100')} mb-6 font-normal break-words`,
-                    idx === 0 && "drop-cap"
-                  )}
-                >
-                  {trimmed}
-                </p>
-              );
-            });
-          })()
-        )}
+                return (
+                  <p
+                    key={idx}
+                    className={cn(
+                      `text-[18px] leading-[32px] text-[#0c0c0c] ${darkClass('dark:text-gray-100')} font-normal break-words`,
+                      idx === 0 && "drop-cap"
+                    )}
+                  >
+                    {trimmed}
+                  </p>
+                );
+              });
+            })()
+          );
+        })()}
       </div>
 
       {/* Topics Section */}
