@@ -7,7 +7,7 @@ export default function AdSkeleton({ className, width, height }: { className?: s
     <div className="w-full flex flex-col items-center">
       <Card
         className={cn("relative overflow-hidden border-none bg-muted/30 mx-auto", className)}
-        style={{ width: width ? `${width}px` : '100%', height: height ? `${height}px` : '100%' }}
+        style={{ maxWidth: width ? `${width}px` : '100%', height: height ? `${height}px` : '100%', width: '100%' }}
       >
         <Skeleton className="h-full w-full absolute inset-0" />
         <div className="relative z-10 flex h-full w-full items-center justify-center p-4">
