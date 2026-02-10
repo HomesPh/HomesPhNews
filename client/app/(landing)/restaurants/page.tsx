@@ -84,9 +84,9 @@ export default async function RestaurantPage({ searchParams }: Props) {
                 <LandingHeroCarousel slides={heroSlides} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mt-12">
+            <div className="flex flex-col lg:flex-row gap-12 mt-12">
                 {/* Main Content Column (Left/Center) */}
-                <div className="lg:col-span-8 space-y-12">
+                <div className="flex-1 min-w-0 space-y-12">
 
                     {articles.length > 0 ? (
                         <>
@@ -127,9 +127,10 @@ export default async function RestaurantPage({ searchParams }: Props) {
                 </div>
 
                 {/* Sidebar Column (Right) */}
-                <aside className="lg:col-span-4 space-y-10">
+                <aside className="w-full lg:w-[350px] flex-shrink-0 space-y-10">
                     <AdSpace
-                        className="h-28"
+                        width={336}
+                        height={280}
                         rotateInterval={10000}
                     />
                     <MostReadTodayCard

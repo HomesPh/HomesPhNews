@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { decodeHtml } from "@/lib/utils";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Calendar, Eye, Edit, XCircle, ChevronLeft, Loader2, ExternalLink } from 'lucide-react';
+
 import { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
 import { getAdminArticleById } from "@/lib/api-v2/admin/service/article/getAdminArticleById";
 import { publishArticle } from "@/lib/api-v2/admin/service/article/publishArticle";
@@ -247,22 +249,13 @@ export default function ArticleDetailsPage() {
                                 <div className="prose prose-lg max-w-none prose-p:text-[#374151] prose-p:leading-[28px] prose-p:tracking-[-0.5px]">
                                     {(() => {
                                         const content = article.content || article.summary || '';
-                                        const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim());
-                                        return paragraphs.map((para, idx) => {
-                                            const trimmed = para.trim();
-                                            if (!trimmed) return null;
-                                            if (idx === 0) {
-                                                const firstChar = trimmed.charAt(0);
-                                                const restOfText = trimmed.slice(1);
-                                                return (
-                                                    <p key={idx} className="text-[19px] leading-[32px] text-[#0c0c0c] mb-6 font-normal">
-                                                        <span className="float-left text-[72px] leading-[64px] mr-2 mt-1 font-bold text-[#0c0c0c]">{firstChar}</span>
-                                                        {restOfText}
-                                                    </p>
-                                                );
-                                            }
-                                            return <p key={idx} className="text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] mb-6">{trimmed}</p>;
-                                        });
+                                        const decodedContent = decodeHtml(content);
+                                        return (
+                                            <div
+                                                className="text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>li]:mb-1 [&>a]:text-blue-600 [&>a]:underline first-letter:text-[72px] first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-5px] first-letter:leading-[0.8] first-letter:text-[#0c0c0c]"
+                                                dangerouslySetInnerHTML={{ __html: decodedContent }}
+                                            />
+                                        );
                                     })()}
                                 </div>
                             </article>

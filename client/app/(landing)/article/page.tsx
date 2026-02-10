@@ -96,15 +96,15 @@ export default async function Article({ searchParams }: Props) {
   }
 
   return (
-    <div className="max-w-360 mx-auto px-4 md:px-27.5 py-8">
-      <div className="max-w-360 mx-auto px-4 md:px-27.5 py-8">
+    <div className="w-full max-w-[1280px] mx-auto px-4 py-8">
+      <div className="w-full max-w-[1280px] mx-auto px-4 py-8">
         <Suspense fallback={<Skeleton className="h-0 w-0" />}>
           <ArticleViewCounter articleId={articleId} />
         </Suspense>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="flex flex-col lg:flex-row gap-12">
           {/* Main Content Component Area */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="flex-1 min-w-0 space-y-8">
             <Suspense fallback={<BreadcrumbSkeleton />}>
               <ArticleBreadcrumbContainer id={articleId} />
             </Suspense>
@@ -120,7 +120,7 @@ export default async function Article({ searchParams }: Props) {
           </div>
 
           {/* Sidebar Area */}
-          <div className="lg:col-span-1">
+          <div className="w-full lg:w-[350px] flex-shrink-0">
             <Suspense fallback={<SidebarSkeleton />}>
               <RelatedArticlesSidebar id={articleId} />
             </Suspense>
