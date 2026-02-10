@@ -14,6 +14,7 @@ import {
   CampaignListItem,
   CampaignFilters
 } from "@/components/features/admin/ads";
+import { SearchSkeleton } from '@/components/features/dashboard/DashboardSkeletons';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -128,11 +129,16 @@ export default function AdsPage() {
   // adsList is already Ad[], campaignsData is Response object
   const campaignsList = campaignsData?.data || [];
 
+
   // Loading state
   if (adsLoading || campaignsLoading) {
     return (
-      <div className="p-8 bg-[#f9fafb] min-h-screen flex items-center justify-center">
-        <div className="text-[#6b7280]">Loading...</div>
+      <div className="p-8 bg-[#f9fafb] min-h-screen space-y-8">
+        <div className="h-10 w-64 bg-gray-200 animate-pulse rounded-md" />
+        <div className="grid grid-cols-4 gap-6 mb-8">
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-gray-200 animate-pulse rounded-xl" />)}
+        </div>
+        <SearchSkeleton />
       </div>
     );
   }
