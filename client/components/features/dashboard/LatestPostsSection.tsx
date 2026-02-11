@@ -56,7 +56,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                             {/* Share Icons - Bottom Right */}
                             <div className="absolute bottom-3 right-3 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20">
                                 <ShareButtons
-                                    url={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                                    url={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                                     title={article.title}
                                     description={article.summary || article.content}
                                     size="xs"
