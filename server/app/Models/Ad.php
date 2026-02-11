@@ -11,6 +11,7 @@ class Ad extends Model
 
     protected $fillable = [
         'title',
+        'description',
         'image_url',
         'destination_url',
         'is_active',
