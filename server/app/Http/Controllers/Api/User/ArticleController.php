@@ -71,7 +71,7 @@ class ArticleController extends Controller
         // Eager load relationships to prevent N+1 queries
         $articles = $query
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'title', 'summary', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'views_count', 'topics', 'original_url')
+            ->select('id', 'title', 'summary', 'content', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'views_count', 'topics', 'original_url')
             ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
 
@@ -126,7 +126,7 @@ class ArticleController extends Controller
 
         $latestGlobal = (clone $baseQuery)
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'title', 'summary as content', 'country', 'category', 'status', 'created_at as timestamp', 'image', 'views_count', 'keywords', 'original_url')
+            ->select('id', 'title', 'summary', 'content', 'country', 'category', 'status', 'created_at as timestamp', 'image', 'views_count', 'keywords', 'original_url')
             ->orderBy('created_at', 'desc')
             ->get();
 

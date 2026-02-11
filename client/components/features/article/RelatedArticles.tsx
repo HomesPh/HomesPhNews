@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Clock } from "lucide-react";
-import { calculateReadTime } from "@/lib/utils";
 
 interface RelatedArticle {
   id: string;
@@ -14,8 +13,6 @@ interface RelatedArticle {
   imageSrc: string;
   timeAgo: string;
   views: string;
-  content?: string;
-  summary?: string;
 }
 
 interface RelatedArticlesProps {
@@ -77,10 +74,6 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
                 <p className="font-normal text-[14px] tracking-[-0.5px]">•</p>
                 <p className="font-normal text-[12px] tracking-[-0.5px]">
                   {article.views}
-                </p>
-                <p className="font-normal text-[14px] tracking-[-0.5px]">•</p>
-                <p className="font-normal text-[12px] tracking-[-0.5px]">
-                  {calculateReadTime(article.content || article.summary)}
                 </p>
               </div>
             </div>
