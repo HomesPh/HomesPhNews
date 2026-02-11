@@ -21,4 +21,5 @@ export type Campaign = {
   created_at: string;
   updated_at: string;
   is_active: boolean;
+  ads_count: number;
 }
