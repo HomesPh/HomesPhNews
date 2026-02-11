@@ -1,20 +1,28 @@
 export interface ArticleResource {
   id: string;
+  slug: string;
+  article_id: string;
   title: string;
   summary: string;
   content: string;
-  image: string;
   category: string;
   country: string;
-  status: string;
+  status: string | "deleted";
+  created_at: string;
   views_count: number;
-  topics: string[] | null;
+  image_url: string;
+  image: string;
+  location?: string;
+  description?: string;
+  date?: string;
+  views?: string;
+  published_sites: string | string[];
+  sites: string[];
+  topics: string[];
+  galleryImages: string[];
   keywords: string;
   source: string;
   original_url: string;
-  created_at: string;
-  published_sites: string | string[];
-  slug?: string;
-  image_url?: string;
-  is_deleted?: boolean;
+  is_deleted: boolean;
+  is_redis: boolean;
 }

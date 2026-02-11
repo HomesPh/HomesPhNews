@@ -1,7 +1,7 @@
 "use client";
 
 import AXIOS_INSTANCE_ADMIN from "../../axios-instance";
-import type UserResource from "../../../types/UserResource";
+import type { UserResource } from "../../../types/UserResource";
 import type { AxiosResponse } from "axios";
 
 export type LoginRequest = {
