@@ -79,3 +79,22 @@ export function sanitizeImageUrl(url: string | string[] | undefined | null, fall
   }
   return str || fallback;
 }
+
+/**
+ * Calculates the estimated read time for a given text content.
+ * Assumes an average reading speed of 200 words per minute.
+ * Returns a string like "5 min read".
+ */
+export function calculateReadTime(content: string | null | undefined): string {
+  if (!content) return "1 min read";
+
+  const strippedContent = stripHtml(content);
+  const wordCount = strippedContent.trim().split(/\s+/).length;
+  const wordsPerMinute = 200;
+  const minutes = Math.ceil(wordCount / wordsPerMinute);
+
+  // Ensure at least 1 min read is shown
+  const readTime = minutes < 1 ? 1 : minutes;
+
+  return `${readTime} min read`;
+}

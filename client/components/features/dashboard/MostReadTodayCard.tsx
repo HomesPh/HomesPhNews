@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, calculateReadTime } from "@/lib/utils";
 
 interface MostReadTodayProps {
   title?: string;
@@ -13,6 +13,8 @@ interface MostReadTodayProps {
     views: number;
     imageUrl: string;
     timeAgo?: string;
+    content?: string;
+    summary?: string;
   }[];
   className?: string;
 }
@@ -51,6 +53,8 @@ export default function MostReadTodayCard({ title = "Most Read Today", items = [
                 <span>{article.timeAgo || 'Recently'}</span>
                 <span>•</span>
                 <span>{article.views.toLocaleString()} views</span>
+                <span>•</span>
+                <span>{calculateReadTime(article.content || article.summary)}</span>
               </div>
             </div>
           </Link>

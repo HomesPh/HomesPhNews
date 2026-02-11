@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArticleResource } from "@/lib/api-v2";
-import { decodeHtml } from '@/lib/utils';
+import { decodeHtml, calculateReadTime } from '@/lib/utils';
 import ShareButtons from "@/components/shared/ShareButtons";
 
 interface LatestPostsSectionProps {
@@ -83,6 +83,8 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                                     <span className="mr-1">👁️</span>
                                     {article.views_count.toLocaleString()}
                                 </span>
+                                <span>•</span>
+                                <span>{calculateReadTime(article.content || article.summary)}</span>
                             </div>
                         </div>
                     </Link>
