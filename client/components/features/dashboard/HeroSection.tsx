@@ -20,6 +20,8 @@ type HeroSectionProps = {
   isFeatured?: boolean
   onReadMore?: () => void
   readMoreText?: string
+  imagePosition?: number
+  imagePositionX?: number
 }
 
 export default function HeroSection({
@@ -36,7 +38,9 @@ export default function HeroSection({
   keywords,
   isFeatured = false,
   onReadMore,
-  readMoreText = 'Read Full Story'
+  readMoreText = 'Read Full Story',
+  imagePosition,
+  imagePositionX
 }: HeroSectionProps) {
   const keywordList = keywords ? keywords.split(',').map(s => s.trim()) : [];
 
@@ -52,6 +56,7 @@ export default function HeroSection({
             className="object-cover opacity-70 transition-all duration-500 group-hover:opacity-80 group-hover:scale-105"
             sizes="100vw"
             priority
+            style={{ objectPosition: `${imagePositionX ?? 50}% ${imagePosition ?? 0}%` }}
           />
           {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.8)] via-[rgba(0,0,0,0.4)] to-transparent" />
