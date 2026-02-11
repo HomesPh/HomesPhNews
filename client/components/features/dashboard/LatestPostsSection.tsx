@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArticleResource } from "@/lib/api-v2";
-import { decodeHtml } from '@/lib/utils';
+import { decodeHtml, calculateReadTime } from '@/lib/utils';
 import ShareButtons from "@/components/shared/ShareButtons";
 
 interface LatestPostsSectionProps {
@@ -56,7 +56,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                             {/* Share Icons - Bottom Right */}
                             <div className="absolute bottom-3 right-3 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20">
                                 <ShareButtons
-                                    url={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                                    url={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                                     title={article.title}
                                     description={article.summary || article.content}
                                     size="xs"
@@ -83,6 +83,8 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                                     <span className="mr-1">👁️</span>
                                     {article.views_count.toLocaleString()}
                                 </span>
+                                <span>•</span>
+                                <span>{calculateReadTime(article.content || article.summary)}</span>
                             </div>
                         </div>
                     </Link>

@@ -85,6 +85,7 @@ export default async function SearchPage({ searchParams }: Props) {
                             <VerticalArticleCard
                                 key={article.id}
                                 id={article.id}
+                                slug={article.slug}
                                 category={article.category}
                                 location={article.country}
                                 title={article.title}
@@ -96,6 +97,7 @@ export default async function SearchPage({ searchParams }: Props) {
                                 })}
                                 views={`${article.views_count || 0} views`}
                                 imageSrc={article.image || "/images/placeholder.png"}
+                                content={article.content}
                             />
                         ))}
                     </div>
