@@ -153,9 +153,26 @@
             </div>
 
             @foreach($articles as $article)
+                @php
+                    // Handle image field (can be array or string)
+                    $imageUrl = null;
+                    if ($article->image) {
+                        if (is_array($article->image)) {
+                            $imageUrl = $article->image[0] ?? null;
+                        } else {
+                            $imageUrl = $article->image;
+                        }
+                        
+                        // Add full URL if not already absolute
+                        if ($imageUrl && !str_starts_with($imageUrl, 'http')) {
+                            $imageUrl = 'https://homestv.ph/storage/' . $imageUrl;
+                        }
+                    }
+                @endphp
+                
                 <a href="{{ $clientUrl }}/article?id={{ $article->id }}" class="article-card">
-                    @if($article->image)
-                        <img src="{{ Str::startsWith($article->image, 'http') ? $article->image : 'https://homestv.ph/storage/' . $article->image }}" alt="{{ $article->title }}" class="article-image">
+                    @if($imageUrl)
+                        <img src="{{ $imageUrl }}" alt="{{ $article->title }}" class="article-image">
                     @endif
                     <div class="article-body">
                         <div class="article-category">{{ $article->category }} | {{ $article->country }}</div>
