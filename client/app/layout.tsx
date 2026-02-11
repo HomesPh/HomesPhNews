@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "HomesTV",
   description: "Stay informed with HomesTV - Your trusted source for global news.",
+  icons: {
+    icon: "/images/HomesTV.png",
+  },
 };
 
 export default function RootLayout({
