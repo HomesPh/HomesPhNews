@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Admin\CampaignController as AdminCampaignController
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\RestaurantController;
 use App\Http\Controllers\Api\Admin\SiteController;
+use App\Http\Controllers\Api\PlanSubscriptionController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\SystemController;
@@ -54,10 +55,16 @@ Route::get('/scheduler/run', function () {
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 Route::get('/login', [AuthController::class, 'me'])->middleware('auth:sanctum')->name('login');
 
+// Public registration route
+Route::post('/auth/register', [AuthController::class, 'register']);
+
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']); // Explicit logout route
+    
+    // Plan Subscriptions
+    Route::post('/plans/subscribe', [PlanSubscriptionController::class, 'store']);
 });
 
 // ═══════════════════════════════════════════════════════════════

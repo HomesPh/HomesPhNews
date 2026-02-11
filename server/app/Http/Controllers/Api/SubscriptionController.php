@@ -140,6 +140,7 @@ class SubscriptionController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
+            'company_name' => 'nullable|string',
             'categories' => 'required|array',
             'countries' => 'required|array',
             'features' => 'nullable|string',
@@ -194,8 +195,15 @@ class SubscriptionController extends Controller
             }
 
             // Save new subscription to database
+            $logoPath = null;
+            if ($request->hasFile('logo')) {
+                $logoPath = $request->file('logo')->store('subscription-logos', 'public');
+            }
+
+            // Save new subscription to database
             $subscription = SubscriptionDetail::create([
                 'email' => $request->email,
+                'company_name' => $request->company_name,
                 'category' => $request->categories,
                 'country' => $request->countries,
                 'features' => $request->features,
