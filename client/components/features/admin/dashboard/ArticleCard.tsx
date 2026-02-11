@@ -12,6 +12,7 @@ interface ArticleCardProps {
     title: string;
     date: string;
     views: string;
+    content?: string;
     status: StatusType;
     onClick?: () => void;
 }
@@ -30,6 +31,7 @@ export default function ArticleCard(props: ArticleCardProps) {
                 title: props.title,
                 date: props.date,
                 views: props.views,
+                content: props.content,
                 status: props.status
             }}
             variant="compact"

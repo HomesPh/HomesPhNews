@@ -3,7 +3,7 @@
 import { Badge } from '@/components/ui/badge'
 import Image from 'next/image'
 import Link from 'next/link'
-import { cn, decodeHtml } from '@/lib/utils'
+import { cn, decodeHtml, calculateReadTime } from '@/lib/utils'
 import { Clock } from 'lucide-react'
 import ShareButtons from "@/components/shared/ShareButtons";
 
@@ -14,6 +14,7 @@ interface ArticleCardProps {
   location?: string
   title: string
   description?: string
+  content?: string
   timeAgo: string
   views?: string
   imageSrc: string
@@ -28,6 +29,7 @@ export default function ArticleCard({
   location,
   title,
   description,
+  content,
   timeAgo,
   views,
   imageSrc,
@@ -36,7 +38,7 @@ export default function ArticleCard({
 }: ArticleCardProps) {
   return (
     <Link
-      href={slug ? `/article?slug=${slug}` : `/article?id=${id}`}
+      href={slug ? `/article/${slug}` : `/article/${id}`}
       className={cn(
         'group flex gap-6 rounded-[12px] border border-[#f3f4f6] bg-white p-6 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all hover:bg-transparent',
         className
@@ -71,7 +73,7 @@ export default function ArticleCard({
         {/* Share Icons - Bottom Right */}
         <div className="absolute bottom-2 right-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20">
           <ShareButtons
-            url={slug ? `/article?slug=${slug}` : `/article?id=${id}`}
+            url={slug ? `/article/${slug}` : `/article/${id}`}
             title={title}
             description={description}
             size="xs"
@@ -102,6 +104,10 @@ export default function ArticleCard({
           <span className="text-[16px] font-normal tracking-[-0.5px]">•</span>
           <span className="text-[14px] font-normal tracking-[-0.5px]">
             {views}
+          </span>
+          <span className="text-[16px] font-normal tracking-[-0.5px]">•</span>
+          <span className="text-[14px] font-normal tracking-[-0.5px]">
+            {calculateReadTime(content || description)}
           </span>
         </div>
       </div>

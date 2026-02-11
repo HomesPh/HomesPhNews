@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Calendar, Eye, MapPin } from 'lucide-react';
-import { cn, sanitizeImageUrl, decodeHtml } from "@/lib/utils";
+import { cn, sanitizeImageUrl, decodeHtml, calculateReadTime } from "@/lib/utils";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 
 interface BaseArticleCardProps {
@@ -15,6 +15,7 @@ interface BaseArticleCardProps {
         location?: string;        // Legacy fallback
         title: string;
         summary?: string;
+        content?: string;         // New field for read time
         description?: string;     // Legacy fallback
         created_at?: string | null;
         date?: string;            // Legacy fallback
@@ -122,6 +123,8 @@ export default function BaseArticleCard({
                             <span>{formatDate(dateStr)}</span>
                             <span>•</span>
                             <span>{viewsStr}</span>
+                            <span>•</span>
+                            <span>{calculateReadTime(article.content || description)}</span>
                         </div>
                     </div>
                 </div>
@@ -180,6 +183,8 @@ export default function BaseArticleCard({
                     <span className="leading-[20px]">{formatDate(dateStr)}</span>
                     <span className="text-[16px]">•</span>
                     <span className="leading-[20px]">{viewsStr}</span>
+                    <span className="text-[16px]">•</span>
+                    <span className="leading-[20px]">{calculateReadTime(article.content || description)}</span>
                 </div>
             </div>
         </div>

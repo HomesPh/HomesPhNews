@@ -28,6 +28,7 @@ class AdController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
             'image_url' => 'required|url',
             'destination_url' => 'required|url',
             'is_active' => 'boolean',
@@ -63,6 +64,7 @@ class AdController extends Controller
 
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
+            'description' => 'nullable|string',
             'image_url' => 'sometimes|url',
             'destination_url' => 'sometimes|url',
             'is_active' => 'boolean',

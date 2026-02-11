@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArticleResource } from "@/lib/api-v2";
+import { calculateReadTime } from "@/lib/utils";
 import LandingBlockHeader from "./LandingBlockHeader";
 import ShareButtons from "@/components/shared/ShareButtons";
 
@@ -24,7 +25,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                     {articles.slice(0, 6).map((article) => (
                         <Link
                             key={article.id}
-                            href={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                            href={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                             className="group cursor-pointer flex flex-col relative transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] min-w-[85vw] sm:min-w-0 snap-center"
                         >
                             <div className="aspect-video overflow-hidden mb-3 relative rounded-sm">
@@ -47,7 +48,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 {/* Share Icons - On Image Bottom Right */}
                                 <div className="absolute bottom-2 right-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20">
                                     <ShareButtons
-                                        url={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                                        url={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                                         title={article.title}
                                         description={article.summary || article.content}
                                         size="xs"
@@ -61,6 +62,8 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 <span>By {article.source || "HomesPh News"}</span>
                                 <span>•</span>
                                 <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                                <span>•</span>
+                                <span>{calculateReadTime(article.content || article.summary)}</span>
                             </div>
                         </Link>
                     ))}
@@ -78,7 +81,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Left: Large Post */}
                     <Link
-                        href={main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`}
+                        href={main.slug ? `/article/${main.slug}` : `/article/${main.id}`}
                         className="group cursor-pointer flex flex-col relative"
                     >
                         <div className="aspect-[4/3] overflow-hidden mb-4 relative rounded-sm">
@@ -101,7 +104,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                             {/* Share Icons Bottom Right */}
                             <div className="absolute bottom-3 right-3 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20">
                                 <ShareButtons
-                                    url={main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`}
+                                    url={main.slug ? `/article/${main.slug}` : `/article/${main.id}`}
                                     title={main.title}
                                     description={main.summary || main.content}
                                     size="sm"
@@ -118,6 +121,8 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                             <span>By {main.source || "HomesPh News"}</span>
                             <span>•</span>
                             <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
+                            <span>•</span>
+                            <span>{calculateReadTime(main.summary || main.content)}</span>
                         </div>
                     </Link>
 
@@ -126,7 +131,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                         {sidePosts.map((article) => (
                             <Link
                                 key={article.id}
-                                href={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                                href={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                                 className="group cursor-pointer flex gap-4 border-b border-gray-300 dark:border-gray-700 pb-4 last:border-0 last:pb-0"
                             >
                                 <div className="w-24 h-24 shrink-0 overflow-hidden relative rounded-sm">
@@ -149,7 +154,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                     {/* Share Icons Bottom Right */}
                                     <div className="absolute bottom-1 right-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20 scale-75 origin-bottom-right">
                                         <ShareButtons
-                                            url={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                                            url={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                                             title={article.title}
                                             size="xs"
                                         />
@@ -163,6 +168,8 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                         <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                         <span>•</span>
                                         <span>{article.views_count} views</span>
+                                        <span>•</span>
+                                        <span>{calculateReadTime(article.summary || article.content)}</span>
                                     </div>
                                 </div>
                             </Link>
@@ -181,7 +188,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                 {articles.slice(0, 4).map((article) => (
                     <Link
                         key={article.id}
-                        href={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                        href={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                         className="group cursor-pointer flex flex-col border-b border-gray-300 dark:border-gray-700 pb-6 md:border-0 md:pb-0 relative"
                     >
                         <div className="aspect-[16/10] overflow-hidden mb-4 relative rounded-sm">
@@ -204,7 +211,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                             {/* Share Icons Bottom Right */}
                             <div className="absolute bottom-2 right-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20">
                                 <ShareButtons
-                                    url={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                                    url={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                                     title={article.title}
                                     description={article.summary || article.content}
                                     size="xs"
@@ -218,6 +225,8 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                             <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                             <span>•</span>
                             <span>By {article.source || "HomesPh News"}</span>
+                            <span>•</span>
+                            <span>{calculateReadTime(article.summary || article.content)}</span>
                         </div>
                     </Link>
                 ))}

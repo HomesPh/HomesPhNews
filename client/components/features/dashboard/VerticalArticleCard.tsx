@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Clock } from "lucide-react";
-import { decodeHtml } from "@/lib/utils";
+import { decodeHtml, calculateReadTime } from "@/lib/utils";
 import ShareButtons from "@/components/shared/ShareButtons";
 
 interface VerticalArticleCardProps {
@@ -16,6 +16,7 @@ interface VerticalArticleCardProps {
     timeAgo: string;
     views: string;
     description?: string;
+    content?: string;
 }
 
 export default function VerticalArticleCard({
@@ -27,11 +28,12 @@ export default function VerticalArticleCard({
     imageSrc,
     timeAgo,
     views,
-    description
+    description,
+    content
 }: VerticalArticleCardProps) {
     return (
         <Link
-            href={slug ? `/article?slug=${slug}` : `/article?id=${id}`}
+            href={slug ? `/article/${slug}` : `/article/${id}`}
             className="group bg-white dark:bg-[#1a1d2e] border border-[#f3f4f6] dark:border-[#2a2d3e] rounded-[12px] overflow-hidden cursor-pointer hover:shadow-md transition-shadow shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col h-full"
         >
             {/* Image on top */}
@@ -56,7 +58,7 @@ export default function VerticalArticleCard({
                 {/* Share Icons - Bottom Right */}
                 <div className="absolute bottom-2 right-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20">
                     <ShareButtons
-                        url={slug ? `/article?slug=${slug}` : `/article?id=${id}`}
+                        url={slug ? `/article/${slug}` : `/article/${id}`}
                         title={title}
                         description={description}
                         size="xs"
@@ -86,6 +88,10 @@ export default function VerticalArticleCard({
                     <p className="font-normal text-[14px] tracking-[-0.5px]">•</p>
                     <p className="font-normal text-[12px] tracking-[-0.5px]">
                         {views}
+                    </p>
+                    <p className="font-normal text-[14px] tracking-[-0.5px]">•</p>
+                    <p className="font-normal text-[12px] tracking-[-0.5px]">
+                        {calculateReadTime(content || description)}
                     </p>
                 </div>
             </div>

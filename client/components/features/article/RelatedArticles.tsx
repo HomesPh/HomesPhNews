@@ -6,6 +6,7 @@ import { Clock } from "lucide-react";
 
 interface RelatedArticle {
   id: string;
+  slug?: string;
   title: string;
   category: string;
   location?: string;
@@ -31,7 +32,7 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
         {articles.map((article) => (
           <Link
             key={article.id}
-            href={`/article?id=${article.id}`}
+            href={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
             className="bg-white dark:bg-[#1a1d2e] border border-[#f3f4f6] dark:border-[#2a2d3e] rounded-[12px] overflow-hidden cursor-pointer hover:shadow-md transition-shadow shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
           >
             {/* Image on top */}

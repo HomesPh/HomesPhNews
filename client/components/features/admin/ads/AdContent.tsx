@@ -123,9 +123,11 @@ export default function AdContent({ className, rotateInterval, width = 300, heig
                 <h3 className="text-white font-bold text-xl leading-tight line-clamp-2">
                   {ad.title}
                 </h3>
-                <p className="text-white/70 text-xs line-clamp-2 font-medium">
-                  Your trusted source for homes and news in the Philippines.
-                </p>
+                {ad.description && (
+                  <p className="text-white/70 text-xs line-clamp-2 font-medium">
+                    {ad.description}
+                  </p>
+                )}
 
                 <div className="inline-flex mt-2 bg-white text-slate-900 px-6 py-2.5 rounded-full font-bold text-xs items-center gap-2 transition-all duration-300 group-hover:gap-3 group-hover:bg-gray-100 group-hover:shadow-xl">
                   {cta}
