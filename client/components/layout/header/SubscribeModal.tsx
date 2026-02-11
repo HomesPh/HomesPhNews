@@ -54,11 +54,8 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
     };
 
     const handleSelectPlan = (plan: string, price: number) => {
-        // Store plan details in localStorage for after authentication
-        localStorage.setItem('selected_plan', JSON.stringify({ plan, price }));
-
-        // Redirect to login page
-        window.location.href = '/admin/login';
+        setFormData({ ...formData, plan, price });
+        setStep('configure');
     };
 
     const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {

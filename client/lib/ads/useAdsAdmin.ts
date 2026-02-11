@@ -27,13 +27,17 @@ export interface AdResponse {
   to: number | null;
 }
 
-export interface MutateAdPayload {
+export interface CreateAdPayload {
   title: string;
+  description?: string | null;
   image_url: string;
   destination_url: string;
   is_active?: boolean;
   campaign_ids?: number[] | null;
 }
+
+export type UpdateAdPayload = Partial<CreateAdPayload>;
+export type MutateAdPayload = CreateAdPayload;
 
 interface State {
   data: Ad[];
@@ -147,7 +151,7 @@ export default function useAdsAdmin() {
 
   // CRUD Operations
   const createAd = useCallback(
-    async (payload: MutateAdPayload) => {
+    async (payload: CreateAdPayload) => {
       try {
         await AXIOS_INSTANCE_ADMIN.post("/admin/ads", payload);
         // Refetch current page or go to first? Usually first or stay.
@@ -163,7 +167,7 @@ export default function useAdsAdmin() {
   );
 
   const updateAd = useCallback(
-    async (id: string | number, payload: MutateAdPayload) => {
+    async (id: string | number, payload: UpdateAdPayload) => {
       try {
         await AXIOS_INSTANCE_ADMIN.put(`/admin/ads/${id}`, payload);
         fetchAds(state.pagination?.current_page || 1);
