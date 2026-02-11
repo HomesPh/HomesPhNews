@@ -29,6 +29,7 @@ export interface AdResponse {
 
 export interface CreateAdPayload {
   title: string;
+  description?: string | null;
   image_url: string;
   destination_url: string;
   is_active?: boolean;
