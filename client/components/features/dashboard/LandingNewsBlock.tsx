@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArticleResource } from "@/lib/api-v2";
+import { calculateReadTime } from "@/lib/utils";
 import LandingBlockHeader from "./LandingBlockHeader";
 import ShareButtons from "@/components/shared/ShareButtons";
 
@@ -61,6 +62,8 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 <span>By {article.source || "HomesPh News"}</span>
                                 <span>•</span>
                                 <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                                <span>•</span>
+                                <span>{calculateReadTime(article.content || article.summary)}</span>
                             </div>
                         </Link>
                     ))}
@@ -118,6 +121,8 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                             <span>By {main.source || "HomesPh News"}</span>
                             <span>•</span>
                             <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
+                            <span>•</span>
+                            <span>{calculateReadTime(main.summary || main.content)}</span>
                         </div>
                     </Link>
 
@@ -163,6 +168,8 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                         <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                         <span>•</span>
                                         <span>{article.views_count} views</span>
+                                        <span>•</span>
+                                        <span>{calculateReadTime(article.summary || article.content)}</span>
                                     </div>
                                 </div>
                             </Link>
@@ -218,6 +225,8 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                             <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                             <span>•</span>
                             <span>By {article.source || "HomesPh News"}</span>
+                            <span>•</span>
+                            <span>{calculateReadTime(article.summary || article.content)}</span>
                         </div>
                     </Link>
                 ))}

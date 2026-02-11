@@ -39,6 +39,7 @@ export default async function RelatedArticlesSidebar({ id }: RelatedArticlesSide
         views: a.views_count,
         imageUrl: a.image || "/healthcare.jpg",
         timeAgo: new Date(a.created_at).toLocaleDateString(),
+        content: a.content || a.summary,
       }));
   } catch (error) {
     console.error("Error fetching related articles:", error);

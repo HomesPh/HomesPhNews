@@ -3,7 +3,7 @@
 import { Badge } from '@/components/ui/badge'
 import Image from 'next/image'
 import Link from 'next/link'
-import { cn, decodeHtml } from '@/lib/utils'
+import { cn, decodeHtml, calculateReadTime } from '@/lib/utils'
 import { Clock } from 'lucide-react'
 import ShareButtons from "@/components/shared/ShareButtons";
 
@@ -14,6 +14,7 @@ interface ArticleCardProps {
   location?: string
   title: string
   description?: string
+  content?: string
   timeAgo: string
   views?: string
   imageSrc: string
@@ -28,6 +29,7 @@ export default function ArticleCard({
   location,
   title,
   description,
+  content,
   timeAgo,
   views,
   imageSrc,
@@ -102,6 +104,10 @@ export default function ArticleCard({
           <span className="text-[16px] font-normal tracking-[-0.5px]">•</span>
           <span className="text-[14px] font-normal tracking-[-0.5px]">
             {views}
+          </span>
+          <span className="text-[16px] font-normal tracking-[-0.5px]">•</span>
+          <span className="text-[14px] font-normal tracking-[-0.5px]">
+            {calculateReadTime(content || description)}
           </span>
         </div>
       </div>

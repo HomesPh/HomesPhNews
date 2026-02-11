@@ -96,6 +96,7 @@ export default async function SearchPage({ searchParams }: Props) {
                                 })}
                                 views={`${article.views_count || 0} views`}
                                 imageSrc={article.image || "/images/placeholder.png"}
+                                content={article.content}
                             />
                         ))}
                     </div>
