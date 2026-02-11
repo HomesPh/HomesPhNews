@@ -43,6 +43,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                                 alt={article.title}
                                 fill
                                 className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                             />
                             {/* Tags at bottom left of image */}
                             <div className="absolute bottom-3 left-3 flex gap-1 z-10 transition-opacity group-hover:opacity-100">

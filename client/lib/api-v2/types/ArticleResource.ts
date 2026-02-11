@@ -25,4 +25,6 @@ export interface ArticleResource {
   original_url: string;
   is_deleted: boolean;
   is_redis: boolean;
+  image_position?: number;
+  image_position_x?: number;
 }

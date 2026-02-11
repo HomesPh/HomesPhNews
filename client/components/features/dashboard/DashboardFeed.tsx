@@ -259,6 +259,8 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
                             slug: article.slug,
                             title: article.title,
                             imageUrl: article.image_url || article.image || 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7', // Fallback image
+                            imagePosition: article.image_position,
+                            imagePositionX: article.image_position_x,
                             views: article.views_count || 0,
                             timeAgo: article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently',
                         }))}

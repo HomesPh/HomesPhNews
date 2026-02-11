@@ -25,6 +25,8 @@ interface BaseArticleCardProps {
         topics?: string[] | null; // Allow null
         sites?: string[];         // Legacy fallback
         published_sites?: string | string[]; // New API field
+        image_position?: number;
+        image_position_x?: number;
     };
     variant?: 'compact' | 'list';
     onClick?: () => void;
@@ -94,6 +96,7 @@ export default function BaseArticleCard({
                             src={imageUrl}
                             alt={article.title}
                             className="w-full h-full rounded-[8px] object-cover"
+                            style={{ objectPosition: `${article.image_position_x ?? 50}% ${article.image_position ?? 0}%` }}
                         />
                     </div>
 
@@ -147,6 +150,7 @@ export default function BaseArticleCard({
                     src={imageUrl}
                     alt={article.title}
                     className="w-full h-full object-cover"
+                    style={{ objectPosition: `${article.image_position_x ?? 50}% ${article.image_position ?? 0}%` }}
                 />
             </div>
 

@@ -63,6 +63,8 @@ export default async function ArticleDetailContent({ id }: ArticleDetailContentP
           src={article.image}
           alt={article.title}
           caption=""
+          image_position={article.image_position}
+          image_position_x={article.image_position_x}
         />
       )}
 

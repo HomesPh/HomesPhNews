@@ -12,6 +12,8 @@ interface MostReadTodayProps {
     title: string;
     views: number;
     imageUrl: string;
+    imagePosition?: number;
+    imagePositionX?: number;
     timeAgo?: string;
   }[];
   className?: string;
@@ -41,6 +43,7 @@ export default function MostReadTodayCard({ title = "Most Read Today", items = [
                 fill
                 sizes="64px"
                 className="object-cover relative z-10 group-hover:scale-110 transition-transform duration-500"
+                style={{ objectPosition: `${article.imagePositionX ?? 50}% ${article.imagePosition ?? 0}%` }}
               />
             </div>
             <div className="flex flex-col justify-center">
