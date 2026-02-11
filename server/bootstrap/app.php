@@ -19,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'is.admin'    => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'is.authenticated' => \App\Http\Middleware\CheckRole::class,
             'site.auth'   => \App\Http\Middleware\VerifySiteApiKey::class,
         ]);
 

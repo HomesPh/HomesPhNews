@@ -11,8 +11,8 @@ use App\Http\Controllers\Api\Admin\CampaignController as AdminCampaignController
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\RestaurantController;
 use App\Http\Controllers\Api\Admin\SiteController;
+use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\PlanSubscriptionController;
-use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\UploadController;
@@ -58,11 +58,15 @@ Route::get('/login', [AuthController::class, 'me'])->middleware('auth:sanctum')-
 // Public registration route
 Route::post('/auth/register', [AuthController::class, 'register']);
 
+// Socialite Routes
+Route::get('/auth/google/redirect', [\App\Http\Controllers\Api\Auth\SocialAuthController::class, 'redirectToGoogle']);
+Route::get('/auth/google/callback', [\App\Http\Controllers\Api\Auth\SocialAuthController::class, 'handleGoogleCallback']);
+
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']); // Explicit logout route
-    
+
     // Plan Subscriptions
     Route::post('/plans/subscribe', [PlanSubscriptionController::class, 'store']);
 });
@@ -95,7 +99,7 @@ Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
 /*  middleware(['auth:sanctum', 'is.admin']): This is the security. It says a user must first be authenticated via Sanctum
  (logged in with a token) AND they must pass our is.admin check. */
 // This group protects all routes within it.
-Route::middleware(['auth:sanctum', 'is.admin'])
+Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
