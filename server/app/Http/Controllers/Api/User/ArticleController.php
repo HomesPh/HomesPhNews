@@ -71,7 +71,7 @@ class ArticleController extends Controller
         // Eager load relationships to prevent N+1 queries
         $articles = $query
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'title', 'summary', 'content', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'views_count', 'topics', 'original_url')
+            ->select('id', 'slug', 'title', 'summary', 'content', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'views_count', 'topics', 'original_url')
             ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
 
@@ -112,21 +112,21 @@ class ArticleController extends Controller
 
         $trending = (clone $baseQuery)
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'title', 'country', 'category', 'image', 'topics', 'views_count', 'status', 'created_at as timestamp', 'original_url')
+            ->select('id', 'slug', 'title', 'country', 'category', 'image', 'topics', 'views_count', 'status', 'created_at as timestamp', 'original_url')
             ->orderBy('views_count', 'desc')
             ->limit(5)
             ->get();
 
         $mostRead = (clone $baseQuery)
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'title', 'country', 'category', 'image', 'views_count', 'status', 'created_at as timestamp', 'original_url')
+            ->select('id', 'slug', 'title', 'country', 'category', 'image', 'views_count', 'status', 'created_at as timestamp', 'original_url')
             ->orderBy('views_count', 'desc')
             ->limit(10)
             ->get();
 
         $latestGlobal = (clone $baseQuery)
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'title', 'summary', 'content', 'country', 'category', 'status', 'created_at as timestamp', 'image', 'views_count', 'keywords', 'original_url')
+            ->select('id', 'slug', 'title', 'summary', 'content', 'country', 'category', 'status', 'created_at as timestamp', 'image', 'views_count', 'keywords', 'original_url')
             ->orderBy('created_at', 'desc')
             ->get();
 
