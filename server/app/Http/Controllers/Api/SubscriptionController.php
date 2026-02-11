@@ -145,9 +145,6 @@ class SubscriptionController extends Controller
             'countries' => 'required|array',
             'features' => 'nullable|string',
             'time' => 'nullable|string',
-            'plan' => 'nullable|string',
-            'price' => 'nullable|numeric',
-            'logo' => 'nullable|image|max:2048', // 2MB max
         ]);
 
         if ($validator->fails()) {
@@ -211,10 +208,6 @@ class SubscriptionController extends Controller
                 'country' => $request->countries,
                 'features' => $request->features,
                 'time' => $request->time,
-                'plan' => $request->plan,
-                'price' => $request->price ?? 0.00,
-                'logo' => $logoPath,
-                'status' => 'active',
             ]);
 
             // Store in cache for algorithm purpose only

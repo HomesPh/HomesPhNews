@@ -73,7 +73,7 @@ export default function AdContent({ className, rotateInterval, width = 300, heig
     >
       <Card
         className={cn("relative overflow-hidden border-0 bg-slate-900 shadow-lg transition-all duration-300 mx-auto", className)}
-        style={{ width: `${width}px`, height: `${height}px` }}
+        style={{ maxWidth: `${width}px`, height: `${height}px`, width: '100%' }}
       >
         {/* Background Image Layer */}
         <div className="absolute inset-0 z-0">
@@ -99,21 +99,21 @@ export default function AdContent({ className, rotateInterval, width = 300, heig
         <div className="relative z-20 h-full w-full">
           {isBanner ? (
             // Horizontal Banner Layout (728x90)
-            <div className="flex h-full items-center justify-between px-8">
-              <div className="flex items-center gap-6">
-                <div>
-                  <h3 className="text-white font-bold text-lg leading-tight line-clamp-1">
+            <div className="flex h-full items-center justify-between px-4 md:px-8">
+              <div className="flex items-center gap-2 md:gap-6 flex-1 min-w-0">
+                <div className="min-w-0">
+                  <h3 className="text-white font-bold text-sm md:text-lg leading-tight line-clamp-1">
                     {ad.title}
                   </h3>
-                  <p className="text-white/70 text-xs mt-0.5 line-clamp-1 font-medium">
+                  <p className="text-white/70 text-[10px] md:text-xs mt-0.5 line-clamp-1 font-medium hidden sm:block">
                     Premium Real Estate & Lifestyle Updates
                   </p>
                 </div>
               </div>
 
-              <div className="bg-white text-slate-900 px-5 py-2 rounded-full font-bold text-xs flex items-center gap-2 transition-all duration-300 group-hover:gap-3 group-hover:bg-gray-100">
+              <div className="bg-white text-slate-900 px-3 py-1.5 md:px-5 md:py-2 rounded-full font-bold text-[10px] md:text-xs flex items-center gap-1 md:gap-2 transition-all duration-300 group-hover:gap-2 md:group-hover:gap-3 group-hover:bg-gray-100 flex-shrink-0 ml-2">
                 {cta}
-                <ArrowRight size={14} />
+                <ArrowRight size={12} className="w-3 h-3 md:w-[14px] md:h-[14px]" />
               </div>
             </div>
           ) : (

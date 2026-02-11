@@ -156,10 +156,10 @@ class ArticleController extends Controller
             })
             ->first();
 
-        if (! $article) {
+        if (!$article) {
             // Fallback to Redis if not found in DB
             $articleData = $this->redisService->getArticle($id);
-            if (! $articleData) {
+            if (!$articleData) {
                 return response()->json(['error' => 'Article not found'], 404);
             }
 
@@ -178,7 +178,7 @@ class ArticleController extends Controller
             ->orWhere('slug', $id)
             ->first();
 
-        if (! $article) {
+        if (!$article) {
             return response()->json(['error' => 'Article not found'], 404);
         }
 
