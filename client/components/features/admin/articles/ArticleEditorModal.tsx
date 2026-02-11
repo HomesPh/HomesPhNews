@@ -44,7 +44,9 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
         publishTo: [] as string[],
         galleryImages: [] as string[],
         splitImages: [] as string[],
-        contentBlocks: [] as ContentBlock[]
+        contentBlocks: [] as ContentBlock[],
+        image_position: 50,
+        image_position_x: 50
     });
 
     useEffect(() => {
@@ -68,7 +70,9 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 publishTo: initialData.published_sites || initialData.sites || [],
                 galleryImages: initialData.gallery_images || [],
                 splitImages: initialData.split_images || [],
-                contentBlocks: initialData.content_blocks || []
+                contentBlocks: initialData.content_blocks || [],
+                image_position: initialData.image_position || 0,
+                image_position_x: initialData.image_position_x || 50
             });
             if (initialData.template) {
                 setTemplate(initialData.template);
@@ -90,7 +94,9 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 publishTo: [],
                 galleryImages: [],
                 splitImages: [],
-                contentBlocks: []
+                contentBlocks: [],
+                image_position: 0,
+                image_position_x: 50
             });
             setTemplate('single');
         }
@@ -262,7 +268,9 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 gallery_images: finalGalleryImages,
                 split_images: articleData.splitImages,
                 content_blocks: finalContentBlocks,
-                template: template
+                template: template,
+                image_position: articleData.image_position,
+                image_position_x: articleData.image_position_x
             };
 
             // Use the is_redis flag from our Resource to determine the save path

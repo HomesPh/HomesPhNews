@@ -27,6 +27,8 @@ interface ArticleEditorFormProps {
         galleryImages: string[];
         splitImages: string[];
         contentBlocks: ContentBlock[];
+        image_position?: number;
+        image_position_x?: number;
     };
     availableSites: string[];
     onDataChange: (field: string, value: any) => void;
@@ -246,7 +248,42 @@ export default function ArticleEditorForm({
                                 <label className="block text-[14px] font-bold text-[#111827] mb-2 tracking-[-0.5px]">
                                     Featured Image <span className="text-[#ef4444]">*</span>
                                 </label>
-                                <div className="border-2 border-dashed border-[#d1d5db] rounded-[8px] overflow-hidden bg-gray-50 group relative cursor-pointer min-h-[160px] flex items-center justify-center">
+                                <div
+                                    className={cn(
+                                        "border-2 border-dashed border-[#d1d5db] rounded-[8px] overflow-hidden bg-gray-50 group relative min-h-[160px] flex items-center justify-center select-none",
+                                        data.image ? "cursor-move" : "cursor-pointer"
+                                    )}
+                                    onMouseDown={(e) => {
+                                        if (!data.image) return;
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const startX = e.clientX;
+                                        const startY = e.clientY;
+                                        const startPosX = data.image_position_x ?? 50;
+                                        const startPosY = data.image_position ?? 0;
+
+                                        const onMouseMove = (moveEvent: MouseEvent) => {
+                                            const deltaX = moveEvent.clientX - startX;
+                                            const deltaY = moveEvent.clientY - startY;
+
+                                            const xPercentageChange = (deltaX / rect.width) * 100;
+                                            const yPercentageChange = (deltaY / rect.height) * 100;
+
+                                            let newPosX = Math.max(0, Math.min(100, startPosX + xPercentageChange));
+                                            let newPosY = Math.max(0, Math.min(100, startPosY + yPercentageChange));
+
+                                            onDataChange('image_position_x', Math.round(newPosX));
+                                            onDataChange('image_position', Math.round(newPosY));
+                                        };
+
+                                        const onMouseUp = () => {
+                                            window.removeEventListener('mousemove', onMouseMove);
+                                            window.removeEventListener('mouseup', onMouseUp);
+                                        };
+
+                                        window.addEventListener('mousemove', onMouseMove);
+                                        window.addEventListener('mouseup', onMouseUp);
+                                    }}
+                                >
                                     <input
                                         type="file"
                                         ref={fileInputRef}
@@ -260,17 +297,31 @@ export default function ArticleEditorForm({
                                             <p className="text-[13px] text-[#6b7280]">Uploading...</p>
                                         </div>
                                     ) : data.image ? (
-                                        <>
-                                            <img src={data.image} alt="Featured" className="w-full h-auto" />
-                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <div className="relative w-full aspect-video overflow-hidden">
+                                            <img
+                                                src={data.image}
+                                                alt="Featured"
+                                                className="w-full h-full object-cover pointer-events-none transform scale-110"
+                                                style={{ objectPosition: `${data.image_position_x ?? 50}% ${data.image_position ?? 0}%` }}
+                                            />
+                                            <div className="absolute inset-x-0 top-0 bg-gradient-to-b from-black/40 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <p className="text-white text-[12px] font-medium flex items-center gap-2">
+                                                    <GripVertical className="w-3.5 h-3.5" />
+                                                    Drag vertically to reposition
+                                                </p>
+                                            </div>
+                                            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                                                 <button
-                                                    onClick={handleUploadClick}
-                                                    className="px-4 py-2 bg-white rounded-[6px] text-[14px] font-medium text-[#111827]"
+                                                    onClick={(e) => { e.stopPropagation(); handleUploadClick(); }}
+                                                    className="px-4 py-2 bg-white rounded-[6px] text-[13px] font-bold text-[#111827] shadow-sm hover:bg-gray-50"
                                                 >
                                                     Change Image
                                                 </button>
+                                                <div className="px-3 py-2 bg-black/60 backdrop-blur-sm rounded-[6px] text-[12px] font-bold text-white shadow-sm">
+                                                    Pos: {data.image_position_x ?? 50}%, {data.image_position ?? 0}%
+                                                </div>
                                             </div>
-                                        </>
+                                        </div>
                                     ) : (
                                         <div className="py-12 px-6 text-center w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100/50 transition-colors" onClick={handleUploadClick}>
                                             <Upload className="w-12 h-12 text-[#9ca3af] mx-auto mb-3" />

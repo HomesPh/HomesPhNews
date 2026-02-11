@@ -36,6 +36,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         unoptimized={isUnoptimized(getImg(main, ''))}
                         sizes="100vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        style={{ objectPosition: `${main?.image_position_x ?? 50}% ${main?.image_position ?? 0}%` }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-8">
                         <div className="flex gap-2 mb-3">
@@ -89,6 +90,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             priority
                             sizes="(max-width: 768px) 100vw, 50vw"
                             className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
                             <div className="flex gap-2 mb-2">
@@ -142,6 +144,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         sizes="(max-width: 768px) 100vw, 50vw"
                         unoptimized={isUnoptimized(getImg(main, ''))}
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        style={{ objectPosition: `${main?.image_position_x ?? 50}% ${main?.image_position ?? 0}%` }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
                         <div className="flex gap-2 mb-2">
@@ -187,6 +190,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 sizes="(max-width: 768px) 100vw, 25vw"
                                 unoptimized={isUnoptimized(getImg(article, ''))}
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">
                                 <div className="flex gap-1.5 mb-1.5">
@@ -241,6 +245,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                     sizes="(max-width: 768px) 100vw, 50vw"
                     unoptimized={isUnoptimized(getImg(main, ''))}
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    style={{ objectPosition: `${main?.image_position_x ?? 50}% ${main?.image_position ?? 0}%` }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
                     <div className="flex gap-2 mb-2">
@@ -289,6 +294,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             sizes="(max-width: 768px) 100vw, 50vw"
                             unoptimized={isUnoptimized(getImg(topSmall, ''))}
                             className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            style={{ objectPosition: `${topSmall?.image_position_x ?? 50}% ${topSmall?.image_position ?? 0}%` }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">
                             <div className="flex gap-1.5 mb-1.5">
@@ -335,6 +341,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 sizes="(max-width: 768px) 50vw, 25vw"
                                 unoptimized={isUnoptimized(getImg(article, ''))}
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">
                                 <div className="flex gap-1 mb-1">
