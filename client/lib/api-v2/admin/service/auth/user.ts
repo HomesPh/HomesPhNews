@@ -5,14 +5,11 @@ import type { UserResource } from "../../../types/UserResource";
 import type { AxiosResponse } from "axios";
 
 export type GetUserAuthResponse = {
-  access_token: string;
-  token_type: string;
-  user: UserResource;
+  data: UserResource;
 };
 
 /**
  * Get the authenticated user
- * @param body 
  * @returns 
  */
 export async function getUser(): Promise<AxiosResponse<GetUserAuthResponse>> {
