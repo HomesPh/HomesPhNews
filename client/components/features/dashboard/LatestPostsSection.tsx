@@ -34,7 +34,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                 {visibleArticles.map((article) => (
                     <Link
                         key={article.id}
-                        href={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                        href={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                         className="group cursor-pointer flex flex-col md:flex-row gap-8 pb-10 border-b border-gray-300 dark:border-gray-700 last:border-0"
                     >
                         <div className="md:w-1/3 aspect-[4/3] shrink-0 overflow-hidden relative rounded-sm">

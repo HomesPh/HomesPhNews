@@ -7,6 +7,7 @@ import { Eye } from 'lucide-react'
 
 type HeroSectionProps = {
   id?: string
+  slug?: string
   title: string
   description: string
   category: string
@@ -23,6 +24,7 @@ type HeroSectionProps = {
 
 export default function HeroSection({
   id = 'hero-article',
+  slug,
   title,
   description,
   category,
@@ -39,7 +41,7 @@ export default function HeroSection({
   const keywordList = keywords ? keywords.split(',').map(s => s.trim()) : [];
 
   return (
-    <Link href={`/article?id=${id}`} className="block">
+    <Link href={slug ? `/article/${slug}` : `/article/${id}`} className="block">
       <div className="group relative mb-8 w-full h-[379px] overflow-hidden rounded-[16px] bg-black cursor-pointer">
         {/* Image */}
         <div className="absolute inset-0">
