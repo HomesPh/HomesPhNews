@@ -46,6 +46,7 @@ export * from "./admin/service/ai/generateImages";
 
 export * from "./admin/service/ads";
 export * from "./admin/service/campaigns";
+export * from "./admin/service/scraper";
 
 
 /**
@@ -56,4 +57,7 @@ export type * from "./types/UserResource";
 export type * from "./types/Article";
 export type * from "./types/Event";
 export type * from "./types/SiteResource";
+export type * from "./types/CategoryResource";
+export type * from "./types/CountryResource";
+export { ApiError } from "./types/ApiError";
 
