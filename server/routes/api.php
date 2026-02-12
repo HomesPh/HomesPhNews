@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\Admin\CampaignController as AdminCampaignController
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\RestaurantController;
 use App\Http\Controllers\Api\Admin\SiteController;
+use App\Http\Controllers\Api\Admin\CategoryController;
+use App\Http\Controllers\Api\Admin\CountryController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\PlanSubscriptionController;
 use App\Http\Controllers\Api\SubscriptionController;
@@ -119,6 +121,8 @@ Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
         Route::apiResource('articles', AdminArticleController::class);
         Route::apiResource('ads', AdminAdController::class);
         Route::apiResource('campaigns', AdminCampaignController::class);
+        Route::apiResource('categories', CategoryController::class);
+        Route::apiResource('countries', CountryController::class);
 
         // Custom Article Actions
         Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
