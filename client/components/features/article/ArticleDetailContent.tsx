@@ -2,6 +2,7 @@ import { getArticleById } from "@/lib/api-v2";
 import ArticleHeader from "./ArticleHeader";
 import ArticleFeaturedImage from "./ArticleFeaturedImage";
 import ArticleContent from "./ArticleContent";
+import RestaurantDetails from "./RestaurantDetails";
 import ArticleShareBox from "./ArticleShareBox";
 import { stripHtml } from "@/lib/utils";
 import { Categories, Countries } from "@/app/data";
@@ -68,15 +69,19 @@ export default async function ArticleDetailContent({ id }: ArticleDetailContentP
         />
       )}
 
-      <ArticleContent
-        content={article.content}
-        topics={
-          article.keywords
-            ? article.keywords.split(",").map((t: string) => t.trim())
-            : []
-        }
-        originalUrl={article.original_url}
-      />
+      {article.category === "Restaurant" ? (
+        <RestaurantDetails restaurant={article} />
+      ) : (
+        <ArticleContent
+          content={article.content}
+          topics={
+            article.keywords
+              ? article.keywords.split(",").map((t: string) => t.trim())
+              : []
+          }
+          originalUrl={article.original_url}
+        />
+      )}
       <ArticleShareBox />
     </section>
   );
