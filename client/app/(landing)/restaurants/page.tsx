@@ -18,25 +18,62 @@ export default async function RestaurantPage({ searchParams }: Props) {
     const params = await searchParams;
     const topic = (params.topic as string) || undefined;
 
-    const feedData = await getArticlesFeed({
-        category: "Restaurant",
-        topic: topic,
-        limit: 30, // Increased limit to feed carousel + blocks
-    });
+    let feedData: any = { trending: [], latest_global: [], most_read: [] };
+    try {
+        feedData = await getArticlesFeed({
+            category: "Restaurant",
+            topic: topic,
+            limit: 30,
+        });
+    } catch (error) {
+        console.error("Failed to fetch restaurant feed:", error);
+    }
 
     let articles = feedData.latest_global || [];
     const trending = feedData.trending || [];
     const mostRead = feedData.most_read || [];
 
     // --- DUMMY DATA FOR VISUAL VERIFICATION ---
-    if (articles.length === 0) {
+    // Always ensure we have enough articles for the layout
+    if (articles.length < 35) {
         const { mockSpecialtyContent } = require('@/lib/api-v2/mock/mockArticles');
-        articles = mockSpecialtyContent.filter((a: ArticleResource) => a.category === "Restaurant");
+        const mockRestaurants = mockSpecialtyContent.filter((a: ArticleResource) => a.category === "Restaurant");
+
+        // Filter out any duplicates if real data exists
+        const seenIds = new Set(articles.map(a => a.id));
+        const uniqueMock = mockRestaurants.filter((a: ArticleResource) => !seenIds.has(a.id));
+
+        articles = [...articles, ...uniqueMock];
+
+        // If we still don't have enough, generate some filler
+        if (articles.length < 35) {
+            const fillerCount = 35 - articles.length;
+            const filler = Array.from({ length: fillerCount }).map((_, i) => ({
+                id: `dummy-fill-${i}`,
+                article_id: `dummy-fill-${i}`,
+                slug: `dummy-fill-${i}`,
+                title: `Culinary Discovery ${i + 7}: Exploring Regional Filipino Flavors`,
+                summary: "A deep dive into the diverse regional cuisines of the Philippines, from the spicy Bicol Express to the savory Iloilo Batchoy.",
+                image: [
+                    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80',
+                    'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80',
+                    'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80',
+                    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80',
+                    'https://images.unsplash.com/photo-1544124499-1804ba2e447b?auto=format&fit=crop&q=80'
+                ][i % 5],
+                category: "Restaurant",
+                country: "Philippines",
+                views_count: 120 + (i * 15),
+                created_at: new Date(Date.now() - i * 86400000).toISOString(),
+                topics: ["Food", "Culture"],
+                status: "published"
+            }));
+            articles = [...articles, ...filler];
+        }
     }
     // -------------------------------------------
 
     // Prepare Slides for the Featured Hero Carousel
-    // We simulate different "Tabs" of content
     const heroSlides = [
         {
             id: 'featured',
@@ -56,12 +93,10 @@ export default async function RestaurantPage({ searchParams }: Props) {
     ];
 
     // Data Slicing for Rest of Page
-    // We offset the offsets used in carousel to avoid duplication if real data, 
-    // but for visual fullness often overlap is fine or we slice further down.
     const topStories = articles.slice(12, 18);
     const communityNewsletter = articles.slice(18, 23);
     const moreUpdates = articles.slice(23, 27);
-    const latestPosts = articles.slice(27, 35); // Just remixing for the bottom list
+    const latestPosts = articles.slice(27, 35);
 
     const restaurantCategories = [
         { label: "Fine Dining", count: 4 },
@@ -69,7 +104,7 @@ export default async function RestaurantPage({ searchParams }: Props) {
         { label: "Fast Food", count: 12 },
         { label: "Industry News", count: 5 },
         { label: "Chef Interviews", count: 3 },
-        { label: "Reviews", count: 15 },
+        { label: "Reviews", count: 18 },
     ];
 
     return (
@@ -113,6 +148,7 @@ export default async function RestaurantPage({ searchParams }: Props) {
 
                             {/* Latest Posts List (Standard List) */}
                             <LatestPostsSection
+                                title="Complete Archive"
                                 articles={latestPosts}
                                 viewAllHref="/search?category=Restaurant"
                             />
@@ -134,7 +170,7 @@ export default async function RestaurantPage({ searchParams }: Props) {
                         rotateInterval={10000}
                     />
                     <MostReadTodayCard
-                        items={mostRead.slice(0, 5).map((article) => ({
+                        items={mostRead.slice(0, 5).map((article: ArticleResource) => ({
                             id: article.id || '',
                             title: article.title,
                             imageUrl: article.image || article.image_url || '',
@@ -144,7 +180,7 @@ export default async function RestaurantPage({ searchParams }: Props) {
                     />
 
                     <TrendingTopicsCard
-                        items={trending.slice(0, 5).map((article) => ({
+                        items={trending.slice(0, 5).map((article: ArticleResource) => ({
                             id: article.id || '',
                             label:
                                 article.topics && Array.isArray(article.topics) && article.topics.length > 0
