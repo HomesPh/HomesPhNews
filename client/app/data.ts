@@ -33,7 +33,6 @@ export const Categories: { id: string; label: string; }[] = [
     { id: "Business & Economy", label: "Business & Economy" },
     { id: "Real Estate", label: "Real Estate" },
     { id: "Success Stories", label: "Success Stories" },
-    { id: "Restaurant", label: "Restaurant" },
     { id: "Sports", label: "Sports" },
 ];
 
