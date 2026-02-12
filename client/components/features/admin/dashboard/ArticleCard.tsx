@@ -14,6 +14,7 @@ interface ArticleCardProps {
     views: string;
     image_position?: number;
     image_position_x?: number;
+    content?: string;
     status: StatusType;
     onClick?: () => void;
 }
@@ -34,7 +35,8 @@ export default function ArticleCard(props: ArticleCardProps) {
                 views: props.views,
                 status: props.status,
                 image_position: props.image_position,
-                image_position_x: props.image_position_x
+                image_position_x: props.image_position_x,
+                content: props.content
             }}
             variant="compact"
             onClick={props.onClick}
