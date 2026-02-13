@@ -25,6 +25,6 @@ export interface AdminSitesParams {
  * GET /admin/sites
  */
 export async function getAdminSites(params?: AdminSitesParams): Promise<AxiosResponse<GetAdminSitesResponse>> {
-  return AXIOS_INSTANCE_ADMIN.get<GetAdminSitesResponse>("/admin/sites", { params });
+  return AXIOS_INSTANCE_ADMIN.get<GetAdminSitesResponse>("/v1/admin/sites", { params });
 }
 
