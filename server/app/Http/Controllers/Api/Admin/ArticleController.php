@@ -102,12 +102,12 @@ class ArticleController extends Controller
         // Paginate DB results - Eager load to prevent N+1 queries
         $articles = $query
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'article_id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'is_deleted')
+            ->select('id', 'article_id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'is_deleted', 'content_blocks', 'template', 'author')
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage);
 
-        // Merge Redis articles if on early page of 'all'
-        if (((!$status || $status === 'all')) && $page == 1) {
+        // Merge Redis articles if on early page of 'all' or 'pending'
+        if ((!$status || $status === 'all' || $status === 'pending') && $page == 1) {
             try {
                 // Pass all active filters to Redis filterArticles
                 $redisRaw = $this->redisService->filterArticles([
@@ -136,9 +136,18 @@ class ArticleController extends Controller
                 })->filter(fn($a) => !empty($a['id']));
 
                 // Deduplicate: Don't show Redis items if they already exist in our DB
+                // Check by both ID and Title to catch manual drafts of scraper items
                 $redisIds = $redisItems->pluck('id')->toArray();
-                $existingInDb = Article::whereIn('id', $redisIds)->pluck('id')->toArray();
-                $redisItems = $redisItems->filter(fn($a) => !in_array($a['id'], $existingInDb));
+                $redisTitles = $redisItems->pluck('title')->toArray();
+                
+                $existingInDb = Article::whereIn('id', $redisIds)
+                    ->orWhereIn('title', $redisTitles)
+                    ->pluck('id', 'title')
+                    ->toArray();
+
+                $redisItems = $redisItems->filter(function($a) use ($existingInDb) {
+                    return !in_array($a['id'], $existingInDb) && !isset($existingInDb[$a['title']]);
+                });
 
                 $merged = $redisItems->merge($articles->getCollection());
                 $articles->setCollection($merged);
@@ -236,10 +245,8 @@ class ArticleController extends Controller
         // Remove fields that don't exist in the articles table
         unset($validated['gallery_images']);
         unset($validated['split_images']);
-        unset($validated['content_blocks']);
-        unset($validated['template']);
-        unset($validated['author']);
         unset($validated['date']);
+
         if (empty($validated['slug'])) {
             $validated['slug'] = \Illuminate\Support\Str::slug($validated['title']);
         } else {
@@ -334,21 +341,27 @@ class ArticleController extends Controller
             unset($validated['published_sites']);
         }
 
-        // Handle Gallery Images Sync
-        if (isset($validated['galleryImages']) && is_array($validated['galleryImages'])) {
+        // Handle Gallery Images Sync (support both field names for compatibility)
+        $galleryImages = $validated['galleryImages'] ?? $validated['gallery_images'] ?? null;
+        if (isset($galleryImages) && is_array($galleryImages)) {
             // Remove old images
             $article->images()->delete();
 
             // Add new images
-            foreach ($validated['galleryImages'] as $imagePath) {
+            foreach ($galleryImages as $imagePath) {
                 if (!empty($imagePath)) {
                     $article->images()->create([
                         'image_path' => $imagePath
                     ]);
                 }
             }
-            unset($validated['galleryImages']); // Don't try to update article table with this
         }
+        
+        // Remove fields that don't belong in the articles table
+        unset($validated['galleryImages']);
+        unset($validated['gallery_images']);
+        unset($validated['split_images']); // Not stored in articles table
+        unset($validated['date']); // Not a database column
 
         $article->update($validated);
 
@@ -372,89 +385,102 @@ class ArticleController extends Controller
      */
     public function publish(ArticleActionRequest $request, string $id): JsonResponse|ArticleResource
     {
+        \Log::info("Publishing article: {$id}");
+        
         if (!\Illuminate\Support\Str::isUuid($id)) {
             return response()->json(['message' => 'Invalid article ID format'], 400);
         }
 
-        $validated = $request->validated();
+        try {
+            $validated = $request->validated();
+            $existing = Article::where('id', $id)->first();
+            $redisArticle = $this->redisService->getArticle($id);
 
-        // 1. Attempt to find in Database first
-        // If it exists in DB (even if soft-deleted or restored), we update it
-        $existing = Article::where('id', $id)->first();
-        if ($existing) {
-            // Restore and update
-            $existing->update([
-                'is_deleted' => false,
-                'status' => 'published'
-            ]);
+            if ($existing) {
+            \Log::info("Found existing article in DB, updating status.");
+            $updateData = ['is_deleted' => false, 'status' => 'published'];
+            
+            // If Redis has data, merge it, BUT preserve DB fields if they're more recent/complete
+            if ($redisArticle) {
+                // Only update from Redis if the DB field is empty or Redis has newer data
+                // This prevents overwriting edited content_blocks with stale Redis data
+                $updateData = array_merge($updateData, [
+                    'title' => $redisArticle['title'] ?? $existing->title,
+                    'summary' => $redisArticle['summary'] ?? $existing->summary,
+                    'content' => $redisArticle['content'] ?? $existing->content,
+                    // Preserve DB content_blocks if they exist (from editing), otherwise use Redis
+                    'content_blocks' => (!empty($existing->content_blocks) ? $existing->content_blocks : ($redisArticle['content_blocks'] ?? [])),
+                    // Preserve DB template if it exists (from editing), otherwise use Redis
+                    'template' => (!empty($existing->template) ? $existing->template : ($redisArticle['template'] ?? '')),
+                    // Preserve DB author if it exists (from editing), otherwise use Redis
+                    'author' => (!empty($existing->author) ? $existing->author : ($redisArticle['author'] ?? '')),
+                ]);
+            }
+            $existing->update($updateData);
+            $article = $existing;
+        }    else {
+                \Log::info("Article not in DB, creating from Redis.");
+                if (!$redisArticle) {
+                    \Log::error("Redis article not found for ID: {$id}");
+                    return response()->json(['message' => 'Article not found in database or pending queue'], 404);
+                }
 
-            // Sync sites if provided
+                \Log::info("Redis Article content found. Blocks count: " . (isset($redisArticle['content_blocks']) ? count($redisArticle['content_blocks']) : 0));
+
+                $article = Article::create([
+                    'id' => $id,
+                    'article_id' => $id,
+                    'title' => $redisArticle['title'] ?? '',
+                    'original_title' => $redisArticle['title'] ?? '',
+                    'summary' => $redisArticle['summary'] ?? substr($redisArticle['content'] ?? '', 0, 500),
+                    'content' => $redisArticle['content'] ?? '',
+                    'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? '',
+                    'category' => $redisArticle['category'] ?? '',
+                    'country' => $redisArticle['country'] ?? '',
+                    'source' => $redisArticle['source'] ?? '',
+                    'original_url' => $redisArticle['original_url'] ?? '',
+                    'keywords' => $redisArticle['keywords'] ?? '',
+                    'topics' => $redisArticle['topics'] ?? [],
+                    'status' => 'published',
+                    'views_count' => 0,
+                    'is_deleted' => false,
+                    'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
+                    'content_blocks' => $redisArticle['content_blocks'] ?? [],
+                    'template' => $redisArticle['template'] ?? '',
+                    'author' => $redisArticle['author'] ?? '',
+                ]);
+            }
+
+            // Sync sites
             $siteNames = $validated['published_sites'] ?? [];
             if (!empty($siteNames)) {
                 $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
-                $existing->publishedSites()->sync($siteIds);
+                $article->publishedSites()->sync($siteIds);
             }
 
-            // Cleanup Redis if it's still there
-            $this->redisService->deleteArticle($id);
+            if (isset($validated['custom_titles'])) {
+                $article->update(['custom_titles' => $validated['custom_titles']]);
+            }
 
-            return new ArticleResource($existing);
-        }
-
-        // 2. If not in DB, check Redis (Source of Truth for new scraper articles)
-        $redisArticle = $this->redisService->getArticle($id);
-        if (!$redisArticle) {
-            return response()->json(['message' => 'Article not found in database or pending queue'], 404);
-        }
-
-        $article = Article::create([
-            'id' => $id,
-            'article_id' => $id,
-            'title' => $redisArticle['title'] ?? '',
-            'original_title' => $redisArticle['title'] ?? '',
-            'summary' => $redisArticle['summary'] ?? substr($redisArticle['content'] ?? '', 0, 500),
-            'content' => $redisArticle['content'] ?? '',
-            'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? '',
-            'category' => $redisArticle['category'] ?? '',
-            'country' => $redisArticle['country'] ?? '',
-            'source' => $redisArticle['source'] ?? '',
-            'original_url' => $redisArticle['original_url'] ?? '',
-            'keywords' => $redisArticle['keywords'] ?? '',
-            'topics' => $redisArticle['topics'] ?? [],
-            'status' => 'published',
-            'views_count' => 0,
-            'is_deleted' => false,
-            'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
-        ]);
-
-        $siteNames = $validated['published_sites'] ?? [];
-        if (!empty($siteNames)) {
-            $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
-            $article->publishedSites()->sync($siteIds);
-        }
-
-        if (isset($validated['custom_titles'])) {
-            $article->custom_titles = $validated['custom_titles'];
-            $article->save();
-        }
-
-        // Handle Gallery Images from Redis
-        $galleryImages = $redisArticle['gallery_images'] ?? [];
-        if (!empty($galleryImages) && is_array($galleryImages)) {
-            foreach ($galleryImages as $imagePath) {
-                if (!empty($imagePath)) {
-                    $article->images()->create([
-                        'image_path' => $imagePath
-                    ]);
+            // Sync images
+            $galleryImages = $redisArticle['gallery_images'] ?? [];
+            if (is_array($galleryImages)) {
+                $article->images()->delete();
+                foreach ($galleryImages as $imagePath) {
+                    if (!empty($imagePath)) $article->images()->create(['image_path' => $imagePath]);
                 }
             }
+
+            $this->redisService->deleteArticle($id);
+            \Log::info("Article {$id} published successfully.");
+            
+            return (new ArticleResource($article))->response()->setStatusCode(201);
+            
+        } catch (\Exception $e) {
+            \Log::error("Failed to publish article {$id}: " . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+            return response()->json(['message' => 'Failed to publish article: ' . $e->getMessage()], 500);
         }
-
-        $this->redisService->deleteArticle($id);
-
-        \Illuminate\Support\Facades\Log::info("Article {$id} published to sites: " . implode(', ', $siteNames));
-
-        return (new ArticleResource($article))->response()->setStatusCode(201);
     }
 
     /**

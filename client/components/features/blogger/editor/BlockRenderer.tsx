@@ -415,6 +415,67 @@ export default function BlockRenderer({
                         </div>
                     </div>
                 );
+            case 'split-left':
+            case 'split-right':
+                const isSplitLeft = block.type === 'split-left';
+                return (
+                    <div className={cn(
+                        "flex flex-col md:flex-row bg-[#f9fafb] rounded-2xl overflow-hidden min-h-[400px] border border-gray-100",
+                        !isSplitLeft && "md:flex-row-reverse"
+                    )}>
+                        <div className="flex-1 min-h-[300px] h-full">
+                            <DraggableImage
+                                src={block.content.image || block.content.src}
+                                onUpload={(e) => handleFileSelect(e, (url) => onUpdate(block.id, { image: url }))}
+                                imagePosition={settings.imagePosition}
+                                onPositionChange={handleUpdateImagePosition}
+                                className="rounded-none h-full border-0"
+                            />
+                        </div>
+                        <div className="flex-1 p-8 md:p-12 flex flex-col justify-center">
+                            <RichTextEditor
+                                content={block.content.text || ""}
+                                onChange={(val) => onUpdate(block.id, { text: val })}
+                                placeholder="Enter featured text here..."
+                                style={{ ...style, fontSize: '20px', fontWeight: '500' }}
+                                blockId={block.id}
+                            />
+                        </div>
+                    </div>
+                );
+            case 'dynamic-images':
+                const dynImgs = block.content.images || [];
+                return (
+                    <div className="space-y-6">
+                        {dynImgs.map((img: string, idx: number) => (
+                            <div key={idx} className="space-y-2">
+                                <DraggableImage
+                                    src={img}
+                                    onUpload={(e) => handleFileSelect(e, (url) => {
+                                        const newImgs = [...dynImgs];
+                                        newImgs[idx] = url;
+                                        onUpdate(block.id, { images: newImgs });
+                                    })}
+                                    imagePosition={settings.imagePosition}
+                                    onPositionChange={handleUpdateImagePosition}
+                                    autoHeight={true}
+                                    allowRemove={dynImgs.length > 0}
+                                    onRemove={() => {
+                                        const newImgs = dynImgs.filter((_: string, i: number) => i !== idx);
+                                        onUpdate(block.id, { images: newImgs });
+                                    }}
+                                />
+                            </div>
+                        ))}
+                        <button
+                            onClick={() => onUpdate(block.id, { images: [...dynImgs, ""] })}
+                            className="w-full py-6 border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-[#C10007] hover:bg-white hover:border-[#ffd6d6] transition-all"
+                        >
+                            <Plus className="w-6 h-6 mb-1" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">Add Image to Stack</span>
+                        </button>
+                    </div>
+                );
             default:
                 return <div className="p-4 bg-red-50 text-red-500 rounded-lg text-xs font-bold">Unsupported block type: {block.type}</div>;
         }

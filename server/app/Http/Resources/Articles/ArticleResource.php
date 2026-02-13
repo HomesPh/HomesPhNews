@@ -30,7 +30,10 @@ class ArticleResource extends JsonResource
             $data = (array)$res;
         }
 
-        $get = function ($key, $default = null) use ($data) {
+        $get = function ($key, $default = null) use ($res, $isModel, $data) {
+            if ($isModel) {
+                return $res->{$key} ?? $data[$key] ?? $default;
+            }
             return $data[$key] ?? $default;
         };
 
@@ -147,6 +150,9 @@ class ArticleResource extends JsonResource
             'original_url' => (string)$get('original_url', ''),
             'is_deleted' => $isDeleted,
             'is_redis' => !$isModel,
+            'content_blocks' => is_string($get('content_blocks')) ? json_decode($get('content_blocks'), true) : $get('content_blocks', []),
+            'template' => (string)$get('template', ''),
+            'author' => (string)$get('author', ''),
 
             // Restaurant Meta
             'clickbait_hook' => $get('clickbait_hook'),

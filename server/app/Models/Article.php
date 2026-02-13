@@ -30,6 +30,9 @@ class Article extends Model
         'keywords',
         'topics',          // JSON array of topics
         'published_sites', // JSON array of site names
+        'content_blocks',  // Structured block data
+        'template',        // Visual template name
+        'author',          // Author name
         'is_deleted',
         'slug',
     ];
@@ -42,6 +45,7 @@ class Article extends Model
         'custom_titles' => 'array',
         'topics' => 'array',
         'published_sites' => 'array', // ["FilipinoHomes", "Rent.ph", ...]
+        'content_blocks' => 'array',
         'image' => 'array',
         'views_count' => 'integer',
         'is_deleted' => 'boolean',
