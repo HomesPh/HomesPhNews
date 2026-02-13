@@ -7,6 +7,7 @@ export * from "./public/services/article/getArticleById";
 export * from "./public/services/article/incrementArticleViews";
 export * from "./public/services/article/getStats";
 export * from "./public/services/subscription";
+export * from "./public/services/ads/getAdsByCampaign";
 
 /**
  * exports from admin

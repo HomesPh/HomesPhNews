@@ -40,7 +40,7 @@ export default async function RestaurantPage({ searchParams }: Props) {
         const mockRestaurants = mockSpecialtyContent.filter((a: ArticleResource) => a.category === "Restaurant");
 
         // Filter out any duplicates if real data exists
-        const seenIds = new Set(articles.map(a => a.id));
+        const seenIds = new Set(articles.map((a: ArticleResource) => a.id));
         const uniqueMock = mockRestaurants.filter((a: ArticleResource) => !seenIds.has(a.id));
 
         articles = [...articles, ...uniqueMock];
