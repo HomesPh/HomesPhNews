@@ -77,7 +77,7 @@ Route::middleware('auth:sanctum')->group(function () {
 // ═══════════════════════════════════════════════════════════════
 
 // Public User Routes
-Route::prefix('articles')->name('articles.')->group(function () {
+Route::group(['prefix' => 'articles', 'as' => 'articles.'], function () {
     Route::get('/', [UserArticleController::class , 'index'])->name('index');
     Route::get('/feed', [UserArticleController::class , 'feed'])->name('feed');
     Route::get('/{id}', [UserArticleController::class , 'show'])->name('show');
@@ -93,6 +93,13 @@ Route::get('/stats', [UserArticleController::class , 'stats']);
 // Ads (Public)
 Route::get('/ads', [UserAdController::class , 'index']);
 Route::get('/ads/{name}', [UserAdController::class , 'showByName']);
+
+// Restaurants (Public)
+Route::group(['prefix' => 'restaurants', 'as' => 'restaurants.'], function () {
+    Route::get('/', [\App\Http\Controllers\Api\User\RestaurantController::class , 'index'])->name('index');
+    Route::get('/{id}', [\App\Http\Controllers\Api\User\RestaurantController::class , 'show'])->name('show');
+    Route::get('/country/{country}', [\App\Http\Controllers\Api\User\RestaurantController::class , 'byCountry'])->name('byCountry');
+});
 
 // ═══════════════════════════════════════════════════════════════
 // ADMIN ROUTES (Database-based for article management)

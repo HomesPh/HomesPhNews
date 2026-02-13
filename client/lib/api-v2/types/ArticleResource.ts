@@ -27,5 +27,26 @@ export interface ArticleResource {
   is_redis: boolean;
   image_position?: number;
   image_position_x?: number;
-  read_time?: string;
+
+  // Restaurant Meta
+  clickbait_hook?: string;
+  city?: string;
+  cuisine_type?: string;
+  rating?: number;
+  is_filipino_owned?: boolean;
+  price_range?: string;
+  avg_meal_cost?: string;
+  budget_category?: string;
+  specialty_dish?: string;
+  contact_info?: string;
+  why_filipinos_love_it?: string;
+  menu_highlights?: string;
+  google_maps_url?: string;
+  address?: string;
+  website?: string;
+  social_media?: string;
+  opening_hours?: string;
+  brand_story?: string;
+  tags?: string[];
+  features?: string[];
 }
