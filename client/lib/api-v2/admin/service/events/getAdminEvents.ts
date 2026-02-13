@@ -9,6 +9,6 @@ import type { Event } from "../../../types/Event";
  * GET /admin/events
  */
 export async function getAdminEvents(): Promise<AxiosResponse<Event[]>> {
-  return AXIOS_INSTANCE_ADMIN.get<Event[]>("/admin/events");
+  return AXIOS_INSTANCE_ADMIN.get<Event[]>("/v1/admin/events");
 }
 

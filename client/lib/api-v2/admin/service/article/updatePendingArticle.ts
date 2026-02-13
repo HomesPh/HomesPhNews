@@ -32,7 +32,7 @@ export async function updatePendingArticle(
   body: UpdatePendingArticleRequest
 ): Promise<AxiosResponse<UpdatePendingArticleResponse>> {
   return AXIOS_INSTANCE_ADMIN.patch<UpdatePendingArticleResponse>(
-    `/admin/articles/${id}/pending`,
+    `/v1/admin/articles/${id}/pending`,
     body
   );
 }

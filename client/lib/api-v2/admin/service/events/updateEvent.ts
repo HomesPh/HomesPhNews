@@ -20,6 +20,6 @@ export async function updateEvent(
   eventId: number,
   body: UpdateEventRequest
 ): Promise<AxiosResponse<Event>> {
-  return AXIOS_INSTANCE_ADMIN.put<Event>(`/admin/events/${eventId}`, body);
+  return AXIOS_INSTANCE_ADMIN.put<Event>(`/v1/admin/events/${eventId}`, body);
 }
 

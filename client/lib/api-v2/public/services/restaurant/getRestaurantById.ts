@@ -7,6 +7,6 @@ import type { Restaurant } from "../../../types/RestaurantResource";
  * Fetch a single published restaurant by ID
  */
 export async function getRestaurantById(id: string): Promise<Restaurant> {
-    const response = await AXIOS_INSTANCE_PUBLIC.get<Restaurant>(`/restaurants/${id}`);
+    const response = await AXIOS_INSTANCE_PUBLIC.get<Restaurant>(`/v1/restaurants/${id}`);
     return response.data;
 }

@@ -15,5 +15,5 @@ interface DeleteResponse {
 export async function deleteAdminRestaurant(
     id: string
 ): Promise<AxiosResponse<DeleteResponse>> {
-    return AXIOS_INSTANCE_ADMIN.delete<DeleteResponse>(`/admin/restaurants/${id}`);
+    return AXIOS_INSTANCE_ADMIN.delete<DeleteResponse>(`/v1/admin/restaurants/${id}`);
 }

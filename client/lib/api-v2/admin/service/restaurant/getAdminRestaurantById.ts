@@ -11,5 +11,5 @@ import type { Restaurant } from "../../../types/RestaurantResource";
 export async function getAdminRestaurantById(
     id: string
 ): Promise<AxiosResponse<Restaurant>> {
-    return AXIOS_INSTANCE_ADMIN.get<Restaurant>(`/admin/restaurants/${id}`);
+    return AXIOS_INSTANCE_ADMIN.get<Restaurant>(`/v1/admin/restaurants/${id}`);
 }

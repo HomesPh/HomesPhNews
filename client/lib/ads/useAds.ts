@@ -21,7 +21,7 @@ export default function useAds({ campaign }: Params) {
         const response = await AXIOS_INSTANCE_PUBLIC.get<{
           name: string;
           ads: Ad[];
-        }>(`/ads/${campaign}`);
+        }>(`/v1/ads/${campaign}`);
 
         setAds(response.data.ads);
       } catch (err) {

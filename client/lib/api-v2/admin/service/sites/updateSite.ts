@@ -27,6 +27,6 @@ export async function updateSite(
   id: number,
   body: UpdateSiteRequest
 ): Promise<AxiosResponse<UpdateSiteResponse>> {
-  return AXIOS_INSTANCE_ADMIN.put<UpdateSiteResponse>(`/admin/sites/${id}`, body);
+  return AXIOS_INSTANCE_ADMIN.put<UpdateSiteResponse>(`/v1/admin/sites/${id}`, body);
 }
 

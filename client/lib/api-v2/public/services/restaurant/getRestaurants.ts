@@ -22,6 +22,6 @@ export interface PaginatedRestaurants {
  * Fetch a paginated list of published restaurants
  */
 export async function getRestaurants(params?: GetRestaurantsParams): Promise<PaginatedRestaurants> {
-    const response = await AXIOS_INSTANCE_PUBLIC.get<PaginatedRestaurants>("/restaurants", { params });
+    const response = await AXIOS_INSTANCE_PUBLIC.get<PaginatedRestaurants>("/v1/restaurants", { params });
     return response.data;
 }

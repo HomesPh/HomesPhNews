@@ -11,6 +11,6 @@ import type { Event } from "../../../types/Event";
 export async function getEventById(
   eventId: number
 ): Promise<AxiosResponse<Event>> {
-  return AXIOS_INSTANCE_ADMIN.get<Event>(`/admin/events/${eventId}`);
+  return AXIOS_INSTANCE_ADMIN.get<Event>(`/v1/admin/events/${eventId}`);
 }
 

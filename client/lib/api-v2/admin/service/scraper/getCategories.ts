@@ -5,5 +5,5 @@ import type { AxiosResponse } from "axios";
 import type { CategoryResource } from "../../../types/CategoryResource";
 
 export async function getCategories(): Promise<AxiosResponse<CategoryResource[]>> {
-    return AXIOS_INSTANCE_ADMIN.get<CategoryResource[]>("/admin/categories");
+    return AXIOS_INSTANCE_ADMIN.get<CategoryResource[]>("/v1/admin/categories");
 }

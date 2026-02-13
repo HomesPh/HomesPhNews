@@ -5,6 +5,6 @@ export const getAdsByCampaign = async (campaign: string) => {
   const response = await AXIOS_INSTANCE_PUBLIC.get<{
     name: string;
     ads: Ad[];
-  }>(`/ads/${campaign}`);
+  }>(`/v1/ads/${campaign}`);
   return response.data;
 };

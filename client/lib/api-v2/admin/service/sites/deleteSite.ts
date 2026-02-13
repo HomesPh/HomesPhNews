@@ -14,6 +14,6 @@ export interface DeleteSiteResponse {
 export async function deleteSite(
   id: number
 ): Promise<AxiosResponse<DeleteSiteResponse>> {
-  return AXIOS_INSTANCE_ADMIN.delete<DeleteSiteResponse>(`/admin/sites/${id}`);
+  return AXIOS_INSTANCE_ADMIN.delete<DeleteSiteResponse>(`/v1/admin/sites/${id}`);
 }
 

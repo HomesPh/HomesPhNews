@@ -31,7 +31,7 @@ export type FeedParams = {
 }
 
 export async function getArticlesFeed(params?: FeedParams): Promise<FeedResponse> {
-  const response = await AXIOS_INSTANCE_PUBLIC.get<FeedResponse>("/articles/feed", { params });
+  const response = await AXIOS_INSTANCE_PUBLIC.get<FeedResponse>("/v1/articles/feed", { params });
   // Return only the data to avoid serializing Axios response objects with circular references
   return response.data;
 }
