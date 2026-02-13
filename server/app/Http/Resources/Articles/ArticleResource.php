@@ -25,8 +25,9 @@ class ArticleResource extends JsonResource
         // Extract raw data safely
         if ($isModel) {
             $data = $res->getAttributes();
-        } else {
-            $data = (array) $res;
+        }
+        else {
+            $data = (array)$res;
         }
 
         $get = function ($key, $default = null) use ($data) {
@@ -42,12 +43,14 @@ class ArticleResource extends JsonResource
                 $sites = ($rel instanceof \Illuminate\Support\Collection)
                     ? $rel->pluck('site_name')->toArray()
                     : (is_array($rel) ? $rel : []);
-            } else {
+            }
+            else {
                 // Use the accessor if relation not loaded, ensuring we treat it as an array
                 $attr = $res->published_sites; // Accessor returns array
                 $sites = is_array($attr) ? $attr : [];
             }
-        } else {
+        }
+        else {
             $sitesData = $get('published_sites', []) ?? $get('sites', []);
             $sites = is_array($sitesData) ? $sitesData : [];
         }
@@ -57,10 +60,10 @@ class ArticleResource extends JsonResource
         if ($request->attributes->has('site')) {
             $authenticatedSite = $request->attributes->get('site');
             $authenticatedSiteName = $authenticatedSite->site_name ?? null;
-            
+
             if ($authenticatedSiteName) {
                 // Filter to only include the authenticated site
-                $sites = array_filter($sites, function($siteName) use ($authenticatedSiteName) {
+                $sites = array_filter($sites, function ($siteName) use ($authenticatedSiteName) {
                     return strval($siteName) === strval($authenticatedSiteName);
                 });
                 // Re-index array to ensure sequential keys
@@ -76,10 +79,12 @@ class ArticleResource extends JsonResource
                 $images = ($rel instanceof \Illuminate\Support\Collection)
                     ? $rel->pluck('image_path')->toArray()
                     : (is_array($rel) ? $rel : []);
-            } else {
+            }
+            else {
                 $images = []; // Not loaded
             }
-        } else {
+        }
+        else {
             $imgs = $get('galleryImages', []) ?? $get('gallery_images', []) ?? [];
             $images = is_array($imgs) ? $imgs : [];
         }
@@ -88,7 +93,7 @@ class ArticleResource extends JsonResource
         $date = $get('created_at', null);
         if (empty($date) && isset($data['timestamp'])) {
             $ts = $data['timestamp'];
-            $date = is_numeric($ts) ? date('Y-m-d H:i:s', (int) $ts) : (string) $ts;
+            $date = is_numeric($ts) ? date('Y-m-d H:i:s', (int)$ts) : (string)$ts;
         }
 
         // Topics logic
@@ -98,16 +103,16 @@ class ArticleResource extends JsonResource
             $topics = is_array($decoded) ? $decoded : [];
         }
 
-        $isDeleted = (bool) $get('is_deleted', false);
-        $status = (string) $get('status', 'pending');
+        $isDeleted = (bool)$get('is_deleted', false);
+        $status = (string)$get('status', 'pending');
 
         // Check if this is an external API call (has authenticated site)
         $isExternalApi = $request->attributes->has('site');
 
         // Get raw content values
-        $rawContent = (string) $get('content', '');
-        $rawSummary = (string) $get('summary', $get('content', ''));
-        $rawDescription = (string) $get('summary', $get('content', ''));
+        $rawContent = (string)$get('content', '');
+        $rawSummary = (string)$get('summary', $get('content', ''));
+        $rawDescription = (string)$get('summary', $get('content', ''));
 
         // Sanitize HTML tags for external API calls only
         // This removes all HTML tags (<p>, <b>, <i>, <ul>, <ol>, etc.) and converts to plain text
@@ -116,32 +121,54 @@ class ArticleResource extends JsonResource
         $description = $isExternalApi ? $this->stripHtmlTags($rawDescription) : $rawDescription;
 
         return [
-            'id' => (string) $get('id', ''),
-            'slug' => (string) $get('slug', ''),
-            'article_id' => (string) $get('article_id', $get('id', '')),
-            'title' => (string) $get('title', ''),
+            'id' => (string)$get('id', ''),
+            'slug' => (string)$get('slug', ''),
+            'article_id' => (string)$get('article_id', $get('id', '')),
+            'title' => (string)$get('title', ''),
             'summary' => $summary,
             'content' => $content,
-            'category' => (string) $get('category', 'All'),
-            'country' => (string) $get('country', $get('location', 'Global')),
+            'category' => (string)$get('category', 'All'),
+            'country' => (string)$get('country', $get('location', 'Global')),
             'status' => $isDeleted ? 'deleted' : $status,
-            'created_at' => (string) $date,
-            'views_count' => (int) $get('views_count', 0),
+            'created_at' => (string)$date,
+            'views_count' => (int)$get('views_count', 0),
             'image_url' => $this->sanitizeImageUrl($data['image_url'] ?? $data['image'] ?? ''),
             'image' => $this->sanitizeImageUrl($data['image'] ?? $data['image_url'] ?? ''),
-            'location' => (string) $get('country', $get('location', 'Global')),
+            'location' => (string)$get('country', $get('location', 'Global')),
             'description' => $description,
-            'date' => (string) $date,
-            'views' => number_format((int) $get('views_count', 0)) . ' views',
+            'date' => (string)$date,
+            'views' => number_format((int)$get('views_count', 0)) . ' views',
             'published_sites' => array_map('strval', $sites),
             'sites' => array_map('strval', $sites),
             'topics' => array_map('strval', is_array($topics) ? $topics : []),
             'galleryImages' => array_map('strval', $images),
-            'keywords' => (string) $get('keywords', ''),
-            'source' => (string) $get('source', ''),
-            'original_url' => (string) $get('original_url', ''),
+            'keywords' => (string)$get('keywords', ''),
+            'source' => (string)$get('source', ''),
+            'original_url' => (string)$get('original_url', ''),
             'is_deleted' => $isDeleted,
             'is_redis' => !$isModel,
+
+            // Restaurant Meta
+            'clickbait_hook' => $get('clickbait_hook'),
+            'city' => $get('city'),
+            'cuisine_type' => $get('cuisine_type'),
+            'rating' => $get('rating'),
+            'is_filipino_owned' => (bool)$get('is_filipino_owned', false),
+            'price_range' => $get('price_range'),
+            'avg_meal_cost' => $get('avg_meal_cost'),
+            'budget_category' => $get('budget_category'),
+            'specialty_dish' => $get('specialty_dish'),
+            'contact_info' => $get('contact_info'),
+            'why_filipinos_love_it' => $get('why_filipinos_love_it'),
+            'menu_highlights' => $get('menu_highlights'),
+            'google_maps_url' => $get('google_maps_url'),
+            'address' => $get('address'),
+            'website' => $get('website'),
+            'social_media' => $get('social_media'),
+            'opening_hours' => $get('opening_hours'),
+            'brand_story' => $get('brand_story'),
+            'tags' => $get('tags', []),
+            'features' => $get('features', []),
         ];
     }
 
@@ -152,16 +179,16 @@ class ArticleResource extends JsonResource
     protected function sanitizeImageUrl(mixed $value): string
     {
         if (is_array($value)) {
-            return (string) ($value[0] ?? '');
+            return (string)($value[0] ?? '');
         }
 
-        $str = trim((string) $value);
+        $str = trim((string)$value);
 
         // Case 1: JSON array string '["url"]'
         if (str_starts_with($str, '["') && str_ends_with($str, '"]')) {
             $decoded = json_decode($str, true);
             if (is_array($decoded) && !empty($decoded)) {
-                return (string) ($decoded[0] ?? '');
+                return (string)($decoded[0] ?? '');
             }
         }
 
