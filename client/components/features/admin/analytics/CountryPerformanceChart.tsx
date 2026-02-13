@@ -6,7 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 interface CountryPerformance {
     country: string;
-    articlesPublished: number;
+    articlesPublished?: number;
     totalViews: number;
     percentage?: string;
 }
@@ -61,7 +61,7 @@ export default function CountryPerformanceChart({ data }: CountryPerformanceChar
                             }}
                             formatter={(value: any, name: any, props: any) => {
                                 if (name === 'Total Views') {
-                                    return [`${value.toLocaleString()} (${props.payload.percentage})`, 'Views'];
+                                    return [`${value.toLocaleString()}`, 'Views'];
                                 }
                                 return [value.toLocaleString(), name];
                             }}
