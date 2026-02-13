@@ -13,13 +13,40 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
+        // Define permissions
+        $permissions = [
+            // users
+            'view_users',
+            'create_users',
+            'edit_users',
+            'delete_users',
+
+            // roles
+            'view_roles',
+            'create_roles',
+            'edit_roles',
+            'delete_roles',
+
+            // articles
+            'view_articles',
+            'create_articles',
+            'edit_articles',
+            'delete_articles',
+        ];
+
+        // Create permissions
+        foreach ($permissions as $permissionName) {
+            \App\Models\Permission::firstOrCreate(['name' => $permissionName]);
+        }
+
+        // Create Roles
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
-        $userRole = Role::firstOrCreate(['name' => 'user']);
+
+        // Assign all permissions to admin role
+        $allPermissions = \App\Models\Permission::all();
+        $adminRole->permissions()->sync($allPermissions);
 
         // Assign admin role to existing admin users if any
-        // Assuming there is an is_admin column or similar based on previous context
-        // But for now, just creating the roles is enough, or potentially assigning to the first user.
-        
         // Example: Assign 'admin' role to user with ID 1
         $user = User::find(1);
         if ($user) {

@@ -15,7 +15,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::latest()->paginate(10);
+        $users = User::with('roles')->latest()->paginate(10);
         return response()->json($users);
     }
 
@@ -40,7 +40,12 @@ class UserController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        return response()->json($user, 201);
+        if ($request->has('roles')) {
+            $roles = \App\Models\Role::whereIn('name', $request->roles)->pluck('id');
+            $user->roles()->sync($roles);
+        }
+
+        return response()->json($user->load('roles'), 201);
     }
 
     /**
@@ -48,7 +53,7 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        $user = User::findOrFail($id);
+        $user = User::with('roles')->findOrFail($id);
         return response()->json($user);
     }
 
@@ -85,7 +90,12 @@ class UserController extends Controller
 
         $user->save();
 
-        return response()->json($user);
+        if ($request->has('roles')) {
+            $roles = \App\Models\Role::whereIn('name', $request->roles)->pluck('id');
+            $user->roles()->sync($roles);
+        }
+
+        return response()->json($user->load('roles'));
     }
 
     /**
@@ -97,5 +107,23 @@ class UserController extends Controller
         $user->delete();
 
         return response()->json(null, 204);
+    }
+    
+    /**
+     * (v2) Update the specified user's roles.
+     */
+    public function updateRole(Request $request, string $id)
+    {
+        $request->validate([
+            'roles' => 'required|array',
+            'roles.*' => 'string',
+        ]);
+
+        $user = User::findOrFail($id);
+
+        $roles = \App\Models\Role::whereIn('name', $request->roles)->pluck('id');
+        $user->roles()->sync($roles);
+
+        return response()->json($user->load('roles'));
     }
 }

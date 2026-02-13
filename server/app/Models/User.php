@@ -84,4 +84,34 @@ class User extends Authenticatable
 
         return false;
     }
+
+    /**
+     * Check if the user has a specific permission.
+     */
+    public function hasPermission(string $permission): bool
+    {
+        // 1. Get role names from relationship (if loaded or via query)
+        $relationRoles = $this->roles()->pluck('name')->toArray();
+        
+        // 2. Get role names from attribute (JSON column)
+        $attributeRoles = $this->getRawOriginal('roles');
+        $attributeRoles = is_string($attributeRoles) ? json_decode($attributeRoles, true) : $attributeRoles;
+        if (!is_array($attributeRoles)) {
+            $attributeRoles = [];
+        }
+
+        // Merge and unique
+        $allRoleNames = array_unique(array_merge($relationRoles, $attributeRoles));
+
+        if (empty($allRoleNames)) {
+            return false;
+        }
+
+        // 3. Check if any of these roles have the permission
+        // We use the Role model to check permissions on the roles we found
+        return Role::whereIn('name', $allRoleNames)
+            ->whereHas('permissions', function($query) use ($permission) {
+                $query->where('name', $permission);
+            })->exists();
+    }
 }
