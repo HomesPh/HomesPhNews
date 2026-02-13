@@ -5,7 +5,7 @@ import { X, ArrowLeft, Save, Send } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { getSiteNames, updatePendingArticle, createArticle, updateArticle, publishArticle, uploadArticleImage } from "@/lib/api-v2";
 import ArticleEditorForm from "./editor/ArticleEditorForm";
-import ArticleEditorPreview from "./editor/ArticleEditorPreview";
+
 import { TemplateType } from "./editor/TemplateSelector";
 
 export interface ContentBlock {
@@ -29,32 +29,62 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
     const [template, setTemplate] = useState<TemplateType>('single');
     const [availableSites, setAvailableSites] = useState<string[]>([]);
 
-    const [articleData, setArticleData] = useState({
-        title: '',
-        slug: '',
-        summary: '',
-        content: '',
-        category: 'All',
-        country: 'Philippines',
-        image: null as string | null,
-        tags: [] as string[],
-        author: 'Maria Santos',
-        publishDate: new Date().toISOString().split('T')[0],
-        publishTime: '14:30',
-        publishTo: [] as string[],
-        galleryImages: [] as string[],
-        splitImages: [] as string[],
-        contentBlocks: [] as ContentBlock[],
-        image_position: 50,
-        image_position_x: 50
-    });
+    // Initialize articleData with initialData if available, otherwise use defaults
+    const getInitialArticleData = () => {
+        if (initialData) {
+            return {
+                title: initialData.title || '',
+                slug: initialData.slug || (initialData.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+                summary: initialData.summary || initialData.description || '',
+                content: initialData.content || '',
+                category: initialData.category || 'All',
+                country: initialData.country || initialData.location || 'Philippines',
+                image: initialData.image || null,
+                tags: initialData.topics || initialData.tags || [],
+                author: initialData.author || 'Maria Santos',
+                publishDate: initialData.date || new Date().toISOString().split('T')[0],
+                publishTime: '14:30',
+                publishTo: initialData.published_sites || initialData.sites || [],
+                galleryImages: initialData.gallery_images || [],
+                splitImages: initialData.split_images || [],
+                contentBlocks: initialData.content_blocks || [],
+                image_position: initialData.image_position || 0,
+                image_position_x: initialData.image_position_x || 50
+            };
+        }
+
+        // Default empty state for create mode
+        return {
+            title: '',
+            slug: '',
+            summary: '',
+            content: '',
+            category: 'All',
+            country: 'Philippines',
+            image: null as string | null,
+            tags: [] as string[],
+            author: 'Maria Santos',
+            publishDate: new Date().toISOString().split('T')[0],
+            publishTime: '14:30',
+            publishTo: [] as string[],
+            galleryImages: [] as string[],
+            splitImages: [] as string[],
+            contentBlocks: [] as ContentBlock[],
+            image_position: 50,
+            image_position_x: 50
+        };
+    };
+
+    const [articleData, setArticleData] = useState(getInitialArticleData());
 
     useEffect(() => {
         getSiteNames().then(res => setAvailableSites(res.data as string[])).catch(console.error);
     }, []);
 
     useEffect(() => {
+        console.log("ArticleEditorModal useEffect triggered:", { isOpen, hasInitialData: !!initialData });
         if (isOpen && initialData) {
+            console.log("Setting articleData from initialData:", initialData);
             setArticleData({
                 title: initialData.title || '',
                 slug: initialData.slug || (initialData.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
@@ -143,8 +173,8 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
 
             // Always add from blocks (if they have meaningful content)
             const blocksData = prev.contentBlocks
-                .map(b => b.content)
-                .filter(c => c && !isPlaceholder(c))
+                .map((b: any) => b.content)
+                .filter((c: any) => c && !isPlaceholder(c))
                 .join('<br><br>');
 
             if (blocksData) {
@@ -154,7 +184,7 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
 
             // Try to find an image if none is set
             if (!consolidatedImage) {
-                consolidatedImage = prev.contentBlocks.find(b => b.image)?.image || null;
+                consolidatedImage = prev.contentBlocks.find((b: any) => b.image)?.image || null;
             }
 
             // 2. REDISTRIBUTE: Into the new structure
@@ -284,10 +314,15 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 isPublish
             });
 
+            console.log('Publish validation:', { isPublish, publishToLength: articleData.publishTo.length, publishTo: articleData.publishTo });
+
             if (isPublish && articleData.publishTo.length === 0) {
+                console.log('Validation failed: No sites selected');
                 alert('Please select at least one site to publish to.');
                 return;
             }
+
+            console.log('Validation passed, continuing with save/publish');
 
             if (mode === 'create') {
                 // Create article directly in MySQL database
@@ -311,8 +346,18 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 }
             } else if (mode === 'edit') {
                 // DB articles (including 'pending review' and restored ones)
-                await updateArticle(initialData.id, payload);
-                alert(`Article ${isPublish ? 'published' : 'updated'} successfully!`);
+                if (isPublish) {
+                    // When publishing, first update the article data, then call publish endpoint
+                    await updateArticle(initialData.id, payload);
+                    await publishArticle(initialData.id, {
+                        published_sites: articleData.publishTo,
+                    });
+                    alert('Article published successfully!');
+                } else {
+                    // When just saving, only update
+                    await updateArticle(initialData.id, payload);
+                    alert('Article updated successfully!');
+                }
             }
 
             onClose();
@@ -327,71 +372,16 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
 
     return (
         <div className="force-light fixed inset-0 bg-white z-[100] flex flex-col animate-in fade-in duration-200">
-            {/* Full Screen Header */}
-            <div className="h-[70px] border-b border-[#e5e7eb] px-6 flex items-center justify-between bg-white shrink-0">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors group"
-                    >
-                        <ArrowLeft className="w-5 h-5 text-[#6b7280] group-hover:text-[#111827]" />
-                    </button>
-                    <div>
-                        <h2 className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">
-                            {mode === 'create' ? 'Create New Article' : 'Edit Article'}
-                        </h2>
-                        <p className="text-[12px] text-[#6b7280] tracking-[-0.5px]">
-                            {mode === 'create' ? 'Drafting a new story' : `Editing: ${articleData.title.substring(0, 40)}${articleData.title.length > 40 ? '...' : ''}`}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => handleSave(false)}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-[#d1d5db] text-[#374151] rounded-[8px] hover:bg-gray-50 transition-all text-[14px] font-bold tracking-[-0.5px] shadow-sm"
-                    >
-                        <Save className="w-4 h-4" />
-                        Save as Draft
-                    </button>
-                    <button
-                        onClick={() => handleSave(true)}
-                        className="flex items-center gap-2 px-6 py-2 bg-[#C10007] text-white rounded-[8px] hover:bg-[#a10006] transition-all text-[14px] font-bold tracking-[-0.5px] shadow-md shadow-red-900/10"
-                    >
-                        <Send className="w-4 h-4" />
-                        Publish Now
-                    </button>
-                    <div className="w-px h-8 bg-gray-200 mx-2" />
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                    >
-                        <X className="w-5 h-5 text-[#9ca3af]" />
-                    </button>
-                </div>
-            </div>
-
-            {/* Main Dual Panel Body */}
-            <div className="flex-1 flex overflow-hidden">
-                {/* Form Side */}
-                <ArticleEditorForm
-                    data={articleData}
-                    availableSites={availableSites}
-                    onDataChange={handleDataChange}
-                    template={template}
-                    onTemplateChange={handleTemplateChange}
-                />
-
-                {/* Preview Side */}
-                <ArticleEditorPreview
-                    data={{
-                        ...articleData,
-                        timestamp: `${articleData.publishDate}T${articleData.publishTime}:00Z`
-                    }}
-                    template={template}
-                    onDataChange={handleDataChange}
-                />
-            </div>
+            <ArticleEditorForm
+                data={articleData}
+                availableSites={availableSites}
+                onDataChange={handleDataChange}
+                template={template}
+                onTemplateChange={handleTemplateChange}
+                onSave={() => handleSave(false)}
+                onPublish={() => handleSave(true)}
+                onClose={onClose}
+            />
         </div>
     );
 }
