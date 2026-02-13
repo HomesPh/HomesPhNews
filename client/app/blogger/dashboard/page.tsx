@@ -1,65 +1,159 @@
 "use client";
 
+import { useEffect, useState } from 'react';
 import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
 import StatCard from "@/components/features/admin/shared/StatCard";
-import { BookOpen, Eye, ThumbsUp, MessageSquare, Plus } from "lucide-react";
+import ArticleCard from "@/components/features/admin/dashboard/ArticleCard";
+import ArticleDistribution from "@/components/features/admin/dashboard/ArticleDistribution";
+import BloggerQuickActions from "@/components/features/blogger/dashboard/BloggerQuickActions";
+import Link from 'next/link';
 import { useRouter } from "next/navigation";
-import { mockBlogs } from "@/app/admin/users/data";
+import { getBloggerDashboardStats, BloggerDashboardStats } from "@/lib/api-v2/blogger/service/dashboard/getBloggerDashboardStats";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Plus } from "lucide-react";
 
 export default function BloggerDashboardPage() {
     const router = useRouter();
+    const userName = "Maria";
+    const [isLoading, setIsLoading] = useState(true);
+    const [data, setData] = useState<BloggerDashboardStats | null>(null);
 
-    // Filter blogs for the mock author "Maria Santos"
-    const mariaBlogs = mockBlogs.filter(b => b.authorName === "Maria Santos");
-    const totalViews = mariaBlogs.reduce((acc, b) => acc + b.views, 0);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await getBloggerDashboardStats();
+                setData(response);
+            } catch (error) {
+                console.error("Failed to fetch dashboard stats", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
 
     const stats = [
         {
             title: "Total Blogs",
-            value: mariaBlogs.length.toString(),
-            iconName: "BookOpen" as const,
+            value: data?.stats.total_blogs || 0,
             trend: "+12% vs last month",
+            iconName: "FileText" as const
         },
         {
             title: "Total Views",
-            value: totalViews.toLocaleString(),
-            iconName: "Eye" as const,
+            value: (data?.stats.total_views || 0).toLocaleString(),
             trend: "+8% vs last month",
+            iconName: "Eye" as const
         },
         {
-            title: "Engagements",
-            value: "2,450", // Mock value
-            iconName: "ThumbsUp" as const,
+            title: "Total Comments",
+            value: data?.stats.total_comments || 0,
             trend: "+5% vs last month",
+            iconName: "MessageSquare" as const
         },
         {
-            title: "Comments",
-            value: "128", // Mock value
-            iconName: "MessageSquare" as const,
+            title: "Avg. Engagement",
+            value: `${data?.stats.avg_engagement || 0}%`,
             trend: "Needs attention",
+            iconName: "Activity" as const
         }
     ];
 
+    // Format distribution data for the component
+    const distributionSites = data?.stats.total_distribution.map(d => ({
+        name: d.distributed_in,
+        count: d.published_count,
+        color: "#C10007"
+    })) ?? [];
+
     return (
-        <div className="p-8 space-y-8">
+        <div className="p-8 bg-[#f9fafb] min-h-screen">
             <AdminPageHeader
                 title="Blogger Dashboard"
-                description="Welcome back, Maria! Here's how your blogs are performing."
+                description={`Welcome back, ${userName}! Here's how your blogs are performing.`}
                 actionLabel="Create New Blog"
                 onAction={() => router.push('/blogger/blogs/create')}
                 actionIcon={Plus}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, index) => (
-                    <StatCard key={index} {...stat} />
-                ))}
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {isLoading ? (
+                    Array(4).fill(0).map((_, i) => (
+                        <Skeleton key={i} className="h-[120px] rounded-xl bg-white shadow-sm" />
+                    ))
+                ) : (
+                    stats.map((stat, index) => (
+                        <StatCard key={index} {...stat} />
+                    ))
+                )}
             </div>
 
-            <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-                <h3 className="text-lg font-bold text-gray-900 mb-6">Recent Performance</h3>
-                <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    <p className="text-gray-500">Analytics chart rendering placeholder...</p>
+            {/* Main Content Area */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                {/* Section: Recent Blogs List */}
+                <div className="lg:col-span-2">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">Recent Blogs</h2>
+                        <Link
+                            href="/blogger/blogs"
+                            className="text-[14px] font-semibold text-[#C10007] hover:text-[#a10006] tracking-[-0.5px]"
+                        >
+                            View All →
+                        </Link>
+                    </div>
+
+                    <div className="space-y-4">
+                        {isLoading ? (
+                            Array(3).fill(0).map((_, i) => (
+                                <Skeleton key={i} className="h-[100px] rounded-lg bg-white shadow-sm" />
+                            ))
+                        ) : data?.recent_blogs && data.recent_blogs.length > 0 ? (
+                            data.recent_blogs.map((blog) => (
+                                <ArticleCard
+                                    key={blog.id}
+                                    id={blog.id}
+                                    image={blog.image}
+                                    category={blog.category}
+                                    location={blog.country}
+                                    title={blog.title}
+                                    date={new Date(blog.created_at).toLocaleDateString()}
+                                    views={blog.views_count.toString()}
+                                    status={blog.status as any} // Cast to any to avoid strict union check for now, or ensure mock matches StatusType
+                                    image_position={blog.image_position}
+                                    image_position_x={blog.image_position_x}
+                                    onClick={() => router.push(`/blogger/blogs/${blog.id}`)}
+                                />
+                            ))
+                        ) : (
+                            <div className="p-10 text-center bg-white rounded-lg border border-dashed border-gray-200">
+                                <p className="text-gray-500 font-medium tracking-[-0.5px]">No blogs yet.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Sidebar: Distribution and Quick Actions */}
+                <div className="space-y-8">
+                    {isLoading ? (
+                        <>
+                            <Skeleton className="h-[300px] rounded-xl bg-white shadow-sm" />
+                            <Skeleton className="h-[200px] rounded-xl bg-white shadow-sm" />
+                        </>
+                    ) : (
+                        <>
+                            <div className="bg-white rounded-[12px] border border-[#f3f4f6] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] overflow-hidden">
+                                <ArticleDistribution
+                                    sites={distributionSites}
+                                    totalArticles={Number(data?.stats.total_blogs ?? 0)}
+                                    className="border-none shadow-none"
+                                />
+                            </div>
+                            <BloggerQuickActions />
+                        </>
+                    )}
                 </div>
             </div>
         </div>
