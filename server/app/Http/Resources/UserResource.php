@@ -19,7 +19,10 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'avatar' => $this->avatar,
-            'roles' => $this->roles()->pluck('name'),
+            'roles' => array_unique(array_filter(array_merge(
+                $this->roles()->pluck('name')->toArray(),
+                (array) (is_array($this->getRawOriginal('roles')) ? $this->getRawOriginal('roles') : json_decode($this->getRawOriginal('roles') ?? '[]', true))
+            ))),
             'email_verified_at' => $this->email_verified_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

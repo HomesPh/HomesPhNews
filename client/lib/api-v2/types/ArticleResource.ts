@@ -27,4 +27,5 @@ export interface ArticleResource {
   is_redis: boolean;
   image_position?: number;
   image_position_x?: number;
+  read_time?: string;
 }

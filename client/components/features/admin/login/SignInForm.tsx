@@ -56,8 +56,15 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
         setIsLoading(true);
 
         try {
-            await login({ email, password });
-            router.push("/admin");
+            const result = await login({ email, password });
+
+            // Check roles for redirection
+            const userRoles = result.user?.roles || [];
+            if (userRoles.includes('admin') || userRoles.includes('super-admin')) {
+                router.push("/admin");
+            } else {
+                router.push("/subscriber");
+            }
         } catch (error) {
             console.error(error);
             alert("Invalid credentials or server error");
@@ -138,10 +145,11 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
                     firstName: signupData.firstName,
                     lastName: signupData.lastName,
                     email: signupData.email,
+                    roles: data.user?.roles || [],
                 }));
 
                 // Redirect to subscription plans page
-                router.push('/subscription/plans');
+                router.push('/subscription/plans?plans=free');
             } else {
                 alert(data.message || 'Registration failed. Please try again.');
             }
