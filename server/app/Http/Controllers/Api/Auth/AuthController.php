@@ -33,7 +33,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => new UserResource($user),
+            'user' => new UserResource($user->load('roles')),
         ]);
     }
 
@@ -59,7 +59,11 @@ class AuthController extends Controller
             'name' => $validated['first_name'].' '.$validated['last_name'], // Full name
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'roles' => ['subscriber'], // Save to explicit roles JSON column
         ]);
+
+        // Attach default 'subscriber' role
+        $user->roles()->attach(\App\Models\Role::where('name', 'subscriber')->first());
 
         // Create a token for the user
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -68,7 +72,7 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'User registered successfully',
             'token' => $token,
-            'user' => new UserResource($user),
+            'user' => new UserResource($user->load('roles')),
         ], 201);
     }
 
