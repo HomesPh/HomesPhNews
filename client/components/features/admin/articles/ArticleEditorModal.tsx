@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { X, ArrowLeft, Save, Send } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { getSiteNames, updatePendingArticle, createArticle, updateArticle, publishArticle, uploadArticleImage } from "@/lib/api-v2";
+import { blocksToHtml } from "@/lib/converter/blocksToHtml";
 import ArticleEditorForm from "./editor/ArticleEditorForm";
 
 import { TemplateType } from "./editor/TemplateSelector";
@@ -227,66 +228,100 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
         });
     };
 
-    // Helper: Convert base64 data URL to File object
-    const dataUrlToFile = async (dataUrl: string, filename: string): Promise<File> => {
-        const res = await fetch(dataUrl);
+    // Helper: Convert Data or Blob URL to File object
+    const localUrlToFile = async (url: string): Promise<File> => {
+        const res = await fetch(url);
         const blob = await res.blob();
-        return new File([blob], filename, { type: blob.type });
+        const mime = blob.type;
+        const ext = mime.split('/')[1] || 'jpg';
+        const filename = `image-${Date.now()}.${ext}`;
+        return new File([blob], filename, { type: mime });
     };
 
-    // Helper: Check if string is a base64 data URL
-    const isDataUrl = (str: string) => str?.startsWith('data:');
+    // Helper: Check if string is a local URL (data: or blob:)
+    const isDataUrl = (str: string) => str?.startsWith('data:') || str?.startsWith('blob:');
 
-    // Helper: Upload image to S3 if it's a data URL, otherwise return as-is
+    // Helper: Upload image to S3 if it's a data or blob URL, otherwise return as-is
     const uploadIfDataUrl = async (imageUrl: string | null): Promise<string | null> => {
         if (!imageUrl || !isDataUrl(imageUrl)) return imageUrl;
         try {
-            const file = await dataUrlToFile(imageUrl, `image-${Date.now()}.jpg`);
+            const res = await fetch(imageUrl);
+            const blob = await res.blob();
+
+            // Detect extension from MIME type
+            const mime = blob.type;
+            const ext = mime.split('/')[1]?.split('+')[0] || 'jpg';
+            const file = new File([blob], `image-${Date.now()}.${ext}`, { type: mime });
+
             const response = await uploadArticleImage(file);
-            return response.data.url;
-        } catch (error) {
+
+            if (response.data && response.data.url) {
+                return response.data.url;
+            } else {
+                throw new Error('Server response missing image URL');
+            }
+        } catch (error: any) {
             console.error('Failed to upload image:', error);
-            throw error;
+            throw new Error(`Media upload failed: ${error.response?.data?.error || error.message}`);
         }
     };
 
     const handleSave = async (isPublish: boolean = false) => {
         try {
-            // Upload any base64 images to S3 first
-            let finalImage = articleData.image;
-            let finalGalleryImages = [...articleData.galleryImages];
-            let finalContentBlocks = [...articleData.contentBlocks];
+            // Processing state
+            console.log('Deep-cloning data and uploading images to S3...');
 
-            // Show uploading state
-            console.log('Uploading images to S3...');
+            // 1. Process Main Image
+            const finalImage = await uploadIfDataUrl(articleData.image);
 
-            // Upload main image if it's a data URL
-            if (isDataUrl(finalImage || '')) {
-                finalImage = await uploadIfDataUrl(finalImage);
-            }
-
-            // Upload gallery images
+            // 2. Process Gallery Images
+            const finalGalleryImages = [...articleData.galleryImages];
             for (let i = 0; i < finalGalleryImages.length; i++) {
-                if (isDataUrl(finalGalleryImages[i])) {
-                    finalGalleryImages[i] = await uploadIfDataUrl(finalGalleryImages[i]) || '';
+                finalGalleryImages[i] = await uploadIfDataUrl(finalGalleryImages[i]) || '';
+            }
+
+            // 3. Process Content Blocks (Deep Clone to avoid state mutation)
+            const finalContentBlocks = JSON.parse(JSON.stringify(articleData.contentBlocks));
+            for (let i = 0; i < finalContentBlocks.length; i++) {
+                const block = finalContentBlocks[i];
+
+                if (block.image) {
+                    block.image = (await uploadIfDataUrl(block.image)) || undefined;
+                }
+
+                if (block.content && typeof block.content === 'object') {
+                    if (block.content.src) {
+                        block.content.src = await uploadIfDataUrl(block.content.src);
+                    }
+                    if (block.content.image) {
+                        block.content.image = await uploadIfDataUrl(block.content.image);
+                    }
+                    if (Array.isArray(block.content.images)) {
+                        for (let j = 0; j < block.content.images.length; j++) {
+                            block.content.images[j] = await uploadIfDataUrl(block.content.images[j]);
+                        }
+                    }
                 }
             }
 
-            // Upload content block images
-            for (let i = 0; i < finalContentBlocks.length; i++) {
-                if (finalContentBlocks[i].image && isDataUrl(finalContentBlocks[i].image || '')) {
-                    finalContentBlocks[i] = {
-                        ...finalContentBlocks[i],
-                        image: await uploadIfDataUrl(finalContentBlocks[i].image || null) || undefined
-                    };
-                }
+            // 4. Process Legacy Split Images
+            const finalSplitImages = [...articleData.splitImages];
+            for (let i = 0; i < finalSplitImages.length; i++) {
+                finalSplitImages[i] = await uploadIfDataUrl(finalSplitImages[i]) || '';
             }
+
+            console.log('Image processing complete. Regenerating HTML...');
+
+
+            // RE-GENERATE HTML content after all images are uploaded to S3
+            // This ensures the DB 'content' field has S3 URLs, not base64 strings
+            const finalHtmlContent = blocksToHtml(finalContentBlocks as any);
 
             const payload = {
                 title: articleData.title,
                 slug: articleData.slug || articleData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
                 summary: articleData.summary,
-                content: articleData.content,
+                content: finalHtmlContent, // Use the regenerated content
                 category: articleData.category,
                 country: articleData.country,
                 image: finalImage,
@@ -296,7 +331,7 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 author: articleData.author,
                 date: articleData.publishDate,
                 gallery_images: finalGalleryImages,
-                split_images: articleData.splitImages,
+                split_images: finalSplitImages,
                 content_blocks: finalContentBlocks,
                 template: template,
                 image_position: articleData.image_position,
@@ -363,10 +398,9 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
             onClose();
             window.location.reload();
         } catch (error: any) {
-            console.error("Failed to save article", error);
-            const status = error.response?.status || error.status || '';
-            const msg = error.response?.data?.message || error.message || "Failed to save changes. Please try again.";
-            alert(`Error ${status}: ${msg}`);
+            console.error('Error saving article:', error);
+            const message = error.message || 'An error occurred while saving the article.';
+            alert(message);
         }
     };
 

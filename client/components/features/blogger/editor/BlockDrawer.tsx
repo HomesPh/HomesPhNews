@@ -33,6 +33,14 @@ export default function BlockDrawer({ details, onUpdateDetails, onAddBlock }: Bl
                 { type: 'left-image' as BlockType, name: 'Left Image', icon: AlignLeft, description: 'Left image, right text' },
                 { type: 'right-image' as BlockType, name: 'Right Image', icon: AlignRight, description: 'Right image, left text' },
             ]
+        },
+        {
+            title: "Special Layouts",
+            items: [
+                { type: 'split-left' as BlockType, name: 'Split Left', icon: Columns, description: '50/50 split' },
+                { type: 'split-right' as BlockType, name: 'Split Right', icon: Layout, description: '50/50 split' },
+                { type: 'dynamic-images' as BlockType, name: 'Stack', icon: Maximize, description: 'Vertical stack' },
+            ]
         }
     ];
 

@@ -40,6 +40,15 @@ export default async function ArticleDetailContent({ id }: ArticleDetailContentP
         c.label.toLowerCase() === country.toLowerCase()
     )?.label || country;
 
+  // Deduplication logic: If the first content block is an image and is the same as the featured image,
+  // we skip the featured image to avoid visual duplication.
+  const firstBlock = article.content_blocks?.[0];
+  const firstBlockImage = firstBlock
+    ? (firstBlock.content?.src || firstBlock.content?.image || firstBlock.image)
+    : null;
+
+  const isSelfDuplicating = article.image && firstBlockImage && article.image === firstBlockImage;
+
   return (
     <section>
       <ArticleHeader
@@ -59,7 +68,8 @@ export default async function ArticleDetailContent({ id }: ArticleDetailContentP
         })}
         views={article.views_count}
       />
-      {article.image && (
+
+      {article.image && !isSelfDuplicating && (
         <ArticleFeaturedImage
           src={article.image}
           alt={article.title}
@@ -74,6 +84,7 @@ export default async function ArticleDetailContent({ id }: ArticleDetailContentP
       ) : (
         <ArticleContent
           content={article.content}
+          contentBlocks={article.content_blocks}
           topics={
             article.keywords
               ? article.keywords.split(",").map((t: string) => t.trim())

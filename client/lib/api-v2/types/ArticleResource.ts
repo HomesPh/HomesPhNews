@@ -27,6 +27,9 @@ export interface ArticleResource {
   is_redis: boolean;
   image_position?: number;
   image_position_x?: number;
+  content_blocks: any[];
+  template: string;
+  author: string;
 
   // Restaurant Meta
   clickbait_hook?: string;

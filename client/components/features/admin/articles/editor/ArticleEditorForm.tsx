@@ -14,6 +14,7 @@ import { useEditorStore } from "@/hooks/useEditorStore";
 import { useAuth } from "@/hooks/useAuth";
 import { uploadArticleImage } from "@/lib/api-v2";
 import { htmlToBlocks } from "@/lib/converter/htmlToBlocks";
+import { blocksToHtml } from "@/lib/converter/blocksToHtml";
 import { Loader2 } from "lucide-react";
 
 interface ArticleEditorFormProps {
@@ -211,12 +212,8 @@ export default function ArticleEditorForm({
     };
 
     const handleInternalSave = () => {
-        // Generate HTML for the 'content' field on save
-        const htmlContent = editor.blocks.map(b => {
-            if (b.type === 'text') return b.content.text;
-            if (b.type === 'image') return `<figure><img src="${b.content.src || b.content.image}" alt="${b.content.caption || ''}" /><figcaption>${b.content.caption || ''}</figcaption></figure>`;
-            return "";
-        }).join("");
+        // Generate HTML for the 'content' field on save using the unified converter
+        const htmlContent = blocksToHtml(editor.blocks);
 
         onDataChange('content', htmlContent);
         onDataChange('contentBlocks', editor.blocks);
