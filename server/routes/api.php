@@ -107,46 +107,60 @@ Route::group(['prefix' => 'restaurants', 'as' => 'restaurants.'], function () {
 /*  middleware(['auth:sanctum', 'is.admin']): This is the security. It says a user must first be authenticated via Sanctum
  (logged in with a token) AND they must pass our is.admin check. */
 // This group protects all routes within it.
-Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
+Route::middleware(['auth:sanctum'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-
-        // Reports & Dashboards (Non-CRUD)
-        Route::get('/stats', [DashboardController::class , 'getStats'])->name('stats');
-        Route::get('/analytics', [AnalyticsController::class , 'index'])->name('analytics');
-
-        // CRUD Resources
-        // Route::apiResource('events', EventController::class);
-        Route::apiResource('article-publications', ArticlePublicationController::class);
-
-        Route::get('sites/names', [SiteController::class , 'names']);
-        Route::patch('sites/{id}/toggle-status', [SiteController::class , 'toggleStatus']);
-        Route::patch('sites/{id}/refresh-key', [SiteController::class , 'refreshKey']);
-        Route::apiResource('sites', SiteController::class);
-        Route::apiResource('articles', AdminArticleController::class);
-        Route::apiResource('ads', AdminAdController::class);
-        Route::apiResource('campaigns', AdminCampaignController::class);
-        Route::apiResource('categories', CategoryController::class);
-        Route::apiResource('countries', CountryController::class);
-
-        // Custom Article Actions
-        Route::patch('articles/{article}/titles', [AdminArticleController::class , 'updateTitles']);
-        // Edit pending (Redis) article without touching the main database
-        Route::patch('articles/{id}/pending', [AdminArticleController::class , 'updatePending']);
-        // Publish pending article (Redis → MySQL, then delete from Redis)
-        Route::post('articles/{id}/publish', [AdminArticleController::class , 'publish']);
-        // Restore soft-deleted article
-        Route::post('articles/{id}/restore', [AdminArticleController::class , 'restore']);
+        
+        // ═══════════════════════════════════════════════════════════════
+        // SHARED ROUTES (Admin & Subscriber)
+        // ═══════════════════════════════════════════════════════════════
+        Route::middleware('is.authenticated:admin,subscriber')->group(function() {
+            Route::get('/stats', [DashboardController::class , 'getStats'])->name('stats');
+            Route::get('/analytics', [AnalyticsController::class , 'index'])->name('analytics');
+            
+            // Read-only article access
+            Route::get('articles', [AdminArticleController::class , 'index'])->name('articles.index');
+            Route::get('articles/{article}', [AdminArticleController::class , 'show'])->name('articles.show');
+            
+            // Some shared resources (read-only parts if needed, but for now just basic articles)
+            Route::get('sites/names', [SiteController::class , 'names']);
+        });
 
         // ═══════════════════════════════════════════════════════════════
-        // RESTAURANT ROUTES (Redis-based & Database Persistence)
+        // ADMIN ONLY ROUTES
         // ═══════════════════════════════════════════════════════════════
-        Route::get('restaurants/stats', [RestaurantController::class , 'stats'])->name('restaurants.stats');
-        Route::get('restaurants/country/{country}', [RestaurantController::class , 'byCountry'])->name('restaurants.byCountry');
-        Route::post('restaurants/{id}/publish', [RestaurantController::class , 'publish'])->name('restaurants.publish');
-        Route::apiResource('restaurants', RestaurantController::class);
+        Route::middleware('is.authenticated:admin')->group(function() {
+            // CRUD Resources (Excluding what's shared)
+            Route::apiResource('article-publications', ArticlePublicationController::class);
+            Route::apiResource('sites', SiteController::class)->except(['index']); // site names is shared
+            Route::get('sites', [SiteController::class, 'index']); // sites list itself still admin
+            
+            // Articles CRUD (Excluding shared index/show)
+            Route::apiResource('articles', AdminArticleController::class)->except(['index', 'show']);
+            
+            Route::apiResource('ads', AdminAdController::class);
+            Route::apiResource('campaigns', AdminCampaignController::class);
+            Route::apiResource('categories', CategoryController::class);
+            Route::apiResource('countries', CountryController::class);
 
-        // Upload Routes
-        Route::post('upload/image', [UploadController::class , 'uploadImage'])->name('upload.image');
+            // Custom Article Actions
+            Route::patch('articles/{article}/titles', [AdminArticleController::class , 'updateTitles']);
+            Route::patch('articles/{id}/pending', [AdminArticleController::class , 'updatePending']);
+            Route::post('articles/{id}/publish', [AdminArticleController::class , 'publish']);
+            Route::post('articles/{id}/restore', [AdminArticleController::class , 'restore']);
+
+            // Sites Actions
+            Route::patch('sites/{id}/toggle-status', [SiteController::class , 'toggleStatus']);
+            Route::patch('sites/{id}/refresh-key', [SiteController::class , 'refreshKey']);
+
+            // Restaurants
+            Route::get('restaurants/stats', [RestaurantController::class , 'stats'])->name('restaurants.stats');
+            Route::get('restaurants/country/{country}', [RestaurantController::class , 'byCountry'])->name('restaurants.byCountry');
+            Route::post('restaurants/{id}/publish', [RestaurantController::class , 'publish'])->name('restaurants.publish');
+            Route::apiResource('restaurants', RestaurantController::class);
+
+            // Upload
+            Route::post('upload/image', [UploadController::class , 'uploadImage'])->name('upload.image');
+        });
     });
