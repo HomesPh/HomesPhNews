@@ -26,6 +26,7 @@ class User extends Authenticatable
         'password',
         'google_id',
         'avatar',
+        'roles',
     ];
 
     /**
@@ -48,6 +49,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'roles' => 'array',
         ];
     }
 
@@ -64,6 +66,22 @@ class User extends Authenticatable
      */
     public function hasRole(string $role): bool
     {
-        return $this->roles()->where('name', $role)->exists();
+        // 1. Check relationship (pivot table)
+        if ($this->roles()->where('name', $role)->exists()) {
+            return true;
+        }
+
+        // 2. Check the JSON 'roles' column in the users table
+        // Avoid using $this->roles as it conflicts with the relationship name
+        $rawRoles = $this->getRawOriginal('roles');
+        
+        // Handle case where rawRoles might be already decoded or still a JSON string
+        $jsonRoles = is_string($rawRoles) ? json_decode($rawRoles, true) : $rawRoles;
+        
+        if (is_array($jsonRoles) && in_array($role, $jsonRoles)) {
+            return true;
+        }
+
+        return false;
     }
 }
