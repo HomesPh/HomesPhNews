@@ -9,5 +9,5 @@ import type { RestaurantStats } from "../../../types/RestaurantResource";
  * GET /admin/restaurants/stats
  */
 export async function getAdminRestaurantStats(): Promise<AxiosResponse<RestaurantStats>> {
-    return AXIOS_INSTANCE_ADMIN.get<RestaurantStats>("/admin/restaurants/stats");
+    return AXIOS_INSTANCE_ADMIN.get<RestaurantStats>("/v1/admin/restaurants/stats");
 }

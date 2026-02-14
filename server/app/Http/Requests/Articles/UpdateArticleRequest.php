@@ -35,6 +35,17 @@ class UpdateArticleRequest extends FormRequest
             'custom_titles' => 'nullable|array',
             'topics' => 'nullable|array',
             'keywords' => 'nullable|string|max:255',
+            'content_blocks' => 'nullable|array',
+            'template' => 'nullable|string',
+            'author' => 'nullable|string',
+            // Additional fields from editor
+            'gallery_images' => 'nullable|array',
+            'galleryImages' => 'nullable|array', // Support both naming conventions
+            'split_images' => 'nullable|array',
+            'date' => 'nullable|string',
+            'slug' => 'nullable|string|max:255',
+            'image_position' => 'nullable|integer',
+            'image_position_x' => 'nullable|integer',
         ];
     }
 }

@@ -13,7 +13,7 @@ export type LogoutResponse = {
  * @returns 
  */
 export async function logout(): Promise<AxiosResponse<LogoutResponse>> {
-  const res = await AXIOS_INSTANCE_ADMIN.post<LogoutResponse>("/logout");
+  const res = await AXIOS_INSTANCE_ADMIN.post<LogoutResponse>("/v1/logout");
 
   // remove from localstorage
   localStorage.removeItem("access_token");

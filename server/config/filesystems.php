@@ -58,6 +58,11 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
             'report' => false,
+            // Workaround for cURL error 60 (SSL certificate issue) on local Windows environments
+            // ⚠️ WARNING: Set to true or remove this in production!
+            'http' => [
+                'verify' => false,
+            ],
         ],
 
     ],

@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { X, ArrowLeft, Save, Send } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { getSiteNames, updatePendingArticle, createArticle, updateArticle, publishArticle, uploadArticleImage } from "@/lib/api-v2";
+import { blocksToHtml } from "@/lib/converter/blocksToHtml";
 import ArticleEditorForm from "./editor/ArticleEditorForm";
-import ArticleEditorPreview from "./editor/ArticleEditorPreview";
+
 import { TemplateType } from "./editor/TemplateSelector";
 
 export interface ContentBlock {
@@ -29,32 +30,62 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
     const [template, setTemplate] = useState<TemplateType>('single');
     const [availableSites, setAvailableSites] = useState<string[]>([]);
 
-    const [articleData, setArticleData] = useState({
-        title: '',
-        slug: '',
-        summary: '',
-        content: '',
-        category: 'All',
-        country: 'Philippines',
-        image: null as string | null,
-        tags: [] as string[],
-        author: 'Maria Santos',
-        publishDate: new Date().toISOString().split('T')[0],
-        publishTime: '14:30',
-        publishTo: [] as string[],
-        galleryImages: [] as string[],
-        splitImages: [] as string[],
-        contentBlocks: [] as ContentBlock[],
-        image_position: 50,
-        image_position_x: 50
-    });
+    // Initialize articleData with initialData if available, otherwise use defaults
+    const getInitialArticleData = () => {
+        if (initialData) {
+            return {
+                title: initialData.title || '',
+                slug: initialData.slug || (initialData.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+                summary: initialData.summary || initialData.description || '',
+                content: initialData.content || '',
+                category: initialData.category || 'All',
+                country: initialData.country || initialData.location || 'Philippines',
+                image: initialData.image || null,
+                tags: initialData.topics || initialData.tags || [],
+                author: initialData.author || 'Maria Santos',
+                publishDate: initialData.date || new Date().toISOString().split('T')[0],
+                publishTime: '14:30',
+                publishTo: initialData.published_sites || initialData.sites || [],
+                galleryImages: initialData.gallery_images || [],
+                splitImages: initialData.split_images || [],
+                contentBlocks: initialData.content_blocks || [],
+                image_position: initialData.image_position || 0,
+                image_position_x: initialData.image_position_x || 50
+            };
+        }
+
+        // Default empty state for create mode
+        return {
+            title: '',
+            slug: '',
+            summary: '',
+            content: '',
+            category: 'All',
+            country: 'Philippines',
+            image: null as string | null,
+            tags: [] as string[],
+            author: 'Maria Santos',
+            publishDate: new Date().toISOString().split('T')[0],
+            publishTime: '14:30',
+            publishTo: [] as string[],
+            galleryImages: [] as string[],
+            splitImages: [] as string[],
+            contentBlocks: [] as ContentBlock[],
+            image_position: 50,
+            image_position_x: 50
+        };
+    };
+
+    const [articleData, setArticleData] = useState(getInitialArticleData());
 
     useEffect(() => {
         getSiteNames().then(res => setAvailableSites(res.data as string[])).catch(console.error);
     }, []);
 
     useEffect(() => {
+        console.log("ArticleEditorModal useEffect triggered:", { isOpen, hasInitialData: !!initialData });
         if (isOpen && initialData) {
+            console.log("Setting articleData from initialData:", initialData);
             setArticleData({
                 title: initialData.title || '',
                 slug: initialData.slug || (initialData.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
@@ -143,8 +174,8 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
 
             // Always add from blocks (if they have meaningful content)
             const blocksData = prev.contentBlocks
-                .map(b => b.content)
-                .filter(c => c && !isPlaceholder(c))
+                .map((b: any) => b.content)
+                .filter((c: any) => c && !isPlaceholder(c))
                 .join('<br><br>');
 
             if (blocksData) {
@@ -154,7 +185,7 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
 
             // Try to find an image if none is set
             if (!consolidatedImage) {
-                consolidatedImage = prev.contentBlocks.find(b => b.image)?.image || null;
+                consolidatedImage = prev.contentBlocks.find((b: any) => b.image)?.image || null;
             }
 
             // 2. REDISTRIBUTE: Into the new structure
@@ -197,66 +228,100 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
         });
     };
 
-    // Helper: Convert base64 data URL to File object
-    const dataUrlToFile = async (dataUrl: string, filename: string): Promise<File> => {
-        const res = await fetch(dataUrl);
+    // Helper: Convert Data or Blob URL to File object
+    const localUrlToFile = async (url: string): Promise<File> => {
+        const res = await fetch(url);
         const blob = await res.blob();
-        return new File([blob], filename, { type: blob.type });
+        const mime = blob.type;
+        const ext = mime.split('/')[1] || 'jpg';
+        const filename = `image-${Date.now()}.${ext}`;
+        return new File([blob], filename, { type: mime });
     };
 
-    // Helper: Check if string is a base64 data URL
-    const isDataUrl = (str: string) => str?.startsWith('data:');
+    // Helper: Check if string is a local URL (data: or blob:)
+    const isDataUrl = (str: string) => str?.startsWith('data:') || str?.startsWith('blob:');
 
-    // Helper: Upload image to S3 if it's a data URL, otherwise return as-is
+    // Helper: Upload image to S3 if it's a data or blob URL, otherwise return as-is
     const uploadIfDataUrl = async (imageUrl: string | null): Promise<string | null> => {
         if (!imageUrl || !isDataUrl(imageUrl)) return imageUrl;
         try {
-            const file = await dataUrlToFile(imageUrl, `image-${Date.now()}.jpg`);
+            const res = await fetch(imageUrl);
+            const blob = await res.blob();
+
+            // Detect extension from MIME type
+            const mime = blob.type;
+            const ext = mime.split('/')[1]?.split('+')[0] || 'jpg';
+            const file = new File([blob], `image-${Date.now()}.${ext}`, { type: mime });
+
             const response = await uploadArticleImage(file);
-            return response.data.url;
-        } catch (error) {
+
+            if (response.data && response.data.url) {
+                return response.data.url;
+            } else {
+                throw new Error('Server response missing image URL');
+            }
+        } catch (error: any) {
             console.error('Failed to upload image:', error);
-            throw error;
+            throw new Error(`Media upload failed: ${error.response?.data?.error || error.message}`);
         }
     };
 
     const handleSave = async (isPublish: boolean = false) => {
         try {
-            // Upload any base64 images to S3 first
-            let finalImage = articleData.image;
-            let finalGalleryImages = [...articleData.galleryImages];
-            let finalContentBlocks = [...articleData.contentBlocks];
+            // Processing state
+            console.log('Deep-cloning data and uploading images to S3...');
 
-            // Show uploading state
-            console.log('Uploading images to S3...');
+            // 1. Process Main Image
+            const finalImage = await uploadIfDataUrl(articleData.image);
 
-            // Upload main image if it's a data URL
-            if (isDataUrl(finalImage || '')) {
-                finalImage = await uploadIfDataUrl(finalImage);
-            }
-
-            // Upload gallery images
+            // 2. Process Gallery Images
+            const finalGalleryImages = [...articleData.galleryImages];
             for (let i = 0; i < finalGalleryImages.length; i++) {
-                if (isDataUrl(finalGalleryImages[i])) {
-                    finalGalleryImages[i] = await uploadIfDataUrl(finalGalleryImages[i]) || '';
+                finalGalleryImages[i] = await uploadIfDataUrl(finalGalleryImages[i]) || '';
+            }
+
+            // 3. Process Content Blocks (Deep Clone to avoid state mutation)
+            const finalContentBlocks = JSON.parse(JSON.stringify(articleData.contentBlocks));
+            for (let i = 0; i < finalContentBlocks.length; i++) {
+                const block = finalContentBlocks[i];
+
+                if (block.image) {
+                    block.image = (await uploadIfDataUrl(block.image)) || undefined;
+                }
+
+                if (block.content && typeof block.content === 'object') {
+                    if (block.content.src) {
+                        block.content.src = await uploadIfDataUrl(block.content.src);
+                    }
+                    if (block.content.image) {
+                        block.content.image = await uploadIfDataUrl(block.content.image);
+                    }
+                    if (Array.isArray(block.content.images)) {
+                        for (let j = 0; j < block.content.images.length; j++) {
+                            block.content.images[j] = await uploadIfDataUrl(block.content.images[j]);
+                        }
+                    }
                 }
             }
 
-            // Upload content block images
-            for (let i = 0; i < finalContentBlocks.length; i++) {
-                if (finalContentBlocks[i].image && isDataUrl(finalContentBlocks[i].image || '')) {
-                    finalContentBlocks[i] = {
-                        ...finalContentBlocks[i],
-                        image: await uploadIfDataUrl(finalContentBlocks[i].image || null) || undefined
-                    };
-                }
+            // 4. Process Legacy Split Images
+            const finalSplitImages = [...articleData.splitImages];
+            for (let i = 0; i < finalSplitImages.length; i++) {
+                finalSplitImages[i] = await uploadIfDataUrl(finalSplitImages[i]) || '';
             }
+
+            console.log('Image processing complete. Regenerating HTML...');
+
+
+            // RE-GENERATE HTML content after all images are uploaded to S3
+            // This ensures the DB 'content' field has S3 URLs, not base64 strings
+            const finalHtmlContent = blocksToHtml(finalContentBlocks as any);
 
             const payload = {
                 title: articleData.title,
                 slug: articleData.slug || articleData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
                 summary: articleData.summary,
-                content: articleData.content,
+                content: finalHtmlContent, // Use the regenerated content
                 category: articleData.category,
                 country: articleData.country,
                 image: finalImage,
@@ -266,7 +331,7 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 author: articleData.author,
                 date: articleData.publishDate,
                 gallery_images: finalGalleryImages,
-                split_images: articleData.splitImages,
+                split_images: finalSplitImages,
                 content_blocks: finalContentBlocks,
                 template: template,
                 image_position: articleData.image_position,
@@ -284,10 +349,15 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 isPublish
             });
 
+            console.log('Publish validation:', { isPublish, publishToLength: articleData.publishTo.length, publishTo: articleData.publishTo });
+
             if (isPublish && articleData.publishTo.length === 0) {
+                console.log('Validation failed: No sites selected');
                 alert('Please select at least one site to publish to.');
                 return;
             }
+
+            console.log('Validation passed, continuing with save/publish');
 
             if (mode === 'create') {
                 // Create article directly in MySQL database
@@ -311,87 +381,41 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 }
             } else if (mode === 'edit') {
                 // DB articles (including 'pending review' and restored ones)
-                await updateArticle(initialData.id, payload);
-                alert(`Article ${isPublish ? 'published' : 'updated'} successfully!`);
+                if (isPublish) {
+                    // When publishing, first update the article data, then call publish endpoint
+                    await updateArticle(initialData.id, payload);
+                    await publishArticle(initialData.id, {
+                        published_sites: articleData.publishTo,
+                    });
+                    alert('Article published successfully!');
+                } else {
+                    // When just saving, only update
+                    await updateArticle(initialData.id, payload);
+                    alert('Article updated successfully!');
+                }
             }
 
             onClose();
             window.location.reload();
         } catch (error: any) {
-            console.error("Failed to save article", error);
-            const status = error.response?.status || error.status || '';
-            const msg = error.response?.data?.message || error.message || "Failed to save changes. Please try again.";
-            alert(`Error ${status}: ${msg}`);
+            console.error('Error saving article:', error);
+            const message = error.message || 'An error occurred while saving the article.';
+            alert(message);
         }
     };
 
     return (
         <div className="force-light fixed inset-0 bg-white z-[100] flex flex-col animate-in fade-in duration-200">
-            {/* Full Screen Header */}
-            <div className="h-[70px] border-b border-[#e5e7eb] px-6 flex items-center justify-between bg-white shrink-0">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors group"
-                    >
-                        <ArrowLeft className="w-5 h-5 text-[#6b7280] group-hover:text-[#111827]" />
-                    </button>
-                    <div>
-                        <h2 className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">
-                            {mode === 'create' ? 'Create New Article' : 'Edit Article'}
-                        </h2>
-                        <p className="text-[12px] text-[#6b7280] tracking-[-0.5px]">
-                            {mode === 'create' ? 'Drafting a new story' : `Editing: ${articleData.title.substring(0, 40)}${articleData.title.length > 40 ? '...' : ''}`}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => handleSave(false)}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-[#d1d5db] text-[#374151] rounded-[8px] hover:bg-gray-50 transition-all text-[14px] font-bold tracking-[-0.5px] shadow-sm"
-                    >
-                        <Save className="w-4 h-4" />
-                        Save as Draft
-                    </button>
-                    <button
-                        onClick={() => handleSave(true)}
-                        className="flex items-center gap-2 px-6 py-2 bg-[#C10007] text-white rounded-[8px] hover:bg-[#a10006] transition-all text-[14px] font-bold tracking-[-0.5px] shadow-md shadow-red-900/10"
-                    >
-                        <Send className="w-4 h-4" />
-                        Publish Now
-                    </button>
-                    <div className="w-px h-8 bg-gray-200 mx-2" />
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                    >
-                        <X className="w-5 h-5 text-[#9ca3af]" />
-                    </button>
-                </div>
-            </div>
-
-            {/* Main Dual Panel Body */}
-            <div className="flex-1 flex overflow-hidden">
-                {/* Form Side */}
-                <ArticleEditorForm
-                    data={articleData}
-                    availableSites={availableSites}
-                    onDataChange={handleDataChange}
-                    template={template}
-                    onTemplateChange={handleTemplateChange}
-                />
-
-                {/* Preview Side */}
-                <ArticleEditorPreview
-                    data={{
-                        ...articleData,
-                        timestamp: `${articleData.publishDate}T${articleData.publishTime}:00Z`
-                    }}
-                    template={template}
-                    onDataChange={handleDataChange}
-                />
-            </div>
+            <ArticleEditorForm
+                data={articleData}
+                availableSites={availableSites}
+                onDataChange={handleDataChange}
+                template={template}
+                onTemplateChange={handleTemplateChange}
+                onSave={() => handleSave(false)}
+                onPublish={() => handleSave(true)}
+                onClose={onClose}
+            />
         </div>
     );
 }

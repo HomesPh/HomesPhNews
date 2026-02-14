@@ -13,6 +13,6 @@ export type GetUserAuthResponse = {
  * @returns 
  */
 export async function getUser(): Promise<AxiosResponse<GetUserAuthResponse>> {
-  const res = await AXIOS_INSTANCE_ADMIN.get<GetUserAuthResponse>("/user");
+  const res = await AXIOS_INSTANCE_ADMIN.get<GetUserAuthResponse>("/v1/user");
   return res;
 }

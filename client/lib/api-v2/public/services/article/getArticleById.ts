@@ -118,7 +118,7 @@ export async function getArticleById(id: string): Promise<ArticleByIdResponse> {
     } as ArticleResource;
   }
 
-  const response = await AXIOS_INSTANCE_PUBLIC.get<ArticleByIdResponse>(`/articles/${id}`);
+  const response = await AXIOS_INSTANCE_PUBLIC.get<ArticleByIdResponse>(`/v1/articles/${id}`);
   // Return only the data to avoid serializing Axios response objects with circular references
   return response.data;
 }

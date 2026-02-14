@@ -23,7 +23,7 @@ export async function publishArticle(
   body: PublishArticleRequest
 ): Promise<AxiosResponse<PublishArticleResponse>> {
   return AXIOS_INSTANCE_ADMIN.post<PublishArticleResponse>(
-    `/admin/articles/${id}/publish`,
+    `/v1/admin/articles/${id}/publish`,
     body
   );
 }

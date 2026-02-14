@@ -17,7 +17,7 @@ export async function updateArticleTitles(
   body: UpdateArticleTitlesRequest
 ): Promise<AxiosResponse<ArticleResource>> {
   return AXIOS_INSTANCE_ADMIN.patch<ArticleResource>(
-    `/admin/articles/${articleId}/titles`,
+    `/v1/admin/articles/${articleId}/titles`,
     body
   );
 }
