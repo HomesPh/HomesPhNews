@@ -21,10 +21,10 @@ export default function InteractiveGeographicMap({ data }: InteractiveGeographic
         const coords = getCountryCoordinates(item.country);
         return {
             country: item.country,
-            percentage: 0, // We can calculate this if needed
+            percentage: 0,
             lat: coords.lat,
             lng: coords.lng,
-            size: Math.sqrt(item.totalViews) * 2 // Scale bubble size
+            size: item.totalViews // Pass raw value for the sizeScale
         };
     });
 
