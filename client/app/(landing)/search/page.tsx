@@ -22,24 +22,62 @@ export default async function SearchPage({ searchParams }: Props) {
     const page = Number(params.page) || 1;
     const perPage = 20;
 
-    // Fetch articles from API
-    const response = await getArticlesList({
-        mode: "list",
-        search: q || undefined,
-        topic: topic || undefined,
-        country: country !== "all" ? country : undefined,
-        category: (category !== "all" && category.toLowerCase() !== "articles") ? category : undefined, // Treat 'articles' as all
-        limit: perPage,
-        page: page
-    });
+    let realArticles: ArticleResource[] = [];
+    let totalPages = 1;
 
-    // Extract real articles
-    const realArticles: ArticleResource[] = response.data?.data || [];
-    const totalPages = response.data?.last_page || 1;
+    // Handle Restaurant specialized category
+    if (category.toLowerCase() === "restaurant" || category.toLowerCase() === "restaurants") {
+        const { getRestaurants } = await import("@/lib/api-v2");
+        const response = await getRestaurants({
+            page: page,
+            per_page: perPage,
+            country: country !== "all" ? country : undefined,
+            search: q || undefined,
+        });
+
+        realArticles = response.data.map((r: any) => ({
+            id: r.id,
+            slug: r.id, // Restaurants use ID in URL usually
+            article_id: r.id,
+            title: r.name,
+            summary: r.description || r.clickbait_hook || "",
+            content: r.description || "",
+            category: "Restaurant",
+            country: r.country || "Philippines",
+            status: r.status || "published",
+            created_at: r.timestamp ? new Date(r.timestamp * 1000).toISOString() : new Date().toISOString(),
+            views_count: r.views_count || 0,
+            image_url: r.image_url,
+            image: r.image_url,
+            location: r.city || r.country,
+            keywords: "",
+            source: "Restaurant Guide",
+            original_url: r.google_maps_url || "",
+            is_deleted: false,
+            is_redis: false
+        } as ArticleResource));
+        totalPages = response.last_page || 1;
+    } else {
+        // Fetch articles from API
+        const response = await getArticlesList({
+            mode: "list",
+            search: q || undefined,
+            topic: topic || undefined,
+            country: country !== "all" ? country : undefined,
+            category: (category !== "all" && category.toLowerCase() !== "articles") ? category : undefined, // Treat 'articles' as all
+            limit: perPage,
+            page: page
+        });
+
+        // Extract real articles
+        realArticles = response.data?.data || [];
+        totalPages = response.data?.last_page || 1;
+    }
 
     // Mixed content strategy: if category is 'all' or specialty, mix in mock content for page 1
     let filteredArticles = realArticles;
-    if (page === 1 && (category === "all" || category.toLowerCase() === "articles" || ["blogs", "newsletters", "restaurants", "restaurant"].includes(category.toLowerCase()))) {
+    // ... rest of the code for mock mixing if needed, but for restaurants we now have real data!
+    if (page === 1 && (category === "all" || category.toLowerCase() === "articles")) {
         const seenIds = new Set(realArticles.map(a => a.id));
         const uniqueMock = mockSpecialtyContent.filter(a => {
             const matchesCategory = category === "all" ||

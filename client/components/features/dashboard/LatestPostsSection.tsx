@@ -42,15 +42,16 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                                 src={article.image_url || article.image || 'https://placehold.co/800x600?text=No+Image'}
                                 alt={article.title}
                                 fill
+                                unoptimized={true}
                                 className="object-cover transition-transform duration-700 group-hover:scale-110"
                                 style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                             />
                             {/* Tags at bottom left of image */}
                             <div className="absolute bottom-3 left-3 flex gap-1 z-10 transition-opacity group-hover:opacity-100">
-                                <span className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg">
+                                <span className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg" suppressHydrationWarning>
                                     {article.category}
                                 </span>
-                                <span className="bg-white dark:bg-[#111827] text-black dark:text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors">
+                                <span className="bg-white dark:bg-[#111827] text-black dark:text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors" suppressHydrationWarning>
                                     {article.country || "Global"}
                                 </span>
                             </div>
@@ -78,7 +79,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                                     By {article.source || "HomesPh News"}
                                 </span>
                                 <span>•</span>
-                                <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                                <span suppressHydrationWarning>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                 <span>•</span>
                                 <span className="flex items-center">
                                     <span className="mr-1">👁️</span>
