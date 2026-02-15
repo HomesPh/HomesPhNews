@@ -183,6 +183,7 @@ export default function AdEditorModal({ isOpen, onClose, mode, initialData, onSa
                             src={field.value}
                             alt="Ad Preview"
                             fill
+                            unoptimized={true}
                             className="object-cover"
                             onError={() => setImageError(true)}
                           />

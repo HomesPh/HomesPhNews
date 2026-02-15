@@ -9,6 +9,7 @@ export interface GetRestaurantsParams {
     page?: number;
     topic?: string;
     country?: string;
+    search?: string;
 }
 
 export interface PaginatedRestaurants {

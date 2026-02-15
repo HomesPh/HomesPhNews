@@ -33,7 +33,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                     src={article.image_url || article.image || 'https://placehold.co/800x450?text=No+Image'}
                                     alt={article.title}
                                     fill
-                                    unoptimized={(article.image || '').includes('wikimedia.org')}
+                                    unoptimized={true}
                                     className="object-cover transition-all duration-500 group-hover:scale-110"
                                     style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                                 />
@@ -62,9 +62,9 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                             <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-auto">
                                 <span>By {article.source || "HomesPh News"}</span>
                                 <span>•</span>
-                                <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                                <span suppressHydrationWarning>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                 <span>•</span>
-                                <span>{calculateReadTime(article.content || article.summary)}</span>
+                                <span suppressHydrationWarning>{calculateReadTime(article.content || article.summary)}</span>
                             </div>
                         </Link>
                     ))}
@@ -90,7 +90,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 src={main.image_url || main.image || 'https://placehold.co/800x600?text=No+Image'}
                                 alt={main.title}
                                 fill
-                                unoptimized={(main.image || '').includes('wikimedia.org')}
+                                unoptimized={true}
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                                 style={{ objectPosition: `${main?.image_position_x ?? 50}% ${main?.image_position ?? 0}%` }}
                             />
@@ -122,9 +122,9 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                         <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
                             <span>By {main.source || "HomesPh News"}</span>
                             <span>•</span>
-                            <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
+                            <span suppressHydrationWarning>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
                             <span>•</span>
-                            <span>{calculateReadTime(main.summary || main.content)}</span>
+                            <span suppressHydrationWarning>{calculateReadTime(main.summary || main.content)}</span>
                         </div>
                     </Link>
 
@@ -141,7 +141,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                         src={article.image_url || article.image || 'https://placehold.co/200x200?text=No+Image'}
                                         alt={article.title}
                                         fill
-                                        unoptimized={(article.image || '').includes('wikimedia.org')}
+                                        unoptimized={true}
                                         className="object-cover group-hover:scale-110 transition-transform duration-500"
                                         style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                                     />
@@ -168,11 +168,11 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                         {article.title}
                                     </h4>
                                     <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
-                                        <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                                        <span suppressHydrationWarning>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                         <span>•</span>
-                                        <span>{article.views_count} views</span>
+                                        <span suppressHydrationWarning>{article.views_count} views</span>
                                         <span>•</span>
-                                        <span>{calculateReadTime(article.summary || article.content)}</span>
+                                        <span suppressHydrationWarning>{calculateReadTime(article.summary || article.content)}</span>
                                     </div>
                                 </div>
                             </Link>
@@ -199,7 +199,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 src={article.image_url || article.image || 'https://placehold.co/800x500?text=No+Image'}
                                 alt={article.title}
                                 fill
-                                unoptimized={(article.image || '').includes('wikimedia.org')}
+                                unoptimized={true}
                                 className="object-cover transition-transform duration-700 group-hover:scale-110"
                                 style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                             />
@@ -226,11 +226,11 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                             {article.title}
                         </h3>
                         <div className="flex items-center space-x-3 text-[9px] font-bold text-gray-400 uppercase tracking-tighter mt-auto">
-                            <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                            <span suppressHydrationWarning>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                             <span>•</span>
                             <span>By {article.source || "HomesPh News"}</span>
                             <span>•</span>
-                            <span>{calculateReadTime(article.summary || article.content)}</span>
+                            <span suppressHydrationWarning>{calculateReadTime(article.summary || article.content)}</span>
                         </div>
                     </Link>
                 ))}

@@ -33,7 +33,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         alt={main.title}
                         fill
                         priority
-                        unoptimized={isUnoptimized(getImg(main, ''))}
+                        unoptimized={true}
                         sizes="100vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                         style={{ objectPosition: `${main?.image_position_x ?? 50}% ${main?.image_position ?? 0}%` }}
@@ -57,7 +57,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             <div className="flex items-center space-x-3 text-xs font-bold text-gray-300 uppercase">
                                 <span>By {main.source || "HomesPh News"}</span>
                                 <span>•</span>
-                                <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
+                                <span suppressHydrationWarning>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
                             </div>
                             <ShareButtons
                                 url={main.slug ? `/article/${main.slug}` : `/article/${main.id}`}
@@ -88,6 +88,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             alt={article.title}
                             fill
                             priority
+                            unoptimized={true}
                             sizes="(max-width: 768px) 100vw, 50vw"
                             className="object-cover transition-transform duration-500 group-hover:scale-105"
                             style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
@@ -108,7 +109,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 <div className="flex items-center space-x-3 text-[10px] font-bold text-gray-300 uppercase">
                                     <span>By {article.source || "HomesPh News"}</span>
                                     <span>•</span>
-                                    <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                                    <span suppressHydrationWarning>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                 </div>
                                 <ShareButtons
                                     url={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
@@ -141,8 +142,8 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         alt={main.title}
                         fill
                         priority
+                        unoptimized={true}
                         sizes="(max-width: 768px) 100vw, 50vw"
-                        unoptimized={isUnoptimized(getImg(main, ''))}
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                         style={{ objectPosition: `${main?.image_position_x ?? 50}% ${main?.image_position ?? 0}%` }}
                     />
@@ -162,7 +163,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             <div className="flex items-center space-x-3 text-[10px] font-bold text-gray-300 uppercase">
                                 <span>By {main.source || "HomesPh News"}</span>
                                 <span>•</span>
-                                <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
+                                <span suppressHydrationWarning>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
                             </div>
                             <ShareButtons
                                 url={main.slug ? `/article/${main.slug}` : `/article/${main.id}`}
@@ -187,8 +188,8 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 src={getImg(article, 'https://placehold.co/800x450?text=No+Image')}
                                 alt={article.title}
                                 fill
+                                unoptimized={true}
                                 sizes="(max-width: 768px) 100vw, 25vw"
-                                unoptimized={isUnoptimized(getImg(article, ''))}
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                                 style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                             />
@@ -208,7 +209,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                     <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase">
                                         <span>By {article.source || "HomesPh News"}</span>
                                         <span>•</span>
-                                        <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                                        <span suppressHydrationWarning>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                     </div>
                                     <ShareButtons
                                         url={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
@@ -242,8 +243,8 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                     alt={main.title}
                     fill
                     priority
+                    unoptimized={true}
                     sizes="(max-width: 768px) 100vw, 50vw"
-                    unoptimized={isUnoptimized(getImg(main, ''))}
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                     style={{ objectPosition: `${main?.image_position_x ?? 50}% ${main?.image_position ?? 0}%` }}
                 />
@@ -266,7 +267,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         <div className="flex items-center space-x-3 text-[10px] font-bold text-gray-300 uppercase">
                             <span>By {main.source || "HomesPh News"}</span>
                             <span>•</span>
-                            <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
+                            <span suppressHydrationWarning>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
                         </div>
                         <ShareButtons
                             url={main.slug ? `/article/${main.slug}` : `/article/${main.id}`}
@@ -291,8 +292,8 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             src={getImg(topSmall, 'https://placehold.co/800x450?text=No+Image')}
                             alt={topSmall.title}
                             fill
+                            unoptimized={true}
                             sizes="(max-width: 768px) 100vw, 50vw"
-                            unoptimized={isUnoptimized(getImg(topSmall, ''))}
                             className="object-cover transition-transform duration-500 group-hover:scale-105"
                             style={{ objectPosition: `${topSmall?.image_position_x ?? 50}% ${topSmall?.image_position ?? 0}%` }}
                         />
@@ -312,7 +313,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase">
                                     <span>By {topSmall.source || "HomesPh News"}</span>
                                     <span>•</span>
-                                    <span>{topSmall.created_at ? new Date(topSmall.created_at).toLocaleDateString() : 'Recently'}</span>
+                                    <span suppressHydrationWarning>{topSmall.created_at ? new Date(topSmall.created_at).toLocaleDateString() : 'Recently'}</span>
                                 </div>
                                 <ShareButtons
                                     url={topSmall.slug ? `/article/${topSmall.slug}` : `/article/${topSmall.id}`}
