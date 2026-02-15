@@ -101,7 +101,7 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
 
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-            const registerUrl = `${apiUrl}/auth/register`;
+            const registerUrl = `${apiUrl}/v1/auth/register`;
 
             console.log('Attempting registration at:', registerUrl);
 
