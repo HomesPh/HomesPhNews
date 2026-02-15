@@ -81,6 +81,7 @@ export default function AdContent({ className, rotateInterval, width = 300, heig
             src={ad.image_url}
             alt={ad.title}
             fill
+            unoptimized={true}
             className="object-cover opacity-40 transition-transform duration-700 group-hover:scale-110"
             sizes={`${width}px`}
             priority={true}

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CheckCircle2, ArrowLeft, Building2, Zap, Rocket, PartyPopper, ArrowRight } from "lucide-react";
+import { CheckCircle2, ArrowLeft, Building2, Zap, Rocket, PartyPopper, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import PlanConfigurationModal, { ConfigurationData } from "@/components/features/subscription/PlanConfigurationModal";
@@ -66,7 +66,7 @@ const plans: Plan[] = [
     }
 ];
 
-export default function SubscriptionPlansPage() {
+function SubscriptionPlansContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const isFreePlan = searchParams.get('plans') === 'free';
@@ -350,5 +350,20 @@ export default function SubscriptionPlansPage() {
                 onConfirm={handleConfirmSubscription}
             />
         </main>
+    );
+}
+
+export default function SubscriptionPlansPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="w-10 h-10 text-[#c10007] animate-spin" />
+                    <p className="text-gray-500 font-medium">Loading subscription plans...</p>
+                </div>
+            </div>
+        }>
+            <SubscriptionPlansContent />
+        </Suspense>
     );
 }

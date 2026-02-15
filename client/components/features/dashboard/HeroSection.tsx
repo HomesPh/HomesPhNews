@@ -53,6 +53,7 @@ export default function HeroSection({
             src={imageUrl || 'https://placehold.co/800x450?text=No+Image'}
             alt={imageAlt}
             fill
+            unoptimized={true}
             className="object-cover opacity-70 transition-all duration-500 group-hover:opacity-80 group-hover:scale-105"
             sizes="100vw"
             priority
@@ -81,14 +82,14 @@ export default function HeroSection({
             )}
             <div className="flex items-center gap-2 ml-1">
               <div className="w-1.5 h-1.5 rounded-full bg-[#c10007]" />
-              <span className="text-[14px] font-medium text-[#d1d5db] tracking-tight">
+              <span className="text-[14px] font-medium text-[#d1d5db] tracking-tight" suppressHydrationWarning>
                 {timeAgo}
               </span>
             </div>
 
             <div className="flex items-center gap-2 ml-1">
               <Eye className="h-[14px] w-[14px] text-[#d1d5db]" />
-              <span className="text-[14px] font-medium text-[#d1d5db] tracking-tight">
+              <span className="text-[14px] font-medium text-[#d1d5db] tracking-tight" suppressHydrationWarning>
                 {views.toLocaleString()} views
               </span>
             </div>
