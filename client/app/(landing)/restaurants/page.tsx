@@ -76,6 +76,7 @@ export default async function RestaurantPage({ searchParams }: Props) {
                 brand_story: r.brand_story,
                 tags: r.tags,
                 features: r.features,
+                read_time: calculateReadTime(r.description || ''),
             }));
         }
     } catch (error) {

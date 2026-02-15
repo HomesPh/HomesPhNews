@@ -30,6 +30,7 @@ export interface ArticleResource {
   content_blocks?: any[];
   template?: string;
   author?: string;
+  read_time?: string;
 
   // Restaurant Meta
   clickbait_hook?: string;
