@@ -127,7 +127,7 @@ function SubscriptionPlansContent() {
             }
 
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-            const response = await fetch(`${apiUrl}/plans/subscribe`, { // Updated endpoint
+            const response = await fetch(`${apiUrl}/v1/plans/subscribe`, { // Updated endpoint
                 method: 'POST',
                 headers: {
                     'Authorization': token ? `Bearer ${token}` : '',
