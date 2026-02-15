@@ -14,5 +14,5 @@ export interface StatsResponse {
  * GET /stats
  */
 export async function getStats(): Promise<AxiosResponse<StatsResponse>> {
-  return AXIOS_INSTANCE_PUBLIC.get<StatsResponse>("/stats");
+  return AXIOS_INSTANCE_PUBLIC.get<StatsResponse>("/v1/stats");
 }

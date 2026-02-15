@@ -19,6 +19,8 @@ interface ArticleCardProps {
   views?: string
   imageSrc: string
   imageAlt?: string
+  imagePosition?: number
+  imagePositionX?: number
   className?: string
 }
 
@@ -34,6 +36,8 @@ export default function ArticleCard({
   views,
   imageSrc,
   imageAlt = "Article Image",
+  imagePosition,
+  imagePositionX,
   className
 }: ArticleCardProps) {
   return (
@@ -51,7 +55,8 @@ export default function ArticleCard({
           alt={imageAlt}
           fill
           sizes="(max-width: 768px) 100vw, 288px"
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          className="object-cover transition-transform duration-300 transform scale-110 group-hover:scale-[1.15]"
+          style={{ objectPosition: `${imagePositionX ?? 50}% ${imagePosition ?? 0}%` }}
         />
         {/* Tags - Bottom Left */}
         <div className="absolute bottom-2 left-2 flex gap-1 z-10 transition-opacity">

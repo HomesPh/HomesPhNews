@@ -1,6 +1,6 @@
 "use client";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
-import { LayoutDashboard, FileText, BarChart3, Calendar, Settings, LogOut, Users, BookOpen, Globe, Megaphone, Utensils } from "lucide-react";
+import { LayoutDashboard, FileText, BarChart3, Calendar, Settings, LogOut, Users, BookOpen, Globe, Megaphone, Utensils, Bot } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,11 @@ const SidebarItems = [
     title: "Sites",
     href: "/admin/sites",
     icon: Globe
+  },
+  {
+    title: "AutoNewsConfig",
+    href: "/admin/autonews",
+    icon: Bot
   },
   {
     title: "Users",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { X, Mail, Briefcase, ArrowLeft, CheckCircle2, ChevronDown, Clock, Calendar } from "lucide-react";
 import { Categories, Countries, RestaurantCategories } from "@/app/data";
 
@@ -12,6 +13,7 @@ interface SubscribeModalProps {
 type Step = 'choice' | 'email' | 'service' | 'configure';
 
 export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps) {
+    const router = useRouter();
     const [step, setStep] = useState<Step>('choice');
     const [formData, setFormData] = useState({
         email: "",
@@ -54,8 +56,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
     };
 
     const handleSelectPlan = (plan: string, price: number) => {
-        setFormData({ ...formData, plan, price });
-        setStep('configure');
+        router.push('/admin/login');
     };
 
     const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {

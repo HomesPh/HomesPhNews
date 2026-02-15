@@ -12,6 +12,8 @@ interface ArticleCardProps {
     title: string;
     date: string;
     views: string;
+    image_position?: number;
+    image_position_x?: number;
     content?: string;
     status: StatusType;
     onClick?: () => void;
@@ -31,8 +33,10 @@ export default function ArticleCard(props: ArticleCardProps) {
                 title: props.title,
                 date: props.date,
                 views: props.views,
-                content: props.content,
-                status: props.status
+                status: props.status,
+                image_position: props.image_position,
+                image_position_x: props.image_position_x,
+                content: props.content
             }}
             variant="compact"
             onClick={props.onClick}

@@ -117,7 +117,7 @@ export default function useCampaignAdmin() {
     dispatch({ type: "FETCH_INIT" });
     try {
       const response = await AXIOS_INSTANCE_ADMIN.get<CampaignResponse>(
-        "/admin/campaigns",
+        "/v1/admin/campaigns",
         {
           params: { page },
         }
@@ -165,7 +165,7 @@ export default function useCampaignAdmin() {
   const createCampaign = useCallback(
     async (payload: MutateCampaignPayload) => {
       try {
-        await AXIOS_INSTANCE_ADMIN.post("/admin/campaigns", payload);
+        await AXIOS_INSTANCE_ADMIN.post("/v1/admin/campaigns", payload);
         fetchCampaigns(state.pagination?.current_page || 1);
         return { success: true };
       } catch (error: any) {
@@ -179,7 +179,7 @@ export default function useCampaignAdmin() {
   const updateCampaign = useCallback(
     async (id: string | number, payload: MutateCampaignPayload) => {
       try {
-        await AXIOS_INSTANCE_ADMIN.put(`/admin/campaigns/${id}`, payload);
+        await AXIOS_INSTANCE_ADMIN.put(`/v1/admin/campaigns/${id}`, payload);
         fetchCampaigns(state.pagination?.current_page || 1);
         return { success: true };
       } catch (error: any) {
@@ -193,7 +193,7 @@ export default function useCampaignAdmin() {
   const deleteCampaign = useCallback(
     async (id: string | number) => {
       try {
-        await AXIOS_INSTANCE_ADMIN.delete(`/admin/campaigns/${id}`);
+        await AXIOS_INSTANCE_ADMIN.delete(`/v1/admin/campaigns/${id}`);
         fetchCampaigns(state.pagination?.current_page || 1);
         return { success: true };
       } catch (error: any) {

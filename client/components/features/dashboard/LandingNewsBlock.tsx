@@ -35,6 +35,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                     fill
                                     unoptimized={(article.image || '').includes('wikimedia.org')}
                                     className="object-cover transition-all duration-500 group-hover:scale-110"
+                                    style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                                 />
                                 {/* Tags at bottom left of image */}
                                 <div className="absolute bottom-2 left-2 flex gap-1 z-10 transition-opacity group-hover:opacity-100">
@@ -91,6 +92,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 fill
                                 unoptimized={(main.image || '').includes('wikimedia.org')}
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                style={{ objectPosition: `${main?.image_position_x ?? 50}% ${main?.image_position ?? 0}%` }}
                             />
                             {/* Tags at bottom left of image */}
                             <div className="absolute bottom-3 left-3 flex gap-1 z-10">
@@ -141,6 +143,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                         fill
                                         unoptimized={(article.image || '').includes('wikimedia.org')}
                                         className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                        style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                                     />
                                     {/* Small tags for side posts at bottom left */}
                                     <div className="absolute bottom-1 left-1 flex gap-0.5 z-10 scale-90 origin-bottom-left">
@@ -198,6 +201,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 fill
                                 unoptimized={(article.image || '').includes('wikimedia.org')}
                                 className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                             />
                             {/* Tags at bottom left of image */}
                             <div className="absolute bottom-2 left-2 flex gap-1 z-10">

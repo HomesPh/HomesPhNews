@@ -82,6 +82,6 @@ export interface AdminArticleListResponse {
 export async function getAdminArticles(
   params?: AdminArticleListParams
 ): Promise<AxiosResponse<AdminArticleListResponse>> {
-  return AXIOS_INSTANCE_ADMIN.get<AdminArticleListResponse>("/admin/articles", { params });
+  return AXIOS_INSTANCE_ADMIN.get<AdminArticleListResponse>("/v1/admin/articles", { params });
 }
 

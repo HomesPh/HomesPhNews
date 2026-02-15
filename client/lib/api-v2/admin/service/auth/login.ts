@@ -1,7 +1,7 @@
 "use client";
 
 import AXIOS_INSTANCE_ADMIN from "../../axios-instance";
-import type UserResource from "../../../types/UserResource";
+import type { UserResource } from "../../../types/UserResource";
 import type { AxiosResponse } from "axios";
 
 export type LoginRequest = {
@@ -16,5 +16,5 @@ export type LoginResponse = {
 };
 
 export async function login(body: LoginRequest): Promise<AxiosResponse<LoginResponse>> {
-  return AXIOS_INSTANCE_ADMIN.post<LoginResponse>("/login", body);
+  return AXIOS_INSTANCE_ADMIN.post<LoginResponse>("/v1/login", body);
 }

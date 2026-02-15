@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { decodeHtml } from "@/lib/utils";
+import { cn, decodeHtml } from "@/lib/utils";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Calendar, Eye, Edit, XCircle, ChevronLeft, Loader2, ExternalLink } from 'lucide-react';
 
@@ -232,32 +232,180 @@ export default function ArticleDetailsPage() {
                                     </div>
                                 </div>
 
-                                <figure className="mb-8">
-                                    <div className="w-full aspect-[16/9] overflow-hidden bg-gray-100 rounded-[8px] mb-3">
-                                        <img
-                                            src={article.image || 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'}
-                                            alt={article.title}
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => { e.currentTarget.src = 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'; }}
-                                        />
-                                    </div>
-                                    <figcaption className="text-[13px] text-[#6b7280] italic leading-relaxed">
-                                        {article.title} — {article.country}
-                                    </figcaption>
-                                </figure>
+                                {(() => {
+                                    const content = article.content || article.summary || '';
+                                    const decodedContent = decodeHtml(content);
 
-                                <div className="prose prose-lg max-w-none prose-p:text-[#374151] prose-p:leading-[28px] prose-p:tracking-[-0.5px]">
-                                    {(() => {
-                                        const content = article.content || article.summary || '';
-                                        const decodedContent = decodeHtml(content);
-                                        return (
-                                            <div
-                                                className="text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>li]:mb-1 [&>a]:text-blue-600 [&>a]:underline first-letter:text-[72px] first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-5px] first-letter:leading-[0.8] first-letter:text-[#0c0c0c]"
-                                                dangerouslySetInnerHTML={{ __html: decodedContent }}
-                                            />
-                                        );
-                                    })()}
-                                </div>
+                                    // Check if content already starts with the feature image to avoid duplication
+                                    // This is common in scraper data where the first image in HTML matches the header image
+                                    const firstImageMatch = decodedContent.match(/<img[^>]+src=['"]([^'"]+)['"]/);
+                                    const isDuplicateImage = firstImageMatch && article.image && (
+                                        firstImageMatch[1] === article.image ||
+                                        decodeURIComponent(firstImageMatch[1]) === decodeURIComponent(article.image)
+                                    );
+
+                                    // If we have content blocks AND they seem to be the primary source, use them
+                                    const hasContentBlocks = Array.isArray(article.content_blocks) && article.content_blocks.length > 0;
+
+                                    // Determine if we should show the feature image figure
+                                    // We skip it if the content already starts with an image figure (legacy HTML)
+                                    // OR if the first block is an image that matches (blocks)
+                                    const shouldShowFeatureImage = article.image && !isDuplicateImage;
+
+                                    return (
+                                        <>
+                                            {/* Feature Image - only if not redundant */}
+                                            {shouldShowFeatureImage && (
+                                                <figure className="mb-8">
+                                                    <div className="w-full aspect-[16/9] overflow-hidden bg-gray-100 rounded-[8px] mb-3">
+                                                        <img
+                                                            src={article.image || 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'}
+                                                            alt={article.title}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => { e.currentTarget.src = 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'; }}
+                                                        />
+                                                    </div>
+                                                    <figcaption className="text-[13px] text-[#6b7280] italic leading-relaxed">
+                                                        {article.title} — {article.country}
+                                                    </figcaption>
+                                                </figure>
+                                            )}
+
+                                            {/* Main Content Area */}
+                                            <div className="prose prose-lg max-w-none prose-p:text-[#374151] prose-p:leading-[28px] prose-p:tracking-[-0.5px]">
+                                                {hasContentBlocks ? (
+                                                    <div className="space-y-6">
+                                                        {article.content_blocks?.map((block: any, idx: number) => {
+                                                            const { type, content, settings } = block;
+                                                            // Block specific styles from settings
+                                                            const blockStyle = {
+                                                                textAlign: settings?.textAlign || 'left',
+                                                                fontSize: settings?.fontSize || '18px',
+                                                                color: settings?.color || 'inherit',
+                                                                fontWeight: settings?.fontWeight || 'normal',
+                                                                fontStyle: settings?.isItalic ? 'italic' : 'normal',
+                                                                textDecoration: settings?.isUnderline ? 'underline' : 'none',
+                                                            } as React.CSSProperties;
+
+                                                            return (
+                                                                <div key={block.id || idx} className="mb-8">
+                                                                    {/* 1. TEXT BLOCKS */}
+                                                                    {type === 'text' && (
+                                                                        <div
+                                                                            style={blockStyle}
+                                                                            className={cn(
+                                                                                "text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3",
+                                                                                settings?.listType === 'bullet' && "list-disc ml-6",
+                                                                                settings?.listType === 'number' && "list-decimal ml-6"
+                                                                            )}
+                                                                            dangerouslySetInnerHTML={{ __html: decodeHtml(content?.text || content || '') }}
+                                                                        />
+                                                                    )}
+
+                                                                    {/* 2. STANDARD IMAGE BLOCKS */}
+                                                                    {(type === 'image' || type === 'centered-image') && (
+                                                                        <figure className={cn("my-8", type === 'centered-image' && "max-w-[80%;] mx-auto text-center")}>
+                                                                            <img
+                                                                                src={content?.src || block.image}
+                                                                                alt={content?.caption || block.caption || ""}
+                                                                                className="w-full rounded-xl shadow-sm border border-gray-100"
+                                                                            />
+                                                                            {(content?.caption || block.caption) && (
+                                                                                <figcaption className="text-sm text-center text-gray-400 mt-3 italic">
+                                                                                    {content?.caption || block.caption}
+                                                                                </figcaption>
+                                                                            )}
+                                                                        </figure>
+                                                                    )}
+
+                                                                    {/* 3. LAYOUT BLOCKS: SIDE IMAGES */}
+                                                                    {(type === 'left-image' || type === 'right-image') && (
+                                                                        <div className={cn(
+                                                                            "my-10 flex gap-8 items-start flex-col md:flex-row",
+                                                                            type === 'right-image' && "md:flex-row-reverse"
+                                                                        )}>
+                                                                            <div className="w-full md:w-[200px] shrink-0">
+                                                                                <img
+                                                                                    src={content?.image || content?.src || block.image}
+                                                                                    alt=""
+                                                                                    className="w-full aspect-square object-cover rounded-xl shadow-sm"
+                                                                                />
+                                                                                {(content?.caption || block.caption) && (
+                                                                                    <p className="text-[11px] text-gray-400 mt-2 italic text-center leading-tight">
+                                                                                        {content?.caption || block.caption}
+                                                                                    </p>
+                                                                                )}
+                                                                            </div>
+                                                                            <div
+                                                                                style={blockStyle}
+                                                                                className="flex-1 text-[18px] text-[#374151] leading-[32px]"
+                                                                                dangerouslySetInnerHTML={{ __html: decodeHtml(content?.text || content || '') }}
+                                                                            />
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* 4. LAYOUT BLOCKS: GRIDS */}
+                                                                    {type === 'grid' && (
+                                                                        <div className={cn(
+                                                                            "my-8 grid gap-4",
+                                                                            (content?.images?.length === 3) ? "grid-cols-3" : "grid-cols-2"
+                                                                        )}>
+                                                                            {content?.images?.map((img: string, i: number) => (
+                                                                                <img
+                                                                                    key={i}
+                                                                                    src={img}
+                                                                                    className="w-full aspect-square object-cover rounded-xl shadow-sm"
+                                                                                />
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* 5. LAYOUT BLOCKS: SPLIT VIEW */}
+                                                                    {(type === 'split-left' || type === 'split-right') && (
+                                                                        <div className={cn(
+                                                                            "my-10 flex flex-col md:flex-row bg-[#f9fafb] rounded-2xl overflow-hidden min-h-[400px]",
+                                                                            type === 'split-right' && "md:flex-row-reverse"
+                                                                        )}>
+                                                                            <div className="flex-1 min-h-[300px]">
+                                                                                <img
+                                                                                    src={content?.image || block.image}
+                                                                                    className="w-full h-full object-cover"
+                                                                                />
+                                                                            </div>
+                                                                            <div
+                                                                                style={blockStyle}
+                                                                                className="flex-1 p-8 md:p-12 flex items-center text-[20px] text-[#111827] leading-[1.4] font-medium"
+                                                                                dangerouslySetInnerHTML={{ __html: decodeHtml(content?.text || content || '') }}
+                                                                            />
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* 6. DYNAMIC IMAGES */}
+                                                                    {type === 'dynamic-images' && (
+                                                                        <div className="my-8 space-y-4">
+                                                                            {content?.images?.map((img: string, i: number) => (
+                                                                                <img
+                                                                                    key={i}
+                                                                                    src={img}
+                                                                                    className="w-full rounded-xl shadow-sm"
+                                                                                />
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : (
+                                                    <div
+                                                        className="text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>li]:mb-1 [&>a]:text-blue-600 [&>a]:underline first-letter:text-[72px] first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-5px] first-letter:leading-[0.8] first-letter:text-[#0c0c0c]"
+                                                        dangerouslySetInnerHTML={{ __html: decodedContent }}
+                                                    />
+                                                )}
+                                            </div>
+                                        </>
+                                    );
+                                })()}
                             </article>
                         </div>
 

@@ -78,6 +78,6 @@ export interface AdminAnalyticsResponse {
 export async function getAdminAnalytics(
   params?: AdminAnalyticsParams
 ): Promise<AxiosResponse<AdminAnalyticsResponse>> {
-  return AXIOS_INSTANCE_ADMIN.get<AdminAnalyticsResponse>("/admin/analytics", { params });
+  return AXIOS_INSTANCE_ADMIN.get<AdminAnalyticsResponse>("/v1/admin/analytics", { params });
 }
 

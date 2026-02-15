@@ -16,5 +16,5 @@ export interface GetRestaurantsParams {
 export async function getAdminRestaurants(
     params?: GetRestaurantsParams
 ): Promise<AxiosResponse<RestaurantSummary[]>> {
-    return AXIOS_INSTANCE_ADMIN.get<RestaurantSummary[]>("/admin/restaurants", { params });
+    return AXIOS_INSTANCE_ADMIN.get<RestaurantSummary[]>("/v1/admin/restaurants", { params });
 }

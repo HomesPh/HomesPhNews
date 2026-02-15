@@ -13,7 +13,7 @@ export async function publishRestaurant(
     body?: { published_sites?: string[] }
 ): Promise<AxiosResponse<Restaurant>> {
     return AXIOS_INSTANCE_ADMIN.post<Restaurant>(
-        `/admin/restaurants/${id}/publish`,
+        `/v1/admin/restaurants/${id}/publish`,
         body
     );
 }

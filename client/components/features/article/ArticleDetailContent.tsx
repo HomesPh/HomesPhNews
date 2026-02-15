@@ -2,6 +2,7 @@ import { getArticleById } from "@/lib/api-v2";
 import ArticleHeader from "./ArticleHeader";
 import ArticleFeaturedImage from "./ArticleFeaturedImage";
 import ArticleContent from "./ArticleContent";
+import RestaurantDetails from "./RestaurantDetails";
 import ArticleShareBox from "./ArticleShareBox";
 import { stripHtml } from "@/lib/utils";
 import { Categories, Countries } from "@/app/data";
@@ -39,6 +40,15 @@ export default async function ArticleDetailContent({ id }: ArticleDetailContentP
         c.label.toLowerCase() === country.toLowerCase()
     )?.label || country;
 
+  // Deduplication logic: If the first content block is an image and is the same as the featured image,
+  // we skip the featured image to avoid visual duplication.
+  const firstBlock = article.content_blocks?.[0];
+  const firstBlockImage = firstBlock
+    ? (firstBlock.content?.src || firstBlock.content?.image || firstBlock.image)
+    : null;
+
+  const isSelfDuplicating = article.image && firstBlockImage && article.image === firstBlockImage;
+
   return (
     <section>
       <ArticleHeader
@@ -58,23 +68,31 @@ export default async function ArticleDetailContent({ id }: ArticleDetailContentP
         })}
         views={article.views_count}
       />
-      {article.image && (
+
+      {article.image && !isSelfDuplicating && (
         <ArticleFeaturedImage
           src={article.image}
           alt={article.title}
           caption=""
+          image_position={article.image_position}
+          image_position_x={article.image_position_x}
         />
       )}
 
-      <ArticleContent
-        content={article.content}
-        topics={
-          article.keywords
-            ? article.keywords.split(",").map((t: string) => t.trim())
-            : []
-        }
-        originalUrl={article.original_url}
-      />
+      {article.category === "Restaurant" ? (
+        <RestaurantDetails restaurant={article} />
+      ) : (
+        <ArticleContent
+          content={article.content}
+          contentBlocks={article.content_blocks}
+          topics={
+            article.keywords
+              ? article.keywords.split(",").map((t: string) => t.trim())
+              : []
+          }
+          originalUrl={article.original_url}
+        />
+      )}
       <ArticleShareBox />
     </section>
   );

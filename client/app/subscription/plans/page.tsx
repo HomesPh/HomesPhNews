@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { CheckCircle2, ArrowLeft, Building2, Zap, Rocket } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { CheckCircle2, ArrowLeft, Building2, Zap, Rocket, PartyPopper, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import PlanConfigurationModal, { ConfigurationData } from "@/components/features/subscription/PlanConfigurationModal";
@@ -68,6 +68,9 @@ const plans: Plan[] = [
 
 export default function SubscriptionPlansPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const isFreePlan = searchParams.get('plans') === 'free';
+
     const [userInfo, setUserInfo] = useState<any>(null);
     const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
     const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
@@ -165,136 +168,178 @@ export default function SubscriptionPlansPage() {
     };
 
     return (
-        <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
-            <div className="max-w-7xl mx-auto px-4 py-12">
-                {/* Header */}
-                <div className="text-center mb-12">
-                    <Link
-                        href="/"
-                        className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        <span className="text-sm font-medium">Back to Home</span>
-                    </Link>
+        <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center py-12 px-4">
+            {isFreePlan ? (
+                <div className="max-w-md w-full animate-in fade-in zoom-in duration-500">
+                    <div className="bg-white rounded-[32px] shadow-2xl overflow-hidden border border-gray-100">
+                        {/* Status Header */}
+                        <div className="bg-gradient-to-r from-[#c10007] to-[#a00006] p-8 text-center relative overflow-hidden">
+                            <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+                            <div className="relative z-10">
+                                <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-4 border border-white/30">
+                                    <PartyPopper className="w-10 h-10 text-white" />
+                                </div>
+                                <h1 className="text-2xl font-black text-white tracking-tight uppercase">Congratulations!</h1>
+                            </div>
+                        </div>
 
-                    <div className="flex items-center justify-center mb-6">
-                        <img
-                            src="/images/HomesTV.png"
-                            alt="HomesTV"
-                            className="h-12 w-auto object-contain"
-                        />
-                    </div>
+                        {/* Content */}
+                        <div className="p-8 text-center bg-white">
+                            <div className="mb-8">
+                                <h2 className="text-xl font-bold text-gray-900 mb-4 leading-tight">
+                                    Exclusive Free Access
+                                </h2>
+                                <p className="text-gray-600 leading-relaxed font-medium">
+                                    You will access the subscriber's dashboard <span className="text-[#c10007] font-bold">free of charge</span>.
+                                    Enjoy full access to all premium news features and real estate insights.
+                                </p>
+                            </div>
 
-                    {userInfo && (
-                        <div className="mb-4">
-                            <p className="text-sm text-gray-600">
-                                Welcome, <span className="font-semibold text-gray-900">{userInfo.firstName} {userInfo.lastName}</span>!
+                            <button
+                                onClick={() => router.push('/subscriber')}
+                                className="group w-full bg-[#c10007] hover:bg-[#a00006] text-white py-4 rounded-2xl font-bold text-lg transition-all shadow-[0_8px_25px_rgba(193,0,7,0.3)] hover:shadow-[0_12px_30px_rgba(193,0,7,0.4)] active:scale-[0.98] flex items-center justify-center gap-3"
+                            >
+                                Continue to Dashboard
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            </button>
+
+                            <p className="mt-6 text-xs text-gray-400 font-medium uppercase tracking-widest">
+                                Welcome to News HomesPH Platform
                             </p>
                         </div>
-                    )}
-
-                    <h1 className="text-4xl font-bold text-gray-900 mb-3">
-                        Choose Your Plan
-                    </h1>
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        Unlock premium features and grow your business with our tailored solutions.
-                    </p>
+                    </div>
                 </div>
+            ) : (
+                <div className="max-w-7xl mx-auto w-full">
+                    {/* Header */}
+                    <div className="text-center mb-12">
+                        <Link
+                            href="/"
+                            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                            <span className="text-sm font-medium">Back to Home</span>
+                        </Link>
 
-                {/* Plans Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                    {plans.map((plan) => {
-                        const Icon = plan.icon;
-                        const isSelected = selectedPlanId === plan.id;
+                        <div className="flex items-center justify-center mb-6">
+                            <img
+                                src="/images/HomesTV.png"
+                                alt="HomesTV"
+                                className="h-12 w-auto object-contain"
+                            />
+                        </div>
 
-                        return (
-                            <div
-                                key={plan.id}
-                                className={`relative bg-white rounded-2xl shadow-lg border-2 transition-all hover:shadow-2xl ${plan.popular
-                                    ? 'border-[#c10007] scale-105'
-                                    : isSelected
-                                        ? 'border-[#c10007]'
-                                        : 'border-gray-200 hover:border-[#c10007]'
-                                    }`}
-                            >
-                                {plan.popular && (
-                                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                                        <span className="bg-gradient-to-r from-[#c10007] to-[#a00006] text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
-                                            MOST POPULAR
-                                        </span>
-                                    </div>
-                                )}
-
-                                <div className="p-8">
-                                    {/* Icon */}
-                                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-6 ${plan.popular ? 'bg-red-50' : 'bg-gray-50'
-                                        }`}>
-                                        <Icon className={`w-7 h-7 ${plan.popular ? 'text-[#c10007]' : 'text-gray-700'}`} />
-                                    </div>
-
-                                    {/* Plan Info */}
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                                        {plan.name}
-                                    </h3>
-                                    <p className="text-gray-600 text-sm mb-6">
-                                        {plan.description}
-                                    </p>
-
-                                    {/* Price */}
-                                    <div className="mb-8">
-                                        <span className="text-5xl font-bold text-gray-900">
-                                            ₱{plan.price.toLocaleString()}
-                                        </span>
-                                        <span className="text-gray-600 text-lg">/month</span>
-                                    </div>
-
-                                    {/* Features */}
-                                    <ul className="space-y-4 mb-8">
-                                        {plan.features.map((feature, index) => (
-                                            <li key={index} className="flex items-start gap-3">
-                                                <CheckCircle2 className="w-5 h-5 text-[#c10007] flex-shrink-0 mt-0.5" />
-                                                <span className="text-gray-700 text-sm">{feature}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-
-                                    {/* Select Button */}
-                                    <Button
-                                        onClick={() => handleSelectPlan(plan)}
-                                        disabled={isLoading}
-                                        className={`w-full h-12 font-semibold text-base rounded-xl transition-all shadow-md ${plan.popular
-                                            ? 'bg-[#c10007] hover:bg-[#a00006] text-white'
-                                            : 'bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200'
-                                            }`}
-                                    >
-                                        {isLoading ? "Processing..." : `Select ${plan.name}`}
-                                    </Button>
-                                </div>
+                        {userInfo && (
+                            <div className="mb-4">
+                                <p className="text-sm text-gray-600">
+                                    Welcome, <span className="font-semibold text-gray-900">{userInfo.firstName} {userInfo.lastName}</span>!
+                                </p>
                             </div>
-                        );
-                    })}
-                </div>
+                        )}
 
-                {/* Skip Option */}
-                <div className="text-center">
-                    <button
-                        onClick={handleSkip}
-                        className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
-                    >
-                        Skip for now, I'll choose later
-                    </button>
-                </div>
+                        <h1 className="text-4xl font-bold text-gray-900 mb-3">
+                            Choose Your Plan
+                        </h1>
+                        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                            Unlock premium features and grow your business with our tailored solutions.
+                        </p>
+                    </div>
 
-                {/* Footer */}
-                <div className="text-center mt-12 pt-8 border-t border-gray-200">
-                    <p className="text-sm text-gray-500">
-                        Need a custom plan?{" "}
-                        <a href="#" className="text-[#c10007] font-semibold hover:underline">
-                            Contact our sales team
-                        </a>
-                    </p>
+                    {/* Plans Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                        {plans.map((plan) => {
+                            const Icon = plan.icon;
+                            const isSelected = selectedPlanId === plan.id;
+
+                            return (
+                                <div
+                                    key={plan.id}
+                                    className={`relative bg-white rounded-2xl shadow-lg border-2 transition-all hover:shadow-2xl ${plan.popular
+                                        ? 'border-[#c10007] scale-105'
+                                        : isSelected
+                                            ? 'border-[#c10007]'
+                                            : 'border-gray-200 hover:border-[#c10007]'
+                                        }`}
+                                >
+                                    {plan.popular && (
+                                        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                                            <span className="bg-gradient-to-r from-[#c10007] to-[#a00006] text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
+                                                MOST POPULAR
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    <div className="p-8">
+                                        {/* Icon */}
+                                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-6 ${plan.popular ? 'bg-red-50' : 'bg-gray-50'
+                                            }`}>
+                                            <Icon className={`w-7 h-7 ${plan.popular ? 'text-[#c10007]' : 'text-gray-700'}`} />
+                                        </div>
+
+                                        {/* Plan Info */}
+                                        <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                                            {plan.name}
+                                        </h3>
+                                        <p className="text-gray-600 text-sm mb-6">
+                                            {plan.description}
+                                        </p>
+
+                                        {/* Price */}
+                                        <div className="mb-8">
+                                            <span className="text-5xl font-bold text-gray-900">
+                                                ₱{plan.price.toLocaleString()}
+                                            </span>
+                                            <span className="text-gray-600 text-lg">/month</span>
+                                        </div>
+
+                                        {/* Features */}
+                                        <ul className="space-y-4 mb-8">
+                                            {plan.features.map((feature, index) => (
+                                                <li key={index} className="flex items-start gap-3">
+                                                    <CheckCircle2 className="w-5 h-5 text-[#c10007] flex-shrink-0 mt-0.5" />
+                                                    <span className="text-gray-700 text-sm">{feature}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+
+                                        {/* Select Button */}
+                                        <Button
+                                            onClick={() => handleSelectPlan(plan)}
+                                            disabled={isLoading}
+                                            className={`w-full h-12 font-semibold text-base rounded-xl transition-all shadow-md ${plan.popular
+                                                ? 'bg-[#c10007] hover:bg-[#a00006] text-white'
+                                                : 'bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200'
+                                                }`}
+                                        >
+                                            {isLoading ? "Processing..." : `Select ${plan.name}`}
+                                        </Button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Skip Option */}
+                    <div className="text-center">
+                        <button
+                            onClick={handleSkip}
+                            className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
+                        >
+                            Skip for now, I'll choose later
+                        </button>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="text-center mt-12 pt-8 border-t border-gray-200">
+                        <p className="text-sm text-gray-500">
+                            Need a custom plan?{" "}
+                            <a href="#" className="text-[#c10007] font-semibold hover:underline">
+                                Contact our sales team
+                            </a>
+                        </p>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Configuration Modal */}
             <PlanConfigurationModal
