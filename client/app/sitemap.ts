@@ -11,9 +11,9 @@ async function getArticleSlugs(): Promise<Array<{ slug: string; updatedAt?: stri
   let page = 1;
   const perPage = 100;
   try {
-    for (;;) {
+    for (; ;) {
       const res = await fetch(
-        `${apiUrl}/articles?per_page=${perPage}&page=${page}&status=published&sort_by=created_at&sort_direction=desc`,
+        `${apiUrl}/v1/articles?per_page=${perPage}&page=${page}&status=published&sort_by=created_at&sort_direction=desc`,
         { next: { revalidate: 3600 } }
       );
       if (!res.ok) break;
