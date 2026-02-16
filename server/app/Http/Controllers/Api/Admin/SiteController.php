@@ -26,12 +26,16 @@ class SiteController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('site_name', 'LIKE', "%{$search}%")
-                  ->orWhere('site_url', 'LIKE', "%{$search}%")
-                  ->orWhere('contact_name', 'LIKE', "%{$search}%");
+                    ->orWhere('site_url', 'LIKE', "%{$search}%")
+                    ->orWhere('contact_name', 'LIKE', "%{$search}%");
             });
         }
 
-        $sites = $query->withCount('articles')
+        $sites = $query->withCount([
+            'articles' => function ($q) {
+                $q->where('articles.is_deleted', false);
+            }
+        ])
             ->orderBy('created_at', 'desc')
             ->get();
 

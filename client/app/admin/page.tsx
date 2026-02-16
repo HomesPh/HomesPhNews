@@ -66,6 +66,7 @@ export default function AdminDashboard() {
     const distributionSites = data?.stats.total_distribution.map(d => ({
         name: d.distributed_in,
         count: d.published_count,
+        totalViews: d.total_views,
         color: "#C10007"
     })) ?? [];
 
