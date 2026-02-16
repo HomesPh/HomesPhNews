@@ -85,7 +85,7 @@ class DashboardController extends Controller
                 'published_count' => $site->articles_count,
                 'total_views' => $site->total_views ?? 0
             ];
-        })->sortByDesc('published_count')->take(5)->values();
+        })->sortByDesc('published_count')->values();
 
         // 6. Recent articles - Eager load to prevent N+1
         $recentArticles = Article::query()
