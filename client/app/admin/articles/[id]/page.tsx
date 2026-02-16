@@ -464,15 +464,20 @@ function ArticleDetailsContent() {
                                     </label>
                                 ))}
                             </div>
+                            {article.is_redis && (
+                                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-[12px] text-amber-700 leading-relaxed font-medium">
+                                    This article is currently in the <strong>Pending Review</strong> queue (Redis cached) and is not yet stored in the main database. Click Publish to finalize and store it.
+                                </div>
+                            )}
                             <div className="flex gap-3">
                                 <button disabled className="flex-1 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#374151] bg-gray-100 opacity-50 cursor-not-allowed tracking-[-0.5px]">Customize</button>
                                 <button
                                     onClick={handlePublishClick}
-                                    disabled={isPublishing || article.status === 'published'}
+                                    disabled={isPublishing || (article.status === 'published' && !article.is_redis)}
                                     className="flex-1 px-4 py-2.5 bg-[#3b82f6] text-white rounded-[8px] text-[14px] font-semibold hover:bg-[#2563eb] transition-all active:scale-95 tracking-[-0.5px] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     {isPublishing && <Loader2 className="w-4 h-4 animate-spin" />}
-                                    {isPublishing ? 'Publishing...' : (article.status === 'published' ? 'Published' : 'Publish')}
+                                    {isPublishing ? 'Publishing...' : (article.status === 'published' && !article.is_redis ? 'Published' : 'Publish')}
                                 </button>
                             </div>
                         </div>

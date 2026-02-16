@@ -6,6 +6,16 @@ import { cn } from "@/lib/utils";
 import { getSiteNames, updatePendingArticle, createArticle, updateArticle, publishArticle, uploadArticleImage } from "@/lib/api-v2";
 import { blocksToHtml } from "@/lib/converter/blocksToHtml";
 import ArticleEditorForm from "./editor/ArticleEditorForm";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import { TemplateType } from "./editor/TemplateSelector";
 
@@ -29,6 +39,8 @@ interface ArticleEditorModalProps {
 export default function ArticleEditorModal({ mode, isOpen, onClose, initialData }: ArticleEditorModalProps) {
     const [template, setTemplate] = useState<TemplateType>('single');
     const [availableSites, setAvailableSites] = useState<string[]>([]);
+    const [showPublishDialog, setShowPublishDialog] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     // Initialize articleData with initialData if available, otherwise use defaults
     const getInitialArticleData = () => {
@@ -266,22 +278,38 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
         }
     };
 
-    const handleSave = async (isPublish: boolean = false) => {
+    const handleSave = async (isPublish: boolean = false, currentEditorData?: any) => {
         try {
             // Processing state
             console.log('Deep-cloning data and uploading images to S3...');
 
+            // Map currentEditorData if provided, otherwise use current state
+            const workingData = currentEditorData ? {
+                ...articleData,
+                title: currentEditorData.title,
+                slug: currentEditorData.slug,
+                summary: currentEditorData.summary,
+                category: currentEditorData.category,
+                country: currentEditorData.country,
+                publishTo: currentEditorData.platforms,
+                content: currentEditorData.content,
+                contentBlocks: currentEditorData.contentBlocks,
+                author: currentEditorData.author,
+                publishDate: currentEditorData.publishDate,
+                publishTime: currentEditorData.publishTime
+            } : articleData;
+
             // 1. Process Main Image
-            const finalImage = await uploadIfDataUrl(articleData.image);
+            const finalImage = await uploadIfDataUrl(workingData.image);
 
             // 2. Process Gallery Images
-            const finalGalleryImages = [...articleData.galleryImages];
+            const finalGalleryImages = [...workingData.galleryImages];
             for (let i = 0; i < finalGalleryImages.length; i++) {
                 finalGalleryImages[i] = await uploadIfDataUrl(finalGalleryImages[i]) || '';
             }
 
             // 3. Process Content Blocks (Deep Clone to avoid state mutation)
-            const finalContentBlocks = JSON.parse(JSON.stringify(articleData.contentBlocks));
+            const finalContentBlocks = JSON.parse(JSON.stringify(workingData.contentBlocks));
             for (let i = 0; i < finalContentBlocks.length; i++) {
                 const block = finalContentBlocks[i];
 
@@ -305,37 +333,35 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
             }
 
             // 4. Process Legacy Split Images
-            const finalSplitImages = [...articleData.splitImages];
+            const finalSplitImages = [...workingData.splitImages];
             for (let i = 0; i < finalSplitImages.length; i++) {
                 finalSplitImages[i] = await uploadIfDataUrl(finalSplitImages[i]) || '';
             }
 
             console.log('Image processing complete. Regenerating HTML...');
 
-
             // RE-GENERATE HTML content after all images are uploaded to S3
-            // This ensures the DB 'content' field has S3 URLs, not base64 strings
             const finalHtmlContent = blocksToHtml(finalContentBlocks as any);
 
             const payload = {
-                title: articleData.title,
-                slug: articleData.slug || articleData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
-                summary: articleData.summary,
-                content: finalHtmlContent, // Use the regenerated content
-                category: articleData.category,
-                country: articleData.country,
+                title: workingData.title,
+                slug: workingData.slug || workingData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+                summary: workingData.summary,
+                content: finalHtmlContent,
+                category: workingData.category,
+                country: workingData.country,
                 image: finalImage,
-                published_sites: articleData.publishTo,
+                published_sites: workingData.publishTo,
                 status: (isPublish ? 'published' : 'pending review') as 'published' | 'pending review',
-                topics: articleData.tags,
-                author: articleData.author,
-                date: articleData.publishDate,
+                topics: workingData.tags,
+                author: workingData.author,
+                date: workingData.publishDate,
                 gallery_images: finalGalleryImages,
                 split_images: finalSplitImages,
                 content_blocks: finalContentBlocks,
                 template: template,
-                image_position: articleData.image_position,
-                image_position_x: articleData.image_position_x
+                image_position: workingData.image_position,
+                image_position_x: workingData.image_position_x
             };
 
             // Use the is_redis flag from our Resource to determine the save path
@@ -351,47 +377,44 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
 
             console.log('Publish validation:', { isPublish, publishToLength: articleData.publishTo.length, publishTo: articleData.publishTo });
 
-            if (isPublish && articleData.publishTo.length === 0) {
+            if (isPublish && payload.published_sites.length === 0) {
                 console.log('Validation failed: No sites selected');
                 alert('Please select at least one site to publish to.');
                 return;
             }
 
             console.log('Validation passed, continuing with save/publish');
+            setIsProcessing(true);
 
             if (mode === 'create') {
-                // Create article directly in MySQL database
+                // For new articles, createArticle handles everything including status and sites
                 await createArticle(payload);
                 alert(`Article ${isPublish ? 'published' : 'created'} successfully!`);
             } else if (mode === 'edit' && isFromRedis) {
-                // For Redis articles (from scraper), first update the Redis cache
-                await updatePendingArticle(initialData.id, {
-                    ...payload,
-                    image_url: finalImage || undefined,
-                });
-
-                // If publishing, also move from Redis to MySQL database
+                // For Redis articles, we now have an atomic publish that handles the migration
                 if (isPublish) {
                     await publishArticle(initialData.id, {
-                        published_sites: articleData.publishTo,
-                    });
-                    alert('Article published successfully!');
+                        ...payload,
+                        published_sites: payload.published_sites,
+                    } as any);
+                    alert('Article migrated and published successfully!');
                 } else {
-                    alert('Article updated successfully!');
+                    // Just update Redis
+                    await updatePendingArticle(initialData.id, payload);
+                    alert('Article draft updated successfully!');
                 }
             } else if (mode === 'edit') {
-                // DB articles (including 'pending review' and restored ones)
+                // DB articles
                 if (isPublish) {
-                    // When publishing, first update the article data, then call publish endpoint
-                    await updateArticle(initialData.id, payload);
+                    // Atomic publish: saves data and updates status in one go with the new inclusive backend
                     await publishArticle(initialData.id, {
-                        published_sites: articleData.publishTo,
-                    });
-                    alert('Article published successfully!');
+                        ...payload,
+                        published_sites: payload.published_sites,
+                    } as any);
+                    alert('Article changes published successfully!');
                 } else {
-                    // When just saving, only update
                     await updateArticle(initialData.id, payload);
-                    alert('Article updated successfully!');
+                    alert('Article changes saved successfully!');
                 }
             }
 
@@ -399,9 +422,26 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
             window.location.reload();
         } catch (error: any) {
             console.error('Error saving article:', error);
-            const message = error.message || 'An error occurred while saving the article.';
+            const message = error.response?.data?.message || error.message || 'An error occurred while saving the article.';
             alert(message);
+        } finally {
+            setIsProcessing(false);
         }
+    };
+
+    const handlePublishClick = (latestData: any) => {
+        if (!latestData.platforms || latestData.platforms.length === 0) {
+            alert('Please select at least one site to publish to.');
+            return;
+        }
+        // Save the latest data for when they click confirm in the dialog
+        setArticleData(prev => ({
+            ...prev,
+            ...latestData,
+            publishTo: latestData.platforms,
+            tags: latestData.tags || prev.tags
+        }));
+        setShowPublishDialog(true);
     };
 
     return (
@@ -412,10 +452,35 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 onDataChange={handleDataChange}
                 template={template}
                 onTemplateChange={handleTemplateChange}
-                onSave={() => handleSave(false)}
-                onPublish={() => handleSave(true)}
+                onSave={(data) => handleSave(false, data)}
+                onPublish={(data) => handlePublishClick(data)}
                 onClose={onClose}
             />
+
+            <AlertDialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
+                <AlertDialogContent className="z-[200]">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Ready to Publish?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This article will be published to <strong>{articleData.publishTo.length}</strong> selected platforms.
+                            Users on those platforms will be able to see it immediately.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleSave(true); // Uses updated articleData from handlePublishClick
+                            }}
+                            disabled={isProcessing}
+                            className="bg-[#3b82f6] hover:bg-[#2563eb]"
+                        >
+                            {isProcessing ? 'Processing...' : 'Confirm Publish'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
