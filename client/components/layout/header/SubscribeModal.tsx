@@ -72,7 +72,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
         try {
             // Only 'email' step is currently handled by the backend
             if (step === 'email') {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/subscribe`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/subscribe`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -123,7 +123,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                     form.append('logo', formData.logo);
                 }
 
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/subscribe`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/subscribe`, {
                     method: 'POST',
                     body: form,
                 });

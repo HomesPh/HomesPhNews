@@ -42,6 +42,7 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
                 alt={article.title}
                 width={400}
                 height={160}
+                unoptimized={true}
                 className="w-full h-full object-cover hover:scale-105 transition-transform"
               />
             </div>
@@ -49,7 +50,7 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
             {/* Content below */}
             <div className="p-[16px] flex flex-col gap-[10px]">
               <div className="flex gap-[8px] items-center">
-                <span className="bg-white dark:bg-[#252836] border border-[#e5e7eb] dark:border-[#374151] px-[8px] py-[3px] rounded-[4px] font-semibold text-[11px] text-black dark:text-white tracking-[-0.5px]">
+                <span className="bg-white dark:bg-[#252836] border border-[#e5e7eb] dark:border-[#374151] px-[8px] py-[3px] rounded-[4px] font-semibold text-[11px] text-black dark:text-white tracking-[-0.5px]" suppressHydrationWarning>
                   {article.category}
                 </span>
                 {article.location && (
@@ -68,11 +69,11 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
 
               <div className="flex items-center gap-[6px] text-[#6b7280] dark:text-gray-400">
                 <Clock className="size-[12px]" />
-                <p className="font-normal text-[12px] tracking-[-0.5px]">
+                <p className="font-normal text-[12px] tracking-[-0.5px]" suppressHydrationWarning>
                   {article.timeAgo}
                 </p>
                 <p className="font-normal text-[14px] tracking-[-0.5px]">•</p>
-                <p className="font-normal text-[12px] tracking-[-0.5px]">
+                <p className="font-normal text-[12px] tracking-[-0.5px]" suppressHydrationWarning>
                   {article.views}
                 </p>
               </div>

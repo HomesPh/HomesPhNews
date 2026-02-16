@@ -29,6 +29,14 @@ class RestaurantController extends Controller
             $query->where('country', $country);
         }
 
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
         $restaurants = $query->orderBy('created_at', 'desc')
             ->paginate($limit, ['*'], 'page', $page);
 

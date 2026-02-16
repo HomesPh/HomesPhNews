@@ -106,29 +106,52 @@ export default function RestaurantDetails({ restaurant }: RestaurantDetailsProps
             </div>
 
             {/* 4. Location Map Section */}
-            <div className="bg-white dark:bg-[#1a1d2e] rounded-2xl border border-gray-100 dark:border-[#2a2d3e] p-8 shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
-                <h3 className="text-[18px] font-bold text-[#111827] dark:text-white mb-5 flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-gray-500" /> Location Map
-                </h3>
-                <div className="w-full aspect-[16/9] bg-gray-50 dark:bg-[#1a1d2e] rounded-xl overflow-hidden border border-gray-100 dark:border-[#2a2d3e] relative flex items-center justify-center">
-                    <div className="text-center p-6 flex flex-col items-center">
-                        <MapPin className="w-12 h-12 text-gray-300 dark:text-gray-700 mb-3" />
-                        <p className="text-gray-500 dark:text-gray-400 mb-4 font-medium">Map Preview Unavailable</p>
-                        {restaurant.google_maps_url && (
-                            <a
-                                href={restaurant.google_maps_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#F0F7FF] dark:bg-blue-900/20 text-[#0066CC] dark:text-blue-400 rounded-lg text-sm font-bold hover:bg-[#E0EFFF] dark:hover:bg-blue-900/30 transition-colors"
-                            >
-                                <ExternalLink className="w-4 h-4" /> Open in Google Maps
-                            </a>
-                        )}
+            <div className="bg-white dark:bg-[#1a1d2e] rounded-2xl border border-gray-100 dark:border-[#2a2d3e] p-6 md:p-8 shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                    <h3 className="text-[18px] font-bold text-[#111827] dark:text-white flex items-center gap-2">
+                        <MapPin className="w-5 h-5 text-[#C10007]" /> Location & Directions
+                    </h3>
+                    {restaurant.google_maps_url && (
+                        <a
+                            href={restaurant.google_maps_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-[#C10007] text-white rounded-lg text-xs font-bold hover:bg-[#a10006] transition-colors shadow-sm"
+                        >
+                            <ExternalLink className="w-3.5 h-3.5" /> View on Google Maps
+                        </a>
+                    )}
+                </div>
+
+                <div className="w-full h-[350px] md:h-[500px] bg-gray-50 dark:bg-[#1a1d2e] rounded-xl overflow-hidden border border-gray-100 dark:border-[#2a2d3e] relative shadow-inner">
+                    {(restaurant.address || restaurant.location || restaurant.google_maps_url) ? (
+                        <iframe
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            loading="lazy"
+                            allowFullScreen
+                            referrerPolicy="no-referrer-when-downgrade"
+                            src={`https://www.google.com/maps/embed/v1/search?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(restaurant.address || restaurant.location || restaurant.title)}&zoom=15`}
+                        ></iframe>
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center p-6 bg-gray-50 dark:bg-[#1a1d2e]">
+                            <div className="text-center">
+                                <MapPin className="w-12 h-12 text-gray-300 dark:text-gray-700 mb-3 mx-auto" />
+                                <p className="text-gray-500 dark:text-gray-400 mb-4 font-medium">Map Preview Unavailable</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+                <div className="mt-5 p-4 bg-gray-50 dark:bg-[#252836] rounded-xl flex items-start gap-3">
+                    <MapPin className="w-5 h-5 text-[#C10007] shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                        <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">Address</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                            {restaurant.address || restaurant.location}
+                        </p>
                     </div>
                 </div>
-                <p className="mt-5 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                    <MapPin className="w-4 h-4" /> {restaurant.address || restaurant.location}
-                </p>
             </div>
 
             {/* 5. Online Presence & Opening Hours Cards */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { cn, decodeHtml } from "@/lib/utils";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Calendar, Eye, Edit, XCircle, ChevronLeft, Loader2, ExternalLink } from 'lucide-react';
@@ -39,7 +39,7 @@ import { getSiteNames } from "@/lib/api-v2/admin/service/sites/getSiteNames";
 /**
  * Article Details Page
  */
-export default function ArticleDetailsPage() {
+function ArticleDetailsContent() {
     const params = useParams();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -576,5 +576,13 @@ export default function ArticleDetailsPage() {
                 </AlertDialogContent>
             </AlertDialog>
         </div>
+    );
+}
+
+export default function ArticleDetailsPage() {
+    return (
+        <Suspense fallback={<div className="p-20 text-center text-[#6b7280]">Loading article details...</div>}>
+            <ArticleDetailsContent />
+        </Suspense>
     );
 }

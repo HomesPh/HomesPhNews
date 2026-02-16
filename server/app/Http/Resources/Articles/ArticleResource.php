@@ -123,6 +123,20 @@ class ArticleResource extends JsonResource
         $summary = $isExternalApi ? $this->stripHtmlTags($rawSummary) : $rawSummary;
         $description = $isExternalApi ? $this->stripHtmlTags($rawDescription) : $rawDescription;
 
+        // Check if this is an external API call (has authenticated site)
+        $isExternalApi = $request->attributes->has('site');
+
+        // Get raw content values
+        $rawContent = (string) $get('content', '');
+        $rawSummary = (string) $get('summary', $get('content', ''));
+        $rawDescription = (string) $get('summary', $get('content', ''));
+
+        // Sanitize HTML tags for external API calls only
+        // This removes all HTML tags (<p>, <b>, <i>, <ul>, <ol>, etc.) and converts to plain text
+        $content = $isExternalApi ? $this->stripHtmlTags($rawContent) : $rawContent;
+        $summary = $isExternalApi ? $this->stripHtmlTags($rawSummary) : $rawSummary;
+        $description = $isExternalApi ? $this->stripHtmlTags($rawDescription) : $rawDescription;
+
         return [
             'id' => (string)$get('id', ''),
             'slug' => (string)$get('slug', ''),
