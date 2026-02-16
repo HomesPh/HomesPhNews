@@ -338,6 +338,48 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 finalSplitImages[i] = await uploadIfDataUrl(finalSplitImages[i]) || '';
             }
 
+            // --- FEATURED IMAGE FALLBACK LOGIC ---
+            // If no featured image is set, try to find the first image in content blocks or content string
+            let effectiveFinalImage = finalImage;
+            if (!effectiveFinalImage) {
+                console.log('No featured image set. Attempting to find fallback image from content...');
+
+                // 1. Check Content Blocks
+                for (const block of finalContentBlocks) {
+                    if (effectiveFinalImage) break;
+
+                    if (block.type === 'image' && block.image) {
+                        effectiveFinalImage = block.image;
+                    } else if (block.type === 'image-caption' && block.image) {
+                        effectiveFinalImage = block.image;
+                    } else if (block.type === 'split' && block.image) {
+                        effectiveFinalImage = block.image;
+                    } else if (block.type === 'gallery' && block.images && block.images.length > 0) {
+                        effectiveFinalImage = block.images[0];
+                    }
+                }
+
+                // 2. Check HTML Content (if still no image)
+                // This covers cases where content was pasted directly or comes from legacy source
+                if (!effectiveFinalImage && workingData.content) {
+                    const imgMatch = workingData.content.match(/<img[^>]+src="([^">]+)"/);
+                    if (imgMatch && imgMatch[1]) {
+                        console.log('Found fallback image in HTML content:', imgMatch[1]);
+                        // We might need to upload this if it's a data URL, but usually it's already a URL
+                        // if it's in the content string. 
+                        // However, if the user pasted a data URL image, it might be in the content.
+                        // For safety, let's run it through uploadIfDataUrl just in case.
+                        effectiveFinalImage = await uploadIfDataUrl(imgMatch[1]);
+                    }
+                }
+
+                if (effectiveFinalImage) {
+                    console.log('Setting fallback featured image:', effectiveFinalImage);
+                } else {
+                    console.log('No fallback image found in content.');
+                }
+            }
+
             console.log('Image processing complete. Regenerating HTML...');
 
             // RE-GENERATE HTML content after all images are uploaded to S3
@@ -350,7 +392,7 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 content: finalHtmlContent,
                 category: workingData.category,
                 country: workingData.country,
-                image: finalImage,
+                image: effectiveFinalImage,
                 published_sites: workingData.publishTo,
                 status: (isPublish ? 'published' : 'pending review') as 'published' | 'pending review',
                 topics: workingData.tags,
