@@ -7,7 +7,7 @@ use App\Models\Role;
 use Illuminate\Http\Request;
 
 class RoleController extends Controller
-{
+{   
     /**
      * (v2) Display a listing of the resource.
      */
@@ -24,11 +24,14 @@ class RoleController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|unique:roles,name|max:255',
+            'permissions' => 'nullable|array',
+            'permissions.*' => 'string', // Validate as string, could add Rule::in(...)
         ]);
 
-        $role = new Role();
-        $role->name = $validated['name'];
-        $role->save();
+        $role = Role::create([
+            'name' => $validated['name'],
+            'permissions' => $validated['permissions'] ?? [],
+        ]);
 
         return response()->json($role, 201);
     }
@@ -51,10 +54,14 @@ class RoleController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:roles,name,' . $role->id,
+            'permissions' => 'nullable|array',
+            'permissions.*' => 'string',
         ]);
 
-        $role->name = $validated['name'];
-        $role->save();
+        $role->update([
+            'name' => $validated['name'],
+            'permissions' => $validated['permissions'] ?? [],
+        ]);
 
         return response()->json($role);
     }
