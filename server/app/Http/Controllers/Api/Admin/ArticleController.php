@@ -382,6 +382,8 @@ class ArticleController extends Controller
 
     /**
      * Publish a pending article to the database.
+     * Handles both existing DB articles and Redis-only articles.
+     * Supports atomic publish by accepting a full article payload.
      */
     public function publish(ArticleActionRequest $request, string $id): JsonResponse|ArticleResource
     {
@@ -396,40 +398,17 @@ class ArticleController extends Controller
             $existing = Article::where('id', $id)->first();
             $redisArticle = $this->redisService->getArticle($id);
 
-            if ($existing) {
-            \Log::info("Found existing article in DB, updating status.");
-            $updateData = ['is_deleted' => false, 'status' => 'published'];
+            // 1. Resolve Final Article Data
+            // Hierarchy of Truth: 1. Request Payload > 2. Existing DB > 3. Redis Source
             
-            // If Redis has data, merge it, BUT preserve DB fields if they're more recent/complete
+            $finalData = [
+                'status' => 'published',
+                'is_deleted' => false,
+            ];
+
+            // A. Start with Redis as fallback if available
             if ($redisArticle) {
-                // Only update from Redis if the DB field is empty or Redis has newer data
-                // This prevents overwriting edited content_blocks with stale Redis data
-                $updateData = array_merge($updateData, [
-                    'title' => $redisArticle['title'] ?? $existing->title,
-                    'summary' => $redisArticle['summary'] ?? $existing->summary,
-                    'content' => $redisArticle['content'] ?? $existing->content,
-                    // Preserve DB content_blocks if they exist (from editing), otherwise use Redis
-                    'content_blocks' => (!empty($existing->content_blocks) ? $existing->content_blocks : ($redisArticle['content_blocks'] ?? [])),
-                    // Preserve DB template if it exists (from editing), otherwise use Redis
-                    'template' => (!empty($existing->template) ? $existing->template : ($redisArticle['template'] ?? '')),
-                    // Preserve DB author if it exists (from editing), otherwise use Redis
-                    'author' => (!empty($existing->author) ? $existing->author : ($redisArticle['author'] ?? '')),
-                ]);
-            }
-            $existing->update($updateData);
-            $article = $existing;
-        }    else {
-                \Log::info("Article not in DB, creating from Redis.");
-                if (!$redisArticle) {
-                    \Log::error("Redis article not found for ID: {$id}");
-                    return response()->json(['message' => 'Article not found in database or pending queue'], 404);
-                }
-
-                \Log::info("Redis Article content found. Blocks count: " . (isset($redisArticle['content_blocks']) ? count($redisArticle['content_blocks']) : 0));
-
-                $article = Article::create([
-                    'id' => $id,
-                    'article_id' => $id,
+                $finalData = array_merge($finalData, [
                     'title' => $redisArticle['title'] ?? '',
                     'original_title' => $redisArticle['title'] ?? '',
                     'summary' => $redisArticle['summary'] ?? substr($redisArticle['content'] ?? '', 0, 500),
@@ -441,38 +420,77 @@ class ArticleController extends Controller
                     'original_url' => $redisArticle['original_url'] ?? '',
                     'keywords' => $redisArticle['keywords'] ?? '',
                     'topics' => $redisArticle['topics'] ?? [],
-                    'status' => 'published',
-                    'views_count' => 0,
-                    'is_deleted' => false,
-                    'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
                     'content_blocks' => $redisArticle['content_blocks'] ?? [],
                     'template' => $redisArticle['template'] ?? '',
                     'author' => $redisArticle['author'] ?? '',
+                    'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
                 ]);
             }
 
-            // Sync sites
+            // B. Layer with Existing DB data (takes priority over Redis)
+            if ($existing) {
+                $existingData = $existing->toArray();
+                // Filter out nulls/empty blocks from existing to ensure we don't 'downgrade' if Redis has better data
+                // though usually DB is more authoritative because it's editable.
+                $finalData = array_merge($finalData, $existingData);
+            }
+
+            // C. Layer with Request Payload (Decisive authority)
+            // Only include fields that were explicitly sent in the request
+            $payload = array_filter($validated, fn($v) => !is_null($v));
+            $finalData = array_merge($finalData, $payload);
+
+            // 1.5 - Force status and clear deletion flag
+            // Since this is the PUBLISH method, we must ensure these are correct
+            // regardless of what was in Redis or DB drafts.
+            $finalData['status'] = 'published';
+            $finalData['is_deleted'] = false;
+
+            // 2. Clean up and execute persistence
+            $fillableData = collect($finalData)->only((new Article())->getFillable())->toArray();
+
+            if ($existing) {
+                \Log::info("Updating existing DB record for publish: {$id}");
+                $existing->update($fillableData);
+                $article = $existing;
+            } else {
+                \Log::info("Creating new DB record for publish from Redis/Payload: {$id}");
+                if (empty($fillableData['title'])) {
+                    return response()->json(['message' => 'Article not found and no title provided for creation.'], 404);
+                }
+                $article = Article::create(array_merge(['id' => $id, 'article_id' => $id], $fillableData));
+            }
+
+            // 3. Sync Platform Connections
             $siteNames = $validated['published_sites'] ?? [];
             if (!empty($siteNames)) {
                 $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
                 $article->publishedSites()->sync($siteIds);
             }
 
+            // 4. Handle Site-Specific Customizations
             if (isset($validated['custom_titles'])) {
                 $article->update(['custom_titles' => $validated['custom_titles']]);
             }
 
-            // Sync images
-            $galleryImages = $redisArticle['gallery_images'] ?? [];
+            // 5. Sync Media Assets (ArticleImage relationship)
+            // Priority: Payload Gallery > Redis Gallery
+            $galleryImages = $validated['gallery_images'] ?? $validated['galleryImages'] ?? null;
             if (is_array($galleryImages)) {
                 $article->images()->delete();
                 foreach ($galleryImages as $imagePath) {
                     if (!empty($imagePath)) $article->images()->create(['image_path' => $imagePath]);
                 }
+            } elseif (!$existing && $redisArticle && !empty($redisArticle['gallery_images'])) {
+                // Initial sync from Redis if record is brand new in DB
+                foreach ($redisArticle['gallery_images'] as $imagePath) {
+                    if (!empty($imagePath)) $article->images()->create(['image_path' => $imagePath]);
+                }
             }
 
+            // 6. Finalization: Remove from temporary Redis queue
             $this->redisService->deleteArticle($id);
-            \Log::info("Article {$id} published successfully.");
+            \Log::info("Article {$id} published and archived successfully.");
             
             return (new ArticleResource($article))->response()->setStatusCode(201);
             
