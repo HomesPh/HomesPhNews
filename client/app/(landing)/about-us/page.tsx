@@ -6,7 +6,7 @@ export default function AboutUsPage() {
             initials: 'JM'
         },
         {
-            name: 'Friollan Kim Edem',
+            name: 'Froillan Kim Edem',
             role: 'Full Stack Developer',
             initials: 'FK'
         },
