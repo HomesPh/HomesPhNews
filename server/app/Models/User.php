@@ -74,12 +74,78 @@ class User extends Authenticatable
         // 2. Check the JSON 'roles' column in the users table
         // Avoid using $this->roles as it conflicts with the relationship name
         $rawRoles = $this->getRawOriginal('roles');
-        
+
         // Handle case where rawRoles might be already decoded or still a JSON string
         $jsonRoles = is_string($rawRoles) ? json_decode($rawRoles, true) : $rawRoles;
-        
+
         if (is_array($jsonRoles) && in_array($role, $jsonRoles)) {
             return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if the user has a specific permission.
+     */
+    public function hasPermission(string $permission): bool
+    {
+        // 1. Get role names from relationship (if loaded or via query)
+        $relationRoles = $this->roles()->pluck('name')->toArray();
+
+        // 2. Get role names from attribute (JSON column)
+        $attributeRoles = $this->getRawOriginal('roles');
+        $attributeRoles = is_string($attributeRoles) ? json_decode($attributeRoles, true) : $attributeRoles;
+        if (! is_array($attributeRoles)) {
+            $attributeRoles = [];
+        }
+
+        // Merge and unique
+        $allRoleNames = array_unique(array_merge($relationRoles, $attributeRoles));
+
+        if (empty($allRoleNames)) {
+            return false;
+        }
+
+        // 3. Check permissions from Database Roles
+        $dbRoles = Role::whereIn('name', $allRoleNames)->get();
+
+        foreach ($dbRoles as $role) {
+            $permissions = $role->permissions;
+
+            if (empty($permissions)) {
+                continue;
+            }
+
+            // If role has all permissions (stored as "*" or ["*"])
+            if ($permissions === '*' || (is_array($permissions) && in_array('*', $permissions))) {
+                return true;
+            }
+
+            // If role has specific permission
+            if (is_array($permissions) && in_array($permission, $permissions)) {
+                return true;
+            }
+        }
+
+
+        // 4. Check permissions from config file (Fallback)
+        foreach ($allRoleNames as $roleName) {
+            $roleConfig = config('permissions.roles.' . $roleName);
+
+            if (! $roleConfig) {
+                continue;
+            }
+
+            // If role has all permissions
+            if ($roleConfig['permissions'] === '*') {
+                return true;
+            }
+
+            // If role has specific permission
+            if (is_array($roleConfig['permissions']) && in_array($permission, $roleConfig['permissions'])) {
+                return true;
+            }
         }
 
         return false;
