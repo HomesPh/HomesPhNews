@@ -41,6 +41,7 @@ export default function MostReadTodayCard({ title = "Most Read Today", items = [
                 src={article.imageUrl || 'https://placehold.co/800x450?text=No+Image'}
                 alt={article.title}
                 fill
+                unoptimized={true}
                 sizes="64px"
                 className="object-cover relative z-10 group-hover:scale-110 transition-transform duration-500"
                 style={{ objectPosition: `${article.imagePositionX ?? 50}% ${article.imagePosition ?? 0}%` }}
@@ -51,9 +52,9 @@ export default function MostReadTodayCard({ title = "Most Read Today", items = [
                 {article.title}
               </h4>
               <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
-                <span>{article.timeAgo || 'Recently'}</span>
+                <span suppressHydrationWarning>{article.timeAgo || 'Recently'}</span>
                 <span>•</span>
-                <span>{article.views.toLocaleString()} views</span>
+                <span suppressHydrationWarning>{article.views.toLocaleString()} views</span>
               </div>
             </div>
           </Link>

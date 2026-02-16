@@ -16,7 +16,7 @@ class VerifySiteApiKey
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $apiKey = $request->header('X-Site-Api-Key');
+        $apiKey = $request->header('X-Site-Api-Key') ?? $request->header('X-Site-Key');
         $origin = $request->header('Origin'); // Browser sends this for CORS requests
 
         if (!$apiKey) {

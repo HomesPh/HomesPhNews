@@ -35,9 +35,12 @@ export default function VerticalArticleCard({
     imagePosition,
     imagePositionX
 }: VerticalArticleCardProps) {
+    const basePath = category === "Restaurant" ? "/restaurants" : "/article";
+    const href = slug ? `${basePath}/${slug}` : `${basePath}/${id}`;
+
     return (
         <Link
-            href={slug ? `/article/${slug}` : `/article/${id}`}
+            href={href}
             className="group bg-white dark:bg-[#1a1d2e] border border-[#f3f4f6] dark:border-[#2a2d3e] rounded-[12px] overflow-hidden cursor-pointer hover:shadow-md transition-shadow shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] flex flex-col h-full"
         >
             {/* Image on top */}
@@ -46,6 +49,8 @@ export default function VerticalArticleCard({
                     src={imageSrc}
                     alt={title}
                     fill
+                    unoptimized={true}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover transition-transform duration-300 transform scale-110 group-hover:scale-[1.15]"
                     style={{ objectPosition: `${imagePositionX ?? 50}% ${imagePosition ?? 0}%` }}
                 />
@@ -63,7 +68,7 @@ export default function VerticalArticleCard({
                 {/* Share Icons - Bottom Right */}
                 <div className="absolute bottom-2 right-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20">
                     <ShareButtons
-                        url={slug ? `/article/${slug}` : `/article/${id}`}
+                        url={href}
                         title={title}
                         description={description}
                         size="xs"
@@ -87,15 +92,15 @@ export default function VerticalArticleCard({
 
                 <div className="mt-auto pt-[10px] flex items-center gap-[6px] text-[#6b7280] dark:text-gray-500">
                     <Clock className="size-[12px]" />
-                    <p className="font-normal text-[12px] tracking-[-0.5px]">
+                    <p className="font-normal text-[12px] tracking-[-0.5px]" suppressHydrationWarning>
                         {timeAgo}
                     </p>
                     <p className="font-normal text-[14px] tracking-[-0.5px]">•</p>
-                    <p className="font-normal text-[12px] tracking-[-0.5px]">
+                    <p className="font-normal text-[12px] tracking-[-0.5px]" suppressHydrationWarning>
                         {views}
                     </p>
                     <p className="font-normal text-[14px] tracking-[-0.5px]">•</p>
-                    <p className="font-normal text-[12px] tracking-[-0.5px]">
+                    <p className="font-normal text-[12px] tracking-[-0.5px]" suppressHydrationWarning>
                         {calculateReadTime(content || description)}
                     </p>
                 </div>

@@ -43,6 +43,19 @@ use App\Http\Controllers\v2\UserController as UserControllerV2;
 |--------------------------------------------------------------------------
 */
 
+
+/*
+|--------------------------------------------------------------------------
+| External Site Routes
+|--------------------------------------------------------------------------
+|
+| Version-independent routes for external site integration.
+|
+*/
+Route::middleware('site.auth')->prefix('external')->group(function () {
+    Route::get('/articles', [SiteContentController::class, 'getArticles']);
+});
+
 Route::prefix('v1')->group(function () {
     /*
     |--------------------------------------------------------------------------
@@ -123,8 +136,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/subscribe/{id}', [SubscriptionController::class, 'show']);
     Route::patch('/subscribe/{id}', [SubscriptionController::class, 'update']);
 
-    // External Site Content (API Key Protected)
-    Route::middleware('site.auth')->get('/external/articles', [SiteContentController::class, 'getArticles']);
+
 
     /*
     |--------------------------------------------------------------------------
@@ -172,11 +184,15 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('campaigns', AdminCampaignController::class);
             Route::apiResource('categories', CategoryController::class);
             Route::apiResource('countries', CountryController::class);
+            // Resource Routes
+            Route::get('sites/names', [SiteController::class, 'names']);
             Route::apiResource('sites', SiteController::class);
+            
+            Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
+            Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
             Route::apiResource('restaurants', AdminRestaurantController::class);
 
-            // Site Management
-            Route::get('sites/names', [SiteController::class, 'names']);
+            // Additional Management
             Route::patch('sites/{id}/toggle-status', [SiteController::class, 'toggleStatus']);
             Route::patch('sites/{id}/refresh-key', [SiteController::class, 'refreshKey']);
 
@@ -187,8 +203,6 @@ Route::prefix('v1')->group(function () {
             Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
 
             // Restaurant Actions
-            Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
-            Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
             Route::post('restaurants/{id}/publish', [AdminRestaurantController::class, 'publish'])->name('restaurants.publish');
 
             // Uploads
