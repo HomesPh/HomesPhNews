@@ -13,14 +13,16 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: '*');
-        
+
         $middleware->validateCsrfTokens(except: [
             'api/*',
         ]);
 
         $middleware->alias([
             'is.authenticated' => \App\Http\Middleware\CheckRole::class,
-            'site.auth'   => \App\Http\Middleware\VerifySiteApiKey::class,
+            'site.auth' => \App\Http\Middleware\VerifySiteApiKey::class,
+
+            // permissions stuff, can be used like this: ->middleware('can.perform:view_users')
             'can.perform' => \App\Http\Middleware\CheckPermission::class,
         ]);
 

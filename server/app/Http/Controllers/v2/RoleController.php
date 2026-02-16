@@ -13,7 +13,7 @@ class RoleController extends Controller
      */
     public function index()
     {
-        $roles = Role::with('permissions')->paginate(10);
+        $roles = Role::paginate(10);
         return response()->json($roles);
     }
 
@@ -25,19 +25,15 @@ class RoleController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|unique:roles,name|max:255',
             'permissions' => 'nullable|array',
-            'permissions.*' => 'exists:permissions,name',
+            'permissions.*' => 'string', // Validate as string, could add Rule::in(...)
         ]);
 
-        $role = new Role();
-        $role->name = $validated['name'];
-        $role->save();
+        $role = Role::create([
+            'name' => $validated['name'],
+            'permissions' => $validated['permissions'] ?? [],
+        ]);
 
-        if (isset($validated['permissions'])) {
-            $permissions = \App\Models\Permission::whereIn('name', $validated['permissions'])->pluck('id');
-            $role->permissions()->sync($permissions);
-        }
-
-        return response()->json($role->load('permissions'), 201);
+        return response()->json($role, 201);
     }
 
     /**
@@ -45,7 +41,7 @@ class RoleController extends Controller
      */
     public function show(string $id)
     {
-        $role = Role::with('permissions')->findOrFail($id);
+        $role = Role::findOrFail($id);
         return response()->json($role);
     }
 
@@ -59,18 +55,15 @@ class RoleController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:roles,name,' . $role->id,
             'permissions' => 'nullable|array',
-            'permissions.*' => 'exists:permissions,name',
+            'permissions.*' => 'string',
         ]);
 
-        $role->name = $validated['name'];
-        $role->save();
+        $role->update([
+            'name' => $validated['name'],
+            'permissions' => $validated['permissions'] ?? [],
+        ]);
 
-        if (isset($validated['permissions'])) {
-            $permissions = \App\Models\Permission::whereIn('name', $validated['permissions'])->pluck('id');
-            $role->permissions()->sync($permissions);
-        }
-
-        return response()->json($role->load('permissions'));
+        return response()->json($role);
     }
 
     /**

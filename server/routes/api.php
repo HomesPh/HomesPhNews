@@ -1,16 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Redis;
-
-// Auth Controllers
-use App\Http\Controllers\Api\Auth\AuthController;
-use App\Http\Controllers\Api\Auth\SocialAuthController;
-
-// Admin Controllers
 use App\Http\Controllers\Api\Admin\AdController as AdminAdController;
+// Auth Controllers
 use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\ArticleController as AdminArticleController;
+// Admin Controllers
 use App\Http\Controllers\Api\Admin\ArticlePublicationController;
 use App\Http\Controllers\Api\Admin\CampaignController as AdminCampaignController;
 use App\Http\Controllers\Api\Admin\CategoryController;
@@ -18,33 +12,30 @@ use App\Http\Controllers\Api\Admin\CountryController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Api\Admin\SiteController;
-
-// User Controllers
-use App\Http\Controllers\Api\User\AdController as UserAdController;
-use App\Http\Controllers\Api\User\ArticleController as UserArticleController;
-use App\Http\Controllers\Api\User\RestaurantController as UserRestaurantController;
-
-// Other Controllers
+use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Auth\SocialAuthController;
 use App\Http\Controllers\Api\PlanSubscriptionController;
+// User Controllers
 use App\Http\Controllers\Api\SiteContentController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\SystemController;
+// Other Controllers
 use App\Http\Controllers\Api\UploadController;
-
-
-// v2 Controllers
+use App\Http\Controllers\Api\User\AdController as UserAdController;
+use App\Http\Controllers\Api\User\ArticleController as UserArticleController;
+use App\Http\Controllers\Api\User\RestaurantController as UserRestaurantController;
 use App\Http\Controllers\v2\ArticleController as ArticleControllerV2;
+// v2 Controllers
 use App\Http\Controllers\v2\AuthController as AuthControllerV2;
 use App\Http\Controllers\v2\RoleController as RoleControllerV2;
 use App\Http\Controllers\v2\UserController as UserControllerV2;
-use App\Http\Controllers\v2\DevelopmentController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
 | API Versions
 |--------------------------------------------------------------------------
 */
-
 
 /*
 |--------------------------------------------------------------------------
@@ -138,8 +129,6 @@ Route::prefix('v1')->group(function () {
     Route::get('/subscribe/{id}', [SubscriptionController::class, 'show']);
     Route::patch('/subscribe/{id}', [SubscriptionController::class, 'update']);
 
-
-
     /*
     |--------------------------------------------------------------------------
     | Authenticated User Routes
@@ -153,7 +142,7 @@ Route::prefix('v1')->group(function () {
         // User Info
         Route::get('/user', [AuthController::class, 'me']);
         Route::get('/login', [AuthController::class, 'me'])->name('login'); // Re-using me endpoint for check
-        
+
         // Auth Actions
         Route::post('/logout', [AuthController::class, 'logout']);
 
@@ -189,7 +178,7 @@ Route::prefix('v1')->group(function () {
             // Resource Routes
             Route::get('sites/names', [SiteController::class, 'names']);
             Route::apiResource('sites', SiteController::class);
-            
+
             Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
             Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
             Route::apiResource('restaurants', AdminRestaurantController::class);
@@ -224,22 +213,22 @@ Route::prefix('v2')->group(function () {
         Route::post('/login', [AuthControllerV2::class, 'login']);
         Route::post('/register', [AuthControllerV2::class, 'register']);
     });
-    
+
     /**
      *  Never remove this documentation!!!
-     * 
+     *
      *  Implementing RBAC to your endpoint:
      *      1. Add permission to $permissions in server/database/seeders/RoleSeeder.php
      *      2. Run seeder: php artisan db:seed --class=RoleSeeder
      *      3. Protect route: ->middleware('can.perform:permission_name')
      */
     Route::middleware('auth:sanctum')->group(function () {
-        // Auth 
+        // Auth
         Route::prefix('auth')->group(function () {
             Route::post('/logout', [AuthControllerV2::class, 'logout']);
             Route::get('/me', [AuthControllerV2::class, 'me']);
-        });        
-        
+        });
+
         // Roles
         Route::get('roles', [RoleControllerV2::class, 'index'])
             ->middleware('can.perform:view_roles');
@@ -251,7 +240,7 @@ Route::prefix('v2')->group(function () {
             ->middleware('can.perform:edit_roles');
         Route::delete('roles/{role}', [RoleControllerV2::class, 'destroy'])
             ->middleware('can.perform:delete_roles');
-        
+
         // Users
         Route::get('users', [UserControllerV2::class, 'index'])
             ->middleware('can.perform:view_users');
@@ -265,7 +254,7 @@ Route::prefix('v2')->group(function () {
             ->middleware('can.perform:delete_users');
         Route::put('users/{user}/roles', [UserControllerV2::class, 'updateRole'])
             ->middleware('can.perform:edit_users');
-        
+
         // Articles
         Route::get('articles', [ArticleControllerV2::class, 'index'])
             ->middleware('can.perform:view_articles');
@@ -277,9 +266,6 @@ Route::prefix('v2')->group(function () {
             ->middleware('can.perform:edit_articles');
         Route::delete('articles/{article}', [ArticleControllerV2::class, 'destroy'])
             ->middleware('can.perform:delete_articles');
-        
-        Route::prefix('dev')->group(function () {
-            Route::get('redis', [DevelopmentController::class, 'getRedisContents']);
-        });
+
     });
 });

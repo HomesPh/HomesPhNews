@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class RoleSeeder extends Seeder
 {
@@ -13,44 +13,17 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        // Define permissions
-        $permissions = [
-            // users
-            'view_users',
-            'create_users',
-            'edit_users',
-            'delete_users',
-
-            // roles
-            'view_roles',
-            'create_roles',
-            'edit_roles',
-            'delete_roles',
-
-            // articles
-            'view_articles',
-            'create_articles',
-            'edit_articles',
-            'delete_articles',
-        ];
-
-        // Create permissions
-        foreach ($permissions as $permissionName) {
-            \App\Models\Permission::firstOrCreate(['name' => $permissionName]);
+        // create roles from config
+        foreach (array_keys(config('permissions.roles')) as $roleName) {
+            Role::firstOrCreate(['name' => $roleName]);
         }
 
-        // Create Roles
-        $adminRole = Role::firstOrCreate(['name' => 'admin']);
-
-        // Assign all permissions to admin role
-        $allPermissions = \App\Models\Permission::all();
-        $adminRole->permissions()->sync($allPermissions);
-
-        // Assign admin role to existing admin users if any
-        // Example: Assign 'admin' role to user with ID 1
-        $user = User::find(1);
-        if ($user) {
-            $user->roles()->syncWithoutDetaching([$adminRole->id]);
+        $adminRole = Role::where('name', 'admin')->first();
+        if ($adminRole) {
+            $user = User::find(1);
+            if ($user) {
+                $user->roles()->syncWithoutDetaching([$adminRole->id]);
+            }
         }
     }
 }
