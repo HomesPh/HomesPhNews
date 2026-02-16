@@ -200,11 +200,10 @@
         <div class="footer">
             <div class="footer-text">
                 &copy; {{ date('Y') }} HomesTV. All rights reserved.<br>
-                123 Real Estate Ave, Makati City, Philippines
             </div>
             <div class="footer-links">
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
+                <a href="{{ $clientUrl }}/privacy-policy">Privacy Policy</a>
+                <a href="{{ $clientUrl }}/terms-and-policy">Terms of Service</a>
                 <a href="{{ $clientUrl }}/subscribe/edit?id={{ $subId }}">Preference Center</a>
             </div>
         </div>
