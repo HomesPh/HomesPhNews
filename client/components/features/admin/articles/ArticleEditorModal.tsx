@@ -279,27 +279,36 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
     };
 
     const handleSave = async (isPublish: boolean = false, currentEditorData?: any) => {
+        // Map currentEditorData if provided, otherwise use current state
+        const workingData = currentEditorData ? {
+            ...articleData,
+            title: currentEditorData.title,
+            slug: currentEditorData.slug,
+            summary: currentEditorData.summary,
+            category: currentEditorData.category,
+            country: currentEditorData.country,
+            publishTo: currentEditorData.platforms,
+            content: currentEditorData.content,
+            contentBlocks: currentEditorData.contentBlocks,
+            author: currentEditorData.author,
+            publishDate: currentEditorData.publishDate,
+            publishTime: currentEditorData.publishTime
+        } : articleData;
+
+        // Validation Logic - Check before processing
+        console.log('Publish validation:', { isPublish, publishToLength: workingData.publishTo.length, publishTo: workingData.publishTo });
+
+        if (isPublish && (!workingData.publishTo || workingData.publishTo.length === 0)) {
+            console.log('Validation failed: No sites selected');
+            alert('Please select at least one site to publish to.');
+            return;
+        }
+
         try {
             setIsProcessing(true);
 
             // Processing state
             console.log('Deep-cloning data and uploading images to S3...');
-
-            // Map currentEditorData if provided, otherwise use current state
-            const workingData = currentEditorData ? {
-                ...articleData,
-                title: currentEditorData.title,
-                slug: currentEditorData.slug,
-                summary: currentEditorData.summary,
-                category: currentEditorData.category,
-                country: currentEditorData.country,
-                publishTo: currentEditorData.platforms,
-                content: currentEditorData.content,
-                contentBlocks: currentEditorData.contentBlocks,
-                author: currentEditorData.author,
-                publishDate: currentEditorData.publishDate,
-                publishTime: currentEditorData.publishTime
-            } : articleData;
 
             // 1. Process Main Image
             const finalImage = await uploadIfDataUrl(workingData.image);
@@ -418,14 +427,6 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 id: initialData?.id,
                 isPublish
             });
-
-            console.log('Publish validation:', { isPublish, publishToLength: articleData.publishTo.length, publishTo: articleData.publishTo });
-
-            if (isPublish && payload.published_sites.length === 0) {
-                console.log('Validation failed: No sites selected');
-                alert('Please select at least one site to publish to.');
-                return;
-            }
 
             console.log('Validation passed, continuing with save/publish');
 
