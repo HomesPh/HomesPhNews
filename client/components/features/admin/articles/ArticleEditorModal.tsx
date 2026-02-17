@@ -280,6 +280,8 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
 
     const handleSave = async (isPublish: boolean = false, currentEditorData?: any) => {
         try {
+            setIsProcessing(true);
+
             // Processing state
             console.log('Deep-cloning data and uploading images to S3...');
 
@@ -426,7 +428,6 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
             }
 
             console.log('Validation passed, continuing with save/publish');
-            setIsProcessing(true);
 
             if (mode === 'create') {
                 // For new articles, createArticle handles everything including status and sites
