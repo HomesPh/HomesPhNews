@@ -310,13 +310,39 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
             // Processing state
             console.log('Deep-cloning data and uploading images to S3...');
 
+            // Deduplication Cache: prevent uploading the same image twice (e.g. Featured + Content Block)
+            const uploadedImagesCache = new Map<string, string>();
+
+            const deduplicatedUpload = async (imageUrl: string | null): Promise<string | null> => {
+                if (!imageUrl) return null;
+
+                // key for cache
+                const cacheKey = imageUrl;
+
+                if (uploadedImagesCache.has(cacheKey)) {
+                    console.log('Image deduplication hit:', cacheKey.substring(0, 50) + '...');
+                    return uploadedImagesCache.get(cacheKey)!;
+                }
+
+                const result = await uploadIfDataUrl(imageUrl);
+
+                // If the result is different (it was uploaded), or even if it's the same,
+                // we store the result mapped to the *original* input.
+                // This ensures subsequent calls with the same input get the same result.
+                if (result) {
+                    uploadedImagesCache.set(cacheKey, result);
+                }
+
+                return result;
+            };
+
             // 1. Process Main Image
-            const finalImage = await uploadIfDataUrl(workingData.image);
+            const finalImage = await deduplicatedUpload(workingData.image);
 
             // 2. Process Gallery Images
             const finalGalleryImages = [...workingData.galleryImages];
             for (let i = 0; i < finalGalleryImages.length; i++) {
-                finalGalleryImages[i] = await uploadIfDataUrl(finalGalleryImages[i]) || '';
+                finalGalleryImages[i] = await deduplicatedUpload(finalGalleryImages[i]) || '';
             }
 
             // 3. Process Content Blocks (Deep Clone to avoid state mutation)
@@ -325,19 +351,19 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                 const block = finalContentBlocks[i];
 
                 if (block.image) {
-                    block.image = (await uploadIfDataUrl(block.image)) || undefined;
+                    block.image = (await deduplicatedUpload(block.image)) || undefined;
                 }
 
                 if (block.content && typeof block.content === 'object') {
                     if (block.content.src) {
-                        block.content.src = await uploadIfDataUrl(block.content.src);
+                        block.content.src = await deduplicatedUpload(block.content.src);
                     }
                     if (block.content.image) {
-                        block.content.image = await uploadIfDataUrl(block.content.image);
+                        block.content.image = await deduplicatedUpload(block.content.image);
                     }
                     if (Array.isArray(block.content.images)) {
                         for (let j = 0; j < block.content.images.length; j++) {
-                            block.content.images[j] = await uploadIfDataUrl(block.content.images[j]);
+                            block.content.images[j] = await deduplicatedUpload(block.content.images[j]);
                         }
                     }
                 }
@@ -346,7 +372,7 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
             // 4. Process Legacy Split Images
             const finalSplitImages = [...workingData.splitImages];
             for (let i = 0; i < finalSplitImages.length; i++) {
-                finalSplitImages[i] = await uploadIfDataUrl(finalSplitImages[i]) || '';
+                finalSplitImages[i] = await deduplicatedUpload(finalSplitImages[i]) || '';
             }
 
             // --- FEATURED IMAGE FALLBACK LOGIC ---
@@ -380,7 +406,7 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
                         // if it's in the content string. 
                         // However, if the user pasted a data URL image, it might be in the content.
                         // For safety, let's run it through uploadIfDataUrl just in case.
-                        effectiveFinalImage = await uploadIfDataUrl(imgMatch[1]);
+                        effectiveFinalImage = await deduplicatedUpload(imgMatch[1]);
                     }
                 }
 
