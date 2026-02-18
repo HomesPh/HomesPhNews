@@ -1,24 +1,31 @@
 "use client";
 
 import { useState } from 'react';
-import { X, UserPlus } from 'lucide-react';
+import { X, UserPlus, Loader2 } from 'lucide-react';
 
 interface AddUserModalProps {
     onClose: () => void;
-    onAdd: (userData: any) => void;
+    onAdd: (userData: any) => Promise<void>;
 }
 
 export default function AddUserModal({ onClose, onAdd }: AddUserModalProps) {
+    const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
-        name: '',
+        firstName: '',
+        lastName: '',
         email: '',
         role: 'Blogger',
         sendEmail: true,
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        onAdd(formData);
+        setIsLoading(true);
+        try {
+            await onAdd(formData);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -32,18 +39,33 @@ export default function AddUserModal({ onClose, onAdd }: AddUserModalProps) {
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                    <div>
-                        <label className="block text-[14px] font-bold text-[#111827] mb-2 tracking-[-0.5px]">
-                            Full Name <span className="text-red-600">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            required
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="w-full h-[50px] px-4 border border-[#d1d5db] rounded-[8px] text-[16px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all"
-                            placeholder="e.g. Juan Dela Cruz"
-                        />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-[14px] font-bold text-[#111827] mb-2 tracking-[-0.5px]">
+                                First Name <span className="text-red-600">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                required
+                                value={formData.firstName}
+                                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                className="w-full h-[50px] px-4 border border-[#d1d5db] rounded-[8px] text-[16px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all"
+                                placeholder="e.g. Juan"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[14px] font-bold text-[#111827] mb-2 tracking-[-0.5px]">
+                                Last Name <span className="text-red-600">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                required
+                                value={formData.lastName}
+                                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                className="w-full h-[50px] px-4 border border-[#d1d5db] rounded-[8px] text-[16px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all"
+                                placeholder="e.g. Dela Cruz"
+                            />
+                        </div>
                     </div>
 
                     <div>
@@ -81,39 +103,26 @@ export default function AddUserModal({ onClose, onAdd }: AddUserModalProps) {
                         </div>
                     </div>
 
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                        <label className="flex items-center gap-3 cursor-pointer group">
-                            <div className="relative flex items-center">
-                                <input
-                                    type="checkbox"
-                                    checked={formData.sendEmail}
-                                    onChange={(e) => setFormData({ ...formData, sendEmail: e.target.checked })}
-                                    className="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-300 checked:bg-[#C10007] checked:border-[#C10007] transition-all"
-                                />
-                                <svg className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                            </div>
-                            <span className="text-[14px] text-[#4b5563] font-medium tracking-[-0.5px] group-hover:text-[#111827] transition-colors">
-                                Send invitation email and temporary password to user
-                            </span>
-                        </label>
-                    </div>
-
                     <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-2 text-[14px] font-bold text-[#6b7280] hover:text-[#111827] transition-colors"
+                            disabled={isLoading}
+                            className="px-6 py-2 text-[14px] font-bold text-[#6b7280] hover:text-[#111827] transition-colors disabled:opacity-50"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="flex items-center gap-2 px-8 py-2 bg-[#C10007] text-white rounded-[8px] hover:bg-[#a10006] transition-all text-[14px] font-bold shadow-md shadow-red-900/10"
+                            disabled={isLoading}
+                            className="flex items-center gap-2 px-8 py-2 bg-[#C10007] text-white rounded-[8px] hover:bg-[#a10006] transition-all text-[14px] font-bold shadow-md shadow-red-900/10 disabled:opacity-70"
                         >
-                            <UserPlus className="w-4 h-4" />
-                            Add User
+                            {isLoading ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <UserPlus className="w-4 h-4" />
+                            )}
+                            {isLoading ? 'Adding...' : 'Add User'}
                         </button>
                     </div>
                 </form>

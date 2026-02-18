@@ -23,13 +23,35 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         if (!token) {
             router.push("/admin/login");
         } else {
+            // Role-based route protection
+            const user = useAuth.getState().user;
+            const roles = (user?.roles || []).map(r => r.toLowerCase());
+
+            if (pathname.startsWith('/admin') && !pathname.includes('/login')) {
+                const isAdmin = roles.some(r => ['admin', 'super-admin'].includes(r));
+                if (!isAdmin) {
+                    router.push('/blogger/dashboard');
+                    return;
+                }
+            } else if (pathname.startsWith('/blogger')) {
+                const isBlogger = roles.includes('blogger');
+                if (!isBlogger) {
+                    router.push('/admin');
+                    return;
+                }
+            }
+
             setIsLoading(false);
         }
     }, [token, _hasHydrated, pathname, router]);
 
     // Show nothing while checking auth (or a loading spinner)
     if (isLoading && pathname !== "/admin/login") {
-        return null;
+        return (
+            <div className="flex h-screen w-screen items-center justify-center bg-[#f9fafb]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C10007]"></div>
+            </div>
+        );
     }
 
     return <>{children}</>;

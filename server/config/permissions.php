@@ -35,5 +35,13 @@ return [
         'admin' => [
             'permissions' => '*',
         ],
+        'blogger' => [
+            'permissions' => [
+                'view_articles',
+                'create_articles',
+                'edit_articles',
+                'delete_articles',
+            ],
+        ],
     ],
 ];
