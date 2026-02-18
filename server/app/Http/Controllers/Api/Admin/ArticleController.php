@@ -77,25 +77,30 @@ class ArticleController extends Controller
         $availableCategories = (clone $query)->distinct()->whereNotNull('category')->pluck('category')->sort()->values()->toArray();
         $availableCountries = (clone $query)->distinct()->whereNotNull('country')->pluck('country')->sort()->values()->toArray();
 
-        // Merge Redis filters if fetching 'all' or 'pending' status
+        // Merge Redis and DB filters if fetching 'all' or 'pending' status
         if (!$status || $status === 'all' || $status === 'pending') {
             try {
                 $redisCountries = collect($this->redisService->getCountries())->pluck('name')->toArray();
                 $redisCategories = collect($this->redisService->getCategories())->pluck('name')->toArray();
 
+                // Fetch all active options from DB to ensure new/empty ones show up
+                $dbActiveCategories = \App\Models\Category::where('is_active', true)->pluck('name')->toArray();
+                $dbActiveCountries = \App\Models\Country::where('is_active', true)->pluck('name')->toArray();
+
                 // Merge and deduplicate
-                $availableCategories = collect(array_merge($availableCategories, $redisCategories))
+                $availableCategories = collect(array_merge($availableCategories, $redisCategories, $dbActiveCategories))
                     ->unique()
+                    ->filter(fn($cat) => !in_array(strtolower($cat), ['restaurant', 'restaurants']))
                     ->sort()
                     ->values()
                     ->toArray();
-                $availableCountries = collect(array_merge($availableCountries, $redisCountries))
+                $availableCountries = collect(array_merge($availableCountries, $redisCountries, $dbActiveCountries))
                     ->unique()
                     ->sort()
                     ->values()
                     ->toArray();
             } catch (\Exception $e) {
-                \Log::warning('Failed to get Redis filters: ' . $e->getMessage());
+                \Log::warning('Failed to get Redis/DB filters: ' . $e->getMessage());
             }
         }
 
@@ -139,13 +144,13 @@ class ArticleController extends Controller
                 // Check by both ID and Title to catch manual drafts of scraper items
                 $redisIds = $redisItems->pluck('id')->toArray();
                 $redisTitles = $redisItems->pluck('title')->toArray();
-                
+
                 $existingInDb = Article::whereIn('id', $redisIds)
                     ->orWhereIn('title', $redisTitles)
                     ->pluck('id', 'title')
                     ->toArray();
 
-                $redisItems = $redisItems->filter(function($a) use ($existingInDb) {
+                $redisItems = $redisItems->filter(function ($a) use ($existingInDb) {
                     return !in_array($a['id'], $existingInDb) && !isset($existingInDb[$a['title']]);
                 });
 
@@ -202,9 +207,19 @@ class ArticleController extends Controller
         // Format for admin display (add status field)
         $formattedArticles = ArticleResource::collection($paginatedArticles);
 
-        // Get actual available filters from Redis
+        // Get actual available filters from Redis and DB
         $redisCountries = collect($this->redisService->getCountries())->pluck('name')->toArray();
         $redisCategories = collect($this->redisService->getCategories())->pluck('name')->toArray();
+        $dbActiveCategories = \App\Models\Category::where('is_active', true)->pluck('name')->toArray();
+        $dbActiveCountries = \App\Models\Country::where('is_active', true)->pluck('name')->toArray();
+
+        $mergedCategories = collect(array_merge($redisCategories, $dbActiveCategories))
+            ->unique()
+            ->filter(fn($cat) => !in_array(strtolower($cat), ['restaurant', 'restaurants']))
+            ->sort()
+            ->values()
+            ->toArray();
+        $mergedCountries = collect(array_merge($redisCountries, $dbActiveCountries))->unique()->sort()->values()->toArray();
 
         \Illuminate\Support\Facades\Log::info('Admin API: Fetched ' . count($formattedArticles) . ' pending articles from Redis.');
 
@@ -220,8 +235,8 @@ class ArticleController extends Controller
             'from' => $total > 0 ? $offset + 1 : null,
             'to' => $total > 0 ? min($offset + $perPage, $total) : null,
             'available_filters' => [
-                'categories' => $redisCategories,
-                'countries' => $redisCountries,
+                'categories' => $mergedCategories,
+                'countries' => $mergedCountries,
             ],
             'status_counts' => $statusCounts,
         ]);
@@ -356,7 +371,7 @@ class ArticleController extends Controller
                 }
             }
         }
-        
+
         // Remove fields that don't belong in the articles table
         unset($validated['galleryImages']);
         unset($validated['gallery_images']);
@@ -388,7 +403,7 @@ class ArticleController extends Controller
     public function publish(ArticleActionRequest $request, string $id): JsonResponse|ArticleResource
     {
         \Log::info("Publishing article: {$id}");
-        
+
         if (!\Illuminate\Support\Str::isUuid($id)) {
             return response()->json(['message' => 'Invalid article ID format'], 400);
         }
@@ -400,7 +415,7 @@ class ArticleController extends Controller
 
             // 1. Resolve Final Article Data
             // Hierarchy of Truth: 1. Request Payload > 2. Existing DB > 3. Redis Source
-            
+
             $finalData = [
                 'status' => 'published',
                 'is_deleted' => false,
@@ -479,21 +494,23 @@ class ArticleController extends Controller
             if (is_array($galleryImages)) {
                 $article->images()->delete();
                 foreach ($galleryImages as $imagePath) {
-                    if (!empty($imagePath)) $article->images()->create(['image_path' => $imagePath]);
+                    if (!empty($imagePath))
+                        $article->images()->create(['image_path' => $imagePath]);
                 }
             } elseif (!$existing && $redisArticle && !empty($redisArticle['gallery_images'])) {
                 // Initial sync from Redis if record is brand new in DB
                 foreach ($redisArticle['gallery_images'] as $imagePath) {
-                    if (!empty($imagePath)) $article->images()->create(['image_path' => $imagePath]);
+                    if (!empty($imagePath))
+                        $article->images()->create(['image_path' => $imagePath]);
                 }
             }
 
             // 6. Finalization: Remove from temporary Redis queue
             $this->redisService->deleteArticle($id);
             \Log::info("Article {$id} published and archived successfully.");
-            
+
             return (new ArticleResource($article))->response()->setStatusCode(201);
-            
+
         } catch (\Exception $e) {
             \Log::error("Failed to publish article {$id}: " . $e->getMessage());
             \Log::error($e->getTraceAsString());
