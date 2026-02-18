@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import VerticalArticleCard from "@/components/features/dashboard/VerticalArticleCard";
 
 import { getArticlesList, type ArticleResource } from "@/lib/api-v2";
+import { formatViews } from "@/lib/utils";
 import { Categories, Countries } from "@/app/data";
 import { mockSpecialtyContent } from "@/lib/api-v2/mock/mockArticles";
 import ArchivePagination from "@/components/features/dashboard/ArchivePagination";
@@ -133,7 +134,7 @@ export default async function SearchPage({ searchParams }: Props) {
                                     day: 'numeric',
                                     year: 'numeric'
                                 })}
-                                views={`${article.views_count || 0} views`}
+                                views={formatViews(article.views_count || 0)}
                                 imageSrc={article.image || "/images/placeholder.png"}
                                 imagePosition={article.image_position}
                                 content={article.content}

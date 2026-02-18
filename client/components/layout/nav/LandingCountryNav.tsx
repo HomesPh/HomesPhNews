@@ -46,7 +46,7 @@ function NavContent({ countries }: LandingCountryNavProps) {
   return (
     <div className="bg-white dark:bg-[#1a1d2e] w-full border-y border-[#e5e7eb] dark:border-[#2a2d3e] transition-colors duration-300">
       <div className="w-full max-w-[1280px] mx-auto px-4 py-[16px]">
-        <nav className="flex gap-[30px] items-center justify-start overflow-x-auto pb-2 scrollbar-hide">
+        <nav className="flex gap-[30px] items-center justify-start overflow-x-auto pb-2 scrollbar-hover-only">
           {countries.map((country, idx) => {
             const isActive = activeCountry === country.id;
 
@@ -74,7 +74,7 @@ function NavContent({ countries }: LandingCountryNavProps) {
 
 function NavContentFallback({ countries }: LandingCountryNavProps) {
   return (
-    <nav className="flex gap-[30px] items-center justify-center overflow-x-auto scrollbar-hide">
+    <nav className="flex gap-[30px] items-center justify-center overflow-x-auto scrollbar-hover-only">
       {countries.map((country) => (
         <div
           key={country.id}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { decodeHtml } from "@/lib/utils";
+import { decodeHtml, formatViews } from "@/lib/utils";
 import { useParams, useRouter } from 'next/navigation';
 import { Calendar, Eye, Clock, Building2 } from 'lucide-react';
 
@@ -87,7 +87,7 @@ export default function SubscriberArticleDetailsPage() {
                                     <span className="text-[#e5e7eb]">|</span>
                                     <div className="flex items-center gap-1.5">
                                         <Eye className="w-4 h-4" />
-                                        <span>{article.views_count || '0'} views</span>
+                                        <span>{formatViews(article.views_count || 0)}</span>
                                     </div>
                                 </div>
 
