@@ -19,6 +19,7 @@ from apscheduler.triggers.cron import CronTrigger
 # Local imports
 from database import ping_redis, get_total_articles, get_country_count
 from models import HealthResponse, JobStatus
+from config import COUNTRIES
 from routes import router as article_router
 from scheduler import run_hourly_job, get_job_status, update_next_run
 
@@ -67,11 +68,11 @@ async def lifespan(app: FastAPI):
     print("=" * 60)
     print("🚀 HOMESPH NEWS SERVICE STARTED")
     print("=" * 60)
-    print(f"📡 API:      http://localhost:8000")
-    print(f"📖 Docs:     http://localhost:8000/docs")
+    print(f"📡 API:      http://localhost:8001")
+    print(f"📖 Docs:     http://localhost:8001/docs")
     print("-" * 60)
-    print(f"⏰ Schedule: 10 times/day (every ~2.5 hours)")
-    print(f"📊 Target:   80 articles/day (10 per country)")
+    print(f"⏰ Schedule: 2 times/day (6 AM and 6 PM)")
+    print(f"📊 Target:   {len(COUNTRIES) * 2} articles/day")
     print(f"📅 Next run: {next_run.strftime('%Y-%m-%d %H:%M:%S') if next_run else 'N/A'}")
     print(f"⏳ In:       {minutes_until} minutes")
     print("=" * 60)
@@ -119,14 +120,17 @@ app.include_router(article_router)
 async def health_check():
     """Health check endpoint."""
     redis_ok = ping_redis()
+    from database import check_mysql_connection
+    mysql_ok = check_mysql_connection()
     
     uptime = datetime.now() - start_time
     hours, remainder = divmod(int(uptime.total_seconds()), 3600)
     minutes, seconds = divmod(remainder, 60)
     
     return {
-        "status": "healthy" if redis_ok else "degraded",
+        "status": "healthy" if (redis_ok and mysql_ok) else "degraded",
         "redis_connected": redis_ok,
+        "mysql_connected": mysql_ok,
         "scheduler_running": scheduler.running,
         "timestamp": datetime.utcnow().isoformat(),
         "uptime": f"{hours}h {minutes}m {seconds}s"
@@ -155,11 +159,13 @@ async def trigger_job(background_tasks: BackgroundTasks):
 async def stats():
     """Get database and scheduler statistics."""
     job_status = get_job_status()
+    from database import check_mysql_connection
     
     return {
         "database": {
             "total_articles": get_total_articles(),
-            "countries": get_country_count()
+            "countries": get_country_count(),
+            "mysql_ok": check_mysql_connection()
         },
         "scheduler": {
             "total_runs": job_status["total_runs"],
