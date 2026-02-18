@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArticleResource } from "@/lib/api-v2";
-import { calculateReadTime } from "@/lib/utils";
+import { calculateReadTime, formatViews } from "@/lib/utils";
 import LandingBlockHeader from "./LandingBlockHeader";
 import ShareButtons from "@/components/shared/ShareButtons";
 
@@ -170,7 +170,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                     <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
                                         <span suppressHydrationWarning>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                         <span>•</span>
-                                        <span suppressHydrationWarning>{article.views_count} views</span>
+                                        <span suppressHydrationWarning>{formatViews(article.views_count)}</span>
                                         <span>•</span>
                                         <span suppressHydrationWarning>{calculateReadTime(article.summary || article.content)}</span>
                                     </div>
