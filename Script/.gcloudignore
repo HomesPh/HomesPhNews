@@ -11,3 +11,4 @@ __pycache__
 scraper_cache.json
 temp_*.png
 node_modules
+locustfile.py
