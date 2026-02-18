@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Calendar, Eye, MapPin } from 'lucide-react';
-import { cn, sanitizeImageUrl, decodeHtml, calculateReadTime } from "@/lib/utils";
+import { cn, sanitizeImageUrl, decodeHtml, calculateReadTime, stripHtml } from "@/lib/utils";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 
 interface BaseArticleCardProps {
@@ -176,10 +176,9 @@ export default function BaseArticleCard({
                 </h3>
 
                 {/* Description */}
-                <div
-                    className="text-[14px] text-[#4b5563] leading-[normal] tracking-[-0.5px] mb-2 line-clamp-1 prose prose-sm max-w-none [&>p]:m-0 [&>p]:inline"
-                    dangerouslySetInnerHTML={{ __html: decodeHtml(description) }}
-                />
+                <p className="text-[14px] text-[#4b5563] leading-[normal] tracking-[-0.5px] mb-2 line-clamp-1">
+                    {stripHtml(description)}
+                </p>
 
                 {/* Date and Views */}
                 <div className="flex items-center gap-2 text-[12px] text-[#6b7280] tracking-[-0.5px] mb-2">
