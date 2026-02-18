@@ -8,9 +8,10 @@ import SubscribeModal from "./SubscribeModal";
 import BreakingNewsTicker from "./BreakingNewsTicker";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import LandingMobileMenu from "./LandingMobileMenu";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { getArticlesList, type ArticleResource } from "@/lib/api-v2";
+import SearchSuggestions from "@/components/features/dashboard/SearchSuggestions";
 
 export default function LandingHeader() {
   const router = useRouter();
@@ -19,6 +20,8 @@ export default function LandingHeader() {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [isSubscribeModalOpen, setIsSubscribeModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchContainerRef = useRef<HTMLFormElement>(null); // Ref for the search form container
 
   const [breakingNews, setBreakingNews] = useState<string[]>([
     "AI Revolution: How Machine Learning is Transforming Healthcare in North America",
@@ -52,7 +55,22 @@ export default function LandingHeader() {
       }
     };
 
+
     fetchBreakingNews();
+  }, []);
+
+  // Handle click outside to close search suggestions
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsSearchFocused(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -132,13 +150,18 @@ export default function LandingHeader() {
 
               {/* Search and Subscribe */}
               <div className="hidden lg:flex items-center gap-4">
-                <form onSubmit={handleSearch} className="relative group">
+                <form
+                  ref={searchContainerRef}
+                  onSubmit={handleSearch}
+                  className="relative group"
+                >
                   <input
                     type="text"
                     placeholder="Search articles..."
                     value={searchQuery}
                     onChange={handleInputChange}
                     className="w-[200px] bg-gray-50 dark:bg-[#252836] border border-gray-200 dark:border-gray-700 rounded-full py-2 pl-4 pr-10 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all dark:text-white dark:placeholder:text-gray-500"
+                    onFocus={() => setIsSearchFocused(true)}
                   />
                   <button
                     type="submit"
@@ -146,6 +169,12 @@ export default function LandingHeader() {
                   >
                     <Search size={18} />
                   </button>
+                  {isSearchFocused && (
+                    <SearchSuggestions
+                      query={searchQuery}
+                      onClose={() => setIsSearchFocused(false)}
+                    />
+                  )}
                 </form>
 
                 <div className="h-6 w-px bg-gray-200 dark:bg-gray-700" />
