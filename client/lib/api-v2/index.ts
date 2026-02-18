@@ -50,6 +50,7 @@ export * from "./admin/service/ai/generateImages";
 export * from "./admin/service/ads";
 export * from "./admin/service/campaigns";
 export * from "./admin/service/scraper";
+export * from "./admin/service/users/createUser";
 
 
 /**

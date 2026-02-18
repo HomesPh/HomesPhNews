@@ -150,7 +150,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="https://homestv.ph/images/HomesTV.png" alt="HomesTV">
+            <img src="https://news.homes.ph/images/HomesTV.png" alt="HomesTV">
         </div>
         
         <div class="content">
