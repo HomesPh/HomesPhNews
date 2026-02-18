@@ -15,20 +15,43 @@ interface SignInFormProps {
     demoCredentials: { email: string; password: string };
 }
 
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/api-v2";
+import { useEffect } from "react";
 
 type AuthMode = 'signin' | 'signup-step1' | 'signup-step2';
 
 export default function SignInForm({ fields, submitLabel, demoCredentials }: SignInFormProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const login = useAuth((state) => state.login);
 
     const [mode, setMode] = useState<AuthMode>('signin');
     const [isLoading, setIsLoading] = useState(false);
+    const [userInfo, setUserInfo] = useState<{ first_name: string, last_name: string, avatar?: string | null } | null>(null);
 
     // Sign In State
-    const [email, setEmail] = useState("");
+    const [email, setEmail] = useState(searchParams.get('email') || "");
     const [password, setPassword] = useState("");
+
+    useEffect(() => {
+        const fetchUserInfo = async () => {
+            const emailParam = searchParams.get('email');
+            if (emailParam) {
+                try {
+                    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+                    const response = await fetch(`${apiUrl}/v2/public/user-info?email=${encodeURIComponent(emailParam)}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setUserInfo(data);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch user info", error);
+                }
+            }
+        };
+        fetchUserInfo();
+    }, [searchParams]);
 
     // Sign Up State
     const [signupData, setSignupData] = useState({
@@ -62,6 +85,8 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
             const userRoles = result.user?.roles || [];
             if (userRoles.includes('admin') || userRoles.includes('super-admin')) {
                 router.push("/admin");
+            } else if (userRoles.includes('blogger')) {
+                router.push("/blogger/dashboard");
             } else {
                 router.push("/subscriber");
             }
@@ -206,6 +231,23 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
             {/* Sign In Form */}
             {mode === 'signin' && (
                 <form onSubmit={handleSignIn} className="space-y-4">
+                    {userInfo && (
+                        <div className="p-4 bg-red-50 border border-red-100 rounded-lg mb-4 animate-in fade-in slide-in-from-top-2 flex items-center gap-3">
+                            {userInfo.avatar && (
+                                <img
+                                    src={userInfo.avatar}
+                                    alt={userInfo.first_name}
+                                    className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+                                />
+                            )}
+                            <div>
+                                <p className="text-sm text-red-800">
+                                    Welcome back, <span className="font-bold">{userInfo.first_name} {userInfo.last_name}</span>!
+                                </p>
+                                <p className="text-[12px] text-red-600">Please enter your password to continue.</p>
+                            </div>
+                        </div>
+                    )}
                     <div className="space-y-2">
                         <label htmlFor="email" className="text-sm font-medium text-slate-800">
                             {fields.email.label}
