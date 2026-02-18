@@ -1,95 +1,286 @@
 "use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { ChevronDown } from 'lucide-react';
+import { HelpCircle, Search, Filter, Globe, Mail, Clock, ArrowRight, Building2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
-// Define Metadata using a separate export or just omit if this is a Client Component page that needs metadata.
-// Note: Metadata cannot be exported from a client component.
-// Plan: Split into layout/page or just remove metadata for now if it hurts.
-// Actually, in Next.js App Router, page.tsx can be client component but metadata export is not supported.
-// To fix this proper way: Use page.tsx as server component and import a client component for the list.
-// OR: Just keep it simple and lose metadata for this specific page for now, or use layout.
-// Let's use a client component wrapper approach if needed, but for now, I will just remove "use client" from top
-// and make the FAQ list a separate client component.
-// BETTER APPROACH:
-// page.tsx (Server Component) -> renders <FAQList /> (Client Component)
+const faqCategories = [
+    {
+        icon: Filter,
+        title: "How do I filter news by country?",
+        description: "Learn about filtering and customizing your news feed by region and country.",
+    },
+    {
+        icon: Search,
+        title: "Can I search for specific topics?",
+        description: "Discover our powerful search features and advanced topic filtering options.",
+    },
+    {
+        icon: Globe,
+        title: "How do I simplify the footer links?",
+        description: "Navigate our footer organization and find what you need quickly.",
+    },
+    {
+        icon: HelpCircle,
+        title: "How can I advertise on HomesTV?",
+        description: "Explore advertising packages and partnership opportunities with us.",
+    },
+    {
+        icon: Mail,
+        title: "How do I contact the HomesTV team?",
+        description: "Multiple ways to reach our support team for personalized assistance.",
+    },
+    {
+        icon: Clock,
+        title: "How often is content updated?",
+        description: "Learn about our 24/7 content updates and real-time news coverage.",
+    },
+];
 
-// Let's do it in one file by splitting? No, needs two files.
-// Simpler: Just make page.tsx a client component and remove metadata export (or move metadata to layout if strictly needed).
-// The user request didn't strictly ask for metadata, but it's good practice.
-// I'll stick to making page.tsx a client component for the interactive accordion and remove the metadata export to avoid errors.
+const detailedFaqs = [
+    {
+        question: "How do I filter news by country?",
+        answer: "You can filter news by country using our advanced search filters located at the top of the homepage. Simply select your preferred region or country from the dropdown menu to view localized content. Our system automatically curates stories relevant to your selected location.",
+    },
+    {
+        question: "Can I search for specific topics?",
+        answer: "Yes! Use our powerful search feature to find articles on specific topics. Enter keywords related to Technology, Business, Politics, Economy, Tourism, or Real Estate in the search bar. You can also use our category filters to narrow down results to your areas of interest.",
+    },
+    {
+        question: "How do I simplify the footer links?",
+        answer: "The footer is organized into logical sections for easy navigation. You can quickly access Company information, Support resources, and Legal documents. If you're using our mobile app, the footer automatically condenses to show only the most relevant links based on your browsing history.",
+    },
+    {
+        question: "How can I advertise on HomesTV?",
+        answer: "We offer various advertising opportunities including display ads, sponsored content, and custom partnerships. Visit our Advertise page to learn more about our packages and reach. You can also contact our sales team directly at sales@homestv.com to discuss tailored solutions for your brand.",
+    },
+    {
+        question: "How do I contact the HomesTV team?",
+        answer: "There are several ways to reach us: Email us at info@homestv.com for general inquiries or support@homestv.com for technical assistance. You can also call us at +1 (555) 123-4567 during business hours (Mon-Fri, 9am-6pm EST), or visit our Contact page to submit a message through our online form.",
+    },
+];
 
 export default function FAQsPage() {
-    const faqs = [
-        {
-            question: "How do I filter news by country?",
-            answer: "You can filter news by selecting a country from the navigation bar at the top of the page, or by clicking on a country name in the footer menu."
-        },
-        {
-            question: "Can I search for specific topics?",
-            answer: "Yes! Use the search bar in the header to find articles related to specific keywords, topics, or events."
-        },
-        {
-            question: "How do I simplify the footer links?",
-            answer: "The footer displays a curated list of countries. You can click 'View All' to see content from all regions."
-        },
-        {
-            question: "How can I advertise on HomesTV?",
-            answer: (
-                <span>
-                    We offer various advertising packages. Please visit our <Link href="/advertise" className="text-[#c10007] hover:underline">Advertise</Link> page for more information.
-                </span>
-            )
-        },
-        {
-            question: "How do I contact the HomesTV team?",
-            answer: (
-                <span>
-                    You can reach out to us via our <Link href="/contact" className="text-[#c10007] hover:underline">Contact</Link> page. We'd love to hear from you!
-                </span>
-            )
-        }
-    ];
+    const [selectedFaq, setSelectedFaq] = useState<number | null>(null);
 
     return (
-        <div className="max-w-[800px] mx-auto px-4 py-12 md:py-20 text-[#374151] dark:text-gray-300">
-            <div className="text-center mb-12">
-                <h1 className="text-4xl font-bold text-[#030213] dark:text-white mb-4">Frequently Asked Questions</h1>
-                <p className="text-lg text-gray-600 dark:text-gray-400">
-                    Find answers to common questions about using HomesTV.
-                </p>
-            </div>
-
-            <div className="w-full space-y-4">
-                {faqs.map((faq, index) => (
-                    <FAQItem key={index} question={faq.question} answer={faq.answer} />
-                ))}
-            </div>
-        </div>
-    );
-}
-
-function FAQItem({ question, answer }: { question: string, answer: React.ReactNode }) {
-    const [isOpen, setIsOpen] = useState(false);
-
-    return (
-        <div className="border-b border-gray-200 dark:border-gray-800">
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="flex w-full items-center justify-between py-4 text-left font-semibold text-lg hover:text-[#c10007] transition-colors focus:outline-hidden"
-            >
-                {question}
-                <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-            <div
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100 mb-4' : 'max-h-0 opacity-0'
-                    }`}
-            >
-                <div className="text-base text-gray-600 dark:text-gray-400 leading-relaxed">
-                    {answer}
+        <div className="min-h-screen bg-background">
+            {/* Hero Section */}
+            <section className="py-20 bg-gradient-to-b from-red-50/50 to-transparent dark:from-red-950/10">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6 }}
+                        className="text-center space-y-6"
+                    >
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-950/30 rounded-2xl mb-4">
+                            <HelpCircle className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
+                            Welcome to HomesTV Help!
+                        </h1>
+                        <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                            Get help for your projects, services, account management and so much more.
+                        </p>
+                    </motion.div>
                 </div>
-            </div>
+            </section>
+
+            {/* Choose by Service Section */}
+            <section className="py-20 bg-background">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                        className="mb-12"
+                    >
+                        <h2 className="text-3xl font-bold mb-2">Choose by Service</h2>
+                    </motion.div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {faqCategories.map((category, index) => (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5, delay: index * 0.1 }}
+                                whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                                className="group cursor-pointer"
+                                onClick={() => setSelectedFaq(index)} // Simple scrolling or linking logic could be added here
+                            >
+                                <div className="bg-card border border-border rounded-xl p-6 h-full transition-all hover:shadow-lg hover:border-[#cc0000]/30">
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-950/30 rounded-xl flex items-center justify-center">
+                                            <category.icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                        </div>
+                                        <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-[#cc0000] transition-colors" />
+                                    </div>
+                                    <h3 className="font-semibold text-base mb-2 group-hover:text-[#cc0000] transition-colors">
+                                        {category.title}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                        {category.description}
+                                    </p>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Still Need Help Section */}
+            <section className="py-20 bg-secondary/30">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                        className="text-center mb-12"
+                    >
+                        <h2 className="text-3xl font-bold mb-3">Still Need Help?</h2>
+                        <p className="text-muted-foreground">
+                            Contact our support team for personalized assistance.
+                        </p>
+                    </motion.div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-5xl mx-auto">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            className="bg-card border border-border rounded-xl p-6 text-center"
+                        >
+                            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-950/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                                <Mail className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <h3 className="font-semibold mb-2">Email Support</h3>
+                            <p className="text-sm text-muted-foreground">support@homestv.com</p>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            className="bg-card border border-border rounded-xl p-6 text-center"
+                        >
+                            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-950/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                                <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <h3 className="font-semibold mb-2">Response Time</h3>
+                            <p className="text-sm text-muted-foreground">Within 24 hours</p>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: 0.3 }}
+                            className="bg-card border border-border rounded-xl p-6 text-center"
+                        >
+                            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-950/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                                <Building2 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <h3 className="font-semibold mb-2">Business Hours</h3>
+                            <p className="text-sm text-muted-foreground">9 AM - 6 PM (GMT+0)</p>
+                        </motion.div>
+                    </div>
+
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, delay: 0.4 }}
+                        className="text-center"
+                    >
+                        <Button
+                            size="lg"
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                            onClick={() => window.location.href = '/contact'}
+                        >
+                            Contact Support
+                        </Button>
+                    </motion.div>
+                </div>
+            </section>
+
+            {/* Detailed FAQs Section */}
+            <section className="py-20 bg-background">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                        className="text-center mb-12"
+                    >
+                        <h2 className="text-3xl font-bold mb-4">Common Questions</h2>
+                        <p className="text-lg text-muted-foreground">
+                            Find detailed answers to the most frequently asked questions
+                        </p>
+                    </motion.div>
+
+                    <div className="space-y-4">
+                        {detailedFaqs.map((faq, index) => (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, x: -20 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5, delay: index * 0.1 }}
+                                className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-md transition-shadow"
+                            >
+                                <button
+                                    onClick={() => setSelectedFaq(selectedFaq === index ? null : index)}
+                                    className="w-full px-6 py-5 text-left flex items-center justify-between hover:bg-secondary/50 transition-colors"
+                                >
+                                    <span className="font-semibold pr-4">{faq.question}</span>
+                                    <motion.div
+                                        animate={{ rotate: selectedFaq === index ? 180 : 0 }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        <svg
+                                            className="w-5 h-5 text-muted-foreground"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M19 9l-7 7-7-7"
+                                            />
+                                        </svg>
+                                    </motion.div>
+                                </button>
+                                <AnimatePresence>
+                                    {selectedFaq === index && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: "auto", opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.3 }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="px-6 pb-5 text-muted-foreground">
+                                                {faq.answer}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
         </div>
     );
 }
