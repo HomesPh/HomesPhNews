@@ -234,9 +234,10 @@ function ArticleDetailsContent() {
 
                                 {(() => {
                                     const content = article.content || article.summary || '';
-                                    const decodedContent = decodeHtml(content);
+                                    const decodedContent = content; // Use raw content directly
 
                                     // Check if content already starts with the feature image to avoid duplication
+
                                     // This is common in scraper data where the first image in HTML matches the header image
                                     const firstImageMatch = decodedContent.match(/<img[^>]+src=['"]([^'"]+)['"]/);
                                     const isDuplicateImage = firstImageMatch && article.image && (
@@ -294,11 +295,12 @@ function ArticleDetailsContent() {
                                                                         <div
                                                                             style={blockStyle}
                                                                             className={cn(
-                                                                                "text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3",
+                                                                                "whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&_p]:min-h-[1.5em]",
                                                                                 settings?.listType === 'bullet' && "list-disc ml-6",
                                                                                 settings?.listType === 'number' && "list-decimal ml-6"
                                                                             )}
-                                                                            dangerouslySetInnerHTML={{ __html: decodeHtml(content?.text || content || '') }}
+                                                                            dangerouslySetInnerHTML={{ __html: content?.text || content || '' }}
+
                                                                         />
                                                                     )}
 
@@ -398,9 +400,11 @@ function ArticleDetailsContent() {
                                                     </div>
                                                 ) : (
                                                     <div
-                                                        className="text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>li]:mb-1 [&>a]:text-blue-600 [&>a]:underline first-letter:text-[72px] first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-5px] first-letter:leading-[0.8] first-letter:text-[#0c0c0c]"
+                                                        className="whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>li]:mb-1 [&>a]:text-blue-600 [&>a]:underline first-letter:text-[72px] first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-5px] first-letter:leading-[0.8] first-letter:text-[#0c0c0c] [&_p]:min-h-[1.5em]"
                                                         dangerouslySetInnerHTML={{ __html: decodedContent }}
                                                     />
+
+
                                                 )}
                                             </div>
                                         </>

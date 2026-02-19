@@ -66,13 +66,13 @@ export default function ArticleContent({ content, contentBlocks, topics, origina
                       <div
                         style={blockStyle}
                         className={cn(
-                          "text-[18px] leading-[32px] tracking-[-0.5px] [&>h1]:text-3xl [&>h1]:font-bold [&>h1]:mb-6 [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mb-4",
+                          "whitespace-pre-wrap text-[18px] leading-[32px] tracking-[-0.5px] [&>h1]:text-3xl [&>h1]:font-bold [&>h1]:mb-6 [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mb-4 [&_p]:min-h-[1.5em]",
                           darkClass("text-[#0c0c0c] dark:text-gray-100"),
                           settings?.listType === 'bullet' && "list-disc ml-8",
                           settings?.listType === 'number' && "list-decimal ml-8",
                           idx === 0 && "drop-cap"
                         )}
-                        dangerouslySetInnerHTML={{ __html: decodeHtml(bContent?.text || bContent || '') }}
+                        dangerouslySetInnerHTML={{ __html: bContent?.text || bContent || '' }}
                       />
                     )}
 
@@ -112,8 +112,8 @@ export default function ArticleContent({ content, contentBlocks, topics, origina
                         </div>
                         <div
                           style={blockStyle}
-                          className={cn("flex-1 text-[18px] leading-[34px]", darkClass("text-[#0c0c0c] dark:text-gray-200"))}
-                          dangerouslySetInnerHTML={{ __html: decodeHtml(bContent?.text || bContent || '') }}
+                          className={cn("whitespace-pre-wrap flex-1 text-[18px] leading-[34px] [&_p]:min-h-[1.5em]", darkClass("text-[#0c0c0c] dark:text-gray-200"))}
+                          dangerouslySetInnerHTML={{ __html: bContent?.text || bContent || '' }}
                         />
                       </div>
                     )}
@@ -149,8 +149,8 @@ export default function ArticleContent({ content, contentBlocks, topics, origina
                         </div>
                         <div
                           style={blockStyle}
-                          className={cn("flex-1 p-10 md:p-14 flex items-center text-[22px] leading-[1.4] font-medium tracking-tight", darkClass("text-[#111827] dark:text-white"))}
-                          dangerouslySetInnerHTML={{ __html: decodeHtml(bContent?.text || bContent || '') }}
+                          className={cn("whitespace-pre-wrap flex-1 p-10 md:p-14 flex items-center text-[22px] leading-[1.4] font-medium tracking-tight [&_p]:min-h-[1.5em]", darkClass("text-[#111827] dark:text-white"))}
+                          dangerouslySetInnerHTML={{ __html: bContent?.text || bContent || '' }}
                         />
                       </div>
                     )}
@@ -184,10 +184,10 @@ export default function ArticleContent({ content, contentBlocks, topics, origina
           </div>
         ) : (
           (() => {
-            const decodedContent = decodeHtml(content);
+            const decodedContent = content; // Use raw content directly
             return decodedContent.includes('<') ? (
               <div
-                className={`text-[18px] leading-[32px] text-[#0c0c0c] ${darkClass('dark:text-gray-100')} drop-cap break-words [&>b]:font-bold [&>i]:italic [&>u]:underline [&>a]:text-blue-600 [&>a]:underline [&_ul]:list-disc [&_ul]:ml-6 [&_ol]:list-decimal [&_ol]:ml-6 [&_li]:mb-1 [&_p[style*='text-align: center']]:text-center [&_p[style*='text-align: right']]:text-right [&_p[style*='text-align: justify']]:text-justify [&_div[style*='text-align: center']]:text-center [&_div[style*='text-align: right']]:text-right [&_div[style*='text-align: justify']]:text-justify [&>h1]:text-3xl [&>h1]:font-bold [&>h1]:mb-4 ${darkClass('[&>h1]:dark:text-white')} [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mb-3 ${darkClass('[&>h2]:dark:text-white')}`}
+                className={`whitespace-pre-wrap text-[18px] leading-[32px] text-[#0c0c0c] ${darkClass('dark:text-gray-100')} drop-cap break-words [&>b]:font-bold [&>i]:italic [&>u]:underline [&>a]:text-blue-600 [&>a]:underline [&_ul]:list-disc [&_ul]:ml-6 [&_ol]:list-decimal [&_ol]:ml-6 [&_li]:mb-1 [&_p[style*='text-align: center']]:text-center [&_p[style*='text-align: right']]:text-right [&_p[style*='text-align: justify']]:text-justify [&_div[style*='text-align: center']]:text-center [&_div[style*='text-align: right']]:text-right [&_div[style*='text-align: justify']]:text-justify [&>h1]:text-3xl [&>h1]:font-bold [&>h1]:mb-4 ${darkClass('[&>h1]:dark:text-white')} [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mb-3 ${darkClass('[&>h2]:dark:text-white')} [&_p]:min-h-[1.5em]`}
                 dangerouslySetInnerHTML={{ __html: decodedContent }}
               />
             ) : (
@@ -202,7 +202,7 @@ export default function ArticleContent({ content, contentBlocks, topics, origina
                     <p
                       key={idx}
                       className={cn(
-                        `text-[18px] leading-[32px] text-[#0c0c0c] ${darkClass('dark:text-gray-100')} font-normal break-words`,
+                        `whitespace-pre-wrap text-[18px] leading-[32px] text-[#0c0c0c] ${darkClass('dark:text-gray-100')} font-normal break-words min-h-[1.5em]`,
                         idx === 0 && "drop-cap"
                       )}
                     >
