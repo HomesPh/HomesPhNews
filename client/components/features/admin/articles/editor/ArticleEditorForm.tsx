@@ -20,6 +20,8 @@ import { Loader2 } from "lucide-react";
 interface ArticleEditorFormProps {
     data: any;
     availableSites: string[];
+    availableCategories?: string[];
+    availableCountries?: string[];
     onDataChange: (field: string, value: any) => void;
     template: any;
     onTemplateChange: (template: any) => void;
@@ -31,6 +33,8 @@ interface ArticleEditorFormProps {
 export default function ArticleEditorForm({
     data,
     availableSites,
+    availableCategories = [],
+    availableCountries = [],
     onDataChange,
     template,
     onTemplateChange,
@@ -273,6 +277,8 @@ export default function ArticleEditorForm({
                                 onAddBlock={editor.addBlock}
                                 details={editor.details}
                                 onUpdateDetails={editor.updateDetails}
+                                availableCategories={availableCategories}
+                                availableCountries={availableCountries}
                             />
                         </div>
                     </div>

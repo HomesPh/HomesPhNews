@@ -601,6 +601,47 @@ class ArticleController extends Controller
     }
 
     /**
+     * Permanently remove an article from storage.
+     * Handles both Database articles and Redis articles.
+     */
+    public function hardDelete(string $id): JsonResponse
+    {
+        $deletedFromDb = false;
+        $deletedFromRedis = false;
+
+        // 1. Try to find in Database (including soft-deleted)
+        $article = Article::find($id);
+        if ($article) {
+            $article->delete();
+            $deletedFromDb = true;
+        }
+
+        // 2. Try to handle Redis article (if ID is UUID)
+        if (\Illuminate\Support\Str::isUuid($id)) {
+            try {
+                // Check if it exists in Redis before deleting
+                $redisArticle = $this->redisService->getArticle($id);
+                if ($redisArticle) {
+                    $this->redisService->deleteArticle($id);
+                    $deletedFromRedis = true;
+                }
+            } catch (\Exception $e) {
+                \Log::warning("Failed to hard-delete article {$id} from Redis: " . $e->getMessage());
+            }
+        }
+
+        if (!$deletedFromDb && !$deletedFromRedis) {
+            return response()->json(['message' => 'Article not found'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Article permanently deleted successfully',
+            'from_db' => $deletedFromDb,
+            'from_redis' => $deletedFromRedis
+        ]);
+    }
+
+    /**
      * Get counts for all article statuses
      * - all: total from database + pending from Redis
      * - published: from database
