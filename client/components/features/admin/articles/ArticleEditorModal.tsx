@@ -34,9 +34,18 @@ interface ArticleEditorModalProps {
     isOpen: boolean;
     onClose: () => void;
     initialData?: any;
+    availableCategories?: string[];
+    availableCountries?: string[];
 }
 
-export default function ArticleEditorModal({ mode, isOpen, onClose, initialData }: ArticleEditorModalProps) {
+export default function ArticleEditorModal({
+    mode,
+    isOpen,
+    onClose,
+    initialData,
+    availableCategories = [],
+    availableCountries = []
+}: ArticleEditorModalProps) {
     const [template, setTemplate] = useState<TemplateType>('single');
     const [availableSites, setAvailableSites] = useState<string[]>([]);
     const [showPublishDialog, setShowPublishDialog] = useState(false);
@@ -519,6 +528,8 @@ export default function ArticleEditorModal({ mode, isOpen, onClose, initialData 
             <ArticleEditorForm
                 data={articleData}
                 availableSites={availableSites}
+                availableCategories={availableCategories}
+                availableCountries={availableCountries}
                 onDataChange={handleDataChange}
                 template={template}
                 onTemplateChange={handleTemplateChange}

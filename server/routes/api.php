@@ -192,6 +192,7 @@ Route::prefix('v1')->group(function () {
             Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
             Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
             Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
+            Route::delete('articles/{id}/hard-delete', [AdminArticleController::class, 'hardDelete']);
 
             // Restaurant Actions
             Route::post('restaurants/{id}/publish', [AdminRestaurantController::class, 'publish'])->name('restaurants.publish');

@@ -1,21 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     LayoutGrid, FileText, Image, Grid, Columns, Maximize,
     Plus, Minus, X, Info, AlignCenter, AlignLeft, AlignRight, Layout, User, Type
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BlogDetails, BlockType } from "@/hooks/useBlockEditor";
+import { getCategories } from "@/lib/api-v2/admin/service/scraper/getCategories";
+import { getCountries } from "@/lib/api-v2/admin/service/scraper/getCountries";
 
 interface BlockDrawerProps {
     details: BlogDetails;
     onUpdateDetails: (updates: Partial<BlogDetails>) => void;
     onAddBlock: (type: BlockType) => void;
+    availableCategories?: string[];
+    availableCountries?: string[];
 }
 
-export default function BlockDrawer({ details, onUpdateDetails, onAddBlock }: BlockDrawerProps) {
+export default function BlockDrawer({
+    details,
+    onUpdateDetails,
+    onAddBlock,
+    availableCategories: propsCategories,
+    availableCountries: propsCountries
+}: BlockDrawerProps) {
     const [activeTab, setActiveTab] = useState<'blocks' | 'details'>('blocks');
+    const [internalCategories, setInternalCategories] = useState<string[]>([]);
+    const [internalCountries, setInternalCountries] = useState<string[]>([]);
+
+    useEffect(() => {
+        // Fetch categories if not provided as props
+        if (!propsCategories || propsCategories.length === 0) {
+            getCategories().then(res => {
+                if (Array.isArray(res.data)) {
+                    // Map objects to names if they are objects
+                    const names = res.data.map((c: any) => typeof c === 'string' ? c : c.name);
+                    setInternalCategories(names);
+                }
+            }).catch(err => {
+                console.error("Failed to fetch categories in BlockDrawer:", err);
+                // Fallback to defaults
+                setInternalCategories(["Community", "Real Estate", "Technology", "AI", "Investment", "Lifestyle"]);
+            });
+        }
+    }, [propsCategories]);
+
+    useEffect(() => {
+        // Fetch countries if not provided as props
+        if (!propsCountries || propsCountries.length === 0) {
+            getCountries().then(res => {
+                if (Array.isArray(res.data)) {
+                    const names = res.data.map((c: any) => typeof c === 'string' ? c : c.name);
+                    setInternalCountries(names);
+                }
+            }).catch(err => {
+                console.error("Failed to fetch countries in BlockDrawer:", err);
+                // Fallback to defaults
+                setInternalCountries(["PHILIPPINES", "AUSTRALIA", "SINGAPORE", "USA", "UAE"]);
+            });
+        }
+    }, [propsCountries]);
+
+    const finalCategories = (propsCategories && propsCategories.length > 0) ? propsCategories : internalCategories;
+    const finalCountries = (propsCountries && propsCountries.length > 0) ? propsCountries : internalCountries;
 
     const blockGroups = [
         {
@@ -45,8 +93,6 @@ export default function BlockDrawer({ details, onUpdateDetails, onAddBlock }: Bl
     ];
 
     const PLATFORMS = ["Apply Na", "Bayanihan", "Faceofmind", "FilipinoHomes", "globalreality", "Homes", "Main News Portal", "PicklePlay"];
-    const CATEGORIES = ["Community", "Real Estate", "Technology", "AI", "Investment", "Lifestyle"];
-    const COUNTRIES = ["PHILIPPINES", "AUSTRALIA", "SINGAPORE", "USA", "UAE"];
 
     return (
         <aside className="w-[360px] bg-white border-r border-gray-100 flex flex-col shrink-0 z-30 shadow-[4px_0_20px_rgba(0,0,0,0.02)] h-full">
@@ -150,8 +196,7 @@ export default function BlockDrawer({ details, onUpdateDetails, onAddBlock }: Bl
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
                                         <option value="">Select Category</option>
-                                        {/* Dynamic or Hardcoded Categories */}
-                                        {["Community", "Real Estate", "Technology", "AI", "Investment", "Lifestyle", "Business", "Entertainment", "Sports", "Politics", "Health", "Travel", "Food"].map(c => <option key={c} value={c}>{c}</option>)}
+                                        {finalCategories.map(c => <option key={c} value={c}>{c}</option>)}
                                     </select>
                                 </div>
                                 <div>
@@ -161,7 +206,8 @@ export default function BlockDrawer({ details, onUpdateDetails, onAddBlock }: Bl
                                         onChange={(e) => onUpdateDetails({ country: e.target.value })}
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
-                                        {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                        <option value="">Select Country</option>
+                                        {finalCountries.map(c => <option key={c} value={c}>{c}</option>)}
                                     </select>
                                 </div>
                             </div>

@@ -14,7 +14,9 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::latest()->get();
+        $categories = Category::latest()
+            ->whereNotIn('name', ['restaurant', 'restaurants'])
+            ->get();
         return response()->json($categories);
     }
 
