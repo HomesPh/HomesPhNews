@@ -1,7 +1,7 @@
 
 export const loginData = {
-    title: "Sign In",
-    subtitle: "Welcome back! Please sign in to continue.",
+    title: "Welcome to HomesTV",
+    subtitle: "The new way to discover real estate news",
     demoCredentials: {
         label: "Demo Credentials:",
         email: "admin@globalnews.com",

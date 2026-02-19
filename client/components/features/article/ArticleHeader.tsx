@@ -115,7 +115,7 @@ export default function ArticleHeader({
 
       {/* Title and Subtitle */}
       <div className="prose prose-lg max-w-none mb-12">
-        <h1 className={`font-bold text-[42px] md:text-[48px] text-[#111827] ${darkClass('dark:text-white')} tracking-tight leading-[1.1]`}>
+        <h1 className={`font-bold text-[42px] md:text-[48px] text-[#111827] ${darkClass('dark:text-white')} tracking-tight leading-[1.1] mb-10`}>
           {title}
         </h1>
         {(() => {

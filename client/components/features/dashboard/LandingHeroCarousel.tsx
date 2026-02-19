@@ -46,7 +46,7 @@ export default function LandingHeroCarousel({ slides }: LandingHeroCarouselProps
 
     return (
         <div
-            className="relative group mb-8"
+            className="relative group/carousel mb-8"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
@@ -74,14 +74,14 @@ export default function LandingHeroCarousel({ slides }: LandingHeroCarouselProps
                 <>
                     <button
                         onClick={prev}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70 z-20 backdrop-blur-sm"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover/carousel:opacity-100 transition-opacity hover:bg-black/70 z-20 backdrop-blur-sm"
                         aria-label="Previous slide"
                     >
                         <ChevronLeft className="w-6 h-6" />
                     </button>
                     <button
                         onClick={next}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70 z-20 backdrop-blur-sm"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover/carousel:opacity-100 transition-opacity hover:bg-black/70 z-20 backdrop-blur-sm"
                         aria-label="Next slide"
                     >
                         <ChevronRight className="w-6 h-6" />

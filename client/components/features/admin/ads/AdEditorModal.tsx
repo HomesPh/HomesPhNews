@@ -26,10 +26,12 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { uploadImage } from "@/lib/api-v2/admin/service/upload/uploadImage";
 import { Loader2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 
 const formSchema = z.object({
   title: z.string().min(2, { message: "Title must be at least 2 characters." }),
+  description: z.string().optional().nullable(),
   image_url: z.url({ message: "Please enter a valid URL." }).or(z.literal("")),
   destination_url: z.url({ message: "Please enter a valid URL." }),
   is_active: z.boolean().default(false),
@@ -50,6 +52,7 @@ export default function AdEditorModal({ isOpen, onClose, mode, initialData, onSa
     resolver: zodResolver(formSchema) as any,
     defaultValues: {
       title: "",
+      description: "",
       image_url: "",
       destination_url: "",
       is_active: false,
@@ -90,6 +93,7 @@ export default function AdEditorModal({ isOpen, onClose, mode, initialData, onSa
       if (initialData) {
         form.reset({
           title: initialData.title,
+          description: initialData.description || "",
           image_url: initialData.image_url || "",
           destination_url: initialData.destination_url,
           is_active: initialData.is_active,
@@ -97,6 +101,7 @@ export default function AdEditorModal({ isOpen, onClose, mode, initialData, onSa
       } else {
         form.reset({
           title: "",
+          description: "",
           image_url: "",
           destination_url: "",
           is_active: false,
@@ -146,7 +151,24 @@ export default function AdEditorModal({ isOpen, onClose, mode, initialData, onSa
                 </FormItem>
               )}
             />
-
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter a brief description..."
+                      className="resize-none"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="image_url"
@@ -161,6 +183,7 @@ export default function AdEditorModal({ isOpen, onClose, mode, initialData, onSa
                             src={field.value}
                             alt="Ad Preview"
                             fill
+                            unoptimized={true}
                             className="object-cover"
                             onError={() => setImageError(true)}
                           />

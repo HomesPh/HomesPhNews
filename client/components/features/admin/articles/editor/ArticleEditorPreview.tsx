@@ -24,6 +24,8 @@ interface ArticleEditorPreviewProps {
         galleryImages: string[];
         splitImages: string[];
         contentBlocks: ContentBlock[];
+        image_position?: number;
+        image_position_x?: number;
     };
     template: TemplateType;
     onDataChange?: (field: string, value: any) => void;
@@ -130,7 +132,12 @@ export default function ArticleEditorPreview({ data, template, onDataChange }: A
                             <>
                                 {commonHeader}
                                 {data.image ? (
-                                    <ArticleFeaturedImage src={data.image} alt={data.title} />
+                                    <ArticleFeaturedImage
+                                        src={data.image}
+                                        alt={data.title}
+                                        image_position={data.image_position}
+                                        image_position_x={data.image_position_x}
+                                    />
                                 ) : renderPlaceholder()}
                                 {renderContent()}
                             </>

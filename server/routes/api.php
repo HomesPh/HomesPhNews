@@ -3,97 +3,169 @@
 use App\Http\Controllers\Api\Admin\AdUnitController as AdminAdUnitController;
 use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\ArticleController as AdminArticleController;
+// Admin Controllers
 use App\Http\Controllers\Api\Admin\ArticlePublicationController;
-// use App\Http\Controllers\Api\Admin\EventController;
 use App\Http\Controllers\Api\Admin\CampaignController as AdminCampaignController;
+use App\Http\Controllers\Api\Admin\CategoryController;
+use App\Http\Controllers\Api\Admin\CountryController;
 use App\Http\Controllers\Api\Admin\DashboardController;
-use App\Http\Controllers\Api\Admin\RestaurantController;
+use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Api\Admin\SiteController;
-use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Auth\SocialAuthController;
+use App\Http\Controllers\Api\PlanSubscriptionController;
+// User Controllers
+use App\Http\Controllers\Api\SiteContentController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\SystemController;
+// Other Controllers
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\User\AdController as UserAdController;
 use App\Http\Controllers\Api\User\ArticleController as UserArticleController;
-use Illuminate\Support\Facades\Redis;
+use App\Http\Controllers\Api\User\RestaurantController as UserRestaurantController;
+use App\Http\Controllers\v2\ArticleController as ArticleControllerV2;
+// v2 Controllers
+use App\Http\Controllers\v2\AuthController as AuthControllerV2;
+use App\Http\Controllers\v2\RoleController as RoleControllerV2;
+use App\Http\Controllers\v2\UserController as UserControllerV2;
 use Illuminate\Support\Facades\Route;
 
-// ═══════════════════════════════════════════════════════════════
-// PUBLIC SUBSCRIPTION ROUTE
-// ═══════════════════════════════════════════════════════════════
-Route::post('/subscribe', [SubscriptionController::class, 'store']);
-Route::get('/subscribe/{id}', [SubscriptionController::class, 'show']);
-Route::patch('/subscribe/{id}', [SubscriptionController::class, 'update']);
-// External Site Content API (Protected by API Key)
-Route::middleware('site.auth')->get('/external/articles', [\App\Http\Controllers\Api\SiteContentController::class, 'getArticles']);
+/*
+|--------------------------------------------------------------------------
+| API Versions
+|--------------------------------------------------------------------------
+*/
 
-// ═══════════════════════════════════════════════════════════════
-// SYSTEM ROUTES (Redis Test, Health Check)
-// ═══════════════════════════════════════════════════════════════
-Route::get('/redis-test', [SystemController::class, 'redisTest']);
-Route::get('/db-test', [SystemController::class, 'dbTest']);
-
-// ═══════════════════════════════════════════════════════════════
-// SCHEDULER ROUTE (For Cloud Run / Cron Jobs)
-// ═══════════════════════════════════════════════════════════════
-Route::get('/scheduler/run', function () {
-    // ⚠️ Security Note: In production, you should protect this route!
-    // Example: if (request('key') !== env('CRON_KEY')) abort(403);
-
-    \Illuminate\Support\Facades\Artisan::call('schedule:run');
-
-    return response()->json([
-        'message' => 'Schedule executed',
-        'output' => \Illuminate\Support\Facades\Artisan::output(),
-    ]);
+/*
+|--------------------------------------------------------------------------
+| External Site Routes
+|--------------------------------------------------------------------------
+|
+| Version-independent routes for external site integration.
+|
+*/
+Route::middleware('site.auth')->prefix('external')->group(function () {
+    Route::get('/articles', [SiteContentController::class, 'getArticles']);
 });
 
-// Public login route
-Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
-Route::get('/login', [AuthController::class, 'me'])->middleware('auth:sanctum')->name('login');
+Route::prefix('v1')->group(function () {
+    /*
+    |--------------------------------------------------------------------------
+    | System Routes
+    |--------------------------------------------------------------------------
+    |
+    | Routes for system health checks, testing, and scheduled tasks.
+    |
+    */
 
-// Protected Routes
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', [AuthController::class, 'me']);
-    Route::post('/logout', [AuthController::class, 'logout']); // Explicit logout route
-});
+    Route::get('/redis-test', [SystemController::class, 'redisTest']);
+    Route::get('/db-test', [SystemController::class, 'dbTest']);
 
-// ═══════════════════════════════════════════════════════════════
-// PUBLIC USER ROUTES (Mixed Database and Redis)
-// ═══════════════════════════════════════════════════════════════
+    Route::get('/scheduler/run', function () {
+        // ⚠️ Security Note: In production, you should protect this route!
+        // Example: if (request('key') !== env('CRON_KEY')) abort(403);
 
-// Public User Routes
-Route::prefix('articles')->name('articles.')->group(function () {
-    Route::get('/', [UserArticleController::class, 'index'])->name('index');
-    Route::get('/feed', [UserArticleController::class, 'feed'])->name('feed');
-    Route::get('/{id}', [UserArticleController::class, 'show'])->name('show');
-    Route::post('/{id}/view', [UserArticleController::class, 'incrementViews'])->name('view');
-});
+        \Illuminate\Support\Facades\Artisan::call('schedule:run');
 
-// Alias for backward compatibility if needed, or just redirect
-Route::get('/article', [UserArticleController::class, 'index']);
+        return response()->json([
+            'message' => 'Schedule executed',
+            'output' => \Illuminate\Support\Facades\Artisan::output(),
+        ]);
+    });
 
-// Statistics
-Route::get('/stats', [UserArticleController::class, 'stats']);
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication Routes (Public)
+    |--------------------------------------------------------------------------
+    |
+    | Routes for user login, registration, and social authentication.
+    |
+    */
 
-// Ads (Public)
-Route::get('/ads', [UserAdController::class, 'index']);
-Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
+    // Traditional Auth
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
+    Route::post('/auth/register', [AuthController::class, 'register']);
 
-// ═══════════════════════════════════════════════════════════════
-// ADMIN ROUTES (Database-based for article management)
-// ═══════════════════════════════════════════════════════════════
-/*  middleware(['auth:sanctum', 'is.admin']): This is the security. It says a user must first be authenticated via Sanctum
- (logged in with a token) AND they must pass our is.admin check. */
-// This group protects all routes within it.
-Route::middleware(['auth:sanctum', 'is.admin'])
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
+    // Social Auth
+    Route::get('/auth/google/redirect', [SocialAuthController::class, 'redirectToGoogle']);
+    Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
 
-        // Reports & Dashboards (Non-CRUD)
-        Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
-        Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
+    /*
+    |--------------------------------------------------------------------------
+    | Public Data Routes
+    |--------------------------------------------------------------------------
+    |
+    | Routes accessible to the public without authentication.
+    |
+    */
+
+    // Articles
+    Route::group(['prefix' => 'articles', 'as' => 'articles.'], function () {
+        Route::get('/', [UserArticleController::class, 'index'])->name('index');
+        Route::get('/feed', [UserArticleController::class, 'feed'])->name('feed');
+        Route::get('/{id}', [UserArticleController::class, 'show'])->name('show');
+        Route::post('/{id}/view', [UserArticleController::class, 'incrementViews'])->name('view');
+    });
+    // Legacy Article Alias
+    Route::get('/article', [UserArticleController::class, 'index']);
+
+    // Stats
+    Route::get('/stats', [UserArticleController::class, 'stats']);
+
+    // Ads
+    Route::get('/ads', [UserAdController::class, 'index']);
+    Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
+
+    // Restaurants
+    Route::group(['prefix' => 'restaurants', 'as' => 'restaurants.'], function () {
+        Route::get('/', [UserRestaurantController::class, 'index'])->name('index');
+        Route::get('/{id}', [UserRestaurantController::class, 'show'])->name('show');
+        Route::get('/country/{country}', [UserRestaurantController::class, 'byCountry'])->name('byCountry');
+    });
+
+    // Subscription (Newsletter/Updates)
+    Route::post('/subscribe', [SubscriptionController::class, 'store']);
+    Route::get('/subscribe/{id}', [SubscriptionController::class, 'show']);
+    Route::patch('/subscribe/{id}', [SubscriptionController::class, 'update']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Authenticated User Routes
+    |--------------------------------------------------------------------------
+    |
+    | Routes requiring the user to be logged in (Sanctum).
+    |
+    */
+
+    Route::middleware('auth:sanctum')->group(function () {
+        // User Info
+        Route::get('/user', [AuthController::class, 'me']);
+        Route::get('/login', [AuthController::class, 'me'])->name('login'); // Re-using me endpoint for check
+
+        // Auth Actions
+        Route::post('/logout', [AuthController::class, 'logout']);
+
+        // Plan Subscriptions
+        Route::post('/plans/subscribe', [PlanSubscriptionController::class, 'store']);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Routes
+    |--------------------------------------------------------------------------
+    |
+    | Routes requiring authentication AND admin privileges.
+    |
+    */
+
+    Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+
+            // Dashboard & Analytics
+            Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
+            Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
 
             // Resources
             Route::apiResource('article-publications', ArticlePublicationController::class);

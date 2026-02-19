@@ -79,3 +79,39 @@ export function sanitizeImageUrl(url: string | string[] | undefined | null, fall
   }
   return str || fallback;
 }
+
+/**
+ * Calculates the estimated read time for a given text content.
+ * Assumes an average reading speed of 200 words per minute.
+ * Returns a string like "5 min read".
+ */
+export function calculateReadTime(content: string | null | undefined): string {
+  if (!content) return "1 min read";
+
+  const strippedContent = stripHtml(content);
+  const wordCount = strippedContent.trim().split(/\s+/).length;
+  const wordsPerMinute = 200;
+  const minutes = Math.ceil(wordCount / wordsPerMinute);
+
+  // Ensure at least 1 min read is shown
+  const readTime = minutes < 1 ? 1 : minutes;
+
+  return `${readTime} min read`;
+}
+
+/**
+ * Formats view count with correct pluralization.
+ * @param count The number of views
+ * @returns Formatted string (e.g. "1 view", "12 views", "1.5k views")
+ */
+export function formatViews(count: number | undefined | null): string {
+  if (count === undefined || count === null) return "0 views";
+
+  // Format large numbers (e.g. 1500 -> 1.5k)
+  if (count >= 1000) {
+    return (count / 1000).toFixed(1).replace(/\.0$/, '') + 'k views';
+  }
+
+  // Pluralization logic
+  return `${count} ${count === 1 ? 'view' : 'views'}`;
+}

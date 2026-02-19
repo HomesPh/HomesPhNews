@@ -35,7 +35,7 @@ export interface ArticlePublication {
 export async function scheduleArticles(
     body: CreateArticlePublicationRequest
 ): Promise<AxiosResponse<{ message: string; data: ArticlePublication[] }>> {
-    return AXIOS_INSTANCE_ADMIN.post("/admin/article-publications", body);
+    return AXIOS_INSTANCE_ADMIN.post("/v1/admin/article-publications", body);
 }
 
 /**
@@ -46,5 +46,5 @@ export async function getScheduledArticles(params?: {
     start_date?: string;
     end_date?: string;
 }): Promise<AxiosResponse<ArticlePublication[]>> {
-    return AXIOS_INSTANCE_ADMIN.get("/admin/article-publications", { params });
+    return AXIOS_INSTANCE_ADMIN.get("/v1/admin/article-publications", { params });
 }

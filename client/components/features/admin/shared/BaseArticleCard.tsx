@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Calendar, Eye, MapPin } from 'lucide-react';
-import { cn, sanitizeImageUrl, decodeHtml } from "@/lib/utils";
+import { cn, sanitizeImageUrl, decodeHtml, calculateReadTime, stripHtml } from "@/lib/utils";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 
 interface BaseArticleCardProps {
@@ -15,6 +15,7 @@ interface BaseArticleCardProps {
         location?: string;        // Legacy fallback
         title: string;
         summary?: string;
+        content?: string;         // New field for read time
         description?: string;     // Legacy fallback
         created_at?: string | null;
         date?: string;            // Legacy fallback
@@ -24,6 +25,8 @@ interface BaseArticleCardProps {
         topics?: string[] | null; // Allow null
         sites?: string[];         // Legacy fallback
         published_sites?: string | string[]; // New API field
+        image_position?: number;
+        image_position_x?: number;
     };
     variant?: 'compact' | 'list';
     onClick?: () => void;
@@ -93,6 +96,7 @@ export default function BaseArticleCard({
                             src={imageUrl}
                             alt={article.title}
                             className="w-full h-full rounded-[8px] object-cover"
+                            style={{ objectPosition: `${article.image_position_x ?? 50}% ${article.image_position ?? 0}%` }}
                         />
                     </div>
 
@@ -122,6 +126,8 @@ export default function BaseArticleCard({
                             <span>{formatDate(dateStr)}</span>
                             <span>•</span>
                             <span>{viewsStr}</span>
+                            <span>•</span>
+                            <span>{calculateReadTime(article.content || description)}</span>
                         </div>
                     </div>
                 </div>
@@ -144,6 +150,7 @@ export default function BaseArticleCard({
                     src={imageUrl}
                     alt={article.title}
                     className="w-full h-full object-cover"
+                    style={{ objectPosition: `${article.image_position_x ?? 50}% ${article.image_position ?? 0}%` }}
                 />
             </div>
 
@@ -169,10 +176,9 @@ export default function BaseArticleCard({
                 </h3>
 
                 {/* Description */}
-                <div
-                    className="text-[14px] text-[#4b5563] leading-[normal] tracking-[-0.5px] mb-2 line-clamp-1 prose prose-sm max-w-none [&>p]:m-0 [&>p]:inline"
-                    dangerouslySetInnerHTML={{ __html: decodeHtml(description) }}
-                />
+                <p className="text-[14px] text-[#4b5563] leading-[normal] tracking-[-0.5px] mb-2 line-clamp-1">
+                    {stripHtml(description)}
+                </p>
 
                 {/* Date and Views */}
                 <div className="flex items-center gap-2 text-[12px] text-[#6b7280] tracking-[-0.5px] mb-2">
@@ -180,6 +186,8 @@ export default function BaseArticleCard({
                     <span className="leading-[20px]">{formatDate(dateStr)}</span>
                     <span className="text-[16px]">•</span>
                     <span className="leading-[20px]">{viewsStr}</span>
+                    <span className="text-[16px]">•</span>
+                    <span className="leading-[20px]">{calculateReadTime(article.content || description)}</span>
                 </div>
             </div>
         </div>

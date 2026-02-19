@@ -37,8 +37,8 @@ class ArticleController extends Controller
         $country = $validated['country'] ?? null;
         $category = $validated['category'] ?? null;
         $topic = $validated['topic'] ?? null;
-        $perPage = min(100, max(1, (int) ($validated['per_page'] ?? $validated['limit'] ?? 10)));
-        $page = $validated['page'] ?? (isset($validated['offset']) ? (int) ($validated['offset'] / $perPage) + 1 : 1);
+        $perPage = min(100, max(1, (int)($validated['per_page'] ?? $validated['limit'] ?? 10)));
+        $page = $validated['page'] ?? (isset($validated['offset']) ? (int)($validated['offset'] / $perPage) + 1 : 1);
 
         $query = Article::query();
 
@@ -71,7 +71,7 @@ class ArticleController extends Controller
         // Eager load relationships to prevent N+1 queries
         $articles = $query
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'title', 'summary', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'views_count', 'topics', 'original_url')
+            ->select('id', 'slug', 'title', 'summary', 'content', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'views_count', 'topics', 'original_url')
             ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
 
@@ -112,21 +112,21 @@ class ArticleController extends Controller
 
         $trending = (clone $baseQuery)
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'title', 'country', 'category', 'image', 'topics', 'views_count', 'status', 'created_at as timestamp', 'original_url')
+            ->select('id', 'slug', 'title', 'country', 'category', 'image', 'topics', 'views_count', 'status', 'created_at as timestamp', 'original_url')
             ->orderBy('views_count', 'desc')
             ->limit(5)
             ->get();
 
         $mostRead = (clone $baseQuery)
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'title', 'country', 'category', 'image', 'views_count', 'status', 'created_at as timestamp', 'original_url')
+            ->select('id', 'slug', 'title', 'country', 'category', 'image', 'views_count', 'status', 'created_at as timestamp', 'original_url')
             ->orderBy('views_count', 'desc')
             ->limit(10)
             ->get();
 
         $latestGlobal = (clone $baseQuery)
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'title', 'summary as content', 'country', 'category', 'status', 'created_at as timestamp', 'image', 'views_count', 'keywords', 'original_url')
+            ->select('id', 'slug', 'title', 'summary', 'content', 'country', 'category', 'status', 'created_at as timestamp', 'image', 'views_count', 'keywords', 'original_url')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -147,26 +147,80 @@ class ArticleController extends Controller
      */
     public function show(string $id): JsonResponse|ArticleResource
     {
-        // Eager load relationships to prevent N+1
+        // 1. Check Database for main articles
         $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])
             ->where('is_deleted', false)
             ->where(function ($query) use ($id) {
-                $query->where('id', $id)
-                    ->orWhere('slug', $id);
-            })
+            $query->where('id', $id)
+                ->orWhere('slug', $id);
+        })
             ->first();
 
-        if (! $article) {
-            // Fallback to Redis if not found in DB
-            $articleData = $this->redisService->getArticle($id);
-            if (! $articleData) {
-                return response()->json(['error' => 'Article not found'], 404);
-            }
+        if ($article) {
+            return new ArticleResource($article);
+        }
 
+        // 2. Fallback to Published Restaurants in DB
+        $restaurant = \App\Models\Restaurant::where('status', 'published')
+            ->where('id', $id)
+            ->first();
+
+        if ($restaurant) {
+            // Map restaurant model items to article-compatible array
+            $mapped = [
+                'id' => $restaurant->id,
+                'slug' => $restaurant->id,
+                'title' => $restaurant->name,
+                'summary' => $restaurant->clickbait_hook ?? $restaurant->description ?? '',
+                'content' => $restaurant->description ?? '',
+                'category' => 'Restaurant',
+                'country' => $restaurant->country ?? 'Global',
+                'image_url' => $restaurant->image_url ?? '',
+                'image' => $restaurant->image_url ?? '',
+                'views_count' => $restaurant->views_count ?? 0,
+                'created_at' => $restaurant->created_at,
+                'source' => 'HomesPh Restaurant',
+                'original_url' => $restaurant->original_url ?? '#',
+                'topics' => [$restaurant->cuisine_type ?? 'Restaurant'],
+                'published_sites' => [],
+                'sites' => [],
+                'galleryImages' => [],
+                'is_deleted' => false,
+                'is_redis' => false,
+
+                // Rich Metadata for UI Matching Admin Page
+                'clickbait_hook' => $restaurant->clickbait_hook,
+                'city' => $restaurant->city,
+                'location' => $restaurant->location,
+                'cuisine_type' => $restaurant->cuisine_type,
+                'rating' => $restaurant->rating,
+                'is_filipino_owned' => $restaurant->is_filipino_owned,
+                'price_range' => $restaurant->price_range,
+                'avg_meal_cost' => $restaurant->avg_meal_cost,
+                'budget_category' => $restaurant->budget_category,
+                'specialty_dish' => $restaurant->specialty_dish,
+                'contact_info' => $restaurant->contact_info,
+                'why_filipinos_love_it' => $restaurant->why_filipinos_love_it,
+                'menu_highlights' => $restaurant->menu_highlights,
+                'google_maps_url' => $restaurant->google_maps_url,
+                'address' => $restaurant->address,
+                'website' => $restaurant->website,
+                'social_media' => $restaurant->social_media,
+                'opening_hours' => $restaurant->opening_hours,
+                'brand_story' => $restaurant->brand_story,
+                'tags' => $restaurant->tags,
+                'features' => $restaurant->features,
+            ];
+            return new ArticleResource((object)$mapped);
+        }
+
+        // 3. Fallback to Redis for pending scrapers
+        $articleData = $this->redisService->getArticle($id);
+        if ($articleData) {
             return new ArticleResource($articleData);
         }
 
-        return new ArticleResource($article);
+        return response()->json(['error' => 'Article not found'], 404);
     }
 
     /**
@@ -174,20 +228,30 @@ class ArticleController extends Controller
      */
     public function incrementViews(string $id): JsonResponse
     {
+        // 1. Try Article
         $article = Article::where('id', $id)
             ->orWhere('slug', $id)
             ->first();
 
-        if (! $article) {
-            return response()->json(['error' => 'Article not found'], 404);
+        if ($article) {
+            $article->increment('views_count');
+            return response()->json([
+                'message' => 'View count incremented',
+                'views_count' => (int)$article->views_count,
+            ]);
         }
 
-        $article->increment('views_count');
+        // 2. Try Restaurant
+        $restaurant = \App\Models\Restaurant::where('id', $id)->first();
+        if ($restaurant) {
+            $restaurant->increment('views_count');
+            return response()->json([
+                'message' => 'Restaurant view count incremented',
+                'views_count' => (int)$restaurant->views_count,
+            ]);
+        }
 
-        return response()->json([
-            'message' => 'View count incremented',
-            'views_count' => (int) $article->views_count,
-        ]);
+        return response()->json(['error' => 'Not found'], 404);
     }
 
     /**

@@ -15,6 +15,6 @@ export interface GetAdminSiteByIdResponse {
 export async function getAdminSiteById(
   id: number
 ): Promise<AxiosResponse<GetAdminSiteByIdResponse>> {
-  return AXIOS_INSTANCE_ADMIN.get<GetAdminSiteByIdResponse>(`/admin/sites/${id}`);
+  return AXIOS_INSTANCE_ADMIN.get<GetAdminSiteByIdResponse>(`/v1/admin/sites/${id}`);
 }
 

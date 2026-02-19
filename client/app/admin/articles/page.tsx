@@ -22,12 +22,12 @@ const URL_FILTERS_CONFIG = {
         resetValues: ['all']
     },
     category: {
-        default: 'All Category' as const,
-        resetValues: ['All Category']
+        default: '' as const,
+        resetValues: ['']
     },
     country: {
-        default: 'All Countries' as const,
-        resetValues: ['All Countries']
+        default: '' as const,
+        resetValues: ['']
     },
 };
 
@@ -51,6 +51,15 @@ export default function ArticlesPage() {
     const [filteredArticles, setFilteredArticles] = useState<ArticleResource[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    // State for available filters (categories/countries from backend)
+    const [availableFilters, setAvailableFilters] = useState<{
+        categories: string[];
+        countries: string[];
+    }>({
+        categories: [],
+        countries: [],
+    });
+
     // State for status counts (from backend)
     const [counts, setCounts] = useState({
         all: 0,
@@ -58,8 +67,6 @@ export default function ArticlesPage() {
         pending: 0,
         deleted: 0,
     });
-
-    // Effect: Fetch articles when filters change
     useEffect(() => {
         const fetchArticles = async () => {
             setIsLoading(true);
@@ -68,8 +75,8 @@ export default function ArticlesPage() {
                 // Status 'pending' will trigger the Redis fetch on the backend
                 const apiFilters = {
                     status: filters.status === 'all' ? undefined : filters.status,
-                    category: filters.category === 'All Category' ? undefined : filters.category,
-                    country: filters.country === 'All Countries' ? undefined : filters.country,
+                    category: filters.category === '' ? undefined : filters.category,
+                    country: filters.country === '' ? undefined : filters.country,
                     search: searchQuery || undefined,
                     page: pagination.currentPage,
                     per_page: 10
@@ -77,7 +84,7 @@ export default function ArticlesPage() {
 
                 const response = await getAdminArticles(apiFilters);
                 // Backend returns pagination fields at top level, not in a meta object
-                const { data, current_page, last_page, status_counts } = response.data;
+                const { data, current_page, last_page, status_counts, available_filters } = response.data;
 
                 // Ensure we always have an array, even if API returns unexpected data
                 setFilteredArticles(data ?? []);
@@ -94,6 +101,11 @@ export default function ArticlesPage() {
                         pending: Number(status_counts.pending),
                         deleted: Number(status_counts.deleted || 0),
                     });
+                }
+
+                // Update available filters from backend
+                if (available_filters) {
+                    setAvailableFilters(available_filters);
                 }
 
             } catch (error) {
@@ -139,6 +151,8 @@ export default function ArticlesPage() {
                     setCategoryFilter={(cat) => setFilter('category', cat)}
                     countryFilter={filters.country}
                     setCountryFilter={(country) => setFilter('country', country)}
+                    availableCategories={availableFilters.categories}
+                    availableCountries={availableFilters.countries}
                 />
 
                 <div className="flex flex-col">
@@ -177,6 +191,8 @@ export default function ArticlesPage() {
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 mode="create"
+                availableCategories={availableFilters.categories}
+                availableCountries={availableFilters.countries}
             />
         </div>
     );

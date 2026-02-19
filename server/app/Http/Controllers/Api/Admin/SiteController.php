@@ -26,12 +26,16 @@ class SiteController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('site_name', 'LIKE', "%{$search}%")
-                  ->orWhere('site_url', 'LIKE', "%{$search}%")
-                  ->orWhere('contact_name', 'LIKE', "%{$search}%");
+                    ->orWhere('site_url', 'LIKE', "%{$search}%")
+                    ->orWhere('contact_name', 'LIKE', "%{$search}%");
             });
         }
 
-        $sites = $query->withCount('articles')
+        $sites = $query->withCount([
+            'articles' => function ($q) {
+                $q->where('articles.is_deleted', false);
+            }
+        ])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -55,7 +59,7 @@ class SiteController extends Controller
     /**
      * Display the specified site.
      */
-    public function show(int $id): JsonResponse|SiteResource
+    public function show(string $id): JsonResponse|SiteResource
     {
         $site = Site::find($id);
 
@@ -98,7 +102,7 @@ class SiteController extends Controller
     /**
      * Update the specified site.
      */
-    public function update(Request $request, int $id): JsonResponse|SiteResource
+    public function update(Request $request, string $id): JsonResponse|SiteResource
     {
         $site = Site::find($id);
 
@@ -134,7 +138,7 @@ class SiteController extends Controller
     /**
      * Remove the specified site.
      */
-    public function destroy(int $id): JsonResponse
+    public function destroy(string $id): JsonResponse
     {
         $site = Site::find($id);
 
@@ -152,7 +156,7 @@ class SiteController extends Controller
     /**
      * Toggle the status of a site.
      */
-    public function toggleStatus(int $id): JsonResponse|SiteResource
+    public function toggleStatus(string $id): JsonResponse|SiteResource
     {
         $site = Site::find($id);
 
@@ -180,7 +184,7 @@ class SiteController extends Controller
     /**
      * Refresh the API Key for a site.
      */
-    public function refreshKey(int $id): JsonResponse|SiteResource
+    public function refreshKey(string $id): JsonResponse|SiteResource
     {
         $site = Site::find($id);
 

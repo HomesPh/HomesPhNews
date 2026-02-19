@@ -34,5 +34,5 @@ export interface CreateArticleResponse {
 export async function createArticle(
   body: StoreArticleRequest
 ): Promise<AxiosResponse<CreateArticleResponse>> {
-  return AXIOS_INSTANCE_ADMIN.post<CreateArticleResponse>("/admin/articles", body);
+  return AXIOS_INSTANCE_ADMIN.post<CreateArticleResponse>("/v1/admin/articles", body);
 }

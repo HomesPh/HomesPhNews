@@ -38,5 +38,5 @@ export async function updateArticle(
   articleId: string,
   body: UpdateArticleRequest
 ): Promise<AxiosResponse<UpdateArticleResponse>> {
-  return AXIOS_INSTANCE_ADMIN.put<UpdateArticleResponse>(`/admin/articles/${articleId}`, body);
+  return AXIOS_INSTANCE_ADMIN.put<UpdateArticleResponse>(`/v1/admin/articles/${articleId}`, body);
 }

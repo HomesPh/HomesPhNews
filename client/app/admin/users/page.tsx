@@ -87,10 +87,15 @@ export default function UsersPage() {
         router.push(`/admin/blogs?author=${encodeURIComponent(userName)}`);
     };
 
-    const handleAddUser = (userData: any) => {
-        const newUser = addUser(userData);
-        alert(`User ${newUser.name} added successfully! Email invitation sent.`);
-        setIsAddModalOpen(false);
+    const handleAddUser = async (userData: any) => {
+        try {
+            const newUser = await addUser(userData);
+            alert(`User ${newUser.name} added successfully! Credential email has been sent.`);
+            setIsAddModalOpen(false);
+        } catch (error: any) {
+            console.error(error);
+            alert(error?.response?.data?.message || 'Failed to add user. Please check if the email is already in use.');
+        }
     };
 
     const handleEditUser = (id: string, updates: Partial<AdminUser>) => {

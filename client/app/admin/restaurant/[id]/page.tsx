@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
     Calendar, Eye, Edit, Trash2, RotateCcw, Loader2, MapPin,
@@ -31,7 +31,7 @@ import { getSiteNames } from "@/lib/api-v2/admin/service/sites/getSiteNames";
  * Restaurant Details Page
  * Redesigned to match Article Admin Page consistency
  */
-export default function RestaurantDetailPage() {
+function RestaurantDetailContent() {
     const params = useParams();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -529,5 +529,13 @@ export default function RestaurantDetailPage() {
                 </AlertDialogContent>
             </AlertDialog>
         </div>
+    );
+}
+
+export default function RestaurantDetailPage() {
+    return (
+        <Suspense fallback={<div className="p-20 text-center text-[#6b7280]">Loading restaurant details...</div>}>
+            <RestaurantDetailContent />
+        </Suspense>
     );
 }

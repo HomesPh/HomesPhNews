@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, Suspense } from 'react';
 import { decodeHtml } from "@/lib/utils";
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -9,8 +10,7 @@ import { Categories, Countries } from "@/app/data";
 import ArticleBreadcrumb from "@/components/features/article/ArticleBreadcrumb";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 
-
-export default function BlogDetailsPage() {
+function BlogDetailsContent() {
     const { id } = useParams();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -179,5 +179,13 @@ export default function BlogDetailsPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function BlogDetailsPage() {
+    return (
+        <Suspense fallback={<div className="p-20 text-center text-[#6b7280]">Loading blog details...</div>}>
+            <BlogDetailsContent />
+        </Suspense>
     );
 }

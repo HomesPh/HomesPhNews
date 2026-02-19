@@ -17,6 +17,6 @@ export async function deleteArticle(
   id: string
 ): Promise<AxiosResponse<DeleteArticleResponse>> {
   return AXIOS_INSTANCE_ADMIN.delete<DeleteArticleResponse>(
-    `/admin/articles/${id}`
+    `/v1/admin/articles/${id}`
   );
 }

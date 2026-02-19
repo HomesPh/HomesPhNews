@@ -10,7 +10,10 @@ import CountryPerformanceChart from "@/components/features/admin/analytics/Count
 import PartnerPerformanceTable from "@/components/features/admin/analytics/PartnerPerformanceTable";
 import ContentPerformanceTable from "@/components/features/admin/analytics/ContentPerformanceTable";
 import VisitorBreakdownChart from "@/components/features/admin/analytics/VisitorBreakdownChart";
-import TrafficSourcesChart from "@/components/features/admin/analytics/TrafficSourcesChart";
+import SubscriptionGrowth from "@/components/features/admin/analytics/SubscriptionGrowth";
+import ReferralSourcesTable from "@/components/features/admin/analytics/ReferralSourcesTable";
+import InteractiveGeographicMap from "@/components/features/admin/analytics/InteractiveGeographicMap";
+import ContentEngagementMetrics from "@/components/features/admin/analytics/ContentEngagementMetrics";
 import ArticleDistribution from "@/components/features/admin/dashboard/ArticleDistribution";
 import { getAdminAnalytics, AdminAnalyticsResponse } from "@/lib/api-v2/admin/service/analytics/getAdminAnalytics";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -69,9 +72,34 @@ export default function AnalyticsPage() {
 
                 setStats([
                     {
+                        title: "Subscriptions Growth",
+                        value: "0",
+                        trend: "0.00%",
+                        iconName: "TrendingUp",
+                        iconBgColor: "bg-blue-50",
+                        iconColor: "text-blue-600"
+                    },
+                    {
+                        title: "Cumulative Subscriptions",
+                        value: "100.34K",
+                        trend: "0.00%",
+                        iconName: "Users",
+                        iconBgColor: "bg-green-50",
+                        iconColor: "text-green-600"
+                    },
+                    {
+                        title: "Average Subscriptions",
+                        value: "144",
+                        trend: "0.00%",
+                        trendLabel: "Than last period",
+                        iconName: "Mail",
+                        iconBgColor: "bg-blue-50",
+                        iconColor: "text-blue-600"
+                    },
+                    {
                         title: activeTab === 'All' ? "Total Content" : `Total ${activeTab}s`,
                         value: totalContent,
-                        trend: overview.total_page_news_trend, // Using generic trend for now
+                        trend: overview.total_page_news_trend,
                         iconName: "FileText",
                         iconBgColor: "bg-blue-50",
                         iconColor: "text-blue-500"
@@ -113,7 +141,7 @@ export default function AnalyticsPage() {
                         value: overview.avg_read_duration,
                         trend: "+0%",
                         iconName: "Clock",
-                        iconBgColor: "bg-teal-50", // Changed color to distinguish
+                        iconBgColor: "bg-teal-50",
                         iconColor: "text-teal-500"
                     }
                 ]);
@@ -131,7 +159,7 @@ export default function AnalyticsPage() {
 
                 setCountryPerformanceData(resData.performance_by_country.map(c => ({
                     country: c.country,
-                    visitors: c.total_views
+                    totalViews: c.total_views
                 })));
 
                 setDeviceData(resData.device_breakdown || []);
@@ -240,36 +268,6 @@ export default function AnalyticsPage() {
                 description="Comprehensive insights into your content performance and audience."
             >
                 <div className="flex flex-wrap items-center gap-4">
-                    {/* Category Filter */}
-                    <div className="relative">
-                        <select
-                            value={category}
-                            onChange={(e) => setCategory(e.target.value)}
-                            className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.3px] cursor-pointer min-w-[140px]"
-                        >
-                            <option value="All">All Categories</option>
-                            {currentCategories.filter(c => c.id !== 'All').map((cat) => (
-                                <option key={cat.id} value={cat.label}>{cat.label}</option>
-                            ))}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
-                    </div>
-
-                    {/* Country Filter */}
-                    <div className="relative">
-                        <select
-                            value={country}
-                            onChange={(e) => setCountry(e.target.value)}
-                            className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.3px] cursor-pointer min-w-[140px]"
-                        >
-                            <option value="All">All Countries</option>
-                            {Countries.map((c) => (
-                                <option key={c.id} value={c.label}>{c.label}</option>
-                            ))}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
-                    </div>
-
                     {/* Date Range Filter */}
                     <div className="relative">
                         <select
@@ -309,8 +307,9 @@ export default function AnalyticsPage() {
                 </div>
             </AdminPageHeader>
 
-            {/* Content Type Tabs - Centered */}
-            <div className="flex justify-center mb-8">
+            {/* Filter and Tabs Row */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+                {/* Content Type Tabs - Left Aligned */}
                 <div className="flex p-1 bg-gray-100 rounded-lg w-fit">
                     {(['All', 'Article', 'Blog', 'Newsletter', 'Restaurant'] as const).map((type) => (
                         <button
@@ -319,7 +318,7 @@ export default function AnalyticsPage() {
                                 setActiveTab(type);
                                 setCategory('All'); // Reset category on tab switch
                             }}
-                            className={`px-4 py-2 text-[13px] font-bold rounded-md transition-all ${activeTab === type
+                            className={`px-4 py-2 text-[14px] font-bold rounded-md transition-all ${activeTab === type
                                 ? 'bg-white text-[#C10007] shadow-sm'
                                 : 'text-[#6b7280] hover:text-[#111827]'
                                 }`}
@@ -328,13 +327,46 @@ export default function AnalyticsPage() {
                         </button>
                     ))}
                 </div>
+
+                {/* Category and Country Filters - Right Aligned */}
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* Category Filter */}
+                    <div className="relative">
+                        <select
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value)}
+                            className="appearance-none px-4 pr-10 h-[42px] border border-[#d1d5db] rounded-[8px] text-[13px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.3px] cursor-pointer min-w-[140px]"
+                        >
+                            <option value="All">All Categories</option>
+                            {currentCategories.filter(c => c.id !== 'All').map((cat) => (
+                                <option key={cat.id} value={cat.label}>{cat.label}</option>
+                            ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
+                    </div>
+
+                    {/* Country Filter */}
+                    <div className="relative">
+                        <select
+                            value={country}
+                            onChange={(e) => setCountry(e.target.value)}
+                            className="appearance-none px-4 pr-10 h-[42px] border border-[#d1d5db] rounded-[8px] text-[13px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.3px] cursor-pointer min-w-[140px]"
+                        >
+                            <option value="All">All Countries</option>
+                            {Countries.map((c) => (
+                                <option key={c.id} value={c.label}>{c.label}</option>
+                            ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
+                    </div>
+                </div>
             </div>
 
 
             {/* Analytics Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
                 {isLoading ? (
-                    Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-[140px] rounded-[12px] bg-white shadow-sm" />)
+                    Array(9).fill(0).map((_, i) => <Skeleton key={i} className="h-[140px] rounded-[12px] bg-white shadow-sm" />)
                 ) : (
                     stats.map((stat, index) => (
                         <StatCard
@@ -382,7 +414,16 @@ export default function AnalyticsPage() {
                 )}
             </div>
 
-            {/* New Charts: Visitors & Sources */}
+            {/* Subscription Growth Section */}
+            <div className="mb-8">
+                {isLoading ? (
+                    <Skeleton className="h-[400px] rounded-[12px] bg-white shadow-sm" />
+                ) : (
+                    <SubscriptionGrowth />
+                )}
+            </div>
+
+            {/* New Charts: Visitors & Referral Sources */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 {isLoading ? (
                     <>
@@ -392,7 +433,7 @@ export default function AnalyticsPage() {
                 ) : (
                     <>
                         <VisitorBreakdownChart data={deviceData} />
-                        <TrafficSourcesChart data={sourceData} />
+                        <ReferralSourcesTable data={sourceData} />
                     </>
                 )}
             </div>
@@ -409,6 +450,24 @@ export default function AnalyticsPage() {
                         <CountryPerformanceChart data={countryPerformanceData} />
                         <ArticleDistribution sites={distributionSites} totalArticles={totalPublished} className="h-full" />
                     </>
+                )}
+            </div>
+
+            {/* Geographic Map Section */}
+            <div className="mb-8">
+                {isLoading ? (
+                    <Skeleton className="h-[400px] rounded-[12px] bg-white shadow-sm" />
+                ) : (
+                    <InteractiveGeographicMap data={countryPerformanceData} />
+                )}
+            </div>
+
+            {/* Content Engagement Metrics */}
+            <div className="mb-8">
+                {isLoading ? (
+                    <Skeleton className="h-[200px] rounded-[12px] bg-white shadow-sm" />
+                ) : (
+                    <ContentEngagementMetrics />
                 )}
             </div>
 

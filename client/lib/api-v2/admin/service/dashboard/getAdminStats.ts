@@ -30,6 +30,6 @@ export interface AdminStatsResponse {
  * GET /admin/stats
  */
 export async function getAdminStats(): Promise<AxiosResponse<AdminStatsResponse>> {
-  return AXIOS_INSTANCE_ADMIN.get<AdminStatsResponse>("/admin/stats");
+  return AXIOS_INSTANCE_ADMIN.get<AdminStatsResponse>("/v1/admin/stats");
 }
 

@@ -15,6 +15,6 @@ export interface GetAdminArticleByIdResponse {
 export async function getAdminArticleById(
   id: string
 ): Promise<AxiosResponse<GetAdminArticleByIdResponse>> {
-  return AXIOS_INSTANCE_ADMIN.get<GetAdminArticleByIdResponse>(`/admin/articles/${id}`);
+  return AXIOS_INSTANCE_ADMIN.get<GetAdminArticleByIdResponse>(`/v1/admin/articles/${id}`);
 }
 

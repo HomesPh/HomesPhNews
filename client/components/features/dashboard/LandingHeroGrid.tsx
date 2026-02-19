@@ -25,7 +25,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
         return (
             <div className="mb-8 md:h-[405px]">
                 <Link
-                    href={main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`}
+                    href={main.slug ? `/article/${main.slug}` : `/article/${main.id}`}
                     className="relative group cursor-pointer block w-full h-full overflow-hidden"
                 >
                     <Image
@@ -33,9 +33,10 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         alt={main.title}
                         fill
                         priority
-                        unoptimized={isUnoptimized(getImg(main, ''))}
+                        unoptimized={true}
                         sizes="100vw"
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        style={{ objectPosition: `${main?.image_position_x ?? 50}% ${main?.image_position ?? 0}%` }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-8">
                         <div className="flex gap-2 mb-3">
@@ -56,10 +57,10 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             <div className="flex items-center space-x-3 text-xs font-bold text-gray-300 uppercase">
                                 <span>By {main.source || "HomesPh News"}</span>
                                 <span>•</span>
-                                <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
+                                <span suppressHydrationWarning>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
                             </div>
                             <ShareButtons
-                                url={main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`}
+                                url={main.slug ? `/article/${main.slug}` : `/article/${main.id}`}
                                 title={main.title}
                                 description={main.summary || main.content}
                                 size="sm"
@@ -79,7 +80,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                 {articles.map((article) => (
                     <Link
                         key={article.id}
-                        href={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                        href={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                         className="relative group cursor-pointer overflow-hidden h-full min-w-[90vw] md:min-w-auto snap-center shrink-0 block"
                     >
                         <Image
@@ -87,8 +88,10 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             alt={article.title}
                             fill
                             priority
+                            unoptimized={true}
                             sizes="(max-width: 768px) 100vw, 50vw"
                             className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
                             <div className="flex gap-2 mb-2">
@@ -106,10 +109,10 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 <div className="flex items-center space-x-3 text-[10px] font-bold text-gray-300 uppercase">
                                     <span>By {article.source || "HomesPh News"}</span>
                                     <span>•</span>
-                                    <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                                    <span suppressHydrationWarning>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                 </div>
                                 <ShareButtons
-                                    url={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                                    url={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                                     title={article.title}
                                     description={article.summary || article.content}
                                     size="sm"
@@ -131,7 +134,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
             <div className="flex overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-4 gap-1 mb-8 h-[400px] md:h-[405px] scrollbar-hide">
                 {/* Main Article (Left Half) */}
                 <Link
-                    href={main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`}
+                    href={main.slug ? `/article/${main.slug}` : `/article/${main.id}`}
                     className="md:col-span-2 relative group cursor-pointer overflow-hidden h-full min-w-[90vw] md:min-w-auto snap-center shrink-0 block"
                 >
                     <Image
@@ -139,9 +142,10 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         alt={main.title}
                         fill
                         priority
+                        unoptimized={true}
                         sizes="(max-width: 768px) 100vw, 50vw"
-                        unoptimized={isUnoptimized(getImg(main, ''))}
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        style={{ objectPosition: `${main?.image_position_x ?? 50}% ${main?.image_position ?? 0}%` }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
                         <div className="flex gap-2 mb-2">
@@ -159,10 +163,10 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             <div className="flex items-center space-x-3 text-[10px] font-bold text-gray-300 uppercase">
                                 <span>By {main.source || "HomesPh News"}</span>
                                 <span>•</span>
-                                <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
+                                <span suppressHydrationWarning>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
                             </div>
                             <ShareButtons
-                                url={main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`}
+                                url={main.slug ? `/article/${main.slug}` : `/article/${main.id}`}
                                 title={main.title}
                                 description={main.summary || main.content}
                                 size="sm"
@@ -177,16 +181,17 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                     {[side1, side2].map((article) => (
                         <Link
                             key={article.id}
-                            href={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                            href={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                             className="relative group cursor-pointer overflow-hidden h-full block"
                         >
                             <Image
                                 src={getImg(article, 'https://placehold.co/800x450?text=No+Image')}
                                 alt={article.title}
                                 fill
+                                unoptimized={true}
                                 sizes="(max-width: 768px) 100vw, 25vw"
-                                unoptimized={isUnoptimized(getImg(article, ''))}
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">
                                 <div className="flex gap-1.5 mb-1.5">
@@ -204,10 +209,10 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                     <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase">
                                         <span>By {article.source || "HomesPh News"}</span>
                                         <span>•</span>
-                                        <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                                        <span suppressHydrationWarning>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                     </div>
                                     <ShareButtons
-                                        url={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                                        url={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                                         title={article.title}
                                         size="xs"
                                         className="transition-opacity"
@@ -230,7 +235,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
         <div className="flex overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-4 gap-1 mb-8 h-[400px] md:h-[405px] scrollbar-hide">
             {/* Large Main Article */}
             <Link
-                href={main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`}
+                href={main.slug ? `/article/${main.slug}` : `/article/${main.id}`}
                 className="md:col-span-2 relative group cursor-pointer overflow-hidden h-full min-w-[90vw] md:min-w-auto snap-center shrink-0 block"
             >
                 <Image
@@ -238,9 +243,10 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                     alt={main.title}
                     fill
                     priority
+                    unoptimized={true}
                     sizes="(max-width: 768px) 100vw, 50vw"
-                    unoptimized={isUnoptimized(getImg(main, ''))}
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    style={{ objectPosition: `${main?.image_position_x ?? 50}% ${main?.image_position ?? 0}%` }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
                     <div className="flex gap-2 mb-2">
@@ -261,10 +267,10 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         <div className="flex items-center space-x-3 text-[10px] font-bold text-gray-300 uppercase">
                             <span>By {main.source || "HomesPh News"}</span>
                             <span>•</span>
-                            <span>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
+                            <span suppressHydrationWarning>{main.created_at ? new Date(main.created_at).toLocaleDateString() : 'Recently'}</span>
                         </div>
                         <ShareButtons
-                            url={main.slug ? `/article?slug=${main.slug}` : `/article?id=${main.id}`}
+                            url={main.slug ? `/article/${main.slug}` : `/article/${main.id}`}
                             title={main.title}
                             description={main.summary || main.content}
                             size="sm"
@@ -279,16 +285,17 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                 {/* Top Medium Article */}
                 {topSmall && (
                     <Link
-                        href={topSmall.slug ? `/article?slug=${topSmall.slug}` : `/article?id=${topSmall.id}`}
+                        href={topSmall.slug ? `/article/${topSmall.slug}` : `/article/${topSmall.id}`}
                         className="relative group cursor-pointer overflow-hidden h-[200px] block"
                     >
                         <Image
                             src={getImg(topSmall, 'https://placehold.co/800x450?text=No+Image')}
                             alt={topSmall.title}
                             fill
+                            unoptimized={true}
                             sizes="(max-width: 768px) 100vw, 50vw"
-                            unoptimized={isUnoptimized(getImg(topSmall, ''))}
                             className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            style={{ objectPosition: `${topSmall?.image_position_x ?? 50}% ${topSmall?.image_position ?? 0}%` }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">
                             <div className="flex gap-1.5 mb-1.5">
@@ -306,10 +313,10 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase">
                                     <span>By {topSmall.source || "HomesPh News"}</span>
                                     <span>•</span>
-                                    <span>{topSmall.created_at ? new Date(topSmall.created_at).toLocaleDateString() : 'Recently'}</span>
+                                    <span suppressHydrationWarning>{topSmall.created_at ? new Date(topSmall.created_at).toLocaleDateString() : 'Recently'}</span>
                                 </div>
                                 <ShareButtons
-                                    url={topSmall.slug ? `/article?slug=${topSmall.slug}` : `/article?id=${topSmall.id}`}
+                                    url={topSmall.slug ? `/article/${topSmall.slug}` : `/article/${topSmall.id}`}
                                     title={topSmall.title}
                                     description={topSmall.summary || topSmall.content}
                                     size="xs"
@@ -325,7 +332,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                     {[bottomSmall1, bottomSmall2].map((article, idx) => article ? (
                         <Link
                             key={article.id || idx}
-                            href={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                            href={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                             className="relative group cursor-pointer overflow-hidden block"
                         >
                             <Image
@@ -335,6 +342,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 sizes="(max-width: 768px) 50vw, 25vw"
                                 unoptimized={isUnoptimized(getImg(article, ''))}
                                 className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">
                                 <div className="flex gap-1 mb-1">
@@ -353,7 +361,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                         <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                     </div>
                                     <ShareButtons
-                                        url={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                                        url={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                                         title={article.title}
                                         size="xs"
                                         className="transition-opacity"

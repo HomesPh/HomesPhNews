@@ -16,7 +16,7 @@ export async function toggleSiteStatus(
   id: number
 ): Promise<AxiosResponse<ToggleSiteStatusResponse>> {
   return AXIOS_INSTANCE_ADMIN.patch<ToggleSiteStatusResponse>(
-    `/admin/sites/${id}/toggle-status`
+    `/v1/admin/sites/${id}/toggle-status`
   );
 }
 
