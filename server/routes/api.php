@@ -203,3 +203,4 @@ Route::prefix('v1')->group(function () {
         // Upload Routes
         Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
     });
+});
