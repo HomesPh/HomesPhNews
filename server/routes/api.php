@@ -1,8 +1,6 @@
 <?php
 
-// routes/api.php
-use App\Http\Controllers\Api\Admin\AdController as AdminAdController;
-// ✅ CORRECT CONTROLLER: Import the Admin Article Controller
+use App\Http\Controllers\Api\Admin\AdUnitController as AdminAdUnitController;
 use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\ArticleController as AdminArticleController;
 use App\Http\Controllers\Api\Admin\ArticlePublicationController;
@@ -97,26 +95,30 @@ Route::middleware(['auth:sanctum', 'is.admin'])
         Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
         Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
 
-        // CRUD Resources
-        // Route::apiResource('events', EventController::class);
-        Route::apiResource('article-publications', ArticlePublicationController::class);
+            // Resources
+            Route::apiResource('article-publications', ArticlePublicationController::class);
+            Route::apiResource('articles', AdminArticleController::class);
+            Route::apiResource('campaigns', AdminCampaignController::class);
+            Route::apiResource('ad-units', AdminAdUnitController::class);
+            Route::apiResource('categories', CategoryController::class);
+            Route::apiResource('countries', CountryController::class);
+            // Resource Routes
+            Route::get('sites/names', [SiteController::class, 'names']);
+            Route::apiResource('sites', SiteController::class);
 
-        Route::get('sites/names', [SiteController::class, 'names']);
-        Route::patch('sites/{id}/toggle-status', [SiteController::class, 'toggleStatus']);
-        Route::patch('sites/{id}/refresh-key', [SiteController::class, 'refreshKey']);
-        Route::apiResource('sites', SiteController::class);
-        Route::apiResource('articles', AdminArticleController::class);
-        Route::apiResource('ads', AdminAdController::class);
-        Route::apiResource('campaigns', AdminCampaignController::class);
+            Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
+            Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
+            Route::apiResource('restaurants', AdminRestaurantController::class);
 
-        // Custom Article Actions
-        Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
-        // Edit pending (Redis) article without touching the main database
-        Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
-        // Publish pending article (Redis → MySQL, then delete from Redis)
-        Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
-        // Restore soft-deleted article
-        Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
+            // Additional Management
+            Route::patch('sites/{id}/toggle-status', [SiteController::class, 'toggleStatus']);
+            Route::patch('sites/{id}/refresh-key', [SiteController::class, 'refreshKey']);
+
+            // Article Actions
+            Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
+            Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
+            Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
+            Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
 
         // ═══════════════════════════════════════════════════════════════
         // RESTAURANT ROUTES (Redis-based & Database Persistence)

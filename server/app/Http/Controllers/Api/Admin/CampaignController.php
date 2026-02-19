@@ -14,10 +14,9 @@ class CampaignController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $campaigns = Campaign::withCount('ads')
+        $campaigns = Campaign::with('adUnits')
             ->latest()
             ->paginate($request->input('per_page', 10));
-
 
         return response()->json($campaigns);
     }
@@ -28,25 +27,25 @@ class CampaignController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'regex:/^\S*$/'],
-            'rotation_type' => 'required|string|in:random,ordered',
+            'name' => 'required|string|max:255',
+            'status' => 'required|string|in:active,paused,archived',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'ads' => 'nullable|array',
-            'ads.*' => 'exists:ads,id',
+            'image_url' => 'nullable|url|required_without:headline',
+            'target_url' => 'required|url', // Renamed from destination_url
+            'headline' => 'nullable|string|max:255|required_without:image_url',
+            'banner_image_urls' => 'nullable|array', // Added
+            'ad_units' => 'nullable|array',
+            'ad_units.*' => 'exists:ad_units,id',
         ]);
-
-        if (empty($validated['start_date'])) {
-            $validated['start_date'] = now();
-        }
 
         $campaign = Campaign::create($validated);
 
-        if (!empty($validated['ads'])) {
-            $campaign->ads()->sync($validated['ads']);
+        if ($request->has('ad_units')) {
+            $campaign->adUnits()->sync($request->input('ad_units'));
         }
 
-        return response()->json($campaign->load('ads'), 201);
+        return response()->json($campaign->load('adUnits'), 201);
     }
 
     /**
@@ -54,8 +53,7 @@ class CampaignController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $campaign = Campaign::with('ads')->findOrFail($id);
-
+        $campaign = Campaign::with('adUnits')->findOrFail($id);
 
         return response()->json($campaign);
     }
@@ -68,21 +66,25 @@ class CampaignController extends Controller
         $campaign = Campaign::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => ['sometimes', 'string', 'max:255', 'regex:/^\S*$/'],
-            'rotation_type' => 'sometimes|string|in:random,ordered',
+            'name' => 'sometimes|string|max:255',
+            'status' => 'sometimes|string|in:active,paused,archived',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'ads' => 'nullable|array',
-            'ads.*' => 'exists:ads,id',
+            'image_url' => 'sometimes|url',
+            'target_url' => 'sometimes|url',
+            'headline' => 'nullable|string|max:255',
+            'banner_image_urls' => 'nullable|array',
+            'ad_units' => 'nullable|array',
+            'ad_units.*' => 'exists:ad_units,id',
         ]);
 
         $campaign->update($validated);
 
-        if (isset($validated['ads'])) {
-            $campaign->ads()->sync($validated['ads']);
+        if ($request->has('ad_units')) {
+            $campaign->adUnits()->sync($request->input('ad_units'));
         }
 
-        return response()->json($campaign->load('ads'));
+        return response()->json($campaign->load('adUnits'));
     }
 
     /**
@@ -91,12 +93,6 @@ class CampaignController extends Controller
     public function destroy(string $id): JsonResponse
     {
         $campaign = Campaign::findOrFail($id);
-
-
-        // Optional: Block delete if has ads, or they will be set to null due to nullOnDelete
-        // For now, let's allow it, ads will become orphaned (campaign_id = null)
-
-
         $campaign->delete();
 
         return response()->json(null, 204);
