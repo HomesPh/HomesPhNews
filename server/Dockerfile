@@ -54,6 +54,5 @@ RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 # Configure FrankenPHP
 ENV FRANKENPHP_CONFIG="worker ./public/index.php"
 
-# Start FrankenPHP using the PORT environment variable provided by Cloud Run
-# Note: Migrations on startup is common for small Cloud Run apps, but ensure DB connection is ready
-CMD ["sh", "-c", "php artisan migrate --force ; frankenphp php-server --listen :${PORT:-8080} --root ./public"]
+# Start Laravel scheduler in the background and then run FrankenPHP
+CMD ["sh", "-c", "php artisan migrate --force ; php artisan schedule:work & frankenphp php-server --listen :${PORT:-8080} --root ./public"]
