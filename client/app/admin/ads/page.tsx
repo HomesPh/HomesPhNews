@@ -4,18 +4,9 @@ import { useState } from 'react';
 import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
 import StatCard from "@/components/features/admin/shared/StatCard";
 import Pagination from "@/components/features/admin/shared/Pagination";
-import useAdsAdmin from '../../../lib/ads/useAdsAdmin';
-import useCampaignAdmin from '../../../lib/ads/useCampaignAdmin';
+import useCampaigns, { CreateCampaignPayload } from '../../../lib/ads/useCampaigns';
+import useAdUnits, { CreateAdUnitPayload } from '../../../lib/ads/useAdUnits';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  AdsFilters,
-  AdListItem,
-  AdEditorModal,
-  CampaignListItem,
-  CampaignFilters,
-  CampaignEditor,
-  CampaignChecklistModal
-} from "@/components/features/admin/ads";
 import { SearchSkeleton } from '@/components/features/dashboard/DashboardSkeletons';
 import {
   AlertDialog,
@@ -27,25 +18,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { format } from 'date-fns';
-import { Ad, RotationType } from '../../../lib/ads/types';
+import { Campaign, AdUnit } from '../../../lib/ads/types';
+
+// Components
+import CampaignListItem from '@/components/features/admin/ads/CampaignListItem';
+import AdUnitListItem from '@/components/features/admin/ads/AdUnitListItem';
+import AdUnitChecklistModal from '@/components/features/admin/ads/AdUnitChecklistModal';
+import { Input } from '@/components/ui/input';
 
 export default function AdsPage() {
-  // Logic for fetching ads and campaigns
+  // Logic for fetching campaigns (formerly ads) and ad units (formerly campaigns)
   const {
-    data: adsList,
-    pagination: adsPagination,
-    isLoading: adsLoading,
-    error: adsError,
-    refetch: refetchAds,
-    setPage: setAdsPage,
-    createAd,
-    updateAd,
-    deleteAd
-  } = useAdsAdmin();
-
-  const {
-    data: campaignsData,
+    data: campaignsList,
     pagination: campaignsPagination,
     isLoading: campaignsLoading,
     error: campaignsError,
@@ -54,7 +38,19 @@ export default function AdsPage() {
     createCampaign,
     updateCampaign,
     deleteCampaign
-  } = useCampaignAdmin();
+  } = useCampaigns();
+
+  const {
+    data: adUnitsList,
+    pagination: adUnitsPagination,
+    isLoading: adUnitsLoading,
+    error: adUnitsError,
+    refetch: refetchAdUnits,
+    setPage: setAdUnitsPage,
+    createAdUnit,
+    updateAdUnit,
+    deleteAdUnit
+  } = useAdUnits();
 
   // Logic for tabs
   const [activeTab, setActiveTab] = useState("campaigns");
@@ -62,58 +58,15 @@ export default function AdsPage() {
   // Mock handlers
   const handleToggleStatus = (id: string) => {
     console.log("Toggle status functionality temporarily disabled", id);
+    // In real app, call updateCampaign(id, { status: ... })
   };
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [deleteType, setDeleteType] = useState<'ad' | 'campaign' | null>(null);
+  const [deleteType, setDeleteType] = useState<'campaign' | 'adUnit' | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // ==========================================
-  // Ads Handlers
-  // ==========================================
-
-  // Read
-  const handlePageChangeAds = (page: number) => {
-    setAdsPage(page);
-  };
-
-  // Create / Update
-  const [isAdEditorOpen, setIsAdEditorOpen] = useState(false);
-  const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
-
-  const handleOpenAdEditor = (ad?: Ad) => {
-    setSelectedAd(ad || null);
-    setIsAdEditorOpen(true);
-  };
-
-  const handleCloseAdEditor = () => {
-    setIsAdEditorOpen(false);
-    setSelectedAd(null);
-  }
-
-  const handleSave = async (data: any) => {
-    try {
-      if (selectedAd) {
-        await updateAd(selectedAd.id, data);
-      } else {
-        await createAd(data);
-      }
-      handleCloseAdEditor();
-    } catch (error) {
-      console.error("Failed to save ad:", error);
-    }
-  };
-
-  // Delete
-  const handleDeleteAd = (id: string) => {
-    setDeleteId(id);
-    setDeleteType('ad');
-    setIsDeleteDialogOpen(true);
-  };
-
-
-  // ==========================================
-  // Campaign Handlers
+  // Campaigns Handlers (formerly Ads)
   // ==========================================
 
   // Read
@@ -121,70 +74,42 @@ export default function AdsPage() {
     setCampaignsPage(page);
   };
 
-  // Create / Update
-  const [isCampaignEditorOpen, setIsCampaignEditorOpen] = useState(false);
-  const [selectedCampaign, setSelectedCampaign] = useState<any | null>(null);
-
-  const handleOpenCampaignEditor = (campaign?: any) => {
-    setSelectedCampaign(campaign || null);
-    setIsCampaignEditorOpen(true);
-  };
-
-  const handleCloseCampaignEditor = () => {
-    setIsCampaignEditorOpen(false);
-    setSelectedCampaign(null);
-  };
-
-  // Campaign Checklist Modal (Ad-Campaign relation)
-  const [isCampaignChecklistOpen, setIsCampaignChecklistOpen] = useState(false);
-  const [selectedAdForCampaigns, setSelectedAdForCampaigns] = useState<Ad | null>(null);
-
-  const handleOpenCampaignChecklist = (ad: Ad) => {
-    setSelectedAdForCampaigns(ad);
-    setIsCampaignChecklistOpen(true);
-  };
-
-  const handleCloseCampaignChecklist = () => {
-    setIsCampaignChecklistOpen(false);
-    setSelectedAdForCampaigns(null);
-  };
-
-  const handleSaveCampaignChecklist = async (adId: string, _campaignIds: string[]) => {
-    const campaignIds = _campaignIds.map(id => Number(id));
-    await updateAd(adId, { campaign_ids: campaignIds });
-
-    handleCloseCampaignChecklist();
-  };
-
-  const handleSaveCampaign = async (data: {
-    name: string;
-    rotation_type: RotationType;
-    start_date: Date;
-    end_date?: Date | null;
-  }) => {
-    try {
-      // Convert Date objects to YYYY-MM-DD strings for the API
-      const payload = {
-        ...data,
-        start_date: data.start_date ? format(data.start_date, 'yyyy-MM-dd') : null,
-        end_date: data.end_date ? format(data.end_date, 'yyyy-MM-dd') : null,
-      };
-
-      if (selectedCampaign) {
-        await updateCampaign(selectedCampaign.id, payload);
-      } else {
-        await createCampaign(payload);
-      }
-      handleCloseCampaignEditor();
-    } catch (error) {
-      console.error("Failed to save campaign:", error);
-    }
-  };
-
   // Delete
   const handleDeleteCampaign = (id: string) => {
     setDeleteId(id);
     setDeleteType('campaign');
+    setIsDeleteDialogOpen(true);
+  };
+
+  // Ad Unit Association
+  const [isAdUnitChecklistOpen, setIsAdUnitChecklistOpen] = useState(false);
+  const [selectedCampaignForAdUnits, setSelectedCampaignForAdUnits] = useState<Campaign | null>(null);
+
+  const handleOpenAdUnitChecklist = (campaign: Campaign) => {
+    setSelectedCampaignForAdUnits(campaign);
+    setIsAdUnitChecklistOpen(true);
+  };
+
+  const handleCloseAdUnitChecklist = () => {
+    setIsAdUnitChecklistOpen(false);
+    setSelectedCampaignForAdUnits(null);
+  };
+  // Read
+  const handlePageChangeAdUnits = (page: number) => {
+    setAdUnitsPage(page);
+  };
+
+  const handleSaveAdUnitRelation = async (campaignId: string, adUnitIds: string[]) => {
+    const numericIds = adUnitIds.map(id => Number(id));
+    await updateCampaign(campaignId, { ad_units: numericIds });
+  };
+
+
+
+  // Delete
+  const handleDeleteAdUnit = (id: string) => {
+    setDeleteId(id);
+    setDeleteType('adUnit');
     setIsDeleteDialogOpen(true);
   };
 
@@ -195,10 +120,10 @@ export default function AdsPage() {
 
   const confirmDelete = async () => {
     if (deleteId && deleteType) {
-      if (deleteType === 'ad') {
-        await deleteAd(deleteId);
-      } else {
+      if (deleteType === 'campaign') {
         await deleteCampaign(deleteId);
+      } else {
+        await deleteAdUnit(deleteId);
       }
       setIsDeleteDialogOpen(false);
       setDeleteId(null);
@@ -207,24 +132,20 @@ export default function AdsPage() {
   };
 
   // Default stats (placeholders)
-  const counts = {
-    all: adsPagination?.total || 0,
-    active: 0,
-    inactive: 0,
-  };
-
   const campaignCounts = {
     all: campaignsPagination?.total || 0,
     active: 0,
     inactive: 0,
   };
 
-  // Both adsList and campaignsData are already arrays
-  const campaignsList = campaignsData || [];
-
+  const adUnitCounts = {
+    all: adUnitsPagination?.total || 0,
+    active: 0,
+    inactive: 0,
+  };
 
   // Loading state
-  if (adsLoading || campaignsLoading) {
+  if (campaignsLoading || adUnitsLoading) {
     return (
       <div className="p-8 bg-[#f9fafb] min-h-screen space-y-8">
         <div className="h-10 w-64 bg-gray-200 animate-pulse rounded-md" />
@@ -237,31 +158,32 @@ export default function AdsPage() {
   }
 
   // Error state
-  if (adsError || campaignsError) {
+  if (campaignsError || adUnitsError) {
     return (
       <div className="p-8 bg-[#f9fafb] min-h-screen flex items-center justify-center">
         <div className="text-red-500">
           <p>Error loading data.</p>
-          {adsError && <p>Ads Error: {adsError}</p>}
           {campaignsError && <p>Campaigns Error: {campaignsError}</p>}
+          {adUnitsError && <p>Ad Units Error: {adUnitsError}</p>}
         </div>
       </div>
     );
   }
 
-  const adsPage = adsPagination?.current_page || 1;
+  const campaignsPage = campaignsPagination?.current_page || 1;
+  const adUnitsPage = adUnitsPagination?.current_page || 1;
 
   return (
     <div className="p-8 bg-[#f9fafb] min-h-screen">
       <AdminPageHeader
         title="Ads Management"
-        description="Manage advertisements and campaigns across all platforms"
-        actionLabel={activeTab === 'campaigns' ? "Create New Campaign" : "Create New Ad"}
+        description="Manage marketing campaigns and ad units (placements)"
+        actionLabel={activeTab === 'campaigns' ? "Create New Campaign" : "Create New Ad Unit"}
         onAction={() => {
           if (activeTab === "campaigns") {
-            handleOpenCampaignEditor();
+            window.location.href = "/admin/ads/campaigns/create";
           } else {
-            handleOpenAdEditor();
+            window.location.href = "/admin/ads/units/create";
           }
         }}
       />
@@ -269,17 +191,17 @@ export default function AdsPage() {
       {/* Stats Overview */}
       <div className="grid grid-cols-4 gap-6 mb-8">
         <StatCard
-          title="Total Revenue"
-          value="$0"
-          trend="Data unavailable"
-          iconName="DollarSign"
+          title="Total Campaigns"
+          value={campaignCounts.all}
+          trend="All time"
+          iconName="Target"
           iconColor="text-[#10b981]"
         />
         <StatCard
-          title="Active Ads"
-          value={counts.active}
-          trend={`Out of ${counts.all} total`}
-          iconName="ToggleRight"
+          title="Total Ad Units"
+          value={adUnitCounts.all}
+          trend="Placements"
+          iconName="LayoutTemplate"
           iconColor="text-[#3b82f6]"
         />
         <StatCard
@@ -293,7 +215,7 @@ export default function AdsPage() {
           title="Total Clicks"
           value="0"
           trend="Data unavailable"
-          iconName="SquareStack"
+          iconName="MousePointerClick"
           iconColor="text-[#f59e0b]"
         />
       </div>
@@ -301,20 +223,16 @@ export default function AdsPage() {
       <Tabs defaultValue="campaigns" value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="mb-6">
           <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
-          <TabsTrigger value="ads">Ads</TabsTrigger>
+          <TabsTrigger value="ad-units">Ad Units</TabsTrigger>
         </TabsList>
 
         {/* Campaigns Tab */}
         <TabsContent value="campaigns">
-          <CampaignFilters
-            searchQuery=""
-            setSearchQuery={() => { }}
-            activeTab="all"
-            setActiveTab={() => { }}
-            counts={campaignCounts}
-          />
+          <div className="mb-6 flex items-center gap-4">
+            {/* Minimal Search/Filter Placeholder - can expand later */}
+            <Input placeholder="Search campaigns..." className="max-w-sm" />
+          </div>
 
-          {/* Campaigns List */}
           <div className="space-y-4">
             {campaignsList.length > 0 ? (
               campaignsList.map((campaign) => (
@@ -323,7 +241,10 @@ export default function AdsPage() {
                   campaign={campaign}
                   onToggleStatus={handleToggleStatus}
                   onDelete={handleDeleteCampaign}
-                  onEdit={(c) => handleOpenCampaignEditor(c)}
+                  onEdit={(campaign) => {
+                    window.location.href = `/admin/ads/campaigns/${campaign.id}`;
+                  }}
+                  onEditAdUnits={handleOpenAdUnitChecklist}
                 />
               ))
             ) : (
@@ -335,39 +256,36 @@ export default function AdsPage() {
 
           <div className="mt-8">
             <Pagination
-              currentPage={campaignsPagination?.current_page || 1}
+              currentPage={campaignsPage}
               totalPages={campaignsPagination?.last_page || 1}
               onPageChange={handlePageChangeCampaigns}
             />
           </div>
         </TabsContent>
 
-        {/* Ads Tab */}
-        <TabsContent value="ads">
-          <AdsFilters
-            searchQuery=""
-            setSearchQuery={() => { }}
-            activeTab="all"
-            setActiveTab={() => { }}
-            counts={counts}
-          />
+        {/* Ad Units Tab */}
+        <TabsContent value="ad-units">
+          <div className="mb-6 flex items-center gap-4">
+            {/* Minimal Search/Filter Placeholder */}
+            <Input placeholder="Search ad units..." className="max-w-sm" />
+          </div>
 
-          {/* Ads List */}
           <div className="space-y-4">
-            {adsList.length > 0 ? (
-              adsList.map((ad) => (
-                <AdListItem
-                  key={ad.id}
-                  ad={ad}
-                  onToggleStatus={handleToggleStatus}
-                  onDelete={handleDeleteAd}
-                  onEdit={handleOpenAdEditor}
-                  onEditCampaigns={handleOpenCampaignChecklist}
+            {adUnitsList.length > 0 ? (
+              adUnitsList.map((adUnit) => (
+                <AdUnitListItem
+                  key={adUnit.id}
+                  adUnit={adUnit}
+                  onToggleStatus={() => { }} // No status on ad units currently
+                  onDelete={handleDeleteAdUnit}
+                  onEdit={(adUnit) => {
+                    window.location.href = `/admin/ads/units/${adUnit.id}`;
+                  }}
                 />
               ))
             ) : (
               <div className="bg-white border border-[#e5e7eb] rounded-[12px] p-20 text-center">
-                <p className="text-[#6b7280] text-[16px]">No advertisements found.</p>
+                <p className="text-[#6b7280] text-[16px]">No ad units found.</p>
               </div>
             )}
           </div>
@@ -375,48 +293,26 @@ export default function AdsPage() {
           {/* Pagination Component */}
           <div className="mt-8">
             <Pagination
-              currentPage={adsPage}
-              totalPages={adsPagination?.last_page || 1}
-              onPageChange={handlePageChangeAds}
+              currentPage={adUnitsPage}
+              totalPages={adUnitsPagination?.last_page || 1}
+              onPageChange={handlePageChangeAdUnits}
             />
           </div>
         </TabsContent>
       </Tabs>
 
-      <AdEditorModal
-        isOpen={isAdEditorOpen}
-        onClose={handleCloseAdEditor}
-        mode={selectedAd ? 'edit' : 'create'}
-        initialData={selectedAd || undefined}
-        onSave={handleSave}
+
+
+      {/* Ad Unit Checklist (Campaign Relation) */}
+      <AdUnitChecklistModal
+        isOpen={isAdUnitChecklistOpen}
+        onClose={handleCloseAdUnitChecklist}
+        campaign={selectedCampaignForAdUnits}
+        adUnits={adUnitsList}
+        onSave={handleSaveAdUnitRelation}
       />
 
-      {/* Campaign Editor Modal */}
-      {
-        selectedCampaign ?
-          <CampaignEditor
-            isOpen={isCampaignEditorOpen}
-            onClose={handleCloseCampaignEditor}
-            defaultValue={selectedCampaign}
-            onSave={handleSaveCampaign}
-          />
-          :
-          <CampaignEditor
-            isOpen={isCampaignEditorOpen}
-            onClose={handleCloseCampaignEditor}
-            onSave={handleSaveCampaign}
-          />
-      }
-
-      {/* Campaign Checklist Modal */}
-      <CampaignChecklistModal
-        isOpen={isCampaignChecklistOpen}
-        onClose={handleCloseCampaignChecklist}
-        ad={selectedAdForCampaigns}
-        campaigns={campaignsData}
-        onSave={handleSaveCampaignChecklist}
-      />
-
+      {/* Delete Confirmation */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
