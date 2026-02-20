@@ -98,6 +98,15 @@ export default function CampaignListItem({
           <Button
             variant="outline"
             size="sm"
+            onClick={() => window.location.href = `/admin/ads/campaigns/${campaign.id}/details`}
+          >
+            <ExternalLink className="h-4 w-4 mr-1" />
+            Details
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => onEdit(campaign)}
           >
             <Pencil className="h-4 w-4 mr-1" />
@@ -113,9 +122,13 @@ export default function CampaignListItem({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => window.location.href = `/admin/ads/campaigns/${campaign.id}/details`}>
+                <ExternalLink className="mr-2 h-4 w-4" />
+                View Details
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(campaign)}>
                 <Pencil className="mr-2 h-4 w-4" />
-                Edit Details
+                Edit Campaign
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEditAdUnits(campaign)}>
                 <ExternalLink className="mr-2 h-4 w-4" />

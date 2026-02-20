@@ -91,16 +91,16 @@ class AdMetricTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJsonStructure([
-            'period',
-            'from',
-            'to',
-            'data' => [
-                '*' => ['date', 'impressions', 'clicks']
+            'filters' => ['period', 'from', 'to', 'group_by', 'ad_unit_id', 'campaign_id'],
+            'analytics' => [
+                'data' => [
+                    '*' => ['date', 'impressions', 'clicks']
+                ]
             ]
         ]);
         
         // Basic check that we get data back
-        $data = $response->json('data');
+        $data = $response->json('analytics.data');
         $this->assertGreaterThanOrEqual(2, count($data)); // Today and Yesterday
     }
 }

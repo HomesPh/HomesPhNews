@@ -1,4 +1,4 @@
-import { FileText, CheckCircle2, AlertCircle, Eye, Users, MousePointerClick, TrendingUp, DollarSign, SquareStack, ToggleRight, XCircle, Link as LinkIcon, CheckCircle, Clock, BookOpen, ThumbsUp, MessageSquare, Mail, Share2, Activity, Target, LayoutTemplate } from 'lucide-react';
+import { FileText, CheckCircle2, AlertCircle, Eye, Users, MousePointerClick, TrendingUp, DollarSign, SquareStack, ToggleRight, XCircle, Link as LinkIcon, CheckCircle, Clock, BookOpen, ThumbsUp, MessageSquare, Mail, Share2, Activity, Target, LayoutTemplate, Filter } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 /**
@@ -27,6 +27,7 @@ const ICONS = {
     Activity,
     Target,
     LayoutTemplate,
+    Filter: Activity, // Using Activity as a placeholder or we can import Filter
 };
 
 

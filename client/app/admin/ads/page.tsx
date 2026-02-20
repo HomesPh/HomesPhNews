@@ -25,6 +25,7 @@ import CampaignListItem from '@/components/features/admin/ads/CampaignListItem';
 import AdUnitListItem from '@/components/features/admin/ads/AdUnitListItem';
 import AdUnitChecklistModal from '@/components/features/admin/ads/AdUnitChecklistModal';
 import { Input } from '@/components/ui/input';
+import AdMetricsOverview from '@/components/features/admin/ads/AdMetricsOverview';
 
 export default function AdsPage() {
   // Logic for fetching campaigns (formerly ads) and ad units (formerly campaigns)
@@ -188,37 +189,10 @@ export default function AdsPage() {
         }}
       />
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-4 gap-6 mb-8">
-        <StatCard
-          title="Total Campaigns"
-          value={campaignCounts.all}
-          trend="All time"
-          iconName="Target"
-          iconColor="text-[#10b981]"
-        />
-        <StatCard
-          title="Total Ad Units"
-          value={adUnitCounts.all}
-          trend="Placements"
-          iconName="LayoutTemplate"
-          iconColor="text-[#3b82f6]"
-        />
-        <StatCard
-          title="Total Impressions"
-          value="0"
-          trend="Data unavailable"
-          iconName="Eye"
-          iconColor="text-[#8b5cf6]"
-        />
-        <StatCard
-          title="Total Clicks"
-          value="0"
-          trend="Data unavailable"
-          iconName="MousePointerClick"
-          iconColor="text-[#f59e0b]"
-        />
-      </div>
+      <AdMetricsOverview
+        campaignCount={campaignCounts.all}
+        adUnitCount={adUnitCounts.all}
+      />
 
       <Tabs defaultValue="campaigns" value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="mb-6">
