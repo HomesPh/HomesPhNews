@@ -36,6 +36,7 @@ interface BaseArticleCardProps {
         onSelect: (checked: boolean) => void;
     };
     className?: string;
+    hideStatus?: boolean;
 }
 
 // Helper function to format date
@@ -65,9 +66,10 @@ export default function BaseArticleCard({
     article,
     variant = 'list',
     onClick,
-    actions,
+    className,
+    hideStatus = false,
     selection,
-    className
+    actions,
 }: BaseArticleCardProps) {
     const isCompact = variant === 'compact';
 
@@ -199,10 +201,7 @@ export default function BaseArticleCard({
                             {location}
                         </span>
                     </div>
-                    <div className="flex items-center gap-3">
-                        {actions}
-                        <StatusBadge status={article.status as any} />
-                    </div>
+                    {!hideStatus && <StatusBadge status={article.status as any} />}
                 </div>
 
                 {/* Title */}

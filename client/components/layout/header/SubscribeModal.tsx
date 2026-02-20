@@ -37,12 +37,19 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
     if (!isOpen) return null;
 
     const handleBack = () => {
-        setStep('choice');
+        if (step === 'email') {
+            setStep('choice');
+        } else if (step === 'configure') {
+            setStep('service');
+        } else if (step === 'service') {
+            setStep('choice');
+        }
     };
 
     const handleReset = () => {
         setIsSubmitted(false);
         setStep('choice');
+        // ... rest of reset logic
         setFormData({
             email: "",
             name: "",
@@ -62,7 +69,14 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
     };
 
     const handleSelectPlan = (plan: string, price: number) => {
-        router.push('/admin/login');
+        localStorage.setItem('pending_plan', plan.toLowerCase());
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            router.push(`/subscription/checkout?plan=${plan.toLowerCase()}`);
+        } else {
+            router.push('/admin/login');
+        }
+        onClose();
     };
 
     const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -262,8 +276,11 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                         </button>
 
                                         <button
-                                            disabled
-                                            className="group flex items-center gap-[16px] p-[20px] bg-gray-50 border border-[#e5e7eb] rounded-[20px] text-left transition-all opacity-70 cursor-not-allowed"
+                                            onClick={() => {
+                                                router.push('/subscription/plans');
+                                                onClose();
+                                            }}
+                                            className="group flex items-center gap-[16px] p-[20px] bg-white border border-[#e5e7eb] rounded-[20px] text-left transition-all hover:border-[#c10007] hover:shadow-xl"
                                         >
                                             <div className="w-[50px] h-[50px] bg-gray-100 rounded-[12px] flex items-center justify-center text-gray-400 transition-all">
                                                 <Briefcase className="w-7 h-7" />
