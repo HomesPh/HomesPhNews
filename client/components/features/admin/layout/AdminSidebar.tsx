@@ -143,8 +143,8 @@ export default function AdminSidebar() {
 
         <SidebarFooter className="px-4 py-4 border-t border-[#2a2d3e]">
           <button
-            onClick={() => {
-              logout();
+            onClick={async () => {
+              await logout();
               window.location.href = '/admin/login';
             }}
             className={cn(

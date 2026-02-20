@@ -1,80 +1,155 @@
 "use client";
 
-import { Edit, Trash2, ToggleLeft, ToggleRight, Repeat } from 'lucide-react';
-import { Campaign } from "@/lib/ads/types";
-import StatusBadge from "@/components/features/admin/shared/StatusBadge";
+// CampaignListItem component
+
+import { Campaign } from "../../../../lib/ads/types";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Pencil, Trash2, ExternalLink, Calendar, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
+import { format } from "date-fns";
 
 interface CampaignListItemProps {
   campaign: Campaign;
-  onEdit?: (campaign: Campaign) => void;
-  onDelete?: (id: string) => void;
-  onToggleStatus?: (id: string) => void;
+  onToggleStatus: (id: string) => void;
+  onDelete: (id: string) => void;
+  onEdit: (campaign: Campaign) => void;
+  onEditAdUnits: (campaign: Campaign) => void;
 }
 
-/**
- * CampaignListItem component for displaying a single campaign in the management list
- */
-export default function CampaignListItem({ campaign, onEdit, onDelete, onToggleStatus }: CampaignListItemProps) {
-  const isActive = campaign.is_active;
+export default function CampaignListItem({
+  campaign,
+  onToggleStatus,
+  onDelete,
+  onEdit,
+  onEditAdUnits,
+}: CampaignListItemProps) {
+  const statusColor =
+    campaign.status === "active"
+      ? "bg-green-100 text-green-800"
+      : campaign.status === "paused"
+        ? "bg-yellow-100 text-yellow-800"
+        : "bg-gray-100 text-gray-800";
 
   return (
-    <div className="bg-white border border-[#e5e7eb] rounded-[12px] p-6 hover:shadow-md transition-shadow">
-      <div className="flex gap-6">
-        {/* Campaign Info */}
-        <div className="flex-1">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h3 className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">
-                  {campaign.name}
-                </h3>
-                <StatusBadge status={isActive ? 'active' : 'inactive'} />
-              </div>
-              <p className="text-[14px] text-[#6b7280] tracking-[-0.5px] mb-1">
-                <span className="font-medium">Rotation Type:</span> <span className="capitalize">{campaign.rotation_type}</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="flex items-center gap-8 text-[13px] tracking-[-0.5px]">
-            <div className="flex items-center gap-2">
-              <Repeat className="w-4 h-4 text-[#6b7280]" />
-              <span className="text-[#6b7280]">Ads Count: </span>
-              <span className="font-medium text-[#111827]">{campaign.ads_count}</span>
-            </div>
-          </div>
+    <Card className="hover:shadow-md transition-shadow">
+      <CardContent className="p-4 flex items-center gap-4">
+        {/* Image / Icon */}
+        <div className="h-16 w-24 bg-gray-100 rounded-md overflow-hidden flex-shrink-0 border border-gray-200 flex items-center justify-center">
+          {campaign.image_url ? (
+            <img
+              src={campaign.image_url}
+              alt={campaign.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <ImageIcon className="h-6 w-6 text-gray-400" />
+          )}
         </div>
 
-        {/* Interaction Actions */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => onToggleStatus?.(campaign.id)}
-            className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors"
-            title={isActive ? "Deactivate" : "Activate"}
-          >
-            {isActive ? (
-              <ToggleRight className="w-5 h-5 text-[#10b981]" />
-            ) : (
-              <ToggleLeft className="w-5 h-5 text-[#6b7280]" />
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-semibold text-gray-900 truncate">
+              {campaign.name}
+            </h3>
+            <Badge variant="secondary" className={statusColor}>
+              {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
+            </Badge>
+          </div>
+
+          <div className="text-sm text-gray-500 space-y-1">
+            {campaign.headline && (
+              <p className="truncate">"{campaign.headline}"</p>
             )}
-          </button>
-          <button
-            onClick={() => onEdit?.(campaign)}
-            className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Edit Campaign"
-          >
-            <Edit className="w-5 h-5 text-[#3b82f6]" />
-          </button>
-          <button
-            onClick={() => onDelete?.(campaign.id)}
-            className="p-2.5 hover:bg-red-50 rounded-lg transition-colors"
-            title="Delete Campaign"
-          >
-            <Trash2 className="w-5 h-5 text-[#ef4444]" />
-          </button>
+
+            <div className="flex items-center gap-4">
+              <a
+                href={campaign.target_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+              >
+                <LinkIcon className="h-3 w-3" />
+                <span className="truncate max-w-[200px]">{campaign.target_url}</span>
+              </a>
+
+              <div className="flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                <span>
+                  {campaign.start_date ? format(new Date(campaign.start_date), "MMM d, yyyy") : "No start date"}
+                  {campaign.end_date && ` - ${format(new Date(campaign.end_date), "MMM d, yyyy")}`}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.location.href = `/admin/ads/campaigns/${campaign.id}/details`}
+          >
+            <ExternalLink className="h-4 w-4 mr-1" />
+            Details
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEdit(campaign)}
+          >
+            <Pencil className="h-4 w-4 mr-1" />
+            Edit
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => window.location.href = `/admin/ads/campaigns/${campaign.id}/details`}>
+                <ExternalLink className="mr-2 h-4 w-4" />
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit(campaign)}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Edit Campaign
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEditAdUnits(campaign)}>
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Manage Ad Units
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onToggleStatus(campaign.id)}>
+                {campaign.status === "active" ? "Pause Campaign" : "Activate Campaign"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-red-600 focus:text-red-600"
+                onClick={() => onDelete(campaign.id)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
