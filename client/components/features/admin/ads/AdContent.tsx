@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import useAds from "@/lib/ads/useAds";
 import { cn } from "@/lib/utils";
 import AdSkeleton from "./AdSkeleton";
@@ -62,9 +61,14 @@ export default function AdContent({ className, rotateInterval, width = 300, heig
   const isBanner = width >= 728;
   const cta = "Learn More";
 
+  // Mapping Campaign fields to display
+  const title = ad.headline || ad.name;
+  const description = ad.name; // Use name as description if headline is title? Or maybe ad.name is internal.
+  // Actually, let's use headline as Title. If no headline, use name.
+
   return (
     <Link
-      href={ad.destination_url}
+      href={ad.target_url}
       target="_blank"
       rel="noopener noreferrer sponsored"
       className={cn("group block relative w-full flex flex-col items-center", className)}
@@ -77,15 +81,17 @@ export default function AdContent({ className, rotateInterval, width = 300, heig
       >
         {/* Background Image Layer */}
         <div className="absolute inset-0 z-0">
-          <Image
-            src={ad.image_url}
-            alt={ad.title}
-            fill
-            unoptimized={true}
-            className="object-cover opacity-40 transition-transform duration-700 group-hover:scale-110"
-            sizes={`${width}px`}
-            priority={true}
-          />
+          {ad.image_url && (
+            <Image
+              src={ad.image_url}
+              alt={title}
+              fill
+              unoptimized={true}
+              className="object-cover opacity-40 transition-transform duration-700 group-hover:scale-110"
+              sizes={`${width}px`}
+              priority={true}
+            />
+          )}
         </div>
 
         {/* Gradient Overlays */}
@@ -104,7 +110,7 @@ export default function AdContent({ className, rotateInterval, width = 300, heig
               <div className="flex items-center gap-2 md:gap-6 flex-1 min-w-0">
                 <div className="min-w-0">
                   <h3 className="text-white font-bold text-sm md:text-lg leading-tight line-clamp-1">
-                    {ad.title}
+                    {title}
                   </h3>
                   <p className="text-white/70 text-[10px] md:text-xs mt-0.5 line-clamp-1 font-medium hidden sm:block">
                     Premium Real Estate & Lifestyle Updates
@@ -122,13 +128,14 @@ export default function AdContent({ className, rotateInterval, width = 300, heig
             <div className="flex flex-col justify-end h-full p-6 pb-8">
               <div className="space-y-3">
                 <h3 className="text-white font-bold text-xl leading-tight line-clamp-2">
-                  {ad.title}
+                  {title}
                 </h3>
-                {ad.description && (
-                  <p className="text-white/70 text-xs line-clamp-2 font-medium">
-                    {ad.description}
-                  </p>
-                )}
+                {/* 
+                 Only show description if it is different from title and meaningful. 
+                 Campaign name might be internal, so maybe don't show it as description unless sure.
+                 For now, hide description if not available in Campaign model in a user-friendly way.
+                 headline is used as title.
+                */}
 
                 <div className="inline-flex mt-2 bg-white text-slate-900 px-6 py-2.5 rounded-full font-bold text-xs items-center gap-2 transition-all duration-300 group-hover:gap-3 group-hover:bg-gray-100 group-hover:shadow-xl">
                   {cta}
