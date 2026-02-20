@@ -15,6 +15,8 @@ use App\Http\Controllers\Api\Admin\SiteController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Auth\SocialAuthController;
 use App\Http\Controllers\Api\PlanSubscriptionController;
+use App\Http\Controllers\Api\Subscriber\ArticleController as SubscriberArticleController;
+
 // User Controllers
 use App\Http\Controllers\Api\SiteContentController;
 use App\Http\Controllers\Api\SubscriptionController;
@@ -148,6 +150,12 @@ Route::prefix('v1')->group(function () {
 
         // Plan Subscriptions
         Route::post('/plans/subscribe', [PlanSubscriptionController::class, 'store']);
+
+        // Subscriber Routes (any authenticated user — no admin role required)
+        Route::prefix('subscriber')->group(function () {
+            Route::get('/articles', [SubscriberArticleController::class, 'index']);
+            Route::get('/articles/{id}', [SubscriberArticleController::class, 'show']);
+        });
     });
 
     /*
