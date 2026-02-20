@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Admin\ArticleController as AdminArticleController;
 use App\Http\Controllers\Api\Admin\ArticlePublicationController;
 use App\Http\Controllers\Api\Admin\CampaignController as AdminCampaignController;
 use App\Http\Controllers\Api\Admin\CategoryController;
+use App\Http\Controllers\Api\Admin\CityController;
 use App\Http\Controllers\Api\Admin\CountryController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
@@ -176,6 +177,7 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('ad-units', AdminAdUnitController::class);
             Route::apiResource('categories', CategoryController::class);
             Route::apiResource('countries', CountryController::class);
+            Route::apiResource('cities', CityController::class);
             // Resource Routes
             Route::get('sites/names', [SiteController::class, 'names']);
             Route::apiResource('sites', SiteController::class);
