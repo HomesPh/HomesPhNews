@@ -8,4 +8,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 use Illuminate\Support\Facades\Schedule;
-Schedule::command('newsletter:send')->dailyAt('08:00');
+// routes/console.php
+Schedule::command('newsletter:send')->everyMinute()->onOneServer();
