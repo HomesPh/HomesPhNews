@@ -98,6 +98,7 @@ class Campaign extends Model
 
     public function adUnits()
     {
-        return $this->belongsToMany(AdUnit::class, 'ad_unit_campaign');
+        return $this->belongsToMany(AdUnit::class, 'ad_unit_campaign')
+            ->withTimestamps();
     }
 }
