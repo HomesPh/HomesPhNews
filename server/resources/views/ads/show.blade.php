@@ -310,7 +310,15 @@
 </head>
 <body>
     @if(isset($campaign) && $campaign && $campaign->status === 'active')
-        <a href="{{ $campaign->target_url }}" target="_blank" rel="noopener noreferrer" class="ad-container">
+        @php
+            // Ensure target_url is a valid http/https link to prevent XSS (e.g. javascript:)
+            $safeTargetUrl = $campaign->target_url ?? '#';
+            $scheme = is_string($safeTargetUrl) ? parse_url($safeTargetUrl, PHP_URL_SCHEME) : null;
+            if (!$scheme || !in_array(strtolower($scheme), ['http', 'https'], true)) {
+                $safeTargetUrl = '#';
+            }
+        @endphp
+        <a href="{{ $safeTargetUrl }}" target="_blank" rel="noopener noreferrer" class="ad-container">
             <div class="ad-badge">Ad</div>
 
             @if($adUnit->type === 'image')
