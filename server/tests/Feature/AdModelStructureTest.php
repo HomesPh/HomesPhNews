@@ -24,14 +24,9 @@ class AdModelStructureTest extends TestCase
     {
         $campaign = new Campaign();
         $this->assertTrue(in_array('name', $campaign->getFillable()));
-        $this->assertTrue(in_array('type', $campaign->getFillable()));
         $this->assertTrue(in_array('status', $campaign->getFillable()));
-        $this->assertTrue(in_array('budget', $campaign->getFillable()));
-        $this->assertTrue(in_array('image_url', $campaign->getFillable()));
-
+        $this->assertTrue(in_array('target_url', $campaign->getFillable()));
+        $this->assertTrue(in_array('banner_image_urls', $campaign->getFillable()));
         $this->assertEquals('date', $campaign->getCasts()['start_date']);
-        $this->assertEquals('poster', Campaign::TYPE_POSTER);
-        $this->assertEquals('banner', Campaign::TYPE_BANNER);
-        $this->assertEquals('leader_board', Campaign::TYPE_LEADER_BOARD);
     }
 }
