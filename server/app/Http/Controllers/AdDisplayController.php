@@ -16,13 +16,12 @@ class AdDisplayController extends Controller
         // Find the AdUnit
         $adUnit = AdUnit::findOrFail($id);
 
-        $adUnit->increment('impressions');
-
         // Get an active campaign for this ad unit
         // For now, let's just pick one random active campaign
         $campaign = $adUnit->campaigns()->active()->inRandomOrder()->first();
 
         if ($campaign) {
+            $adUnit->increment('impressions');
             $campaign->increment('impressions');
         }
 
