@@ -16,6 +16,6 @@ export async function refreshKey(
   id: number
 ): Promise<AxiosResponse<RefreshKeyResponse>> {
   return AXIOS_INSTANCE_ADMIN.patch<RefreshKeyResponse>(
-    `/admin/sites/${id}/refresh-key`
+    `/v1/admin/sites/${id}/refresh-key`
   );
 }

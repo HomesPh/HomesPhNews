@@ -157,9 +157,9 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
                 <LandingHeroCarousel slides={slides} />
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <div className="flex flex-col lg:flex-row gap-12">
                 {/* Main Content Column (Left/Center) */}
-                <div className="lg:col-span-8">
+                <div className="flex-1 min-w-0">
                     {latest_global.length > 0 ? (
                         <div className="space-y-12">
                             {/* CATEGORY SPECIFIC BLOCKS ON HOME PAGE */}
@@ -246,9 +246,10 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
                 </div>
 
                 {/* Sidebar Column (Right) */}
-                <aside className="lg:col-span-4 space-y-10">
+                <aside className="w-full lg:w-[350px] flex-shrink-0 space-y-10">
                     <AdSpace
-                        className="h-28"
+                        width={336}
+                        height={280}
                         rotateInterval={10000}
                     />
 
@@ -258,6 +259,8 @@ export default function DashboardFeed({ country, category, feed }: DashboardFeed
                             slug: article.slug,
                             title: article.title,
                             imageUrl: article.image_url || article.image || 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7', // Fallback image
+                            imagePosition: article.image_position,
+                            imagePositionX: article.image_position_x,
                             views: article.views_count || 0,
                             timeAgo: article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently',
                         }))}

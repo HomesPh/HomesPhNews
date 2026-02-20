@@ -7,6 +7,7 @@ import { Eye } from 'lucide-react'
 
 type HeroSectionProps = {
   id?: string
+  slug?: string
   title: string
   description: string
   category: string
@@ -19,10 +20,13 @@ type HeroSectionProps = {
   isFeatured?: boolean
   onReadMore?: () => void
   readMoreText?: string
+  imagePosition?: number
+  imagePositionX?: number
 }
 
 export default function HeroSection({
   id = 'hero-article',
+  slug,
   title,
   description,
   category,
@@ -34,12 +38,14 @@ export default function HeroSection({
   keywords,
   isFeatured = false,
   onReadMore,
-  readMoreText = 'Read Full Story'
+  readMoreText = 'Read Full Story',
+  imagePosition,
+  imagePositionX
 }: HeroSectionProps) {
   const keywordList = keywords ? keywords.split(',').map(s => s.trim()) : [];
 
   return (
-    <Link href={`/article?id=${id}`} className="block">
+    <Link href={slug ? `/article/${slug}` : `/article/${id}`} className="block">
       <div className="group relative mb-8 w-full h-[379px] overflow-hidden rounded-[16px] bg-black cursor-pointer">
         {/* Image */}
         <div className="absolute inset-0">
@@ -47,9 +53,11 @@ export default function HeroSection({
             src={imageUrl || 'https://placehold.co/800x450?text=No+Image'}
             alt={imageAlt}
             fill
+            unoptimized={true}
             className="object-cover opacity-70 transition-all duration-500 group-hover:opacity-80 group-hover:scale-105"
             sizes="100vw"
             priority
+            style={{ objectPosition: `${imagePositionX ?? 50}% ${imagePosition ?? 0}%` }}
           />
           {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.8)] via-[rgba(0,0,0,0.4)] to-transparent" />
@@ -74,14 +82,14 @@ export default function HeroSection({
             )}
             <div className="flex items-center gap-2 ml-1">
               <div className="w-1.5 h-1.5 rounded-full bg-[#c10007]" />
-              <span className="text-[14px] font-medium text-[#d1d5db] tracking-tight">
+              <span className="text-[14px] font-medium text-[#d1d5db] tracking-tight" suppressHydrationWarning>
                 {timeAgo}
               </span>
             </div>
 
             <div className="flex items-center gap-2 ml-1">
               <Eye className="h-[14px] w-[14px] text-[#d1d5db]" />
-              <span className="text-[14px] font-medium text-[#d1d5db] tracking-tight">
+              <span className="text-[14px] font-medium text-[#d1d5db] tracking-tight" suppressHydrationWarning>
                 {views.toLocaleString()} views
               </span>
             </div>

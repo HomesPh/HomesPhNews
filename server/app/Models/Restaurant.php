@@ -45,6 +45,9 @@ class Restaurant extends Model
         'timestamp',
         'tags',
         'features',
+        'is_featured',
+        'is _featured',
+        'views_count',
     ];
 
     /**
@@ -58,5 +61,6 @@ class Restaurant extends Model
         'features' => 'array',
         'latitude' => 'float',
         'longitude' => 'float',
+        'views_count' => 'integer',
     ];
 }

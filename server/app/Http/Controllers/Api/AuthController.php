@@ -40,6 +40,41 @@ class AuthController extends Controller
     }
 
     /**
+     * Register a new user.
+     */
+    public function register(Request $request): JsonResponse
+    {
+        // Validate the request
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+        ]);
+
+        \Log::info('Registration attempt for: ' . $request->email);
+
+        // Create the user
+        $user = User::create([
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'name' => $validated['first_name'] . ' ' . $validated['last_name'], // Full name
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        // Create a token for the user
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User registered successfully',
+            'token' => $token,
+            'user' => new UserResource($user),
+        ], 201);
+    }
+
+    /**
      * Log the user out (Revoke token).
      */
     public function logout(Request $request): JsonResponse

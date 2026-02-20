@@ -66,6 +66,7 @@ export default function AdminDashboard() {
     const distributionSites = data?.stats.total_distribution.map(d => ({
         name: d.distributed_in,
         count: d.published_count,
+        totalViews: d.total_views,
         color: "#C10007"
     })) ?? [];
 
@@ -122,6 +123,8 @@ export default function AdminDashboard() {
                                     date={new Date(article.created_at).toLocaleDateString()}
                                     views={article.views_count.toString()}
                                     status={article.status}
+                                    image_position={article.image_position}
+                                    image_position_x={article.image_position_x}
                                     onClick={() => router.push(`/admin/articles/${article.id}`)}
                                 />
                             ))

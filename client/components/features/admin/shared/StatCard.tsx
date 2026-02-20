@@ -1,4 +1,4 @@
-import { FileText, CheckCircle2, AlertCircle, Eye, Users, MousePointerClick, TrendingUp, DollarSign, SquareStack, ToggleRight, XCircle, Link as LinkIcon, CheckCircle, Clock } from 'lucide-react';
+import { FileText, CheckCircle2, AlertCircle, Eye, Users, MousePointerClick, TrendingUp, DollarSign, SquareStack, ToggleRight, XCircle, Link as LinkIcon, CheckCircle, Clock, BookOpen, ThumbsUp, MessageSquare, Mail, Share2, Activity } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 /**
@@ -19,12 +19,19 @@ const ICONS = {
     XCircle,
     Link: LinkIcon,
     Clock,
+    BookOpen,
+    ThumbsUp,
+    MessageSquare,
+    Mail,
+    Share2,
+    Activity,
 };
 
 interface StatCardProps {
     title: string;
     value: string | number;
     trend: string;
+    trendLabel?: string;
     iconName: keyof typeof ICONS;
     iconBgColor?: string;
     iconColor?: string;
@@ -39,13 +46,14 @@ export default function StatCard({
     title,
     value,
     trend,
+    trendLabel,
     iconName,
     iconBgColor = "bg-[#dbeafe]",
     iconColor = "text-[#155DFC]",
     iconSize = "w-4 h-4",
     hasIconBg = false,
 }: StatCardProps) {
-    const Icon = ICONS[iconName];
+    const Icon = ICONS[iconName] || AlertCircle; // Fallback to AlertCircle if icon not found
 
     return (
         <div className="bg-white rounded-[12px] border border-[#f3f4f6] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] p-6">
@@ -68,6 +76,7 @@ export default function StatCard({
             <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-[#10b981]" />
                 <span className="text-[14px] font-semibold text-[#10b981] tracking-[-0.5px]">{trend}</span>
+                {trendLabel && <span className="text-[14px] font-medium text-gray-500 tracking-[-0.5px]">{trendLabel}</span>}
             </div>
         </div>
     );

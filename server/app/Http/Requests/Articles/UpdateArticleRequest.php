@@ -27,14 +27,25 @@ class UpdateArticleRequest extends FormRequest
             'content' => 'nullable|string',
             'category' => 'nullable|string|max:50',
             'country' => 'nullable|string|max:100',
-            'image' => 'nullable|string|max:500',
-            'image_url' => 'nullable|string|max:500', // Support both for flexiblity
+            'image' => 'nullable|string|max:2000',
+            'image_url' => 'nullable|string|max:2000', // Support both for flexiblity
             'published_sites' => 'nullable|array',
             'published_sites.*' => 'string',
             'status' => 'nullable|string|in:published,pending review,rejected,deleted',
             'custom_titles' => 'nullable|array',
             'topics' => 'nullable|array',
             'keywords' => 'nullable|string|max:255',
+            'content_blocks' => 'nullable|array',
+            'template' => 'nullable|string',
+            'author' => 'nullable|string',
+            // Additional fields from editor
+            'gallery_images' => 'nullable|array',
+            'galleryImages' => 'nullable|array', // Support both naming conventions
+            'split_images' => 'nullable|array',
+            'date' => 'nullable|string',
+            'slug' => 'nullable|string|max:255',
+            'image_position' => 'nullable|integer',
+            'image_position_x' => 'nullable|integer',
         ];
     }
 }

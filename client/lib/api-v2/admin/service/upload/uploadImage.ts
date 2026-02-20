@@ -21,7 +21,7 @@ export async function uploadImage(
   formData.append("image", image);
 
   return AXIOS_INSTANCE_ADMIN.post<UploadImageResponse>(
-    "/admin/upload/image",
+    "/v1/admin/upload/image",
     formData,
     {
       headers: {

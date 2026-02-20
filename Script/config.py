@@ -31,6 +31,7 @@ CATEGORIES = [
     "Business & Economy",
     "Real Estate",
     "Success Stories",
+    "Sports",
 ]
 
 # Restaurant Categories
@@ -80,3 +81,56 @@ REDIS_KEYS = {
     "category_list": "news:category:{category}:articles",
     "all_articles": "news:all:articles",
 }
+
+# ═══════════════════════════════════════════════════════════════
+# DYNAMIC CONFIGURATION (MYSQL)
+# ═══════════════════════════════════════════════════════════════
+
+def load_dynamic_config():
+    """Fetch countries and categories from MySQL if available."""
+    global COUNTRIES, CATEGORIES
+    
+    try:
+        from database import SessionLocal, check_mysql_connection
+        from models import CategoryDB, CountryDB
+        
+        if not check_mysql_connection():
+            print("ℹ️ MySQL not connected, using hardcoded config fallbacks.")
+            return
+
+        db = SessionLocal()
+        try:
+            # 1. Fetch Categories
+            db_categories = db.query(CategoryDB).filter(CategoryDB.is_active == True).all()
+            if db_categories:
+                CATEGORIES.clear()
+                CATEGORIES.extend([c.name for c in db_categories])
+                print(f"✅ Loaded {len(CATEGORIES)} categories from database: {CATEGORIES}")
+            
+            # 2. Fetch Countries
+            db_countries = db.query(CountryDB).filter(CountryDB.is_active == True).all()
+            if db_countries:
+                new_countries = {}
+                for c in db_countries:
+                    new_countries[c.name] = {
+                        "gl": c.gl,
+                        "hl": c.h1, # Mapping DB 'h1' to Config 'hl'
+                        "ceid": c.ceid
+                    }
+                COUNTRIES.clear()
+                COUNTRIES.update(new_countries)
+                print(f"✅ Loaded {len(COUNTRIES)} countries from database.")
+                
+        except Exception as e:
+            print(f"⚠️ Error querying dynamic config: {e}")
+        finally:
+            db.close()
+            
+    except ImportError:
+        # Fallback if database/models aren't fully initialized yet during early imports
+        pass
+    except Exception as e:
+        print(f"⚠️ Failed to load dynamic config: {e}")
+
+# Initial load
+load_dynamic_config()

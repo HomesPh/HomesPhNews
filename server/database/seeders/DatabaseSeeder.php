@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
 
         // Seed Users first (independent)
         $this->call([
+            RoleSeeder::class,
             UserSeeder::class,
         ]);
 

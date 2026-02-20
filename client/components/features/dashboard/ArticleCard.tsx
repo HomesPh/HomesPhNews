@@ -3,7 +3,7 @@
 import { Badge } from '@/components/ui/badge'
 import Image from 'next/image'
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
+import { cn, decodeHtml, calculateReadTime, stripHtml } from '@/lib/utils'
 import { Clock } from 'lucide-react'
 import ShareButtons from "@/components/shared/ShareButtons";
 
@@ -14,10 +14,13 @@ interface ArticleCardProps {
   location?: string
   title: string
   description?: string
+  content?: string
   timeAgo: string
   views?: string
   imageSrc: string
   imageAlt?: string
+  imagePosition?: number
+  imagePositionX?: number
   className?: string
 }
 
@@ -28,15 +31,21 @@ export default function ArticleCard({
   location,
   title,
   description,
+  content,
   timeAgo,
   views,
   imageSrc,
   imageAlt = "Article Image",
+  imagePosition,
+  imagePositionX,
   className
 }: ArticleCardProps) {
+  const basePath = category === "Restaurant" ? "/restaurants" : "/article";
+  const href = slug ? `${basePath}/${slug}` : `${basePath}/${id}`;
+
   return (
     <Link
-      href={slug ? `/article?slug=${slug}` : `/article?id=${id}`}
+      href={href}
       className={cn(
         'group flex gap-6 rounded-[12px] border border-[#f3f4f6] bg-white p-6 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all hover:bg-transparent',
         className
@@ -49,7 +58,9 @@ export default function ArticleCard({
           alt={imageAlt}
           fill
           sizes="(max-width: 768px) 100vw, 288px"
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          className="object-cover transition-transform duration-300 transform scale-110 group-hover:scale-[1.15]"
+          style={{ objectPosition: `${imagePositionX ?? 50}% ${imagePosition ?? 0}%` }}
+          unoptimized={true}
         />
         {/* Tags - Bottom Left */}
         <div className="absolute bottom-2 left-2 flex gap-1 z-10 transition-opacity">
@@ -71,7 +82,7 @@ export default function ArticleCard({
         {/* Share Icons - Bottom Right */}
         <div className="absolute bottom-2 right-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20">
           <ShareButtons
-            url={slug ? `/article?slug=${slug}` : `/article?id=${id}`}
+            url={href}
             title={title}
             description={description}
             size="xs"
@@ -89,18 +100,22 @@ export default function ArticleCard({
 
         {/* Description / Excerpt */}
         <p className="line-clamp-2 text-[16px] font-normal leading-[1.5] text-[#4b5563] tracking-[-0.5px]">
-          {description}
+          {stripHtml(description)}
         </p>
 
         {/* Meta */}
         <div className="flex items-center gap-2 text-[#6b7280] mt-1">
           <Clock className="h-[14px] w-[14px]" />
-          <span className="text-[14px] font-normal tracking-[-0.5px]">
+          <span className="text-[14px] font-normal tracking-[-0.5px]" suppressHydrationWarning>
             {timeAgo}
           </span>
           <span className="text-[16px] font-normal tracking-[-0.5px]">•</span>
-          <span className="text-[14px] font-normal tracking-[-0.5px]">
+          <span className="text-[14px] font-normal tracking-[-0.5px]" suppressHydrationWarning>
             {views}
+          </span>
+          <span className="text-[16px] font-normal tracking-[-0.5px]">•</span>
+          <span className="text-[14px] font-normal tracking-[-0.5px]" suppressHydrationWarning>
+            {calculateReadTime(content || description)}
           </span>
         </div>
       </div>

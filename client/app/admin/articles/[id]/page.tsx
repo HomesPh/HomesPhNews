@@ -1,17 +1,22 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { cn, decodeHtml } from "@/lib/utils";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Calendar, Eye, Edit, XCircle, ChevronLeft, Loader2, ExternalLink } from 'lucide-react';
+
 import { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
 import { getAdminArticleById } from "@/lib/api-v2/admin/service/article/getAdminArticleById";
 import { publishArticle } from "@/lib/api-v2/admin/service/article/publishArticle";
 import { deleteArticle } from "@/lib/api-v2/admin/service/article/deleteArticle";
 import { restoreArticle } from "@/lib/api-v2/admin/service/article/restoreArticle";
-import { Trash2, RotateCcw } from 'lucide-react';
+import { hardDeleteArticle } from "@/lib/api-v2/admin/service/article/hardDeleteArticle";
+import { Trash2, RotateCcw, ShieldAlert, Send } from 'lucide-react';
+import { sendNewsletter } from "@/lib/api-v2/admin/service/article/sendNewsletter";
 import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
 import CustomizeTitlesModal from "@/components/features/admin/articles/CustomizeTitlesModal";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
+import SendNewsletterModal from "@/components/features/admin/articles/SendNewsletterModal";
 import ArticleBreadcrumb from "@/components/features/article/ArticleBreadcrumb";
 import { Categories, Countries } from "@/app/data";
 import {
@@ -37,7 +42,7 @@ import { getSiteNames } from "@/lib/api-v2/admin/service/sites/getSiteNames";
 /**
  * Article Details Page
  */
-export default function ArticleDetailsPage() {
+function ArticleDetailsContent() {
     const params = useParams();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -50,12 +55,24 @@ export default function ArticleDetailsPage() {
     const [isPublishing, setIsPublishing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isRestoring, setIsRestoring] = useState(false);
+    const [isHardDeleting, setIsHardDeleting] = useState(false);
     const [customTitles, setCustomTitles] = useState<Record<string, string>>({});
     const [showPublishDialog, setShowPublishDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showRestoreDialog, setShowRestoreDialog] = useState(false);
+    const [showHardDeleteDialog, setShowHardDeleteDialog] = useState(false);
     const [availableSites, setAvailableSites] = useState<string[]>([]);
     const [publishToSites, setPublishToSites] = useState<string[]>([]);
+    const [isSendingNewsletter, setIsSendingNewsletter] = useState(false);
+    const [isNewsletterModalOpen, setIsNewsletterModalOpen] = useState(false);
+
+    const [availableFilters, setAvailableFilters] = useState<{
+        categories: string[];
+        countries: string[];
+    }>({
+        categories: [],
+        countries: [],
+    });
 
     useEffect(() => {
         const fetchArticle = async () => {
@@ -63,10 +80,15 @@ export default function ArticleDetailsPage() {
             setIsLoading(true);
             try {
                 const response = await getAdminArticleById(Array.isArray(params.id) ? params.id[0] : params.id);
-                // Handle both response structures: { data: article } or article directly
-                const articleData = response.data.data ?? response.data;
-                console.log('Article API response:', response.data);
+                const responseData = response.data as any;
+                const articleData = responseData.data ?? responseData;
+                console.log('Article API response:', responseData);
                 setArticle(articleData as ArticleResource);
+
+                // If filters are present in this response, use them
+                if (responseData.available_filters) {
+                    setAvailableFilters(responseData.available_filters);
+                }
             } catch (e) {
                 console.error("Failed to fetch article", e);
             } finally {
@@ -75,6 +97,24 @@ export default function ArticleDetailsPage() {
         };
         fetchArticle();
     }, [params.id]);
+
+    useEffect(() => {
+        // As a fallback, if filters weren't in the article response, fetch them from the general endpoint
+        const fetchFilters = async () => {
+            if (availableFilters.categories.length === 0) {
+                try {
+                    const { getAdminArticles } = await import("@/lib/api-v2/admin/service/article/getAdminArticles");
+                    const res = await getAdminArticles({ per_page: 1 });
+                    if (res.data.available_filters) {
+                        setAvailableFilters(res.data.available_filters);
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch filters in details page", e);
+                }
+            }
+        };
+        fetchFilters();
+    }, [availableFilters.categories.length]);
 
     useEffect(() => {
         getSiteNames().then(res => setAvailableSites(res.data as unknown as string[])).catch(console.error);
@@ -160,6 +200,30 @@ export default function ArticleDetailsPage() {
         }
     };
 
+    const handleHardDeleteClick = () => {
+        if (!article || !params.id) return;
+        setShowHardDeleteDialog(true);
+    };
+
+    const confirmHardDelete = async () => {
+        setIsHardDeleting(true);
+        try {
+            const articleId = (Array.isArray(params.id) ? params.id[0] : params.id) || '';
+            await hardDeleteArticle(articleId);
+            router.push('/admin/articles');
+        } catch (error: any) {
+            const message = error.response?.data?.message || 'Failed to permanently delete article';
+            alert(`Error: ${message}`);
+        } finally {
+            setIsHardDeleting(false);
+            setShowHardDeleteDialog(false);
+        }
+    };
+
+    const handleSendNewsletter = () => {
+        setIsNewsletterModalOpen(true);
+    };
+
     const handleCustomTitlesUpdate = (titles: Record<string, string>) => {
         setCustomTitles(titles);
     };
@@ -230,41 +294,184 @@ export default function ArticleDetailsPage() {
                                     </div>
                                 </div>
 
-                                <figure className="mb-8">
-                                    <div className="w-full aspect-[16/9] overflow-hidden bg-gray-100 rounded-[8px] mb-3">
-                                        <img
-                                            src={article.image || 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'}
-                                            alt={article.title}
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => { e.currentTarget.src = 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'; }}
-                                        />
-                                    </div>
-                                    <figcaption className="text-[13px] text-[#6b7280] italic leading-relaxed">
-                                        {article.title} — {article.country}
-                                    </figcaption>
-                                </figure>
+                                {(() => {
+                                    const content = article.content || article.summary || '';
+                                    const decodedContent = content; // Use raw content directly
 
-                                <div className="prose prose-lg max-w-none prose-p:text-[#374151] prose-p:leading-[28px] prose-p:tracking-[-0.5px]">
-                                    {(() => {
-                                        const content = article.content || article.summary || '';
-                                        const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim());
-                                        return paragraphs.map((para, idx) => {
-                                            const trimmed = para.trim();
-                                            if (!trimmed) return null;
-                                            if (idx === 0) {
-                                                const firstChar = trimmed.charAt(0);
-                                                const restOfText = trimmed.slice(1);
-                                                return (
-                                                    <p key={idx} className="text-[19px] leading-[32px] text-[#0c0c0c] mb-6 font-normal">
-                                                        <span className="float-left text-[72px] leading-[64px] mr-2 mt-1 font-bold text-[#0c0c0c]">{firstChar}</span>
-                                                        {restOfText}
-                                                    </p>
-                                                );
-                                            }
-                                            return <p key={idx} className="text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] mb-6">{trimmed}</p>;
-                                        });
-                                    })()}
-                                </div>
+                                    // Check if content already starts with the feature image to avoid duplication
+
+                                    // This is common in scraper data where the first image in HTML matches the header image
+                                    const firstImageMatch = decodedContent.match(/<img[^>]+src=['"]([^'"]+)['"]/);
+                                    const isDuplicateImage = firstImageMatch && article.image && (
+                                        firstImageMatch[1] === article.image ||
+                                        decodeURIComponent(firstImageMatch[1]) === decodeURIComponent(article.image)
+                                    );
+
+                                    // If we have content blocks AND they seem to be the primary source, use them
+                                    const hasContentBlocks = Array.isArray(article.content_blocks) && article.content_blocks.length > 0;
+
+                                    // Determine if we should show the feature image figure
+                                    // We skip it if the content already starts with an image figure (legacy HTML)
+                                    // OR if the first block is an image that matches (blocks)
+                                    const shouldShowFeatureImage = article.image && !isDuplicateImage;
+
+                                    return (
+                                        <>
+                                            {/* Feature Image - only if not redundant */}
+                                            {shouldShowFeatureImage && (
+                                                <figure className="mb-8">
+                                                    <div className="w-full aspect-[16/9] overflow-hidden bg-gray-100 rounded-[8px] mb-3">
+                                                        <img
+                                                            src={article.image || 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'}
+                                                            alt={article.title}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => { e.currentTarget.src = 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'; }}
+                                                        />
+                                                    </div>
+                                                    <figcaption className="text-[13px] text-[#6b7280] italic leading-relaxed">
+                                                        {article.title} — {article.country}
+                                                    </figcaption>
+                                                </figure>
+                                            )}
+
+                                            {/* Main Content Area */}
+                                            <div className="prose prose-lg max-w-none prose-p:text-[#374151] prose-p:leading-[28px] prose-p:tracking-[-0.5px]">
+                                                {hasContentBlocks ? (
+                                                    <div className="space-y-6">
+                                                        {article.content_blocks?.map((block: any, idx: number) => {
+                                                            const { type, content, settings } = block;
+                                                            // Block specific styles from settings
+                                                            const blockStyle = {
+                                                                textAlign: settings?.textAlign || 'left',
+                                                                fontSize: settings?.fontSize || '18px',
+                                                                color: settings?.color || 'inherit',
+                                                                fontWeight: settings?.fontWeight || 'normal',
+                                                                fontStyle: settings?.isItalic ? 'italic' : 'normal',
+                                                                textDecoration: settings?.isUnderline ? 'underline' : 'none',
+                                                            } as React.CSSProperties;
+
+                                                            return (
+                                                                <div key={block.id || idx} className="mb-8">
+                                                                    {/* 1. TEXT BLOCKS */}
+                                                                    {type === 'text' && (
+                                                                        <div
+                                                                            style={blockStyle}
+                                                                            className={cn(
+                                                                                "whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&_p]:min-h-[1.5em]",
+                                                                                settings?.listType === 'bullet' && "list-disc ml-6",
+                                                                                settings?.listType === 'number' && "list-decimal ml-6"
+                                                                            )}
+                                                                            dangerouslySetInnerHTML={{ __html: content?.text || content || '' }}
+
+                                                                        />
+                                                                    )}
+
+                                                                    {/* 2. STANDARD IMAGE BLOCKS */}
+                                                                    {(type === 'image' || type === 'centered-image') && (
+                                                                        <figure className={cn("my-8", type === 'centered-image' && "max-w-[80%;] mx-auto text-center")}>
+                                                                            <img
+                                                                                src={content?.src || block.image}
+                                                                                alt={content?.caption || block.caption || ""}
+                                                                                className="w-full rounded-xl shadow-sm border border-gray-100"
+                                                                            />
+                                                                            {(content?.caption || block.caption) && (
+                                                                                <figcaption className="text-sm text-center text-gray-400 mt-3 italic">
+                                                                                    {content?.caption || block.caption}
+                                                                                </figcaption>
+                                                                            )}
+                                                                        </figure>
+                                                                    )}
+
+                                                                    {/* 3. LAYOUT BLOCKS: SIDE IMAGES */}
+                                                                    {(type === 'left-image' || type === 'right-image') && (
+                                                                        <div className={cn(
+                                                                            "my-10 flex gap-8 items-start flex-col md:flex-row",
+                                                                            type === 'right-image' && "md:flex-row-reverse"
+                                                                        )}>
+                                                                            <div className="w-full md:w-[200px] shrink-0">
+                                                                                <img
+                                                                                    src={content?.image || content?.src || block.image}
+                                                                                    alt=""
+                                                                                    className="w-full aspect-square object-cover rounded-xl shadow-sm"
+                                                                                />
+                                                                                {(content?.caption || block.caption) && (
+                                                                                    <p className="text-[11px] text-gray-400 mt-2 italic text-center leading-tight">
+                                                                                        {content?.caption || block.caption}
+                                                                                    </p>
+                                                                                )}
+                                                                            </div>
+                                                                            <div
+                                                                                style={blockStyle}
+                                                                                className="flex-1 text-[18px] text-[#374151] leading-[32px]"
+                                                                                dangerouslySetInnerHTML={{ __html: decodeHtml(content?.text || content || '') }}
+                                                                            />
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* 4. LAYOUT BLOCKS: GRIDS */}
+                                                                    {type === 'grid' && (
+                                                                        <div className={cn(
+                                                                            "my-8 grid gap-4",
+                                                                            (content?.images?.length === 3) ? "grid-cols-3" : "grid-cols-2"
+                                                                        )}>
+                                                                            {content?.images?.map((img: string, i: number) => (
+                                                                                <img
+                                                                                    key={i}
+                                                                                    src={img}
+                                                                                    className="w-full aspect-square object-cover rounded-xl shadow-sm"
+                                                                                />
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* 5. LAYOUT BLOCKS: SPLIT VIEW */}
+                                                                    {(type === 'split-left' || type === 'split-right') && (
+                                                                        <div className={cn(
+                                                                            "my-10 flex flex-col md:flex-row bg-[#f9fafb] rounded-2xl overflow-hidden min-h-[400px]",
+                                                                            type === 'split-right' && "md:flex-row-reverse"
+                                                                        )}>
+                                                                            <div className="flex-1 min-h-[300px]">
+                                                                                <img
+                                                                                    src={content?.image || block.image}
+                                                                                    className="w-full h-full object-cover"
+                                                                                />
+                                                                            </div>
+                                                                            <div
+                                                                                style={blockStyle}
+                                                                                className="flex-1 p-8 md:p-12 flex items-center text-[20px] text-[#111827] leading-[1.4] font-medium"
+                                                                                dangerouslySetInnerHTML={{ __html: decodeHtml(content?.text || content || '') }}
+                                                                            />
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* 6. DYNAMIC IMAGES */}
+                                                                    {type === 'dynamic-images' && (
+                                                                        <div className="my-8 space-y-4">
+                                                                            {content?.images?.map((img: string, i: number) => (
+                                                                                <img
+                                                                                    key={i}
+                                                                                    src={img}
+                                                                                    className="w-full rounded-xl shadow-sm"
+                                                                                />
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : (
+                                                    <div
+                                                        className="whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>li]:mb-1 [&>a]:text-blue-600 [&>a]:underline first-letter:text-[72px] first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-5px] first-letter:leading-[0.8] first-letter:text-[#0c0c0c] [&_p]:min-h-[1.5em]"
+                                                        dangerouslySetInnerHTML={{ __html: decodedContent }}
+                                                    />
+
+
+                                                )}
+                                            </div>
+                                        </>
+                                    );
+                                })()}
                             </article>
                         </div>
 
@@ -323,15 +530,20 @@ export default function ArticleDetailsPage() {
                                     </label>
                                 ))}
                             </div>
+                            {article.is_redis && (
+                                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-[12px] text-amber-700 leading-relaxed font-medium">
+                                    This article is currently in the <strong>Pending Review</strong> queue (Redis cached) and is not yet stored in the main database. Click Publish to finalize and store it.
+                                </div>
+                            )}
                             <div className="flex gap-3">
                                 <button disabled className="flex-1 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#374151] bg-gray-100 opacity-50 cursor-not-allowed tracking-[-0.5px]">Customize</button>
                                 <button
                                     onClick={handlePublishClick}
-                                    disabled={isPublishing || article.status === 'published'}
+                                    disabled={isPublishing || (article.status === 'published' && !article.is_redis)}
                                     className="flex-1 px-4 py-2.5 bg-[#3b82f6] text-white rounded-[8px] text-[14px] font-semibold hover:bg-[#2563eb] transition-all active:scale-95 tracking-[-0.5px] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     {isPublishing && <Loader2 className="w-4 h-4 animate-spin" />}
-                                    {isPublishing ? 'Publishing...' : (article.status === 'published' ? 'Published' : 'Publish')}
+                                    {isPublishing ? 'Publishing...' : (article.status === 'published' && !article.is_redis ? 'Published' : 'Publish')}
                                 </button>
                             </div>
                         </div>
@@ -364,24 +576,53 @@ export default function ArticleDetailsPage() {
                                 <button onClick={() => setIsEditModalOpen(true)} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#374151] hover:bg-gray-50 transition-all active:scale-95 tracking-[-0.5px]">
                                     <Edit className="w-4 h-4" /> Edit Article
                                 </button>
+                                {article.status === 'published' && !article.is_deleted && (
+                                    <button
+                                        onClick={handleSendNewsletter}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-[#3b82f6] text-[#3b82f6] rounded-[8px] text-[14px] font-medium hover:bg-blue-50 transition-all active:scale-95 tracking-[-0.5px]"
+                                    >
+                                        <Send className="w-4 h-4" />
+                                        Send to Subscribers
+                                    </button>
+                                )}
                                 {article.is_deleted || article.status === 'deleted' ? (
-                                    <button
-                                        onClick={handleRestoreClick}
-                                        disabled={isRestoring}
-                                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-emerald-200 bg-emerald-50 rounded-[8px] text-[14px] font-medium text-emerald-700 hover:bg-emerald-100 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {isRestoring ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
-                                        {isRestoring ? 'Restoring...' : 'Restore Article'}
-                                    </button>
+                                    <div className="space-y-3">
+                                        <button
+                                            onClick={handleRestoreClick}
+                                            disabled={isRestoring}
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-emerald-200 bg-emerald-50 rounded-[8px] text-[14px] font-medium text-emerald-700 hover:bg-emerald-100 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {isRestoring ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                                            {isRestoring ? 'Restoring...' : 'Restore Article'}
+                                        </button>
+                                        <button
+                                            onClick={handleHardDeleteClick}
+                                            disabled={isHardDeleting}
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-red-200 bg-red-50 rounded-[8px] text-[14px] font-medium text-red-700 hover:bg-red-100 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {isHardDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
+                                            {isHardDeleting ? 'Deleting...' : 'Permanent Delete'}
+                                        </button>
+                                    </div>
                                 ) : (
-                                    <button
-                                        onClick={handleDeleteClick}
-                                        disabled={isDeleting}
-                                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#ef4444] hover:bg-red-50 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                                        {isDeleting ? 'Deleting...' : 'Delete Article'}
-                                    </button>
+                                    <div className="space-y-3">
+                                        <button
+                                            onClick={handleDeleteClick}
+                                            disabled={isDeleting}
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#ef4444] hover:bg-red-50 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                            {isDeleting ? 'Deleting...' : 'Delete Article'}
+                                        </button>
+                                        <button
+                                            onClick={handleHardDeleteClick}
+                                            disabled={isHardDeleting}
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-red-100 rounded-[8px] text-[14px] font-medium text-red-600 hover:bg-red-50 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {isHardDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
+                                            {isHardDeleting ? 'Deleting...' : 'Permanent Delete'}
+                                        </button>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -389,7 +630,14 @@ export default function ArticleDetailsPage() {
                 </div>
             </div>
 
-            <ArticleEditorModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} mode="edit" initialData={article} />
+            <ArticleEditorModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                mode="edit"
+                initialData={article}
+                availableCategories={availableFilters.categories}
+                availableCountries={availableFilters.countries}
+            />
             <CustomizeTitlesModal isOpen={isCustomizeModalOpen} onClose={() => setIsCustomizeModalOpen(false)} publishTo={publishToSites} originalTitle={article.title} onSave={handleCustomTitlesUpdate} />
 
             <AlertDialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
@@ -434,6 +682,46 @@ export default function ArticleDetailsPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            <AlertDialog open={showHardDeleteDialog} onOpenChange={setShowHardDeleteDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-red-600 flex items-center gap-2">
+                            <ShieldAlert className="w-5 h-5" />
+                            Permanent Deletion
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action <strong>CANNOT BE UNDONE</strong>. This will permanently delete the article from the database and Redis. All associated data will be lost forever.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmHardDelete} className="bg-red-600 hover:bg-red-700 text-white border-none">
+                            Yes, Delete Forever
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            {article && (
+                <SendNewsletterModal
+                    isOpen={isNewsletterModalOpen}
+                    onClose={() => setIsNewsletterModalOpen(false)}
+                    articles={[{
+                        id: article.id,
+                        title: article.title,
+                        category: article.category,
+                        country: article.country
+                    }]}
+                />
+            )}
         </div>
+    );
+}
+
+export default function ArticleDetailsPage() {
+    return (
+        <Suspense fallback={<div className="p-20 text-center text-[#6b7280]">Loading article details...</div>}>
+            <ArticleDetailsContent />
+        </Suspense>
     );
 }

@@ -19,6 +19,6 @@ export interface CreateEventRequest {
 export async function createEvent(
   body: CreateEventRequest
 ): Promise<AxiosResponse<Event>> {
-  return AXIOS_INSTANCE_ADMIN.post<Event>("/admin/events", body);
+  return AXIOS_INSTANCE_ADMIN.post<Event>("/v1/admin/events", body);
 }
 

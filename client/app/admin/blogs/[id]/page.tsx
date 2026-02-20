@@ -1,5 +1,8 @@
 "use client";
 
+import { useState, useEffect, Suspense } from 'react';
+import { decodeHtml } from "@/lib/utils";
+
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Calendar, Eye, User, Trash2 } from 'lucide-react';
 import { mockBlogs } from "@/app/admin/users/data";
@@ -7,7 +10,7 @@ import { Categories, Countries } from "@/app/data";
 import ArticleBreadcrumb from "@/components/features/article/ArticleBreadcrumb";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 
-export default function BlogDetailsPage() {
+function BlogDetailsContent() {
     const { id } = useParams();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -111,47 +114,15 @@ export default function BlogDetailsPage() {
 
                                 {/* Article Body */}
                                 <div className="prose prose-lg max-w-none">
-                                    {blog.content.includes('<') ? (
-                                        <div
-                                            className="text-[18px] leading-[32px] text-[#0c0c0c] break-words [&>p]:mb-6 [&>b]:font-bold [&>i]:italic [&>u]:underline [&>h1]:text-3xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mb-3"
-                                            dangerouslySetInnerHTML={{ __html: blog.content }}
-                                        />
-                                    ) : (
-                                        (() => {
-                                            const paragraphs = blog.content.split(/\n\s*\n/).filter(p => p.trim());
-
-                                            return paragraphs.map((para, idx) => {
-                                                const trimmed = para.trim();
-                                                if (!trimmed) return null;
-
-                                                // First paragraph gets special styling with drop cap
-                                                if (idx === 0) {
-                                                    const firstChar = trimmed.charAt(0);
-                                                    const restOfText = trimmed.slice(1);
-                                                    return (
-                                                        <p
-                                                            key={idx}
-                                                            className="text-[19px] leading-[32px] text-[#0c0c0c] mb-6 font-normal"
-                                                        >
-                                                            <span className="float-left text-[72px] leading-[64px] mr-2 mt-1 font-bold text-[#0c0c0c]">
-                                                                {firstChar}
-                                                            </span>
-                                                            {restOfText}
-                                                        </p>
-                                                    );
-                                                }
-
-                                                return (
-                                                    <p
-                                                        key={idx}
-                                                        className="text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] mb-6"
-                                                    >
-                                                        {trimmed}
-                                                    </p>
-                                                );
-                                            });
-                                        })()
-                                    )}
+                                    {(() => {
+                                        const decodedContent = decodeHtml(blog.content);
+                                        return (
+                                            <div
+                                                className="text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>p]:mb-3 [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>li]:mb-1 [&>a]:text-blue-600 [&>a]:underline first-letter:text-[72px] first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-5px] first-letter:leading-[0.8] first-letter:text-[#0c0c0c]"
+                                                dangerouslySetInnerHTML={{ __html: decodedContent }}
+                                            />
+                                        );
+                                    })()}
                                 </div>
                             </article>
                         </div>
@@ -208,5 +179,13 @@ export default function BlogDetailsPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function BlogDetailsPage() {
+    return (
+        <Suspense fallback={<div className="p-20 text-center text-[#6b7280]">Loading blog details...</div>}>
+            <BlogDetailsContent />
+        </Suspense>
     );
 }

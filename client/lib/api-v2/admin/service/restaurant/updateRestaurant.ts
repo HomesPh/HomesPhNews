@@ -45,5 +45,5 @@ export async function updateRestaurant(
     id: string,
     body: UpdateRestaurantRequest
 ): Promise<AxiosResponse<UpdateRestaurantResponse>> {
-    return AXIOS_INSTANCE_ADMIN.put<UpdateRestaurantResponse>(`/admin/restaurants/${id}`, body);
+    return AXIOS_INSTANCE_ADMIN.put<UpdateRestaurantResponse>(`/v1/admin/restaurants/${id}`, body);
 }

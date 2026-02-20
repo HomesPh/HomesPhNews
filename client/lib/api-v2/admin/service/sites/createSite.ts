@@ -25,6 +25,6 @@ export interface CreateSiteResponse {
 export async function createSite(
   body: CreateSiteRequest
 ): Promise<AxiosResponse<CreateSiteResponse>> {
-  return AXIOS_INSTANCE_ADMIN.post<CreateSiteResponse>("/admin/sites", body);
+  return AXIOS_INSTANCE_ADMIN.post<CreateSiteResponse>("/v1/admin/sites", body);
 }
 

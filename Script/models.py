@@ -114,6 +114,7 @@ class HealthResponse(BaseModel):
     """Health check response."""
     status: str
     redis_connected: bool
+    mysql_connected: bool
     scheduler_running: bool
     timestamp: str
     uptime: str
@@ -129,3 +130,59 @@ class CategoryStats(BaseModel):
     """Category with article count."""
     name: str
     count: int
+
+
+# ═══════════════════════════════════════════════════════════════
+# SQLALCHEMY MODELS (MYSQL)
+# ═══════════════════════════════════════════════════════════════
+
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text
+from datetime import datetime
+from database import Base
+
+class CategoryDB(Base):
+    __tablename__ = "categories"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    slug = Column(String(255), nullable=False, unique=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class CountryDB(Base):
+    __tablename__ = "countries"
+    
+    id = Column(String(10), primary_key=True) # e.g., "PH"
+    name = Column(String(255), nullable=False)
+    gl = Column(String(10), nullable=False)
+    h1 = Column(String(10), nullable=False)
+    ceid = Column(String(50), nullable=False)
+    is_active = Column(Boolean, default=True)
+
+
+# ═══════════════════════════════════════════════════════════════
+# PYDANTIC SCHEMAS FOR DB MODELS
+# ═══════════════════════════════════════════════════════════════
+
+class DBCategory(BaseModel):
+    id: int
+    name: str
+    slug: str
+    is_active: bool
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True
+
+class DBCountry(BaseModel):
+    id: str
+    name: str
+    gl: str
+    h1: str
+    ceid: str
+    is_active: bool
+
+    class Config:
+        from_attributes = True

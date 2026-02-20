@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit, Trash2, ToggleLeft, ToggleRight, ExternalLink } from 'lucide-react';
+import { Edit, Trash2, ToggleLeft, ToggleRight, ExternalLink, ListChecks } from 'lucide-react';
 import { Ad } from "@/lib/ads/types";
 import { cn } from "@/lib/utils";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
@@ -10,12 +10,13 @@ interface AdListItemProps {
     onEdit?: (ad: Ad) => void;
     onDelete?: (id: string) => void;
     onToggleStatus?: (id: string) => void;
+    onEditCampaigns?: (ad: Ad) => void;
 }
 
 /**
  * AdListItem component for displaying a single advertisement in the management list
  */
-export default function AdListItem({ ad, onEdit, onDelete, onToggleStatus }: AdListItemProps) {
+export default function AdListItem({ ad, onEdit, onDelete, onToggleStatus, onEditCampaigns }: AdListItemProps) {
     const isActive = ad.is_active;
 
     return (
@@ -86,6 +87,13 @@ export default function AdListItem({ ad, onEdit, onDelete, onToggleStatus }: AdL
                         ) : (
                             <ToggleLeft className="w-5 h-5 text-[#6b7280]" />
                         )}
+                    </button>
+                    <button
+                        onClick={() => onEditCampaigns?.(ad)}
+                        className="p-2.5 hover:bg-gray-100 rounded-lg transition-colors"
+                        title="Manage Campaigns"
+                    >
+                        <ListChecks className="w-5 h-5 text-[#8b5cf6]" />
                     </button>
                     <button
                         onClick={() => onEdit?.(ad)}

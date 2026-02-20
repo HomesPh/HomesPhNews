@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArticleResource } from "@/lib/api-v2";
-import { stripHtml } from '@/lib/utils';
+import { decodeHtml, calculateReadTime, formatViews, stripHtml } from '@/lib/utils';
 import ShareButtons from "@/components/shared/ShareButtons";
 
 interface LatestPostsSectionProps {
@@ -34,7 +34,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                 {visibleArticles.map((article) => (
                     <Link
                         key={article.id}
-                        href={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                        href={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                         className="group cursor-pointer flex flex-col md:flex-row gap-8 pb-10 border-b border-gray-300 dark:border-gray-700 last:border-0"
                     >
                         <div className="md:w-1/3 aspect-[4/3] shrink-0 overflow-hidden relative rounded-sm">
@@ -42,21 +42,23 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                                 src={article.image_url || article.image || 'https://placehold.co/800x600?text=No+Image'}
                                 alt={article.title}
                                 fill
+                                unoptimized={true}
                                 className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                             />
                             {/* Tags at bottom left of image */}
                             <div className="absolute bottom-3 left-3 flex gap-1 z-10 transition-opacity group-hover:opacity-100">
-                                <span className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg">
+                                <span className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg" suppressHydrationWarning>
                                     {article.category}
                                 </span>
-                                <span className="bg-white dark:bg-[#111827] text-black dark:text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors">
+                                <span className="bg-white dark:bg-[#111827] text-black dark:text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors" suppressHydrationWarning>
                                     {article.country || "Global"}
                                 </span>
                             </div>
                             {/* Share Icons - Bottom Right */}
                             <div className="absolute bottom-3 right-3 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20">
                                 <ShareButtons
-                                    url={article.slug ? `/article?slug=${article.slug}` : `/article?id=${article.id}`}
+                                    url={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                                     title={article.title}
                                     description={article.summary || article.content}
                                     size="xs"
@@ -76,12 +78,14 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                                     By {article.source || "HomesPh News"}
                                 </span>
                                 <span>•</span>
-                                <span>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
+                                <span suppressHydrationWarning>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                 <span>•</span>
                                 <span className="flex items-center">
                                     <span className="mr-1">👁️</span>
-                                    {article.views_count.toLocaleString()}
+                                    {formatViews(article.views_count)}
                                 </span>
+                                <span>•</span>
+                                <span>{calculateReadTime(article.content || article.summary)}</span>
                             </div>
                         </div>
                     </Link>

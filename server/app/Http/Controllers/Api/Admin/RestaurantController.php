@@ -234,6 +234,8 @@ class RestaurantController extends Controller
                 'timestamp' => $r['timestamp'] ?? time(),
                 'tags' => $r['tags'] ?? [],
                 'features' => $r['features'] ?? [],
+                'is_featured' => $r['is_featured'] ?? false,
+                'is _featured' => $r['is _featured'] ?? false,
             ]);
 
             Redis::del("{$this->prefix}restaurant:{$id}");

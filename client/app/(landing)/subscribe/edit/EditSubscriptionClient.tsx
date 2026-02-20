@@ -65,8 +65,8 @@ function EditSubscriptionClient() {
           email: data.email || "",
           categories: Array.isArray(data.category) ? data.category : JSON.parse(data.category as string || "[]"),
           countries: Array.isArray(data.country) ? data.country : JSON.parse(data.country as string || "[]"),
-          frequency: "daily",
-          deliveryTime: "08:00"
+          frequency: data.features || "daily",
+          deliveryTime: data.time || "08:00"
         });
       } catch (err) {
         console.error("Failed to fetch subscription:", err);
@@ -88,6 +88,8 @@ function EditSubscriptionClient() {
       await updateSubscription(id, {
         categories: formData.categories,
         countries: formData.countries,
+        features: formData.frequency,
+        time: formData.deliveryTime,
       });
       setIsSuccess(true);
       setTimeout(() => {

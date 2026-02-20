@@ -8,6 +8,6 @@ import type { AxiosResponse } from "axios";
  * GET /admin/sites/names
  */
 export async function getSiteNames(): Promise<AxiosResponse<unknown[]>> {
-  return AXIOS_INSTANCE_ADMIN.get<unknown[]>("/admin/sites/names");
+  return AXIOS_INSTANCE_ADMIN.get<unknown[]>("/v1/admin/sites/names");
 }
 

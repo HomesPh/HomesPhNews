@@ -118,10 +118,12 @@ class RedisArticleService
 
         $results = [];
         foreach ($articleIds as $id) {
-            if (count($results) >= $limit) break;
+            if (count($results) >= $limit)
+                break;
 
             $article = $this->getArticle($id);
-            if (!$article) continue;
+            if (!$article)
+                continue;
 
             // Apply search filter (title/content)
             if (!empty($search)) {
@@ -175,11 +177,17 @@ class RedisArticleService
         foreach ($keys as $key) {
             // Remove any Redis database prefix (e.g., "laravel_database_")
             $cleanKey = preg_replace('/^.*?homesph:/', 'homesph:', $key);
+
+            // Skip restaurant-specific indices
+            if (str_ends_with($cleanKey, ':restaurants')) {
+                continue;
+            }
+
             $name = str_replace("{$this->prefix}country:", '', $cleanKey);
             $name = str_replace('_', ' ', $name);
             $name = ucwords($name);
             $count = Redis::scard($key);
-            
+
             $countries[] = [
                 'name' => $name,
                 'count' => $count
@@ -203,11 +211,17 @@ class RedisArticleService
         foreach ($keys as $key) {
             // Remove any Redis database prefix
             $cleanKey = preg_replace('/^.*?homesph:/', 'homesph:', $key);
+
+            // Skip restaurant-specific indices
+            if (str_ends_with($cleanKey, ':restaurants')) {
+                continue;
+            }
+
             $name = str_replace("{$this->prefix}category:", '', $cleanKey);
             $name = str_replace('_', ' ', $name);
             $name = ucwords($name);
             $count = Redis::scard($key);
-            
+
             $categories[] = [
                 'name' => $name,
                 'count' => $count
@@ -257,8 +271,8 @@ class RedisArticleService
         // Re-index country if it changed
         $newCountry = $updated['country'] ?? $oldCountry;
         if ($oldCountry && $newCountry && $oldCountry !== $newCountry) {
-            $oldCountryKey = "{$this->prefix}country:".$this->slugify($oldCountry);
-            $newCountryKey = "{$this->prefix}country:".$this->slugify($newCountry);
+            $oldCountryKey = "{$this->prefix}country:" . $this->slugify($oldCountry);
+            $newCountryKey = "{$this->prefix}country:" . $this->slugify($newCountry);
             Redis::srem($oldCountryKey, $articleId);
             Redis::sadd($newCountryKey, $articleId);
         }
@@ -266,8 +280,8 @@ class RedisArticleService
         // Re-index category if it changed
         $newCategory = $updated['category'] ?? $oldCategory;
         if ($oldCategory && $newCategory && $oldCategory !== $newCategory) {
-            $oldCategoryKey = "{$this->prefix}category:".$this->slugify($oldCategory);
-            $newCategoryKey = "{$this->prefix}category:".$this->slugify($newCategory);
+            $oldCategoryKey = "{$this->prefix}category:" . $this->slugify($oldCategory);
+            $newCategoryKey = "{$this->prefix}category:" . $this->slugify($newCategory);
             Redis::srem($oldCategoryKey, $articleId);
             Redis::sadd($newCategoryKey, $articleId);
         }

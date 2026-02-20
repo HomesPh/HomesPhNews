@@ -8,8 +8,15 @@ import asyncio
 from typing import List
 from fastapi import APIRouter, HTTPException, Query
 
-from models import Article, ArticleSummary, Restaurant, RestaurantSummary, CountryStats, CategoryStats, ImageGenerationRequest
-from database import redis_client, PREFIX
+from models import (
+    Article, ArticleSummary, Restaurant, RestaurantSummary, 
+    CountryStats, CategoryStats, ImageGenerationRequest,
+    CategoryDB, CountryDB, DBCategory, DBCountry
+)
+from database import redis_client, PREFIX, get_db
+from sqlalchemy.orm import Session
+from fastapi import Depends
+
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -17,6 +24,25 @@ from database import redis_client, PREFIX
 # ═══════════════════════════════════════════════════════════════
 
 router = APIRouter()
+
+# ═══════════════════════════════════════════════════════════════
+# DATABASE ROUTES (MYSQL)
+# ═══════════════════════════════════════════════════════════════
+
+@router.get("/db/categories", response_model=List[DBCategory], tags=["Database"])
+async def get_db_categories(db: Session = Depends(get_db)):
+    """Fetch all categories from the MySQL database."""
+    categories = db.query(CategoryDB).all()
+    return categories
+
+@router.get("/db/countries", response_model=List[DBCountry], tags=["Database"])
+async def get_db_countries(db: Session = Depends(get_db)):
+    """Fetch all countries from the MySQL database."""
+    countries = db.query(CountryDB).all()
+    return countries
+
+
+
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -312,15 +338,31 @@ async def get_countries():
 @router.get("/categories", response_model=List[CategoryStats], tags=["Metadata"])
 async def get_categories():
     """Get list of all categories with article counts."""
+    from config import CATEGORIES
+    
+    # 1. Get counts from Redis
     keys = redis_client.keys(f"{PREFIX}category:*")
+    counts = {}
+    for key in keys:
+        raw_name = key.split(":")[-1].replace("_", " ").title()
+        counts[raw_name] = redis_client.scard(key)
     
-    categories = []
-    for key in sorted(keys):
-        name = key.split(":")[-1].replace("_", " ").title()
-        count = redis_client.scard(key)
-        categories.append({"name": name, "count": count})
+    # 2. Build list from master CATEGORIES list
+    results = []
+    seen_names = set()
     
-    return sorted(categories, key=lambda x: x["count"], reverse=True)
+    for cat_name in CATEGORIES:
+        name = cat_name.title()
+        count = counts.get(name, 0)
+        results.append({"name": name, "count": count})
+        seen_names.add(name)
+    
+    # 3. Add any categories found in Redis but NOT in config (just in case)
+    for name, count in counts.items():
+        if name not in seen_names:
+            results.append({"name": name, "count": count})
+    
+    return sorted(results, key=lambda x: x["count"], reverse=True)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -381,6 +423,30 @@ async def trigger_restaurant_job():
     return {
         "status": "completed",
         "message": f"Restaurant Job completed in {duration}s. {success} restaurants found.",
+        "duration_seconds": duration,
+        "success_count": success,
+        "results": results,
+        "timestamp": str(__import__('datetime').datetime.now())
+    }
+
+
+@router.post("/trigger/sports", tags=["Admin"])
+async def trigger_sports_job():
+    """
+    Manually trigger the sports-specific generation job.
+    """
+    from scheduler import run_sports_job
+    import time
+    
+    start_time = time.time()
+    results = await run_sports_job()
+    duration = round(time.time() - start_time, 2)
+    
+    success = sum(1 for r in results if r["status"] == "success")
+    
+    return {
+        "status": "completed",
+        "message": f"Sports Job completed in {duration}s. {success} articles published.",
         "duration_seconds": duration,
         "success_count": success,
         "results": results,

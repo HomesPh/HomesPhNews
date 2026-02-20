@@ -10,5 +10,5 @@ import type { AxiosResponse } from "axios";
 export async function restoreRestaurant(
     id: string
 ): Promise<AxiosResponse<void>> {
-    return AXIOS_INSTANCE_ADMIN.post(`/admin/restaurants/${id}/restore`);
+    return AXIOS_INSTANCE_ADMIN.post(`/v1/admin/restaurants/${id}/restore`);
 }

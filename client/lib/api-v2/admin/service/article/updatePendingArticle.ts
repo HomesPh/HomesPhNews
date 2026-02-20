@@ -17,6 +17,9 @@ export interface UpdatePendingArticleRequest {
   topics?: string[] | null;
   keywords?: string | null;
   published_sites?: string[] | null;
+  content_blocks?: any[] | null;
+  template?: string | null;
+  author?: string | null;
 }
 
 export interface UpdatePendingArticleResponse {
@@ -32,7 +35,7 @@ export async function updatePendingArticle(
   body: UpdatePendingArticleRequest
 ): Promise<AxiosResponse<UpdatePendingArticleResponse>> {
   return AXIOS_INSTANCE_ADMIN.patch<UpdatePendingArticleResponse>(
-    `/admin/articles/${id}/pending`,
+    `/v1/admin/articles/${id}/pending`,
     body
   );
 }

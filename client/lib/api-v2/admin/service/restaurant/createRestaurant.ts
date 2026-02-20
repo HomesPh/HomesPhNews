@@ -44,5 +44,5 @@ export interface CreateRestaurantResponse {
 export async function createRestaurant(
     body: CreateRestaurantRequest
 ): Promise<AxiosResponse<CreateRestaurantResponse>> {
-    return AXIOS_INSTANCE_ADMIN.post<CreateRestaurantResponse>(`/admin/restaurants`, body);
+    return AXIOS_INSTANCE_ADMIN.post<CreateRestaurantResponse>(`/v1/admin/restaurants`, body);
 }

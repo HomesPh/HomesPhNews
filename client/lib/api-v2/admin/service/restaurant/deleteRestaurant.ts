@@ -10,5 +10,5 @@ import type { AxiosResponse } from "axios";
 export async function deleteRestaurant(
     id: string
 ): Promise<AxiosResponse<void>> {
-    return AXIOS_INSTANCE_ADMIN.delete(`/admin/restaurants/${id}`);
+    return AXIOS_INSTANCE_ADMIN.delete(`/v1/admin/restaurants/${id}`);
 }

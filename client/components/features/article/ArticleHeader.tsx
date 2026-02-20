@@ -4,6 +4,7 @@ import { Eye, Calendar, Facebook, Linkedin, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import CustomShareBoard from "@/components/shared/CustomShareBoard";
+import { decodeHtml } from "@/lib/utils";
 
 // XIcon removed
 
@@ -114,19 +115,22 @@ export default function ArticleHeader({
 
       {/* Title and Subtitle */}
       <div className="prose prose-lg max-w-none mb-12">
-        <h1 className={`font-bold text-[42px] md:text-[48px] text-[#111827] ${darkClass('dark:text-white')} tracking-tight leading-[1.1]`}>
+        <h1 className={`font-bold text-[42px] md:text-[48px] text-[#111827] ${darkClass('dark:text-white')} tracking-tight leading-[1.1] mb-10`}>
           {title}
         </h1>
-        {subtitle.includes('<') ? (
-          <div
-            className={`font-normal text-[20px] text-[#4b5563] ${darkClass('dark:text-gray-300')} tracking-[-0.5px] leading-[1.2]`}
-            dangerouslySetInnerHTML={{ __html: subtitle }}
-          />
-        ) : (
-          <p className={`font-normal text-[20px] text-[#4b5563] ${darkClass('dark:text-gray-300')} tracking-[-0.5px] leading-[1.2]`}>
-            {subtitle}
-          </p>
-        )}
+        {(() => {
+          const decodedSubtitle = decodeHtml(subtitle);
+          return decodedSubtitle.includes('<') ? (
+            <div
+              className={`font-normal text-[20px] text-[#4b5563] ${darkClass('dark:text-gray-300')} tracking-[-0.5px] leading-[1.2]`}
+              dangerouslySetInnerHTML={{ __html: decodedSubtitle }}
+            />
+          ) : (
+            <p className={`font-normal text-[20px] text-[#4b5563] ${darkClass('dark:text-gray-300')} tracking-[-0.5px] leading-[1.2]`}>
+              {decodedSubtitle}
+            </p>
+          );
+        })()}
       </div>
 
       {/* Author and Meta / Social Share Row */}

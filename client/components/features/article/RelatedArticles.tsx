@@ -6,6 +6,7 @@ import { Clock } from "lucide-react";
 
 interface RelatedArticle {
   id: string;
+  slug?: string;
   title: string;
   category: string;
   location?: string;
@@ -31,7 +32,7 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
         {articles.map((article) => (
           <Link
             key={article.id}
-            href={`/article?id=${article.id}`}
+            href={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
             className="bg-white dark:bg-[#1a1d2e] border border-[#f3f4f6] dark:border-[#2a2d3e] rounded-[12px] overflow-hidden cursor-pointer hover:shadow-md transition-shadow shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]"
           >
             {/* Image on top */}
@@ -41,6 +42,7 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
                 alt={article.title}
                 width={400}
                 height={160}
+                unoptimized={true}
                 className="w-full h-full object-cover hover:scale-105 transition-transform"
               />
             </div>
@@ -48,7 +50,7 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
             {/* Content below */}
             <div className="p-[16px] flex flex-col gap-[10px]">
               <div className="flex gap-[8px] items-center">
-                <span className="bg-white dark:bg-[#252836] border border-[#e5e7eb] dark:border-[#374151] px-[8px] py-[3px] rounded-[4px] font-semibold text-[11px] text-black dark:text-white tracking-[-0.5px]">
+                <span className="bg-white dark:bg-[#252836] border border-[#e5e7eb] dark:border-[#374151] px-[8px] py-[3px] rounded-[4px] font-semibold text-[11px] text-black dark:text-white tracking-[-0.5px]" suppressHydrationWarning>
                   {article.category}
                 </span>
                 {article.location && (
@@ -67,11 +69,11 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
 
               <div className="flex items-center gap-[6px] text-[#6b7280] dark:text-gray-400">
                 <Clock className="size-[12px]" />
-                <p className="font-normal text-[12px] tracking-[-0.5px]">
+                <p className="font-normal text-[12px] tracking-[-0.5px]" suppressHydrationWarning>
                   {article.timeAgo}
                 </p>
                 <p className="font-normal text-[14px] tracking-[-0.5px]">•</p>
-                <p className="font-normal text-[12px] tracking-[-0.5px]">
+                <p className="font-normal text-[12px] tracking-[-0.5px]" suppressHydrationWarning>
                   {article.views}
                 </p>
               </div>

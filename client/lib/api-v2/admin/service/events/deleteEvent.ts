@@ -10,6 +10,6 @@ import type { AxiosResponse } from "axios";
 export async function deleteEvent(
   eventId: number
 ): Promise<AxiosResponse<void>> {
-  return AXIOS_INSTANCE_ADMIN.delete<void>(`/admin/events/${eventId}`);
+  return AXIOS_INSTANCE_ADMIN.delete<void>(`/v1/admin/events/${eventId}`);
 }
 

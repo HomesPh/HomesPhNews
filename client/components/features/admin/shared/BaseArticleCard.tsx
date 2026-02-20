@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Calendar, Eye, MapPin } from 'lucide-react';
-import { cn } from "@/lib/utils";
+import { cn, sanitizeImageUrl, decodeHtml, calculateReadTime, stripHtml } from "@/lib/utils";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 
 interface BaseArticleCardProps {
@@ -15,6 +15,7 @@ interface BaseArticleCardProps {
         location?: string;        // Legacy fallback
         title: string;
         summary?: string;
+        content?: string;         // New field for read time
         description?: string;     // Legacy fallback
         created_at?: string | null;
         date?: string;            // Legacy fallback
@@ -24,9 +25,16 @@ interface BaseArticleCardProps {
         topics?: string[] | null; // Allow null
         sites?: string[];         // Legacy fallback
         published_sites?: string | string[]; // New API field
+        image_position?: number;
+        image_position_x?: number;
     };
     variant?: 'compact' | 'list';
     onClick?: () => void;
+    actions?: React.ReactNode;
+    selection?: {
+        isSelected: boolean;
+        onSelect: (checked: boolean) => void;
+    };
     className?: string;
 }
 
@@ -57,12 +65,14 @@ export default function BaseArticleCard({
     article,
     variant = 'list',
     onClick,
+    actions,
+    selection,
     className
 }: BaseArticleCardProps) {
     const isCompact = variant === 'compact';
 
     // Normalize field names (support both new and legacy)
-    const imageUrl = article.image_url || article.image || 'https://placehold.co/800x450?text=No+Image';
+    const imageUrl = sanitizeImageUrl(article.image_url || article.image || 'https://placehold.co/800x450?text=No+Image');
     const location = article.country || article.location || 'Unknown';
     const description = article.summary || article.description || '';
     const dateStr = article.created_at || article.date || null;
@@ -86,13 +96,24 @@ export default function BaseArticleCard({
                     className
                 )}
             >
-                <div className="flex gap-4">
+                <div className="flex gap-4 items-center">
+                    {article.status === 'published' && selection && (
+                        <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
+                            <input
+                                type="checkbox"
+                                checked={selection.isSelected}
+                                onChange={(e) => selection.onSelect(e.target.checked)}
+                                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            />
+                        </div>
+                    )}
                     {/* Article Image Container */}
                     <div className="relative w-[80px] h-[80px] flex-shrink-0">
                         <img
                             src={imageUrl}
                             alt={article.title}
                             className="w-full h-full rounded-[8px] object-cover"
+                            style={{ objectPosition: `${article.image_position_x ?? 50}% ${article.image_position ?? 0}%` }}
                         />
                     </div>
 
@@ -122,8 +143,15 @@ export default function BaseArticleCard({
                             <span>{formatDate(dateStr)}</span>
                             <span>•</span>
                             <span>{viewsStr}</span>
+                            <span>•</span>
+                            <span>{calculateReadTime(article.content || description)}</span>
                         </div>
                     </div>
+                    {actions && (
+                        <div className="flex-shrink-0 self-center pl-2">
+                            {actions}
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -138,12 +166,23 @@ export default function BaseArticleCard({
                 className
             )}
         >
+            {article.status === 'published' && selection && (
+                <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0 self-center">
+                    <input
+                        type="checkbox"
+                        checked={selection.isSelected}
+                        onChange={(e) => selection.onSelect(e.target.checked)}
+                        className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    />
+                </div>
+            )}
             {/* Thumbnail */}
             <div className="w-[118px] h-[106px] rounded-[8px] overflow-hidden flex-shrink-0">
                 <img
                     src={imageUrl}
                     alt={article.title}
                     className="w-full h-full object-cover"
+                    style={{ objectPosition: `${article.image_position_x ?? 50}% ${article.image_position ?? 0}%` }}
                 />
             </div>
 
@@ -160,7 +199,10 @@ export default function BaseArticleCard({
                             {location}
                         </span>
                     </div>
-                    <StatusBadge status={article.status as any} />
+                    <div className="flex items-center gap-3">
+                        {actions}
+                        <StatusBadge status={article.status as any} />
+                    </div>
                 </div>
 
                 {/* Title */}
@@ -170,7 +212,7 @@ export default function BaseArticleCard({
 
                 {/* Description */}
                 <p className="text-[14px] text-[#4b5563] leading-[normal] tracking-[-0.5px] mb-2 line-clamp-1">
-                    {description}
+                    {stripHtml(description)}
                 </p>
 
                 {/* Date and Views */}
@@ -179,6 +221,8 @@ export default function BaseArticleCard({
                     <span className="leading-[20px]">{formatDate(dateStr)}</span>
                     <span className="text-[16px]">•</span>
                     <span className="leading-[20px]">{viewsStr}</span>
+                    <span className="text-[16px]">•</span>
+                    <span className="leading-[20px]">{calculateReadTime(article.content || description)}</span>
                 </div>
             </div>
         </div>

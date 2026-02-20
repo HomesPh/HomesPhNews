@@ -39,25 +39,25 @@ class ArticleController extends Controller
         // Redirect to specialized Redis fetcher if status is 'pending'
         // This ensures we get the full list from the scraper/Redis
         if ($status === 'pending') {
-            return $this->getPendingArticlesFromRedis($validated, $perPage, (int)$page);
+            return $this->getPendingArticlesFromRedis($validated, $perPage, (int) $page);
         }
 
         // Apply common filters (Search, Dates, Topics)
         $query = Article::query()
             // Filter by status if specified (except 'all' and 'deleted' which handle is_deleted)
             // Note: 'pending' is redirected to getPendingArticlesFromRedis at line 41.
-            ->when($status === 'published', fn ($q) => $q->where('status', 'published'))
-            ->when($status === 'pending review', fn ($q) => $q->where('status', 'pending review'))
-            ->when($status === 'rejected', fn ($q) => $q->where('status', 'rejected'))
+            ->when($status === 'published', fn($q) => $q->where('status', 'published'))
+            ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
+            ->when($status === 'rejected', fn($q) => $q->where('status', 'rejected'))
             ->when(!$status || $status === 'all', function ($q) {
                 // For "All", only show active primary statuses to match getStatusCounts logic
                 // This excludes 'rejected' articles from the general 'All' view
                 return $q->whereIn('status', ['published', 'pending review']);
             })
-            
+
             // Filter by is_deleted based on status
-            ->when($status === 'deleted', fn ($q) => $q->where('is_deleted', true))
-            ->when($status !== 'deleted', fn ($q) => $q->where('is_deleted', false))
+            ->when($status === 'deleted', fn($q) => $q->where('is_deleted', true))
+            ->when($status !== 'deleted', fn($q) => $q->where('is_deleted', false))
 
             ->when($validated['search'] ?? null, function ($q, $s) {
                 $q->where(function ($sub) use ($s) {
@@ -68,46 +68,51 @@ class ArticleController extends Controller
                         ->orWhere('topics', 'LIKE', "%{$s}%");
                 });
             })
-            ->when($validated['start_date'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '>=', $d))
-            ->when($validated['end_date'] ?? null, fn ($q, $d) => $q->whereDate('created_at', '<=', $d))
-            ->when($validated['category'] ?? null, fn ($q, $c) => $q->where('category', $c))
-            ->when($validated['country'] ?? null, fn ($q, $c) => $q->where('country', 'like', "%{$c}%"));
+            ->when($validated['start_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '>=', $d))
+            ->when($validated['end_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '<=', $d))
+            ->when($validated['category'] ?? null, fn($q, $c) => $q->where('category', $c))
+            ->when($validated['country'] ?? null, fn($q, $c) => $q->where('country', 'like', "%{$c}%"));
 
         // Get filter counts before pagination (from database)
         $availableCategories = (clone $query)->distinct()->whereNotNull('category')->pluck('category')->sort()->values()->toArray();
         $availableCountries = (clone $query)->distinct()->whereNotNull('country')->pluck('country')->sort()->values()->toArray();
 
-        // Merge Redis filters if fetching 'all' or 'pending' status
+        // Merge Redis and DB filters if fetching 'all' or 'pending' status
         if (!$status || $status === 'all' || $status === 'pending') {
             try {
                 $redisCountries = collect($this->redisService->getCountries())->pluck('name')->toArray();
                 $redisCategories = collect($this->redisService->getCategories())->pluck('name')->toArray();
-                
+
+                // Fetch all active options from DB to ensure new/empty ones show up
+                $dbActiveCategories = \App\Models\Category::where('is_active', true)->pluck('name')->toArray();
+                $dbActiveCountries = \App\Models\Country::where('is_active', true)->pluck('name')->toArray();
+
                 // Merge and deduplicate
-                $availableCategories = collect(array_merge($availableCategories, $redisCategories))
+                $availableCategories = collect(array_merge($availableCategories, $redisCategories, $dbActiveCategories))
                     ->unique()
+                    ->filter(fn($cat) => !in_array(strtolower($cat), ['restaurant', 'restaurants']))
                     ->sort()
                     ->values()
                     ->toArray();
-                $availableCountries = collect(array_merge($availableCountries, $redisCountries))
+                $availableCountries = collect(array_merge($availableCountries, $redisCountries, $dbActiveCountries))
                     ->unique()
                     ->sort()
                     ->values()
                     ->toArray();
             } catch (\Exception $e) {
-                \Log::warning('Failed to get Redis filters: ' . $e->getMessage());
+                \Log::warning('Failed to get Redis/DB filters: ' . $e->getMessage());
             }
         }
 
         // Paginate DB results - Eager load to prevent N+1 queries
         $articles = $query
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'article_id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'is_deleted')
+            ->select('id', 'article_id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'is_deleted', 'content_blocks', 'template', 'author')
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage);
 
-        // Merge Redis articles if on early page of 'all'
-        if (((!$status || $status === 'all')) && $page == 1) {
+        // Merge Redis articles if on early page of 'all' or 'pending'
+        if ((!$status || $status === 'all' || $status === 'pending') && $page == 1) {
             try {
                 // Pass all active filters to Redis filterArticles
                 $redisRaw = $this->redisService->filterArticles([
@@ -118,7 +123,7 @@ class ArticleController extends Controller
 
                 $redisItems = collect($redisRaw)->map(function ($a) {
                     return [
-                        'id' => (string)($a['id'] ?? ''),
+                        'id' => (string) ($a['id'] ?? ''),
                         'title' => $a['title'] ?? 'Untitled',
                         'summary' => isset($a['content']) ? substr($a['content'], 0, 150) . '...' : '',
                         'content' => $a['content'] ?? '',
@@ -127,18 +132,27 @@ class ArticleController extends Controller
                         'category' => $a['category'] ?? 'General',
                         'country' => $a['country'] ?? 'Global',
                         'status' => 'pending',
-                        'created_at' => (isset($a['timestamp']) && is_numeric($a['timestamp'])) 
-                                        ? date('Y-m-d H:i:s', (int)$a['timestamp']) 
-                                        : ($a['timestamp'] ?? now()->toIso8601String()),
+                        'created_at' => (isset($a['timestamp']) && is_numeric($a['timestamp']))
+                            ? date('Y-m-d H:i:s', (int) $a['timestamp'])
+                            : ($a['timestamp'] ?? now()->toIso8601String()),
                         'views_count' => 0,
                         'published_sites' => [],
                     ];
                 })->filter(fn($a) => !empty($a['id']));
 
                 // Deduplicate: Don't show Redis items if they already exist in our DB
+                // Check by both ID and Title to catch manual drafts of scraper items
                 $redisIds = $redisItems->pluck('id')->toArray();
-                $existingInDb = Article::whereIn('id', $redisIds)->pluck('id')->toArray();
-                $redisItems = $redisItems->filter(fn($a) => !in_array($a['id'], $existingInDb));
+                $redisTitles = $redisItems->pluck('title')->toArray();
+
+                $existingInDb = Article::whereIn('id', $redisIds)
+                    ->orWhereIn('title', $redisTitles)
+                    ->pluck('id', 'title')
+                    ->toArray();
+
+                $redisItems = $redisItems->filter(function ($a) use ($existingInDb) {
+                    return !in_array($a['id'], $existingInDb) && !isset($existingInDb[$a['title']]);
+                });
 
                 $merged = $redisItems->merge($articles->getCollection());
                 $articles->setCollection($merged);
@@ -183,7 +197,7 @@ class ArticleController extends Controller
         $articles = array_values($articles);
 
         // Sort by timestamp (newest first)
-        usort($articles, fn ($a, $b) => ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0));
+        usort($articles, fn($a, $b) => ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0));
 
         // Manual pagination
         $total = count($articles);
@@ -191,31 +205,23 @@ class ArticleController extends Controller
         $paginatedArticles = array_slice($articles, $offset, $perPage);
 
         // Format for admin display (add status field)
-        $formattedArticles = array_map(function ($article) {
-            return [
-                'id' => $article['id'] ?? '',
-                'title' => $article['title'] ?? '',
-                'summary' => substr($article['content'] ?? '', 0, 200).'...',
-                'category' => $article['category'] ?? '',
-                'country' => $article['country'] ?? '',
-                'topics' => $article['topics'] ?? [],
-                'keywords' => $article['keywords'] ?? '',
-                'image_url' => $article['image_url'] ?? '',
-                'original_url' => $article['original_url'] ?? '',
-                'source' => $article['source'] ?? '',
-                'status' => 'pending', // All Redis articles are pending
-                'created_at' => isset($article['timestamp'])
-                    ? date('Y-m-d H:i:s', (int) $article['timestamp'])
-                    : null,
-                'views_count' => 0,
-            ];
-        }, $paginatedArticles);
+        $formattedArticles = ArticleResource::collection($paginatedArticles);
 
-        // Get actual available filters from Redis
+        // Get actual available filters from Redis and DB
         $redisCountries = collect($this->redisService->getCountries())->pluck('name')->toArray();
         $redisCategories = collect($this->redisService->getCategories())->pluck('name')->toArray();
+        $dbActiveCategories = \App\Models\Category::where('is_active', true)->pluck('name')->toArray();
+        $dbActiveCountries = \App\Models\Country::where('is_active', true)->pluck('name')->toArray();
 
-        \Illuminate\Support\Facades\Log::info('Admin API: Fetched '.count($formattedArticles).' pending articles from Redis.');
+        $mergedCategories = collect(array_merge($redisCategories, $dbActiveCategories))
+            ->unique()
+            ->filter(fn($cat) => !in_array(strtolower($cat), ['restaurant', 'restaurants']))
+            ->sort()
+            ->values()
+            ->toArray();
+        $mergedCountries = collect(array_merge($redisCountries, $dbActiveCountries))->unique()->sort()->values()->toArray();
+
+        \Illuminate\Support\Facades\Log::info('Admin API: Fetched ' . count($formattedArticles) . ' pending articles from Redis.');
 
         // Calculate status counts
         $statusCounts = $this->getStatusCounts();
@@ -229,8 +235,8 @@ class ArticleController extends Controller
             'from' => $total > 0 ? $offset + 1 : null,
             'to' => $total > 0 ? min($offset + $perPage, $total) : null,
             'available_filters' => [
-                'categories' => $redisCategories,
-                'countries' => $redisCountries,
+                'categories' => $mergedCategories,
+                'countries' => $mergedCountries,
             ],
             'status_counts' => $statusCounts,
         ]);
@@ -243,31 +249,29 @@ class ArticleController extends Controller
     {
         $validated = $request->validated();
         $validated['status'] = $validated['status'] ?? 'pending review';
-        
+
         // Generate UUID for the article ID
         $validated['id'] = \Illuminate\Support\Str::uuid()->toString();
         $validated['article_id'] = $validated['id'];
 
         $siteNames = $validated['published_sites'] ?? [];
         unset($validated['published_sites']);
-        
+
         // Remove fields that don't exist in the articles table
         unset($validated['gallery_images']);
         unset($validated['split_images']);
-        unset($validated['content_blocks']);
-        unset($validated['template']);
-        unset($validated['author']);
         unset($validated['date']);
-        unset($validated['slug']);
 
         if (empty($validated['slug'])) {
             $validated['slug'] = \Illuminate\Support\Str::slug($validated['title']);
+        } else {
+            $validated['slug'] = \Illuminate\Support\Str::slug($validated['slug']);
         }
 
         $validated['is_deleted'] = false;
         $article = Article::create($validated);
 
-        if (! empty($siteNames)) {
+        if (!empty($siteNames)) {
             $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
             $article->publishedSites()->sync($siteIds);
         }
@@ -292,7 +296,7 @@ class ArticleController extends Controller
      */
     public function show($id): JsonResponse|ArticleResource
     {
-        if (is_numeric($id) || ! \Illuminate\Support\Str::isUuid($id)) {
+        if (is_numeric($id) || !\Illuminate\Support\Str::isUuid($id)) {
             $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])->find($id);
             if ($article) {
                 return new ArticleResource($article);
@@ -319,19 +323,19 @@ class ArticleController extends Controller
      */
     public function updatePending(UpdateArticleRequest $request, string $id): JsonResponse|ArticleResource
     {
-        if (! \Illuminate\Support\Str::isUuid($id)) {
+        if (!\Illuminate\Support\Str::isUuid($id)) {
             return response()->json(['message' => 'Only pending Redis articles can be edited via this endpoint'], 400);
         }
 
         $payload = $request->validated();
 
-        if (! isset($payload['content']) && isset($payload['summary'])) {
+        if (!isset($payload['content']) && isset($payload['summary'])) {
             $payload['content'] = $payload['summary'];
         }
 
         $updated = $this->redisService->updateArticle($id, $payload);
 
-        if (! $updated) {
+        if (!$updated) {
             return response()->json(['message' => 'Article not found'], 404);
         }
 
@@ -352,21 +356,27 @@ class ArticleController extends Controller
             unset($validated['published_sites']);
         }
 
-        // Handle Gallery Images Sync
-        if (isset($validated['galleryImages']) && is_array($validated['galleryImages'])) {
+        // Handle Gallery Images Sync (support both field names for compatibility)
+        $galleryImages = $validated['galleryImages'] ?? $validated['gallery_images'] ?? null;
+        if (isset($galleryImages) && is_array($galleryImages)) {
             // Remove old images
             $article->images()->delete();
-            
+
             // Add new images
-            foreach ($validated['galleryImages'] as $imagePath) {
+            foreach ($galleryImages as $imagePath) {
                 if (!empty($imagePath)) {
                     $article->images()->create([
                         'image_path' => $imagePath
                     ]);
                 }
             }
-            unset($validated['galleryImages']); // Don't try to update article table with this
         }
+
+        // Remove fields that don't belong in the articles table
+        unset($validated['galleryImages']);
+        unset($validated['gallery_images']);
+        unset($validated['split_images']); // Not stored in articles table
+        unset($validated['date']); // Not a database column
 
         $article->update($validated);
 
@@ -387,92 +397,125 @@ class ArticleController extends Controller
 
     /**
      * Publish a pending article to the database.
+     * Handles both existing DB articles and Redis-only articles.
+     * Supports atomic publish by accepting a full article payload.
      */
     public function publish(ArticleActionRequest $request, string $id): JsonResponse|ArticleResource
     {
-        if (! \Illuminate\Support\Str::isUuid($id)) {
+        \Log::info("Publishing article: {$id}");
+
+        if (!\Illuminate\Support\Str::isUuid($id)) {
             return response()->json(['message' => 'Invalid article ID format'], 400);
         }
 
-        $validated = $request->validated();
+        try {
+            $validated = $request->validated();
+            $existing = Article::where('id', $id)->first();
+            $redisArticle = $this->redisService->getArticle($id);
 
-        // 1. Attempt to find in Database first
-        // If it exists in DB (even if soft-deleted or restored), we update it
-        $existing = Article::where('id', $id)->first();
-        if ($existing) {
-            // Restore and update
-            $existing->update([
+            // 1. Resolve Final Article Data
+            // Hierarchy of Truth: 1. Request Payload > 2. Existing DB > 3. Redis Source
+
+            $finalData = [
+                'status' => 'published',
                 'is_deleted' => false,
-                'status' => 'published'
-            ]);
-            
-            // Sync sites if provided
-            $siteNames = $validated['published_sites'] ?? [];
-            if (! empty($siteNames)) {
-                $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
-                $existing->publishedSites()->sync($siteIds);
+            ];
+
+            // A. Start with Redis as fallback if available
+            if ($redisArticle) {
+                $finalData = array_merge($finalData, [
+                    'title' => $redisArticle['title'] ?? '',
+                    'original_title' => $redisArticle['title'] ?? '',
+                    'summary' => $redisArticle['summary'] ?? substr($redisArticle['content'] ?? '', 0, 500),
+                    'content' => $redisArticle['content'] ?? '',
+                    'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? '',
+                    'category' => $redisArticle['category'] ?? '',
+                    'country' => $redisArticle['country'] ?? '',
+                    'source' => $redisArticle['source'] ?? '',
+                    'original_url' => $redisArticle['original_url'] ?? '',
+                    'keywords' => $redisArticle['keywords'] ?? '',
+                    'topics' => $redisArticle['topics'] ?? [],
+                    'content_blocks' => $redisArticle['content_blocks'] ?? [],
+                    'template' => $redisArticle['template'] ?? '',
+                    'author' => $redisArticle['author'] ?? '',
+                    'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
+                ]);
             }
 
-            // Cleanup Redis if it's still there
-            $this->redisService->deleteArticle($id);
-            
-            return new ArticleResource($existing);
-        }
+            // B. Layer with Existing DB data (takes priority over Redis)
+            if ($existing) {
+                $existingData = $existing->toArray();
+                // Filter out nulls/empty blocks from existing to ensure we don't 'downgrade' if Redis has better data
+                // though usually DB is more authoritative because it's editable.
+                $finalData = array_merge($finalData, $existingData);
+            }
 
-        // 2. If not in DB, check Redis (Source of Truth for new scraper articles)
-        $redisArticle = $this->redisService->getArticle($id);
-        if (! $redisArticle) {
-            return response()->json(['message' => 'Article not found in database or pending queue'], 404);
-        }
+            // C. Layer with Request Payload (Decisive authority)
+            // Only include fields that were explicitly sent in the request
+            $payload = array_filter($validated, fn($v) => !is_null($v));
+            $finalData = array_merge($finalData, $payload);
 
-        $article = Article::create([
-            'id' => $id,
-            'article_id' => $id,
-            'title' => $redisArticle['title'] ?? '',
-            'original_title' => $redisArticle['title'] ?? '',
-            'summary' => $redisArticle['summary'] ?? substr($redisArticle['content'] ?? '', 0, 500),
-            'content' => $redisArticle['content'] ?? '',
-            'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? '',
-            'category' => $redisArticle['category'] ?? '',
-            'country' => $redisArticle['country'] ?? '',
-            'source' => $redisArticle['source'] ?? '',
-            'original_url' => $redisArticle['original_url'] ?? '',
-            'keywords' => $redisArticle['keywords'] ?? '',
-            'topics' => $redisArticle['topics'] ?? [],
-            'status' => 'published',
-            'views_count' => 0,
-            'is_deleted' => false,
-            'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
-        ]);
+            // 1.5 - Force status and clear deletion flag
+            // Since this is the PUBLISH method, we must ensure these are correct
+            // regardless of what was in Redis or DB drafts.
+            $finalData['status'] = 'published';
+            $finalData['is_deleted'] = false;
 
-        $siteNames = $validated['published_sites'] ?? [];
-        if (! empty($siteNames)) {
-            $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
-            $article->publishedSites()->sync($siteIds);
-        }
+            // 2. Clean up and execute persistence
+            $fillableData = collect($finalData)->only((new Article())->getFillable())->toArray();
 
-        if (isset($validated['custom_titles'])) {
-            $article->custom_titles = $validated['custom_titles'];
-            $article->save();
-        }
+            if ($existing) {
+                \Log::info("Updating existing DB record for publish: {$id}");
+                $existing->update($fillableData);
+                $article = $existing;
+            } else {
+                \Log::info("Creating new DB record for publish from Redis/Payload: {$id}");
+                if (empty($fillableData['title'])) {
+                    return response()->json(['message' => 'Article not found and no title provided for creation.'], 404);
+                }
+                $article = Article::create(array_merge(['id' => $id, 'article_id' => $id], $fillableData));
+            }
 
-        // Handle Gallery Images from Redis
-        $galleryImages = $redisArticle['gallery_images'] ?? [];
-        if (!empty($galleryImages) && is_array($galleryImages)) {
-            foreach ($galleryImages as $imagePath) {
-                if (!empty($imagePath)) {
-                    $article->images()->create([
-                        'image_path' => $imagePath
-                    ]);
+            // 3. Sync Platform Connections
+            $siteNames = $validated['published_sites'] ?? [];
+            if (!empty($siteNames)) {
+                $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
+                $article->publishedSites()->sync($siteIds);
+            }
+
+            // 4. Handle Site-Specific Customizations
+            if (isset($validated['custom_titles'])) {
+                $article->update(['custom_titles' => $validated['custom_titles']]);
+            }
+
+            // 5. Sync Media Assets (ArticleImage relationship)
+            // Priority: Payload Gallery > Redis Gallery
+            $galleryImages = $validated['gallery_images'] ?? $validated['galleryImages'] ?? null;
+            if (is_array($galleryImages)) {
+                $article->images()->delete();
+                foreach ($galleryImages as $imagePath) {
+                    if (!empty($imagePath))
+                        $article->images()->create(['image_path' => $imagePath]);
+                }
+            } elseif (!$existing && $redisArticle && !empty($redisArticle['gallery_images'])) {
+                // Initial sync from Redis if record is brand new in DB
+                foreach ($redisArticle['gallery_images'] as $imagePath) {
+                    if (!empty($imagePath))
+                        $article->images()->create(['image_path' => $imagePath]);
                 }
             }
+
+            // 6. Finalization: Remove from temporary Redis queue
+            $this->redisService->deleteArticle($id);
+            \Log::info("Article {$id} published and archived successfully.");
+
+            return (new ArticleResource($article))->response()->setStatusCode(201);
+
+        } catch (\Exception $e) {
+            \Log::error("Failed to publish article {$id}: " . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+            return response()->json(['message' => 'Failed to publish article: ' . $e->getMessage()], 500);
         }
-
-        $this->redisService->deleteArticle($id);
-
-        \Illuminate\Support\Facades\Log::info("Article {$id} published to sites: ".implode(', ', $siteNames));
-
-        return (new ArticleResource($article))->response()->setStatusCode(201);
     }
 
     /**
@@ -508,11 +551,10 @@ class ArticleController extends Controller
                         'country' => $redisArticle['country'] ?? '',
                         'source' => $redisArticle['source'] ?? '',
                         'status' => 'pending review',
-                        'status' => 'pending review',
                         'is_deleted' => true,
                         'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
                     ]);
-                    
+
                     $this->redisService->deleteArticle($id);
                     $deletedFromRedis = true;
                 }
@@ -538,7 +580,7 @@ class ArticleController extends Controller
     public function restore(string $id): JsonResponse
     {
         $article = Article::find($id);
-        
+
         if (!$article) {
             return response()->json(['message' => 'Article not found'], 404);
         }
@@ -555,6 +597,47 @@ class ArticleController extends Controller
         return response()->json([
             'message' => 'Article restored successfully',
             'article' => $article
+        ]);
+    }
+
+    /**
+     * Permanently remove an article from storage.
+     * Handles both Database articles and Redis articles.
+     */
+    public function hardDelete(string $id): JsonResponse
+    {
+        $deletedFromDb = false;
+        $deletedFromRedis = false;
+
+        // 1. Try to find in Database (including soft-deleted)
+        $article = Article::find($id);
+        if ($article) {
+            $article->delete();
+            $deletedFromDb = true;
+        }
+
+        // 2. Try to handle Redis article (if ID is UUID)
+        if (\Illuminate\Support\Str::isUuid($id)) {
+            try {
+                // Check if it exists in Redis before deleting
+                $redisArticle = $this->redisService->getArticle($id);
+                if ($redisArticle) {
+                    $this->redisService->deleteArticle($id);
+                    $deletedFromRedis = true;
+                }
+            } catch (\Exception $e) {
+                \Log::warning("Failed to hard-delete article {$id} from Redis: " . $e->getMessage());
+            }
+        }
+
+        if (!$deletedFromDb && !$deletedFromRedis) {
+            return response()->json(['message' => 'Article not found'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Article permanently deleted successfully',
+            'from_db' => $deletedFromDb,
+            'from_redis' => $deletedFromRedis
         ]);
     }
 
@@ -598,9 +681,158 @@ class ArticleController extends Controller
 
         return [
             'all' => $allCount,
-            'published' => $publishedCount, 
+            'published' => $publishedCount,
             'pending' => $pendingCount + $pendingReviewCount,
             'deleted' => $deletedCount,
         ];
+    }
+    /**
+     * Send a selected article to matching subscribers manually.
+     */
+    public function sendToSubscribers(Request $request, string $id): JsonResponse
+    {
+        // 1. Find the article (Check DB first, then Redis if UUID)
+        $article = Article::find($id);
+
+        if (!$article && \Illuminate\Support\Str::isUuid($id)) {
+            $redisData = $this->redisService->getArticle($id);
+            if ($redisData) {
+                // Wrap Redis data in a generic object for the Mailable
+                $article = (object) array_merge($redisData, [
+                    'id' => $id,
+                    'status' => 'pending' // Redis articles are always pending until published to DB
+                ]);
+            }
+        }
+
+        if (!$article) {
+            return response()->json(['message' => 'Article not found'], 404);
+        }
+
+        // --- NEW STATUS VALIDATION ---
+        // Only allow published articles to be sent
+        $status = $article instanceof \App\Models\Article ? $article->status : ($article->status ?? 'pending');
+        if ($status !== 'published') {
+            return response()->json([
+                'message' => 'Only published articles can be sent as newsletters. Current status: ' . $status
+            ], 400);
+        }
+
+        // 2. Identify relevant subscribers
+        // Check if specific subscribers were provided in the request
+        $specificSubscriberIds = $request->input('subscriber_ids');
+
+        if (!empty($specificSubscriberIds) && is_array($specificSubscriberIds)) {
+            $subscribers = \App\Models\SubscriptionDetail::whereIn('sub_Id', $specificSubscriberIds)->get();
+        } else {
+            // Default: match subscribers who have the article's category OR country in their preferences
+            $subscribers = \App\Models\SubscriptionDetail::where(function ($query) use ($article) {
+                // Ensure article has category and country before matching
+                if ($article->category) {
+                    $query->whereJsonContains('category', $article->category);
+                }
+                if ($article->country) {
+                    $query->orWhereJsonContains('country', $article->country);
+                }
+            })->get();
+        }
+
+        if ($subscribers->isEmpty()) {
+            return response()->json([
+                'message' => 'No matching subscribers found.'
+            ], 400);
+        }
+
+        // 3. Dispatch Emails
+        $count = 0;
+        foreach ($subscribers as $subscriber) {
+            try {
+                // Reuse DailyNewsletterMail but pass only this single article
+                \Illuminate\Support\Facades\Mail::to($subscriber->email)
+                    ->queue(new \App\Mail\DailyNewsletterMail($subscriber, collect([$article])));
+                $count++;
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Manual Newsletter failed for {$subscriber->email}: " . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'message' => "Article distribution started for {$count} subscribers.",
+            'target_count' => $subscribers->count(),
+            'success_count' => $count
+        ]);
+    }
+
+    /**
+     * Bulk send multiple articles as a newsletter.
+     */
+    public function bulkSend(Request $request): JsonResponse
+    {
+        $articleIds = $request->input('article_ids', []);
+        $subscriberIds = $request->input('subscriber_ids', []);
+
+        if (empty($articleIds)) {
+            return response()->json(['message' => 'No articles selected.'], 400);
+        }
+
+        $articles = Article::whereIn('id', $articleIds)
+            ->where('status', 'published')
+            ->get();
+
+        if ($articles->isEmpty()) {
+            return response()->json(['message' => 'No published articles found for the selected IDs.'], 404);
+        }
+
+        // Identify subscribers
+        if (!empty($subscriberIds)) {
+            $subscribers = \App\Models\SubscriptionDetail::whereIn('sub_Id', $subscriberIds)->get();
+        } else {
+            // Match subscribers who have profile matching ANY of the selected articles
+            $subscribers = \App\Models\SubscriptionDetail::where(function ($query) use ($articles) {
+                foreach ($articles as $article) {
+                    if ($article->category) {
+                        $query->orWhereJsonContains('category', $article->category);
+                    }
+                    if ($article->country) {
+                        $query->orWhereJsonContains('country', $article->country);
+                    }
+                }
+            })->get();
+        }
+
+        if ($subscribers->isEmpty()) {
+            return response()->json(['message' => 'No matching subscribers found.'], 400);
+        }
+
+        // Dispatch
+        $count = 0;
+        foreach ($subscribers as $subscriber) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($subscriber->email)
+                    ->queue(new \App\Mail\DailyNewsletterMail($subscriber, $articles));
+                $count++;
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Bulk Newsletter failed for {$subscriber->email}: " . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'message' => "Newsletter distribution for " . $articles->count() . " articles started for {$count} subscribers.",
+            'target_count' => $subscribers->count(),
+            'success_count' => $count
+        ]);
+    }
+    /**
+     * Get all subscribers for manual selection.
+     */
+    public function getSubscribers(): JsonResponse
+    {
+        $subscribers = \App\Models\SubscriptionDetail::select('sub_Id', 'email', 'category', 'country')
+            ->orderBy('email')
+            ->get();
+
+        return response()->json([
+            'data' => $subscribers
+        ]);
     }
 }
