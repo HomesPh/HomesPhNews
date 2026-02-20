@@ -30,6 +30,11 @@ interface BaseArticleCardProps {
     };
     variant?: 'compact' | 'list';
     onClick?: () => void;
+    actions?: React.ReactNode;
+    selection?: {
+        isSelected: boolean;
+        onSelect: (checked: boolean) => void;
+    };
     className?: string;
 }
 
@@ -60,6 +65,8 @@ export default function BaseArticleCard({
     article,
     variant = 'list',
     onClick,
+    actions,
+    selection,
     className
 }: BaseArticleCardProps) {
     const isCompact = variant === 'compact';
@@ -89,7 +96,17 @@ export default function BaseArticleCard({
                     className
                 )}
             >
-                <div className="flex gap-4">
+                <div className="flex gap-4 items-center">
+                    {article.status === 'published' && selection && (
+                        <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
+                            <input
+                                type="checkbox"
+                                checked={selection.isSelected}
+                                onChange={(e) => selection.onSelect(e.target.checked)}
+                                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            />
+                        </div>
+                    )}
                     {/* Article Image Container */}
                     <div className="relative w-[80px] h-[80px] flex-shrink-0">
                         <img
@@ -130,6 +147,11 @@ export default function BaseArticleCard({
                             <span>{calculateReadTime(article.content || description)}</span>
                         </div>
                     </div>
+                    {actions && (
+                        <div className="flex-shrink-0 self-center pl-2">
+                            {actions}
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -144,6 +166,16 @@ export default function BaseArticleCard({
                 className
             )}
         >
+            {article.status === 'published' && selection && (
+                <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0 self-center">
+                    <input
+                        type="checkbox"
+                        checked={selection.isSelected}
+                        onChange={(e) => selection.onSelect(e.target.checked)}
+                        className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    />
+                </div>
+            )}
             {/* Thumbnail */}
             <div className="w-[118px] h-[106px] rounded-[8px] overflow-hidden flex-shrink-0">
                 <img
@@ -167,7 +199,10 @@ export default function BaseArticleCard({
                             {location}
                         </span>
                     </div>
-                    <StatusBadge status={article.status as any} />
+                    <div className="flex items-center gap-3">
+                        {actions}
+                        <StatusBadge status={article.status as any} />
+                    </div>
                 </div>
 
                 {/* Title */}
