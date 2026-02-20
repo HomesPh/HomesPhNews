@@ -31,10 +31,11 @@ class CampaignController extends Controller
             'status' => 'required|string|in:active,paused,archived',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'image_url' => 'nullable|url|required_without:headline',
+            'image_url' => 'nullable|url|required_without_all:headline,banner_image_urls',
             'target_url' => 'required|url', // Renamed from destination_url
-            'headline' => 'nullable|string|max:255|required_without:image_url',
-            'banner_image_urls' => 'nullable|array', // Added
+            'headline' => 'nullable|string|max:255|required_without_all:image_url,banner_image_urls',
+            'banner_image_urls' => 'nullable|array|required_without_all:image_url,headline',
+            'banner_image_urls.*' => 'url',
             'ad_units' => 'nullable|array',
             'ad_units.*' => 'exists:ad_units,id',
         ]);
@@ -74,6 +75,7 @@ class CampaignController extends Controller
             'target_url' => 'sometimes|url',
             'headline' => 'nullable|string|max:255',
             'banner_image_urls' => 'nullable|array',
+            'banner_image_urls.*' => 'url',
             'ad_units' => 'nullable|array',
             'ad_units.*' => 'exists:ad_units,id',
         ]);

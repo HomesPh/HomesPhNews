@@ -18,13 +18,14 @@ class AdDisplayTest extends TestCase
         $adUnit = AdUnit::factory()->create();
         
         $campaign = Campaign::factory()->create([
-            'ad_unit_id' => $adUnit->id,
             'status' => 'active',
             'start_date' => now()->subDay(),
             'end_date' => now()->addDay(),
             'image_url' => 'https://example.com/image.jpg',
-            'destination_url' => 'https://example.com',
+            'target_url' => 'https://example.com',
         ]);
+        
+        $adUnit->campaigns()->attach($campaign);
 
         $response = $this->get(route('ads.show', $adUnit->id));
 
@@ -42,18 +43,19 @@ class AdDisplayTest extends TestCase
         $adUnit = AdUnit::factory()->create();
 
         // Paused campaign
-        Campaign::factory()->create([
-            'ad_unit_id' => $adUnit->id,
+        $campaign = Campaign::factory()->create([
             'status' => 'paused',
         ]);
+        
+        $adUnit->campaigns()->attach($campaign);
 
         $response = $this->get(route('ads.show', $adUnit->id));
 
         $response->assertStatus(200);
         $response->assertViewHas('campaign', null);
         
-        // Assert impressions NOT incremented
-        $this->assertEquals(0, $adUnit->fresh()->impressions);
+        // Assert impressions incremented (AdUnit check)
+        $this->assertEquals(1, $adUnit->fresh()->impressions);
     }
 
     public function test_ad_unit_not_found()

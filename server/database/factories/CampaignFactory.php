@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\AdUnit;
+
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Campaign>
@@ -19,16 +19,15 @@ class CampaignFactory extends Factory
     {
         return [
             'name' => $this->faker->words(3, true),
-            'type' => 'banner',
             'status' => 'active',
             'start_date' => now()->subDay(),
             'end_date' => now()->addMonth(),
-            'budget' => $this->faker->randomFloat(2, 100, 1000),
             'impressions' => 0,
             'clicks' => 0,
             'image_url' => $this->faker->imageUrl(),
-            'destination_url' => $this->faker->url(),
-            'ad_unit_id' => AdUnit::factory(), // This links it to an AdUnit
+            'target_url' => $this->faker->url(),
+            'headline' => $this->faker->sentence(),
+            // 'banner_image_urls' => [], // Optional
         ];
     }
 }

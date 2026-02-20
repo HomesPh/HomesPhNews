@@ -48,9 +48,13 @@ return new class extends Migration
                     // actually, let's skip dropUnique if we can't be sure, or just warn.
                     // But 'name' is being dropped.
                     try {
-                        $table->dropUnique(['name']); // Array syntax for standard index name generation or string literal
+                        $table->dropUnique('campaigns_name_unique');
                     } catch (\Exception $e) {
-                        // Index might not exist
+                        try {
+                            $table->dropUnique(['name']);
+                        } catch (\Exception $e2) {
+                            // ignore
+                        }
                     }
                      $table->dropColumn('name');
                 }
