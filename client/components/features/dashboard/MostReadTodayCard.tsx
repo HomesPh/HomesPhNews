@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, formatViews } from "@/lib/utils";
 
 interface MostReadTodayProps {
   title?: string;
@@ -54,7 +54,7 @@ export default function MostReadTodayCard({ title = "Most Read Today", items = [
               <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
                 <span suppressHydrationWarning>{article.timeAgo || 'Recently'}</span>
                 <span>•</span>
-                <span suppressHydrationWarning>{article.views.toLocaleString()} views</span>
+                <span suppressHydrationWarning>{formatViews(article.views)}</span>
               </div>
             </div>
           </Link>

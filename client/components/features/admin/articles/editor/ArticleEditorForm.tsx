@@ -20,17 +20,21 @@ import { Loader2 } from "lucide-react";
 interface ArticleEditorFormProps {
     data: any;
     availableSites: string[];
+    availableCategories?: string[];
+    availableCountries?: string[];
     onDataChange: (field: string, value: any) => void;
     template: any;
     onTemplateChange: (template: any) => void;
-    onSave?: () => void;
-    onPublish?: () => void;
+    onSave?: (currentData?: any) => void;
+    onPublish?: (currentData?: any) => void;
     onClose?: () => void;
 }
 
 export default function ArticleEditorForm({
     data,
     availableSites,
+    availableCategories = [],
+    availableCountries = [],
     onDataChange,
     template,
     onTemplateChange,
@@ -211,20 +215,30 @@ export default function ArticleEditorForm({
         }
     };
 
-    const handleInternalSave = () => {
-        // Generate HTML for the 'content' field on save using the unified converter
+    const getLatestData = () => {
         const htmlContent = blocksToHtml(editor.blocks);
 
+        // Sync local changes to parent via onDataChange
         onDataChange('content', htmlContent);
         onDataChange('contentBlocks', editor.blocks);
 
+        return {
+            ...editor.details,
+            content: htmlContent,
+            contentBlocks: editor.blocks
+        };
+    };
+
+    const handleInternalSave = () => {
+        const currentData = getLatestData();
         console.log("Synced data for save.");
-        if (onSave) onSave();
+        if (onSave) onSave(currentData);
+        return currentData;
     };
 
     const handleInternalPublish = () => {
-        handleInternalSave();
-        if (onPublish) onPublish();
+        const latestData = getLatestData();
+        if (onPublish) onPublish(latestData);
     }
 
     if (!isLoaded) return <div className="flex items-center justify-center h-full"><Loader2 className="animate-spin" /></div>;
@@ -263,6 +277,9 @@ export default function ArticleEditorForm({
                                 onAddBlock={editor.addBlock}
                                 details={editor.details}
                                 onUpdateDetails={editor.updateDetails}
+                                availableCategories={availableCategories}
+                                availableCountries={availableCountries}
+                                availableSites={availableSites}
                             />
                         </div>
                     </div>

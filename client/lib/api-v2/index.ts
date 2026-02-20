@@ -27,8 +27,13 @@ export * from "./admin/service/article/updatePendingArticle";
 export * from "./admin/service/article/updateArticleTitles";
 export * from "./admin/service/article/publishArticle";
 export * from "./admin/service/article/deleteArticle";
+export * from "./admin/service/article/sendNewsletter";
+export * from "./admin/service/article/bulkSendNewsletter";
+export * from "./admin/service/article/getSubscribers";
+export * from "./admin/service/mailing-list/groups";
 
 export * from "./admin/service/analytics/getAdminAnalytics";
+export * from "./admin/service/analytics/getMailingListStats";
 export * from "./admin/service/dashboard/getAdminStats";
 export * from "./admin/service/events/getAdminEvents";
 export * from "./admin/service/events/createEvent";
@@ -48,8 +53,11 @@ export * from "./admin/service/upload/uploadImage";
 export * from "./admin/service/ai/generateImages";
 
 export * from "./admin/service/ads";
+export * from "./admin/service/ads/getAdMetrics";
 export * from "./admin/service/campaigns";
 export * from "./admin/service/scraper";
+export * from "./admin/service/cities";
+export * from "./admin/service/users/createUser";
 
 
 /**
@@ -62,5 +70,6 @@ export type * from "./types/Event";
 export type * from "./types/SiteResource";
 export type * from "./types/CategoryResource";
 export type * from "./types/CountryResource";
+export type * from "./types/CityResource";
 export { ApiError } from "./types/ApiError";
 

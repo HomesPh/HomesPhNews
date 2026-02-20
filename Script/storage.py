@@ -378,6 +378,44 @@ class StorageHandler:
             print(f"❌ Clear All Error: {e}")
             return 0
 
+    def purge_old_articles(self, max_age_hours=24):
+        """
+        Deletes articles older than max_age_hours from Redis.
+        Helps keep the news feed fresh as per user request.
+        """
+        try:
+            # 1. Get current time
+            import time
+            now = time.time()
+            max_age_seconds = max_age_hours * 3600
+            
+            # 2. Get all article IDs and their timestamps from the sorted set
+            # ZREVRANGEBYSCORE might be more efficient, but let's get all and filter
+            old_articles = self.redis_client.zrangebyscore(
+                f"{self.prefix}articles_by_time", 
+                0, 
+                now - max_age_seconds
+            )
+            
+            if not old_articles:
+                print(f"✨ No articles older than {max_age_hours}h found.")
+                return 0
+                
+            print(f"🧹 Found {len(old_articles)} articles older than {max_age_hours}h. Purging...")
+            
+            # 3. Use parallel threads for cloud deletion if needed
+            count = 0
+            with ThreadPoolExecutor(max_workers=5) as executor:
+                results = list(executor.map(self.delete_article, old_articles))
+                count = sum(1 for r in results if r)
+            
+            print(f"🗑️ Successfully purged {count} outdated articles.")
+            return count
+            
+        except Exception as e:
+            print(f"❌ Purge Error: {e}")
+            return 0
+
     def get_stats(self):
         """Returns statistics about stored articles."""
         return {

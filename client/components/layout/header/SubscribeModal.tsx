@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, Mail, Briefcase, ArrowLeft, CheckCircle2, ChevronDown, Clock, Calendar } from "lucide-react";
+import { X, Mail, Briefcase, ArrowLeft, CheckCircle2, ChevronDown, Clock, Calendar, HelpCircle, ChevronUp } from "lucide-react";
 import { Categories, Countries, RestaurantCategories } from "@/app/data";
 
 interface SubscribeModalProps {
@@ -30,16 +30,26 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
     });
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [showManual, setShowManual] = useState(false);
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
     if (!isOpen) return null;
 
     const handleBack = () => {
-        setStep('choice');
+        if (step === 'email') {
+            setStep('choice');
+        } else if (step === 'configure') {
+            setStep('service');
+        } else if (step === 'service') {
+            setStep('choice');
+        }
     };
 
     const handleReset = () => {
         setIsSubmitted(false);
         setStep('choice');
+        // ... rest of reset logic
         setFormData({
             email: "",
             name: "",
@@ -53,10 +63,20 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
             price: 0,
             logo: null
         });
+        setErrors({});
+        setShowConfirmation(false);
+        setShowManual(false);
     };
 
     const handleSelectPlan = (plan: string, price: number) => {
-        router.push('/admin/login');
+        localStorage.setItem('pending_plan', plan.toLowerCase());
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            router.push(`/subscription/checkout?plan=${plan.toLowerCase()}`);
+        } else {
+            router.push('/admin/login');
+        }
+        onClose();
     };
 
     const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,7 +87,29 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (step === 'email') {
+            const newErrors: { [key: string]: string } = {};
+            if (formData.categories.length === 0) newErrors.categories = "Please select at least one category";
+            if (formData.countries.length === 0) newErrors.countries = "Please select at least one country";
+            if (!formData.email) newErrors.email = "Please enter your email address";
+            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = "Please enter a valid email address";
+
+            if (Object.keys(newErrors).length > 0) {
+                setErrors(newErrors);
+                return;
+            }
+            setErrors({});
+            setShowConfirmation(true);
+        } else {
+            // For other steps (if any used), we still allow confirmation if needed
+            setShowConfirmation(true);
+        }
+    };
+
+    const processSubscription = async () => {
         setIsLoading(true);
+        setShowConfirmation(false);
 
         try {
             // Only 'email' step is currently handled by the backend
@@ -234,17 +276,20 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                         </button>
 
                                         <button
-                                            onClick={() => setStep('service')}
+                                            onClick={() => {
+                                                router.push('/subscription/plans');
+                                                onClose();
+                                            }}
                                             className="group flex items-center gap-[16px] p-[20px] bg-white border border-[#e5e7eb] rounded-[20px] text-left transition-all hover:border-[#c10007] hover:shadow-xl"
                                         >
-                                            <div className="w-[50px] h-[50px] bg-[#fef2f2] rounded-[12px] flex items-center justify-center text-[#c10007] transition-all group-hover:scale-110">
+                                            <div className="w-[50px] h-[50px] bg-gray-100 rounded-[12px] flex items-center justify-center text-gray-400 transition-all">
                                                 <Briefcase className="w-7 h-7" />
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-center justify-between">
-                                                    <h3 className="font-bold text-[17px] text-[#111827] tracking-[-0.5px]">Avail our Services</h3>
+                                                    <h3 className="font-bold text-[17px] text-gray-400 tracking-[-0.5px]">Avail our Services</h3>
                                                 </div>
-                                                <p className="text-[#6b7280] text-[13px] leading-snug">Professional real estate solutions.</p>
+                                                <p className="text-gray-400 text-[13px] leading-snug">Professional real estate solutions (Currently Unavailable)</p>
                                             </div>
                                         </button>
                                     </div>
@@ -260,6 +305,41 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                         Stay informed with breaking news and exclusive real estate stories.
                                     </p>
 
+                                    {/* Manual Section */}
+                                    <div className="mb-[20px] border border-[#e5e7eb] rounded-[12px] overflow-hidden bg-gray-50/50">
+                                        <button
+                                            onClick={() => setShowManual(!showManual)}
+                                            className="w-full flex items-center justify-between p-[12px] hover:bg-gray-100 transition-colors"
+                                        >
+                                            <div className="flex items-center gap-2 text-[#c10007]">
+                                                <HelpCircle className="w-4 h-4" />
+                                                <span className="font-bold text-[14px] tracking-[-0.3px]">How to Subscribe?</span>
+                                            </div>
+                                            {showManual ? <ChevronUp className="w-4 h-4 text-[#9ca3af]" /> : <ChevronDown className="w-4 h-4 text-[#9ca3af]" />}
+                                        </button>
+
+                                        <div className={`overflow-hidden transition-all duration-300 ${showManual ? 'max-h-[400px] p-[16px] pt-0' : 'max-h-0'}`}>
+                                            <div className="space-y-[12px] text-[13px] text-[#4b5563]">
+                                                <div className="flex gap-3">
+                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#c10007] text-white flex items-center justify-center text-[10px] font-bold">1</div>
+                                                    <p><span className="font-semibold text-[#111827]">Pick Categories:</span> Choose news topics like "Community" or "Sports".</p>
+                                                </div>
+                                                <div className="flex gap-3">
+                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#c10007] text-white flex items-center justify-center text-[10px] font-bold">2</div>
+                                                    <p><span className="font-semibold text-[#111827]">Select Regions:</span> Target specific countries for relevant updates.</p>
+                                                </div>
+                                                <div className="flex gap-3">
+                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#c10007] text-white flex items-center justify-center text-[10px] font-bold">3</div>
+                                                    <p><span className="font-semibold text-[#111827]">Set Schedule:</span> Tell us how often and when you want to be notified.</p>
+                                                </div>
+                                                <div className="flex gap-3">
+                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#c10007] text-white flex items-center justify-center text-[10px] font-bold">4</div>
+                                                    <p><span className="font-semibold text-[#111827]">Confirm:</span> Enter your email and confirm the selection to finish!</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <form onSubmit={handleSubmit} className="space-y-[14px]">
                                         <div className="grid grid-cols-2 gap-[16px]">
                                             {/* Categories Selection */}
@@ -269,12 +349,13 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                 </label>
                                                 <div className="relative group">
                                                     <select
-                                                        className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[10px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#c10007] bg-white transition-all appearance-none cursor-pointer"
+                                                        className={`w-full border ${errors.categories ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[12px] py-[10px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#c10007] bg-white transition-all appearance-none cursor-pointer`}
                                                         value=""
                                                         onChange={(e) => {
                                                             const val = e.target.value;
                                                             if (val && !formData.categories.includes(val)) {
                                                                 setFormData({ ...formData, categories: [...formData.categories, val] });
+                                                                setErrors({ ...errors, categories: "" });
                                                             }
                                                         }}
                                                     >
@@ -294,6 +375,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                         <ChevronDown className="w-4 h-4" />
                                                     </div>
                                                 </div>
+                                                {errors.categories && <p className="text-red-500 text-[11px] mt-1 font-medium">{errors.categories}</p>}
                                                 <div className="flex flex-wrap gap-1.5 mt-2">
                                                     {formData.categories.map((catId) => {
                                                         const allCats = [
@@ -319,12 +401,13 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                 </label>
                                                 <div className="relative group">
                                                     <select
-                                                        className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[10px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#c10007] bg-white transition-all appearance-none cursor-pointer"
+                                                        className={`w-full border ${errors.countries ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[12px] py-[10px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#c10007] bg-white transition-all appearance-none cursor-pointer`}
                                                         value=""
                                                         onChange={(e) => {
                                                             const val = e.target.value;
                                                             if (val && !formData.countries.includes(val)) {
                                                                 setFormData({ ...formData, countries: [...formData.countries, val] });
+                                                                setErrors({ ...errors, countries: "" });
                                                             }
                                                         }}
                                                     >
@@ -339,6 +422,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                         <ChevronDown className="w-4 h-4" />
                                                     </div>
                                                 </div>
+                                                {errors.countries && <p className="text-red-500 text-[11px] mt-1 font-medium">{errors.countries}</p>}
                                                 <div className="flex flex-wrap gap-1.5 mt-2">
                                                     {formData.countries.map((countryId) => (
                                                         <div key={countryId} className="flex items-center gap-1 bg-[#f0f9ff] text-[#0369a1] px-2 py-0.5 rounded-full text-[11px] font-bold border border-[#e0f2fe]">
@@ -358,10 +442,14 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                 type="email"
                                                 required
                                                 value={formData.email}
-                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                onChange={(e) => {
+                                                    setFormData({ ...formData, email: e.target.value });
+                                                    if (errors.email) setErrors({ ...errors, email: "" });
+                                                }}
                                                 placeholder="your@email.com"
-                                                className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#c10007] transition-all"
+                                                className={`w-full border ${errors.email ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#c10007] transition-all`}
                                             />
+                                            {errors.email && <p className="text-red-500 text-[11px] mt-1 font-medium">{errors.email}</p>}
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-[12px]">
@@ -683,6 +771,32 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                         </p>
                     </div>
                 </div>
+
+                {/* Confirmation Modal */}
+                {showConfirmation && (
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                        <div className="bg-white rounded-[20px] p-[24px] max-w-[320px] w-full shadow-2xl animate-in zoom-in-95 duration-200 text-center">
+                            <h4 className="font-bold text-[18px] text-[#111827] mb-[8px]">Are you sure?</h4>
+                            <p className="text-[#6b7280] text-[14px] leading-relaxed mb-[20px]">
+                                Please confirm your selection before we process your subscription.
+                            </p>
+                            <div className="flex gap-[12px]">
+                                <button
+                                    onClick={() => setShowConfirmation(false)}
+                                    className="flex-1 py-[10px] rounded-[10px] border border-[#e5e7eb] text-[#374151] font-semibold text-[14px] hover:bg-gray-50 transition-colors"
+                                >
+                                    No, Review
+                                </button>
+                                <button
+                                    onClick={processSubscription}
+                                    className="flex-1 py-[10px] rounded-[10px] bg-[#c10007] text-white font-semibold text-[14px] hover:bg-[#a00006] transition-all shadow-md active:scale-[0.98]"
+                                >
+                                    Yes, Proceed
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

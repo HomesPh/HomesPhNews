@@ -98,3 +98,20 @@ export function calculateReadTime(content: string | null | undefined): string {
 
   return `${readTime} min read`;
 }
+
+/**
+ * Formats view count with correct pluralization.
+ * @param count The number of views
+ * @returns Formatted string (e.g. "1 view", "12 views", "1.5k views")
+ */
+export function formatViews(count: number | undefined | null): string {
+  if (count === undefined || count === null) return "0 views";
+
+  // Format large numbers (e.g. 1500 -> 1.5k)
+  if (count >= 1000) {
+    return (count / 1000).toFixed(1).replace(/\.0$/, '') + 'k views';
+  }
+
+  // Pluralization logic
+  return `${count} ${count === 1 ? 'view' : 'views'}`;
+}

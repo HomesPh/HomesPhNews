@@ -29,9 +29,34 @@ class SendDailyNewsletter extends Command
      */
     public function handle()
     {
-        $this->info('Starting Daily Newsletter distribution...');
+        $currentTime = now()->format('H:i');
+        $defaultTime = '08:00'; // Users with no time set will receive at this hour
 
-        $subscribers = SubscriptionDetail::all();
+        $this->info("Starting Newsletter distribution for time: {$currentTime}...");
+
+        // Get subscribers who:
+        // 1. Specifically requested this time OR
+        // 2. Have no time set (only if it's the default 08:00 AM)
+        $subscribers = SubscriptionDetail::where(function($query) use ($currentTime, $defaultTime) {
+                $query->where('time', $currentTime);
+                
+                if ($currentTime === $defaultTime) {
+                    $query->orWhereNull('time')
+                          ->orWhere('time', '');
+                }
+            })
+            ->where(function($query) {
+                // Treat 'daily', empty string, or null as daily frequency
+                $query->where('frequency', 'daily')
+                      ->orWhere('frequency', '')
+                      ->orWhereNull('frequency');
+            })
+            ->get();
+
+        if ($subscribers->isEmpty()) {
+            $this->info('No subscribers scheduled for this time.');
+            return;
+        }
 
         foreach ($subscribers as $subscriber) {
             // Find articles matching subscriber preferences

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArticleResource } from "@/lib/api-v2";
-import { decodeHtml, calculateReadTime } from '@/lib/utils';
+import { decodeHtml, calculateReadTime, formatViews, stripHtml } from '@/lib/utils';
 import ShareButtons from "@/components/shared/ShareButtons";
 
 interface LatestPostsSectionProps {
@@ -69,10 +69,9 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                             <h3 className="text-xl md:text-2xl font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors mb-4">
                                 {article.title}
                             </h3>
-                            <div
-                                className="text-gray-500 dark:text-gray-400 text-sm font-medium leading-relaxed line-clamp-3 mb-6 prose prose-sm max-w-none [&>p]:m-0 [&>p]:inline"
-                                dangerouslySetInnerHTML={{ __html: decodeHtml(article.summary) }}
-                            />
+                            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium leading-relaxed line-clamp-3 mb-6">
+                                {stripHtml(article.summary)}
+                            </p>
                             <div className="flex items-center space-x-4 text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-auto">
                                 <span className="flex items-center">
                                     <span className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-800 mr-2 transition-colors"></span>
@@ -83,7 +82,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                                 <span>•</span>
                                 <span className="flex items-center">
                                     <span className="mr-1">👁️</span>
-                                    {article.views_count.toLocaleString()}
+                                    {formatViews(article.views_count)}
                                 </span>
                                 <span>•</span>
                                 <span>{calculateReadTime(article.content || article.summary)}</span>

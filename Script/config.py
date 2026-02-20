@@ -34,6 +34,8 @@ CATEGORIES = [
     "Sports",
 ]
 
+CITIES = {} # country_id -> list of city names
+
 # Restaurant Categories
 RESTAURANT_CATEGORIES = [
     "Fine Dining",
@@ -81,3 +83,69 @@ REDIS_KEYS = {
     "category_list": "news:category:{category}:articles",
     "all_articles": "news:all:articles",
 }
+
+# ═══════════════════════════════════════════════════════════════
+# DYNAMIC CONFIGURATION (MYSQL)
+# ═══════════════════════════════════════════════════════════════
+
+def load_dynamic_config():
+    """Fetch countries and categories from MySQL if available."""
+    global COUNTRIES, CATEGORIES
+    
+    try:
+        from database import SessionLocal, check_mysql_connection
+        from models import CategoryDB, CountryDB, CityDB
+        
+        if not check_mysql_connection():
+            print("ℹ️ MySQL not connected, using hardcoded config fallbacks.")
+            return
+
+        db = SessionLocal()
+        try:
+            # 1. Fetch Categories
+            db_categories = db.query(CategoryDB).filter(CategoryDB.is_active == True).all()
+            if db_categories:
+                CATEGORIES.clear()
+                CATEGORIES.extend([c.name for c in db_categories])
+                print(f"✅ Loaded {len(CATEGORIES)} categories from database: {CATEGORIES}")
+            
+            # 2. Fetch Countries
+            db_countries = db.query(CountryDB).filter(CountryDB.is_active == True).all()
+            if db_countries:
+                new_countries = {}
+                for c in db_countries:
+                    new_countries[c.name] = {
+                        "gl": c.gl,
+                        "hl": c.h1, # Mapping DB 'h1' to Config 'hl'
+                        "ceid": c.ceid
+                    }
+                COUNTRIES.clear()
+                COUNTRIES.update(new_countries)
+                print(f"✅ Loaded {len(COUNTRIES)} countries from database.")
+
+            # 3. Fetch Cities
+            db_cities = db.query(CityDB).filter(CityDB.is_active == True).all()
+            if db_cities:
+                from collections import defaultdict
+                city_map = defaultdict(list)
+                for city in db_cities:
+                    city_map[city.country_id].append(city.name)
+                
+                # We can store this in a global variable
+                global CITIES
+                CITIES = dict(city_map)
+                print(f"✅ Loaded {len(db_cities)} cities across {len(CITIES)} countries.")
+                
+        except Exception as e:
+            print(f"⚠️ Error querying dynamic config: {e}")
+        finally:
+            db.close()
+            
+    except ImportError:
+        # Fallback if database/models aren't fully initialized yet during early imports
+        pass
+    except Exception as e:
+        print(f"⚠️ Failed to load dynamic config: {e}")
+
+# Initial load
+load_dynamic_config()

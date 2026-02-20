@@ -27,6 +27,7 @@ class SubscriptionDetail extends Model
         'email',
         'features',
         'time',
+        'frequency',
     ];
 
     /**

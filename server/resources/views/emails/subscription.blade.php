@@ -21,13 +21,13 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
         .header {
-            background-color: #c10007;
+            background-color: #f8fafc;
             padding: 30px;
             text-align: center;
+            border-bottom: 3px solid #334155;
         }
         .header img {
             max-height: 40px;
-            filter: brightness(0) invert(1);
         }
         .content {
             padding: 40px 30px;
@@ -96,7 +96,7 @@
         .article-title {
             font-size: 16px;
             font-weight: 700;
-            color: #c10007;
+            color: #334155;
             margin-bottom: 5px;
         }
         .article-summary {
@@ -106,7 +106,7 @@
         }
         .btn {
             display: inline-block;
-            background-color: #c10007;
+            background-color: #334155;
             color: #ffffff !important;
             padding: 12px 24px;
             border-radius: 8px;
@@ -133,13 +133,13 @@
             font-size: 12px;
         }
         .footer-links a:hover {
-            color: #c10007;
+            color: #334155;
         }
         .tag {
             display: inline-block;
             padding: 2px 8px;
-            background-color: #fee2e2;
-            color: #c10007;
+            background-color: #f1f5f9;
+            color: #334155;
             border-radius: 4px;
             font-size: 11px;
             font-weight: 700;
@@ -150,7 +150,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="https://homestv.ph/images/HomesTV.png" alt="HomesTV">
+            <img src="https://news.homes.ph/images/HomesTV.png" alt="HomesTV">
         </div>
         
         <div class="content">
@@ -200,11 +200,10 @@
         <div class="footer">
             <div class="footer-text">
                 &copy; {{ date('Y') }} HomesTV. All rights reserved.<br>
-                123 Real Estate Ave, Makati City, Philippines
             </div>
             <div class="footer-links">
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
+                <a href="{{ $clientUrl }}/privacy-policy">Privacy Policy</a>
+                <a href="{{ $clientUrl }}/terms-and-policy">Terms of Service</a>
                 <a href="{{ $clientUrl }}/subscribe/edit?id={{ $subId }}">Preference Center</a>
             </div>
         </div>

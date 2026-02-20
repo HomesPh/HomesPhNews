@@ -1,6 +1,6 @@
 "use client";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
-import { LayoutDashboard, FileText, BarChart3, Calendar, Settings, LogOut, Users, BookOpen, Globe, Megaphone, Utensils, Bot } from "lucide-react";
+import { LayoutDashboard, FileText, BarChart3, Calendar, Settings, LogOut, Users, BookOpen, Globe, Megaphone, Utensils, Bot, Send } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,11 @@ const SidebarItems = [
     title: "Articles",
     href: "/admin/articles",
     icon: FileText
+  },
+  {
+    title: "Mailing List",
+    href: "/admin/mailing-list",
+    icon: Send
   },
   {
     title: "Restaurant",
@@ -67,8 +72,17 @@ const SidebarItems = [
 export default function AdminSidebar() {
   const pathname = usePathname();
   const { state } = useSidebar();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const isCollapsed = state === "collapsed";
+
+  const filteredSidebarItems = SidebarItems.filter(item => {
+    // If user is CEO, only show Mailing List
+    if (user?.roles?.includes('ceo')) {
+      return item.title === "Mailing List";
+    }
+    // Default: show all for admin or other roles
+    return true;
+  });
 
   return (
     <Sidebar collapsible="icon" className="border-none">
@@ -98,7 +112,7 @@ export default function AdminSidebar() {
 
         <SidebarContent className="px-4 py-6 overflow-y-auto">
           <SidebarMenu className="space-y-2">
-            {SidebarItems.map((item) => {
+            {filteredSidebarItems.map((item) => {
               const isActive = pathname === item.href;
               const Icon = item.icon;
               return (
@@ -129,8 +143,8 @@ export default function AdminSidebar() {
 
         <SidebarFooter className="px-4 py-4 border-t border-[#2a2d3e]">
           <button
-            onClick={() => {
-              logout();
+            onClick={async () => {
+              await logout();
               window.location.href = '/admin/login';
             }}
             className={cn(

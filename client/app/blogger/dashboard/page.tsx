@@ -11,10 +11,12 @@ import { useRouter } from "next/navigation";
 import { getBloggerDashboardStats, BloggerDashboardStats } from "@/lib/api-v2/blogger/service/dashboard/getBloggerDashboardStats";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus } from "lucide-react";
+import { useAuth } from "@/lib/api-v2";
 
 export default function BloggerDashboardPage() {
     const router = useRouter();
-    const userName = "Maria";
+    const user = useAuth((state) => state.user);
+    const userName = user?.first_name || "Blogger";
     const [isLoading, setIsLoading] = useState(true);
     const [data, setData] = useState<BloggerDashboardStats | null>(null);
 

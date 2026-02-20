@@ -19,6 +19,7 @@ from apscheduler.triggers.cron import CronTrigger
 # Local imports
 from database import ping_redis, get_total_articles, get_country_count
 from models import HealthResponse, JobStatus
+from config import COUNTRIES
 from routes import router as article_router
 from scheduler import run_hourly_job, get_job_status, update_next_run
 
@@ -40,19 +41,21 @@ async def lifespan(app: FastAPI):
     """Handle startup and shutdown events."""
     
     # ─── Startup ───
-    # Schedule: 2 runs per day = 2 articles per country per day
-    # Hours: 6 AM and 6 PM (every 12 hours)
+    # Schedule: Run every hour to ensure news stays fresh
+    # This aligns with the user's request for "Latest" news.
     scheduler.add_job(
         run_hourly_job,
-        CronTrigger(hour='6,18', minute=0),
+        CronTrigger(minute=0), # Every hour at :00
         id='hourly_job',
-        name='News Scraper (2x/day)',
+        name='HomesPh Fresh News Engine (Hourly)',
         replace_existing=True
     )
     scheduler.start()
     
     # Update next run time
-    next_run = scheduler.get_job('hourly_job').next_run_time
+    job = scheduler.get_job('hourly_job')
+    next_run = job.next_run_time if job else None
+    
     if next_run:
         update_next_run(next_run.isoformat())
         # Make timezone-naive for comparison
@@ -65,13 +68,15 @@ async def lifespan(app: FastAPI):
     # Startup message
     print("")
     print("=" * 60)
-    print("🚀 HOMESPH NEWS SERVICE STARTED")
+    print("🚀 HOMESPH FRESH NEWS SERVICE STARTED")
     print("=" * 60)
-    print(f"📡 API:      http://localhost:8000")
-    print(f"📖 Docs:     http://localhost:8000/docs")
+    print(f"📡 API:      http://localhost:8001")
+    print(f"📖 Docs:     http://localhost:8001/docs")
     print("-" * 60)
-    print(f"⏰ Schedule: 10 times/day (every ~2.5 hours)")
-    print(f"📊 Target:   80 articles/day (10 per country)")
+    print(f"⏰ Schedule: EVERY HOUR (Real-time mode)")
+    print(f"🔥 Mode:     FRESH NEWS ONLY (<24h age)")
+    print(f"🧹 Cleanup:  Auto-purge >24h old articles")
+    print(f"📊 Target:   {len(COUNTRIES) * 24} articles/day")
     print(f"📅 Next run: {next_run.strftime('%Y-%m-%d %H:%M:%S') if next_run else 'N/A'}")
     print(f"⏳ In:       {minutes_until} minutes")
     print("=" * 60)
@@ -119,14 +124,17 @@ app.include_router(article_router)
 async def health_check():
     """Health check endpoint."""
     redis_ok = ping_redis()
+    from database import check_mysql_connection
+    mysql_ok = check_mysql_connection()
     
     uptime = datetime.now() - start_time
     hours, remainder = divmod(int(uptime.total_seconds()), 3600)
     minutes, seconds = divmod(remainder, 60)
     
     return {
-        "status": "healthy" if redis_ok else "degraded",
+        "status": "healthy" if (redis_ok and mysql_ok) else "degraded",
         "redis_connected": redis_ok,
+        "mysql_connected": mysql_ok,
         "scheduler_running": scheduler.running,
         "timestamp": datetime.utcnow().isoformat(),
         "uptime": f"{hours}h {minutes}m {seconds}s"
@@ -155,11 +163,13 @@ async def trigger_job(background_tasks: BackgroundTasks):
 async def stats():
     """Get database and scheduler statistics."""
     job_status = get_job_status()
+    from database import check_mysql_connection
     
     return {
         "database": {
             "total_articles": get_total_articles(),
-            "countries": get_country_count()
+            "countries": get_country_count(),
+            "mysql_ok": check_mysql_connection()
         },
         "scheduler": {
             "total_runs": job_status["total_runs"],
