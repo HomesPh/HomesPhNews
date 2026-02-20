@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
-import { Plus } from 'lucide-react';
+import { Plus, Send, Trash, CheckSquare, Square } from 'lucide-react';
 import ArticlesTabs, { ArticleTab } from "@/components/features/admin/articles/ArticlesTabs";
 import ArticlesFilters from "@/components/features/admin/articles/ArticlesFilters";
 import ArticleListItem from "@/components/features/admin/articles/ArticleListItem";
@@ -14,6 +14,7 @@ import usePagination from '@/hooks/usePagination';
 import useUrlFilters from '@/hooks/useUrlFilters';
 import { getAdminArticles } from "@/lib/api-v2/admin/service/article/getAdminArticles";
 import ArticlesSkeleton from "@/components/features/admin/articles/ArticlesSkeleton";
+import SendNewsletterModal from "@/components/features/admin/articles/SendNewsletterModal";
 
 // Filter configuration with defaults and reset values
 const URL_FILTERS_CONFIG = {
@@ -43,6 +44,8 @@ export default function ArticlesPage() {
     // Local state (not synced to URL)
     const [searchQuery, setSearchQuery] = useState('');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [selectedArticleIds, setSelectedArticleIds] = useState<string[]>([]);
+    const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
     // Pagination state handler
     const pagination = usePagination();
@@ -155,6 +158,26 @@ export default function ArticlesPage() {
                     availableCountries={availableFilters.countries}
                 />
 
+                <div className="flex items-center px-5 py-3 border-b border-[#f3f4f6] bg-[#fafbfc]">
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={filteredArticles.length > 0 && filteredArticles.every(a => selectedArticleIds.includes(a.id))}
+                            onChange={(e) => {
+                                if (e.target.checked) {
+                                    const newSelected = [...new Set([...selectedArticleIds, ...filteredArticles.map(a => a.id)])];
+                                    setSelectedArticleIds(newSelected);
+                                } else {
+                                    const visibleIds = filteredArticles.map(a => a.id);
+                                    setSelectedArticleIds(prev => prev.filter(id => !visibleIds.includes(id)));
+                                }
+                            }}
+                            className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        />
+                        <span className="text-[12px] font-black text-[#64748b] tracking-widest uppercase">Select All Visible</span>
+                    </div>
+                </div>
+
                 <div className="flex flex-col">
                     {isLoading ? (
                         <ArticlesSkeleton />
@@ -163,6 +186,14 @@ export default function ArticlesPage() {
                             <ArticleListItem
                                 key={article.id}
                                 article={article}
+                                selection={{
+                                    isSelected: selectedArticleIds.includes(article.id),
+                                    onSelect: (checked) => {
+                                        setSelectedArticleIds(prev =>
+                                            checked ? [...prev, article.id] : prev.filter(id => id !== article.id)
+                                        );
+                                    }
+                                }}
                                 onClick={() => {
                                     const currentPath = window.location.pathname + window.location.search;
                                     router.push(`/admin/articles/${article.id}?from=${encodeURIComponent(currentPath)}`);
@@ -186,6 +217,34 @@ export default function ArticlesPage() {
                 />
             </div>
 
+            {/* Bulk Action Bar */}
+            {selectedArticleIds.length > 0 && (
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white border border-[#e5e7eb] shadow-2xl rounded-full px-6 py-3 flex items-center gap-6 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <div className="flex items-center gap-2 pr-4 border-r border-gray-100">
+                        <span className="bg-blue-600 text-white text-[12px] font-black w-6 h-6 rounded-full flex items-center justify-center">
+                            {selectedArticleIds.length}
+                        </span>
+                        <span className="text-[13px] font-bold text-[#1e293b] uppercase tracking-tight">Selected</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setIsBulkModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-[13px] font-bold transition-all active:scale-95 shadow-lg shadow-blue-100"
+                        >
+                            <Send className="w-4 h-4" />
+                            BROADCAST NEWSLETTER
+                        </button>
+                        <button
+                            onClick={() => setSelectedArticleIds([])}
+                            className="px-4 py-2 hover:bg-gray-50 text-[#64748b] rounded-full text-[13px] font-bold transition-colors"
+                        >
+                            CLEAR
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Create Article Modal */}
             <ArticleEditorModal
                 isOpen={isCreateModalOpen}
@@ -193,6 +252,21 @@ export default function ArticlesPage() {
                 mode="create"
                 availableCategories={availableFilters.categories}
                 availableCountries={availableFilters.countries}
+            />
+
+            {/* Bulk Newsletter Modal */}
+            <SendNewsletterModal
+                isOpen={isBulkModalOpen}
+                onClose={() => setIsBulkModalOpen(false)}
+                articles={filteredArticles
+                    .filter(a => selectedArticleIds.includes(a.id))
+                    .map(a => ({
+                        id: a.id,
+                        title: a.title,
+                        category: a.category,
+                        country: a.country
+                    }))
+                }
             />
         </div>
     );

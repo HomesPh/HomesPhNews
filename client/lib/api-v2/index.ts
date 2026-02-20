@@ -27,6 +27,9 @@ export * from "./admin/service/article/updatePendingArticle";
 export * from "./admin/service/article/updateArticleTitles";
 export * from "./admin/service/article/publishArticle";
 export * from "./admin/service/article/deleteArticle";
+export * from "./admin/service/article/sendNewsletter";
+export * from "./admin/service/article/bulkSendNewsletter";
+export * from "./admin/service/article/getSubscribers";
 
 export * from "./admin/service/analytics/getAdminAnalytics";
 export * from "./admin/service/dashboard/getAdminStats";

@@ -192,6 +192,9 @@ Route::prefix('v1')->group(function () {
             Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
             Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
             Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
+            Route::post('articles/{id}/send-newsletter', [AdminArticleController::class, 'sendToSubscribers']);
+            Route::post('articles/bulk-send-newsletter', [AdminArticleController::class, 'bulkSend']);
+            Route::get('subscribers', [AdminArticleController::class, 'getSubscribers']);
             Route::delete('articles/{id}/hard-delete', [AdminArticleController::class, 'hardDelete']);
 
             // Restaurant Actions

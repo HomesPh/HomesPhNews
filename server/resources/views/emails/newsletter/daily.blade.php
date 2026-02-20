@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f4f7f9;
+            background-color: #f1f5f9;
             margin: 0;
             padding: 0;
             -webkit-font-smoothing: antialiased;
@@ -20,28 +20,29 @@
             background-color: #ffffff;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
         }
 
         .header {
-            background-color: #c10007;
-            padding: 25px;
+            background-color: #ffffff;
+            padding: 40px 30px;
             text-align: center;
+            border-bottom: 2px solid #f1f5f9;
         }
 
         .header img {
             max-height: 35px;
-            filter: brightness(0) invert(1);
         }
 
         .sub-header {
-            background-color: #111827;
-            padding: 15px;
+            background-color: #0f172a;
+            padding: 18px;
             text-align: center;
             color: #ffffff;
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.15em;
             text-transform: uppercase;
         }
 
@@ -52,11 +53,11 @@
         }
 
         .greeting {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 800;
-            color: #111827;
-            margin-bottom: 8px;
-            letter-spacing: -0.025em;
+            color: #0f172a;
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
         }
 
         .message {
@@ -69,19 +70,22 @@
             display: block;
             text-decoration: none;
             color: inherit;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             background-color: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
+            border: 2px solid #f1f5f9;
+            border-radius: 14px;
             overflow: hidden;
-            transition: transform 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .article-image {
             width: 100%;
-            height: 200px;
-            object-cover: cover;
+            height: auto;
+            max-height: 280px;
+            object-fit: cover;
             background-color: #f3f4f6;
+            display: block;
         }
 
         .article-body {
@@ -91,7 +95,7 @@
         .article-category {
             font-size: 11px;
             font-weight: 800;
-            color: #c10007;
+            color: #64748b;
             text-transform: uppercase;
             margin-bottom: 8px;
             letter-spacing: 0.05em;
@@ -100,8 +104,8 @@
         .article-title {
             font-size: 18px;
             font-weight: 700;
-            color: #111827;
-            margin-bottom: 10px;
+            color: #1e293b;
+            margin-bottom: 12px;
             line-height: 1.4;
         }
 
@@ -113,22 +117,25 @@
 
         .btn-link {
             font-size: 14px;
-            font-weight: 700;
-            color: #c10007;
+            font-weight: 800;
+            color: #0f172a;
             text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .footer {
-            background-color: #f9fafb;
-            padding: 30px;
+            background-color: #060e21ff;
+            padding: 40px 30px;
+            color: #94a3b8;
             text-align: center;
-            border-top: 1px solid #e5e7eb;
         }
 
         .footer-text {
-            font-size: 12px;
-            color: #9ca3af;
+            font-size: 11px;
+            color: #64748b;
             margin-bottom: 15px;
+            line-height: 1.5;
         }
 
         .footer-links a {
@@ -140,13 +147,14 @@
 
         .tag {
             display: inline-block;
-            padding: 2px 8px;
-            background-color: #f3f4f6;
-            color: #4b5563;
-            border-radius: 4px;
+            padding: 4px 10px;
+            background-color: #f1f5f9;
+            color: #475569;
+            border-radius: 6px;
             font-size: 11px;
-            font-weight: 600;
-            margin-right: 4px;
+            font-weight: 700;
+            margin-right: 6px;
+            border: 1px solid #e2e8f0;
         }
     </style>
 </head>
@@ -154,7 +162,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="{{ $logo }}" alt="HomesTV" style="max-height:35px; filter:brightness(0) invert(1);">
+            <img src="{{ $logo }}" alt="HomesTV" width="120" style="display: block; margin: 0 auto; max-height: 40px; border: 0;">
         </div>
         <div class="sub-header">Daily News Digest</div>
 
@@ -168,8 +176,8 @@
                 @foreach($subscriber->country as $country)<span class="tag">{{ $country }}</span>@endforeach.
             </p>
 
-            <div style="margin-bottom: 25px; border-left: 4px solid #c10007; padding-left: 15px;">
-                <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: #111827;">Top Stories for You</h2>
+            <div style="margin-bottom: 25px; border-left: 4px solid #0f172a; padding-left: 15px;">
+                <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: #0f172a;">Top Stories for You</h2>
             </div>
 
             @foreach($articles as $article)
@@ -197,20 +205,20 @@
                     <div class="article-body">
                         <div class="article-category">{{ $article->category }} | {{ $article->country }}</div>
                         <div class="article-title">{{ $article->title }}</div>
-                        <div class="article-summary">{{ Str::limit($article->summary, 140) }}</div>
+                        <div class="article-summary">{{ Str::limit(strip_tags($article->summary), 140) }}</div>
                         <div class="btn-link">Read Full Story &rarr;</div>
                     </div>
                 </a>
             @endforeach
 
             <div
-                style="background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; padding: 20px; margin-top: 30px;">
-                <div style="font-weight: 700; color: #92400e; margin-bottom: 5px;">Manage your experience</div>
-                <div style="font-size: 14px; color: #b45309; margin-bottom: 15px;">
+                style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin-top: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+                <div style="font-weight: 700; color: #0f172a; margin-bottom: 6px;">Manage your experience</div>
+                <div style="font-size: 14px; color: #475569; margin-bottom: 18px;">
                     Want to change the topics or locations you follow? You can update your preferences anytime.
                 </div>
                 <a href="{{ $clientUrl }}/subscribe/edit?id={{ $subscriber->sub_Id }}"
-                    style="font-size: 14px; font-weight: 700; color: #c10007; text-decoration: none;">
+                    style="font-size: 14px; font-weight: 700; color: #0f172a; text-decoration: none;">
                     Edit Preferences &rarr;
                 </a>
             </div>
