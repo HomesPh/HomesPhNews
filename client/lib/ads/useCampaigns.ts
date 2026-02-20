@@ -27,17 +27,19 @@ export interface CampaignResponse {
   to: number | null;
 }
 
-export interface MutateCampaignPayload {
+export interface CreateCampaignPayload {
   name: string;
-  rotation_type: string;
-  start_date?: string | null;
-  end_date?: string | null;
-  ads?: number[] | null;
+  status: "active" | "paused" | "archived";
+  start_date: string | null;
+  end_date: string | null;
+  image_url: string | null;
+  target_url: string;
+  headline: string | null;
+  banner_image_urls: string[] | null;
+  ad_units?: number[] | null;
 }
 
-// ============================================================================
-// Reducer
-// ============================================================================
+export type UpdateCampaignPayload = Partial<CreateCampaignPayload>;
 
 interface State {
   data: Campaign[];
@@ -85,9 +87,7 @@ const reducer = (state: State, action: Action): State => {
     case "SET_PAGE":
       return {
         ...state,
-        pagination: state.pagination
-          ? { ...state.pagination, current_page: action.payload }
-          : null,
+        pagination: state.pagination ? { ...state.pagination, current_page: action.payload } : null
       };
 
     default:
@@ -95,39 +95,22 @@ const reducer = (state: State, action: Action): State => {
   }
 };
 
-// ============================================================================
-// The Hook
-// ============================================================================
-
 /**
- * Hook for managing campaigns on the admin side.
- * Provides CRUD operations and pagination.
- *
- * @example
- * const {
- *   data, pagination, isLoading, error,
- *   refetch, setPage, nextPage, prevPage,
- *   createCampaign, updateCampaign, deleteCampaign,
- * } = useCampaignAdmin();
+ * Hook for fetching campaigns (formerly Ads) on the admin side.
  */
-export default function useCampaignAdmin() {
+export default function useCampaigns() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const fetchCampaigns = useCallback(async (page: number = 1) => {
     dispatch({ type: "FETCH_INIT" });
     try {
-      const response = await AXIOS_INSTANCE_ADMIN.get<CampaignResponse>(
-        "/v1/admin/campaigns",
-        {
-          params: { page },
-        }
-      );
+      const response = await AXIOS_INSTANCE_ADMIN.get<CampaignResponse>("/v1/admin/campaigns", {
+        params: { page },
+      });
       dispatch({ type: "FETCH_SUCCESS", payload: response.data });
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to fetch campaigns";
+        error.response?.data?.message || error.message || "Failed to fetch campaigns";
       dispatch({ type: "FETCH_FAILURE", payload: errorMessage });
     }
   }, []);
@@ -138,7 +121,6 @@ export default function useCampaignAdmin() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Helper functions for pagination
   const setPage = useCallback(
     (page: number) => {
       fetchCampaigns(page);
@@ -147,10 +129,7 @@ export default function useCampaignAdmin() {
   );
 
   const nextPage = useCallback(() => {
-    if (
-      state.pagination &&
-      state.pagination.current_page < state.pagination.last_page
-    ) {
+    if (state.pagination && state.pagination.current_page < state.pagination.last_page) {
       fetchCampaigns(state.pagination.current_page + 1);
     }
   }, [fetchCampaigns, state.pagination]);
@@ -163,7 +142,7 @@ export default function useCampaignAdmin() {
 
   // CRUD Operations
   const createCampaign = useCallback(
-    async (payload: MutateCampaignPayload) => {
+    async (payload: CreateCampaignPayload) => {
       try {
         await AXIOS_INSTANCE_ADMIN.post("/v1/admin/campaigns", payload);
         fetchCampaigns(state.pagination?.current_page || 1);
@@ -177,7 +156,7 @@ export default function useCampaignAdmin() {
   );
 
   const updateCampaign = useCallback(
-    async (id: string | number, payload: MutateCampaignPayload) => {
+    async (id: string | number, payload: UpdateCampaignPayload) => {
       try {
         await AXIOS_INSTANCE_ADMIN.put(`/v1/admin/campaigns/${id}`, payload);
         fetchCampaigns(state.pagination?.current_page || 1);
