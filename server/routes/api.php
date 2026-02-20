@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Admin\CategoryController;
 use App\Http\Controllers\Api\Admin\CountryController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
+use App\Http\Controllers\Api\Admin\MailingListGroupController;
 use App\Http\Controllers\Api\Admin\SiteController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Auth\SocialAuthController;
@@ -166,6 +167,7 @@ Route::prefix('v1')->group(function () {
             // Dashboard & Analytics
             Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
             Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
+            Route::get('/analytics/mailing-list', [AnalyticsController::class, 'mailingListStats']);
 
             // Resources
             Route::apiResource('article-publications', ArticlePublicationController::class);
@@ -177,6 +179,7 @@ Route::prefix('v1')->group(function () {
             // Resource Routes
             Route::get('sites/names', [SiteController::class, 'names']);
             Route::apiResource('sites', SiteController::class);
+            Route::apiResource('mailing-list-groups', MailingListGroupController::class);
 
             Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
             Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');

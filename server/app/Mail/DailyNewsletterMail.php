@@ -13,6 +13,8 @@ class DailyNewsletterMail extends Mailable
     public $subscriber;
     public $articles;
     public $clientUrl;
+    public $greeting;
+    public $greetingEmoji;
 
     /**
      * Create a new message instance.
@@ -23,6 +25,23 @@ class DailyNewsletterMail extends Mailable
         $this->articles = $articles;
         // Hardcode production URL to avoid env/config caching issues during newsletter broadcast
         $this->clientUrl = 'https://news.homes.ph';
+
+        // Calculate dynamic greeting based on time (Asia/Manila)
+        $hour = \Carbon\Carbon::now('Asia/Manila')->hour;
+        
+        if ($hour >= 0 && $hour < 12) {
+            $this->greeting = 'Good Morning!';
+            $this->greetingEmoji = '☀️';
+        } elseif ($hour == 12) {
+            $this->greeting = 'Good Noon!';
+            $this->greetingEmoji = '☀️';
+        } elseif ($hour > 12 && $hour < 18) {
+            $this->greeting = 'Good Afternoon!';
+            $this->greetingEmoji = '🌤️';
+        } else {
+            $this->greeting = 'Good Evening!';
+            $this->greetingEmoji = '🌙';
+        }
     }
 
     /**

@@ -10,6 +10,7 @@ use App\Http\Requests\Articles\UpdateArticleRequest;
 use App\Http\Resources\Articles\ArticleCollection;
 use App\Http\Resources\Articles\ArticleResource;
 use App\Models\Article;
+use App\Models\MailingListBroadcast;
 use App\Services\RedisArticleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -756,6 +757,15 @@ class ArticleController extends Controller
             }
         }
 
+        // 4. Log the broadcast
+        MailingListBroadcast::create([
+            'article_ids' => [$article->id],
+            'recipient_count' => $count,
+            'status' => 'completed',
+            'type' => 'manual',
+            'sent_at' => now()
+        ]);
+
         return response()->json([
             'message' => "Article distribution started for {$count} subscribers.",
             'target_count' => $subscribers->count(),
@@ -815,6 +825,15 @@ class ArticleController extends Controller
                 \Illuminate\Support\Facades\Log::error("Bulk Newsletter failed for {$subscriber->email}: " . $e->getMessage());
             }
         }
+
+        // Log the broadcast
+        MailingListBroadcast::create([
+            'article_ids' => $articles->pluck('id')->toArray(),
+            'recipient_count' => $count,
+            'status' => 'completed',
+            'type' => 'manual',
+            'sent_at' => now()
+        ]);
 
         return response()->json([
             'message' => "Newsletter distribution for " . $articles->count() . " articles started for {$count} subscribers.",

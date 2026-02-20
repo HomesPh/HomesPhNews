@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Article;
 use App\Models\Analytics;
+use App\Models\MailingListBroadcast;
+use App\Models\SubscriptionDetail;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -243,6 +245,35 @@ class AnalyticsController extends Controller
             'content_performance' => $contentPerformance,
             'device_breakdown' => $deviceBreakdown,
             'traffic_sources' => $trafficSources
+        ]);
+    }
+
+    public function mailingListStats()
+    {
+        $totalBroadcasts = MailingListBroadcast::count();
+        $totalRecipients = MailingListBroadcast::sum('recipient_count');
+        $totalSubscribers = SubscriptionDetail::count();
+        
+        $recentBroadcasts = MailingListBroadcast::orderByDesc('sent_at')
+            ->limit(5)
+            ->get()
+            ->map(function($b) {
+                return [
+                    'id' => $b->id,
+                    'article_count' => count($b->article_ids),
+                    'recipient_count' => $b->recipient_count,
+                    'status' => $b->status,
+                    'sent_at' => $b->sent_at instanceof \Carbon\Carbon ? $b->sent_at->toDateTimeString() : $b->sent_at
+                ];
+            });
+
+        return response()->json([
+            'stats' => [
+                'total_broadcasts' => $totalBroadcasts,
+                'total_recipients' => (int) $totalRecipients,
+                'total_subscribers' => $totalSubscribers,
+            ],
+            'recent_broadcasts' => $recentBroadcasts
         ]);
     }
 
