@@ -7,7 +7,7 @@ import SignInForm from "./SignInForm";
 
 export default function LoginForm() {
     return (
-        <Card className="w-full max-w-md shadow-lg border-none bg-white">
+        <Card className="w-full max-w-md shadow-lg border-none bg-white gap-0">
             <CardHeader>
                 <LoginHeader
                     logo={loginData.logo}
