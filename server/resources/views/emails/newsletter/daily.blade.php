@@ -82,8 +82,6 @@
         .article-image {
             width: 100%;
             height: auto;
-            max-height: 280px;
-            object-fit: cover;
             background-color: #f3f4f6;
             display: block;
         }
@@ -167,7 +165,7 @@
         <div class="sub-header">Daily News Digest</div>
 
         <div class="content">
-            <h1 class="greeting">Good Morning! ☀️</h1>
+            <h1 class="greeting">{{ $greeting }} {{ $greetingEmoji }}</h1>
             <p class="message">
                 Here is your personalized news digest from <strong>HomesTV</strong>,
                 tailored to your interests in
