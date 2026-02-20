@@ -686,4 +686,153 @@ class ArticleController extends Controller
             'deleted' => $deletedCount,
         ];
     }
+    /**
+     * Send a selected article to matching subscribers manually.
+     */
+    public function sendToSubscribers(Request $request, string $id): JsonResponse
+    {
+        // 1. Find the article (Check DB first, then Redis if UUID)
+        $article = Article::find($id);
+
+        if (!$article && \Illuminate\Support\Str::isUuid($id)) {
+            $redisData = $this->redisService->getArticle($id);
+            if ($redisData) {
+                // Wrap Redis data in a generic object for the Mailable
+                $article = (object) array_merge($redisData, [
+                    'id' => $id,
+                    'status' => 'pending' // Redis articles are always pending until published to DB
+                ]);
+            }
+        }
+
+        if (!$article) {
+            return response()->json(['message' => 'Article not found'], 404);
+        }
+
+        // --- NEW STATUS VALIDATION ---
+        // Only allow published articles to be sent
+        $status = $article instanceof \App\Models\Article ? $article->status : ($article->status ?? 'pending');
+        if ($status !== 'published') {
+            return response()->json([
+                'message' => 'Only published articles can be sent as newsletters. Current status: ' . $status
+            ], 400);
+        }
+
+        // 2. Identify relevant subscribers
+        // Check if specific subscribers were provided in the request
+        $specificSubscriberIds = $request->input('subscriber_ids');
+
+        if (!empty($specificSubscriberIds) && is_array($specificSubscriberIds)) {
+            $subscribers = \App\Models\SubscriptionDetail::whereIn('sub_Id', $specificSubscriberIds)->get();
+        } else {
+            // Default: match subscribers who have the article's category OR country in their preferences
+            $subscribers = \App\Models\SubscriptionDetail::where(function ($query) use ($article) {
+                // Ensure article has category and country before matching
+                if ($article->category) {
+                    $query->whereJsonContains('category', $article->category);
+                }
+                if ($article->country) {
+                    $query->orWhereJsonContains('country', $article->country);
+                }
+            })->get();
+        }
+
+        if ($subscribers->isEmpty()) {
+            return response()->json([
+                'message' => 'No matching subscribers found.'
+            ], 400);
+        }
+
+        // 3. Dispatch Emails
+        $count = 0;
+        foreach ($subscribers as $subscriber) {
+            try {
+                // Reuse DailyNewsletterMail but pass only this single article
+                \Illuminate\Support\Facades\Mail::to($subscriber->email)
+                    ->queue(new \App\Mail\DailyNewsletterMail($subscriber, collect([$article])));
+                $count++;
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Manual Newsletter failed for {$subscriber->email}: " . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'message' => "Article distribution started for {$count} subscribers.",
+            'target_count' => $subscribers->count(),
+            'success_count' => $count
+        ]);
+    }
+
+    /**
+     * Bulk send multiple articles as a newsletter.
+     */
+    public function bulkSend(Request $request): JsonResponse
+    {
+        $articleIds = $request->input('article_ids', []);
+        $subscriberIds = $request->input('subscriber_ids', []);
+
+        if (empty($articleIds)) {
+            return response()->json(['message' => 'No articles selected.'], 400);
+        }
+
+        $articles = Article::whereIn('id', $articleIds)
+            ->where('status', 'published')
+            ->get();
+
+        if ($articles->isEmpty()) {
+            return response()->json(['message' => 'No published articles found for the selected IDs.'], 404);
+        }
+
+        // Identify subscribers
+        if (!empty($subscriberIds)) {
+            $subscribers = \App\Models\SubscriptionDetail::whereIn('sub_Id', $subscriberIds)->get();
+        } else {
+            // Match subscribers who have profile matching ANY of the selected articles
+            $subscribers = \App\Models\SubscriptionDetail::where(function ($query) use ($articles) {
+                foreach ($articles as $article) {
+                    if ($article->category) {
+                        $query->orWhereJsonContains('category', $article->category);
+                    }
+                    if ($article->country) {
+                        $query->orWhereJsonContains('country', $article->country);
+                    }
+                }
+            })->get();
+        }
+
+        if ($subscribers->isEmpty()) {
+            return response()->json(['message' => 'No matching subscribers found.'], 400);
+        }
+
+        // Dispatch
+        $count = 0;
+        foreach ($subscribers as $subscriber) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($subscriber->email)
+                    ->queue(new \App\Mail\DailyNewsletterMail($subscriber, $articles));
+                $count++;
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Bulk Newsletter failed for {$subscriber->email}: " . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'message' => "Newsletter distribution for " . $articles->count() . " articles started for {$count} subscribers.",
+            'target_count' => $subscribers->count(),
+            'success_count' => $count
+        ]);
+    }
+    /**
+     * Get all subscribers for manual selection.
+     */
+    public function getSubscribers(): JsonResponse
+    {
+        $subscribers = \App\Models\SubscriptionDetail::select('sub_Id', 'email', 'category', 'country')
+            ->orderBy('email')
+            ->get();
+
+        return response()->json([
+            'data' => $subscribers
+        ]);
+    }
 }

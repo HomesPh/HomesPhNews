@@ -21,7 +21,8 @@ class DailyNewsletterMail extends Mailable
     {
         $this->subscriber = $subscriber;
         $this->articles = $articles;
-        $this->clientUrl = env('APP_URL_CLIENT', 'http://localhost:3000');
+        // Hardcode production URL to avoid env/config caching issues during newsletter broadcast
+        $this->clientUrl = 'https://news.homes.ph';
     }
 
     /**
@@ -29,8 +30,8 @@ class DailyNewsletterMail extends Mailable
      */
     public function build()
     {
-        // Use public URL for the logo (Gmail blocks base64 and embedded images)
-        $logo = $this->clientUrl . '/images/HomesTV.png';
+        // Use the main homestv.ph domain which hosts the images
+        $logo = 'https://news.homes.ph/images/HomesTV.png';
         
         return $this->subject('Your Daily HomesTV News Digest')
                     ->view('emails.newsletter.daily')
