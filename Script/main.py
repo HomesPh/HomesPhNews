@@ -41,19 +41,21 @@ async def lifespan(app: FastAPI):
     """Handle startup and shutdown events."""
     
     # ─── Startup ───
-    # Schedule: 2 runs per day = 2 articles per country per day
-    # Hours: 6 AM and 6 PM (every 12 hours)
+    # Schedule: Run every hour to ensure news stays fresh
+    # This aligns with the user's request for "Latest" news.
     scheduler.add_job(
         run_hourly_job,
-        CronTrigger(hour='6,18', minute=0),
+        CronTrigger(minute=0), # Every hour at :00
         id='hourly_job',
-        name='News Scraper (2x/day)',
+        name='HomesPh Fresh News Engine (Hourly)',
         replace_existing=True
     )
     scheduler.start()
     
     # Update next run time
-    next_run = scheduler.get_job('hourly_job').next_run_time
+    job = scheduler.get_job('hourly_job')
+    next_run = job.next_run_time if job else None
+    
     if next_run:
         update_next_run(next_run.isoformat())
         # Make timezone-naive for comparison
@@ -66,13 +68,15 @@ async def lifespan(app: FastAPI):
     # Startup message
     print("")
     print("=" * 60)
-    print("🚀 HOMESPH NEWS SERVICE STARTED")
+    print("🚀 HOMESPH FRESH NEWS SERVICE STARTED")
     print("=" * 60)
     print(f"📡 API:      http://localhost:8001")
     print(f"📖 Docs:     http://localhost:8001/docs")
     print("-" * 60)
-    print(f"⏰ Schedule: 2 times/day (6 AM and 6 PM)")
-    print(f"📊 Target:   {len(COUNTRIES) * 2} articles/day")
+    print(f"⏰ Schedule: EVERY HOUR (Real-time mode)")
+    print(f"🔥 Mode:     FRESH NEWS ONLY (<24h age)")
+    print(f"🧹 Cleanup:  Auto-purge >24h old articles")
+    print(f"📊 Target:   {len(COUNTRIES) * 24} articles/day")
     print(f"📅 Next run: {next_run.strftime('%Y-%m-%d %H:%M:%S') if next_run else 'N/A'}")
     print(f"⏳ In:       {minutes_until} minutes")
     print("=" * 60)

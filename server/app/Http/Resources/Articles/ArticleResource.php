@@ -96,7 +96,7 @@ class ArticleResource extends JsonResource
         $date = $get('created_at', null);
         if (empty($date) && isset($data['timestamp'])) {
             $ts = $data['timestamp'];
-            $date = is_numeric($ts) ? date('Y-m-d H:i:s', (int)$ts) : (string)$ts;
+            $date = is_numeric($ts) ? date('Y-m-d H:i:s', (int) $ts) : (string) $ts;
         }
 
         // Topics logic

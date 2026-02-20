@@ -68,32 +68,118 @@ class ScraperCache:
         }
         self.save_cache()
 
+from datetime import datetime, timedelta
+from dateutil import parser as date_parser
+
+# Direct Premium Feeds (CNN as requested)
+DIRECT_RSS_FEEDS = {
+    "CNN Edition": "https://rss.cnn.com/rss/edition.rss",
+    "CNN World": "https://rss.cnn.com/rss/edition_world.rss",
+    "CNN Politics": "https://rss.cnn.com/rss/edition_politics.rss",
+    "CNN Business": "https://rss.cnn.com/rss/edition_business.rss",
+    "CNN Tech": "https://rss.cnn.com/rss/edition_technology.rss",
+    "CNN Health": "https://rss.cnn.com/rss/edition_space.rss",
+}
+
 class NewsScraper:
     def __init__(self):
         self.settings = SCRAPER_SETTINGS
         self.cache = ScraperCache()
+        self.max_age_hours = 24  # Only fetch news from the last 24 hours
         
     def build_rss_url(self, keyword, country_code):
         """Builds a Google News RSS URL for a specific country and keyword."""
         config = COUNTRIES.get(country_code, {"gl": "US", "hl": "en", "ceid": "US:en"})
-        query = f"Filipino {keyword} {country_code}"
+        # Added "breaking" to ensure fresher results in Google News
+        query = f"Filipino {keyword} {country_code} breaking news"
         encoded_query = urllib.parse.quote(query)
         return f"https://news.google.com/rss/search?q={encoded_query}&hl={config['hl']}&gl={config['gl']}&ceid={config['ceid']}"
 
-    def fetch_news(self, keyword, country, use_cache=True):
+    def is_fresh(self, published_date_str):
+        """Check if the article was published within the last X hours."""
+        if not published_date_str or published_date_str == 'Unknown':
+            return True # If we don't know, we assume it's okay (or you can be stricter)
+        
+        try:
+            # Use dateutil.parser for maximum compatibility with different RSS formats
+            pub_date = date_parser.parse(published_date_str)
+            # Make sure it's timezone aware if possible, or naive
+            if pub_date.tzinfo:
+                now = datetime.now(pub_date.tzinfo)
+            else:
+                now = datetime.now()
+            
+            age = now - pub_date
+            return age < timedelta(hours=self.max_age_hours)
+        except Exception as e:
+            print(f"⚠️ Date parsing error: {e}")
+            return True
+
+    def fetch_direct_rss(self, feed_url):
+        """Fetches from a direct RSS URL (like CNN)."""
+        try:
+            feed = feedparser.parse(feed_url)
+            articles = []
+            
+            for entry in feed.entries:
+                # Freshness check
+                if not self.is_fresh(getattr(entry, 'published', 'Unknown')):
+                    continue
+
+                articles.append({
+                    "title": entry.title,
+                    "link": entry.link,
+                    "published": getattr(entry, 'published', 'Unknown'),
+                    "source": getattr(entry, 'source', {}).get('title', 'CNN'), # Default to CNN for these feeds
+                    "description": clean_html(getattr(entry, 'summary', '')),
+                    "country": "Global", # Direct feeds are usually global
+                    "category": "Breaking News",
+                })
+                
+                # Limit to latest 10 per feed to stay fast
+                if len(articles) >= 10:
+                    break
+                    
+            return articles
+        except Exception as e:
+            print(f"❌ Direct RSS Error ({feed_url}): {e}")
+            return []
+
+    def fetch_news(self, keyword, country, use_cache=True, prefer_direct=True):
         """
-        Fetches news from Google News RSS for a specific country and keyword.
+        Fetches news from Google News RSS or Direct RSS feeds.
         Uses cache if available to prevent lag.
         """
+        # If we prefer direct feeds for specific global categories, we can use them
+        if prefer_direct and (keyword.lower() in ["community", "breaking news", "business", "healthcare"]):
+            # Choose a relevant CNN feed based on keyword
+            feed_url = DIRECT_RSS_FEEDS.get("CNN Edition")
+            if "business" in keyword.lower():
+                feed_url = DIRECT_RSS_FEEDS.get("CNN Business")
+            elif "healthcare" in keyword.lower():
+                feed_url = DIRECT_RSS_FEEDS.get("CNN Health")
+            
+            direct_articles = self.fetch_direct_rss(feed_url)
+            if direct_articles:
+                # Update with target country and category for the pipeline
+                for art in direct_articles:
+                    art["country"] = country
+                    art["category"] = keyword
+                return direct_articles
+
         cache_key = f"{country}:{keyword}"
         
         # 1. Check Cache
         if use_cache:
             cached_data = self.cache.get(cache_key)
             if cached_data:
-                with print_lock:
-                    print(f"⚡ [{country}] Cache Hit: {keyword} ({len(cached_data)} articles)")
-                return cached_data
+                # Filter cached data for freshness too? 
+                # Probably good to ensure we don't serve old cached items
+                fresh_cached = [a for a in cached_data if self.is_fresh(a.get('published'))]
+                if fresh_cached:
+                    with print_lock:
+                        print(f"⚡ [{country}] Cache Hit: {keyword} ({len(fresh_cached)} fresh articles)")
+                    return fresh_cached
 
         config = COUNTRIES.get(country)
         if not config:
@@ -101,25 +187,34 @@ class NewsScraper:
             
         rss_url = self.build_rss_url(keyword, country)
         with print_lock:
-            print(f"📡 [{country}] Crawling: {keyword}")
+            print(f"📡 [{country}] Crawling (Fresh Only): {keyword}")
         
         try:
             feed = feedparser.parse(rss_url)
             articles = []
             
-            for entry in feed.entries[:self.settings["articles_per_search"]]:
+            for entry in feed.entries:
+                # Freshness check
+                published = getattr(entry, 'published', 'Unknown')
+                if not self.is_fresh(published):
+                    continue
+
                 articles.append({
                     "title": entry.title,
                     "link": entry.link,
-                    "published": getattr(entry, 'published', 'Unknown'),
+                    "published": published,
                     "source": getattr(entry, 'source', {}).get('title', 'Unknown'),
                     "description": clean_html(getattr(entry, 'summary', '')),
                     "country": country,
                     "category": keyword,
                 })
+                
+                # Limit to settings
+                if len(articles) >= self.settings["articles_per_search"]:
+                    break
             
             with print_lock:
-                print(f"   ✅ Found {len(articles)} articles for {country} - {keyword}")
+                print(f"   ✅ Found {len(articles)} FRESH articles for {country} - {keyword}")
             
             # 2. Save to Cache
             self.cache.set(cache_key, articles)

@@ -66,11 +66,17 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
             const isSubscriber = roles.includes('subscriber');
 
             if (pathname.startsWith('/admin') && !pathname.includes('/login')) {
-                if (!isAdmin) {
-                    // Non-admin tried /admin — route them to their correct home
-                    if (isSubscriber) router.push('/subscriber');
-                    else if (isBlogger) router.push('/blogger/dashboard');
-                    else router.push('/admin/login');
+                const isAdmin = roles.some(r => ['admin', 'super-admin'].includes(r));
+                const isCEO = roles.includes('ceo');
+
+                if (!isAdmin && !isCEO) {
+                    router.push('/blogger/dashboard');
+                    return;
+                }
+
+                // If CEO tries to access anything other than mailing list, redirect
+                if (isCEO && !isAdmin && !pathname.startsWith('/admin/mailing-list')) {
+                    router.push('/admin/mailing-list');
                     return;
                 }
             } else if (pathname.startsWith('/blogger')) {
