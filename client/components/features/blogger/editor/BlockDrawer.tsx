@@ -16,6 +16,7 @@ interface BlockDrawerProps {
     onAddBlock: (type: BlockType) => void;
     availableCategories?: string[];
     availableCountries?: string[];
+    availableSites?: string[];
 }
 
 export default function BlockDrawer({
@@ -23,7 +24,8 @@ export default function BlockDrawer({
     onUpdateDetails,
     onAddBlock,
     availableCategories: propsCategories,
-    availableCountries: propsCountries
+    availableCountries: propsCountries,
+    availableSites
 }: BlockDrawerProps) {
     const [activeTab, setActiveTab] = useState<'blocks' | 'details'>('blocks');
     const [internalCategories, setInternalCategories] = useState<string[]>([]);
@@ -92,7 +94,9 @@ export default function BlockDrawer({
         }
     ];
 
-    const PLATFORMS = ["Apply Na", "Bayanihan", "Faceofmind", "FilipinoHomes", "globalreality", "Homes", "Main News Portal", "PicklePlay"];
+    const PLATFORMS = (availableSites && availableSites.length > 0)
+        ? availableSites
+        : ["Apply Na", "Bayanihan", "Faceofmind", "FilipinoHomes", "globalreality", "Homes", "Main News Portal", "PicklePlay"];
 
     return (
         <aside className="w-[360px] bg-white border-r border-gray-100 flex flex-col shrink-0 z-30 shadow-[4px_0_20px_rgba(0,0,0,0.02)] h-full">

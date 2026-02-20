@@ -279,6 +279,7 @@ export default function ArticleEditorForm({
                                 onUpdateDetails={editor.updateDetails}
                                 availableCategories={availableCategories}
                                 availableCountries={availableCountries}
+                                availableSites={availableSites}
                             />
                         </div>
                     </div>
