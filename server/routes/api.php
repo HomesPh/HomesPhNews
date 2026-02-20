@@ -1,7 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\Admin\AdController as AdminAdController;
-// Auth Controllers
+use App\Http\Controllers\Api\Admin\AdUnitController as AdminAdUnitController;
 use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\ArticleController as AdminArticleController;
 // Admin Controllers
@@ -171,8 +170,8 @@ Route::prefix('v1')->group(function () {
             // Resources
             Route::apiResource('article-publications', ArticlePublicationController::class);
             Route::apiResource('articles', AdminArticleController::class);
-            Route::apiResource('ads', AdminAdController::class);
             Route::apiResource('campaigns', AdminCampaignController::class);
+            Route::apiResource('ad-units', AdminAdUnitController::class);
             Route::apiResource('categories', CategoryController::class);
             Route::apiResource('countries', CountryController::class);
             // Resource Routes
@@ -197,79 +196,15 @@ Route::prefix('v1')->group(function () {
             Route::get('subscribers', [AdminArticleController::class, 'getSubscribers']);
             Route::delete('articles/{id}/hard-delete', [AdminArticleController::class, 'hardDelete']);
 
-            // Restaurant Actions
-            Route::post('restaurants/{id}/publish', [AdminRestaurantController::class, 'publish'])->name('restaurants.publish');
+        // ═══════════════════════════════════════════════════════════════
+        // RESTAURANT ROUTES (Redis-based & Database Persistence)
+        // ═══════════════════════════════════════════════════════════════
+        Route::get('restaurants/stats', [RestaurantController::class, 'stats'])->name('restaurants.stats');
+        Route::get('restaurants/country/{country}', [RestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
+        Route::post('restaurants/{id}/publish', [RestaurantController::class, 'publish'])->name('restaurants.publish');
+        Route::apiResource('restaurants', RestaurantController::class);
 
-            // Uploads
-            Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
-        });
-
-});
-
-Route::prefix('v2')->group(function () {
-    // Public endpoints
-    Route::prefix('public')->group(function () {
-        // public endpoints are here
-    });
-
-    // Auth endpoints
-    Route::prefix('auth')->group(function () {
-        Route::post('/login', [AuthControllerV2::class, 'login']);
-        Route::post('/register', [AuthControllerV2::class, 'register']);
-    });
-
-    /**
-     *  Never remove this documentation!!!
-     *
-     *  Implementing RBAC to your endpoint:
-     *      1. Add permission to $permissions in server/database/seeders/RoleSeeder.php
-     *      2. Run seeder: php artisan db:seed --class=RoleSeeder
-     *      3. Protect route: ->middleware('can.perform:permission_name')
-     */
-    Route::middleware('auth:sanctum')->group(function () {
-        // Auth
-        Route::prefix('auth')->group(function () {
-            Route::post('/logout', [AuthControllerV2::class, 'logout']);
-            Route::get('/me', [AuthControllerV2::class, 'me']);
-        });
-
-        // Roles
-        Route::get('roles', [RoleControllerV2::class, 'index'])
-            ->middleware('can.perform:view_roles');
-        Route::post('roles', [RoleControllerV2::class, 'store'])
-            ->middleware('can.perform:create_roles');
-        Route::get('roles/{role}', [RoleControllerV2::class, 'show'])
-            ->middleware('can.perform:view_roles');
-        Route::put('roles/{role}', [RoleControllerV2::class, 'update'])
-            ->middleware('can.perform:edit_roles');
-        Route::delete('roles/{role}', [RoleControllerV2::class, 'destroy'])
-            ->middleware('can.perform:delete_roles');
-
-        // Users
-        Route::get('users', [UserControllerV2::class, 'index'])
-            ->middleware('can.perform:view_users');
-        Route::post('users', [UserControllerV2::class, 'store'])
-            ->middleware('can.perform:create_users');
-        Route::get('users/{user}', [UserControllerV2::class, 'show'])
-            ->middleware('can.perform:view_users');
-        Route::put('users/{user}', [UserControllerV2::class, 'update'])
-            ->middleware('can.perform:edit_users');
-        Route::delete('users/{user}', [UserControllerV2::class, 'destroy'])
-            ->middleware('can.perform:delete_users');
-        Route::put('users/{user}/roles', [UserControllerV2::class, 'updateRole'])
-            ->middleware('can.perform:edit_users');
-
-        // Articles
-        Route::get('articles', [ArticleControllerV2::class, 'index'])
-            ->middleware('can.perform:view_articles');
-        Route::post('articles', [ArticleControllerV2::class, 'store'])
-            ->middleware('can.perform:create_articles');
-        Route::get('articles/{article}', [ArticleControllerV2::class, 'show'])
-            ->middleware('can.perform:view_articles');
-        Route::put('articles/{article}', [ArticleControllerV2::class, 'update'])
-            ->middleware('can.perform:edit_articles');
-        Route::delete('articles/{article}', [ArticleControllerV2::class, 'destroy'])
-            ->middleware('can.perform:delete_articles');
-
+        // Upload Routes
+        Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
     });
 });
