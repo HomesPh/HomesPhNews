@@ -56,8 +56,8 @@ export default function StatusBadge({ status, className }: StatusBadgeProps) {
         },
         draft: {
             label: 'Pending Review',
-            bgColor: '#f3f4f6',
-            textColor: '#9a3412',
+            bgColor: '#fef9c3', // Soft Yellow (Match pending)
+            textColor: '#9a3412', // Deep Orange
             borderColor: '#fef08a',
         },
         suspended: {
