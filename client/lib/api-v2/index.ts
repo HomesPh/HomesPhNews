@@ -30,8 +30,10 @@ export * from "./admin/service/article/deleteArticle";
 export * from "./admin/service/article/sendNewsletter";
 export * from "./admin/service/article/bulkSendNewsletter";
 export * from "./admin/service/article/getSubscribers";
+export * from "./admin/service/mailing-list/groups";
 
 export * from "./admin/service/analytics/getAdminAnalytics";
+export * from "./admin/service/analytics/getMailingListStats";
 export * from "./admin/service/dashboard/getAdminStats";
 export * from "./admin/service/events/getAdminEvents";
 export * from "./admin/service/events/createEvent";
