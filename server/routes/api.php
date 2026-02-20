@@ -209,14 +209,6 @@ Route::prefix('v1')->group(function () {
             Route::get('subscribers', [AdminArticleController::class, 'getSubscribers']);
             Route::delete('articles/{id}/hard-delete', [AdminArticleController::class, 'hardDelete']);
 
-        // ═══════════════════════════════════════════════════════════════
-        // RESTAURANT ROUTES (Redis-based & Database Persistence)
-        // ═══════════════════════════════════════════════════════════════
-        Route::get('restaurants/stats', [RestaurantController::class, 'stats'])->name('restaurants.stats');
-        Route::get('restaurants/country/{country}', [RestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
-        Route::post('restaurants/{id}/publish', [RestaurantController::class, 'publish'])->name('restaurants.publish');
-        Route::apiResource('restaurants', RestaurantController::class);
-
         // Upload Routes
         Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
     });
