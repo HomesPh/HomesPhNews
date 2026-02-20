@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\AdUnitController as AdminAdUnitController;
+use App\Http\Controllers\Api\Admin\AdMetricController as AdminAdMetricController;
 use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\ArticleController as AdminArticleController;
 // Admin Controllers
@@ -119,6 +120,7 @@ Route::prefix('v1')->group(function () {
     // Ads
     Route::get('/ads', [UserAdController::class, 'index']);
     Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
+    Route::post('/ads/metrics', [AdminAdMetricController::class, 'store']);
 
     // Restaurants
     Route::group(['prefix' => 'restaurants', 'as' => 'restaurants.'], function () {
@@ -183,6 +185,9 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('articles', AdminArticleController::class);
             Route::apiResource('campaigns', AdminCampaignController::class);
             Route::apiResource('ad-units', AdminAdUnitController::class);
+            Route::get('ad-metrics', [AdminAdMetricController::class, 'index']);
+            Route::get('ad-metrics/units/{adUnit}', [AdminAdMetricController::class, 'showByAdUnit']);
+            Route::get('ad-metrics/campaigns/{campaign}', [AdminAdMetricController::class, 'showByCampaign']);
             Route::apiResource('categories', CategoryController::class);
             Route::apiResource('countries', CountryController::class);
             Route::apiResource('cities', CityController::class);
@@ -210,12 +215,8 @@ Route::prefix('v1')->group(function () {
             Route::delete('articles/{id}/hard-delete', [AdminArticleController::class, 'hardDelete']);
 
         // ═══════════════════════════════════════════════════════════════
-        // RESTAURANT ROUTES (Redis-based & Database Persistence)
-        // ═══════════════════════════════════════════════════════════════
-        Route::get('restaurants/stats', [RestaurantController::class, 'stats'])->name('restaurants.stats');
-        Route::get('restaurants/country/{country}', [RestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
-        Route::post('restaurants/{id}/publish', [RestaurantController::class, 'publish'])->name('restaurants.publish');
-        Route::apiResource('restaurants', RestaurantController::class);
+        Route::post('restaurants/{id}/publish', [AdminRestaurantController::class, 'publish'])->name('restaurants.publish');
+        Route::apiResource('restaurants', AdminRestaurantController::class);
 
         // Upload Routes
         Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
