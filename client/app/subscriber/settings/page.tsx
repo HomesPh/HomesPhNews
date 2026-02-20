@@ -104,7 +104,7 @@ export default function SettingsPage() {
                 if (prefsStr) {
                     const prefs = JSON.parse(prefsStr);
                     setBranding({
-                        companyName: prefs.companyName || "",
+                        companyName: prefs.customization?.companyName || "",
                         logo: prefs.customization?.logo || "/images/HomesTVwhite.png"
                     });
 
@@ -212,9 +212,9 @@ export default function SettingsPage() {
             const currentPrefs = JSON.parse(localStorage.getItem('user_preferences') || '{}');
             const newPrefs = {
                 ...currentPrefs,
-                companyName: branding.companyName,
                 customization: {
                     ...currentPrefs.customization,
+                    companyName: branding.companyName,
                     logo: branding.logo,
                     themeObj: currentTheme,
                     siteName: siteInfo.siteName,
