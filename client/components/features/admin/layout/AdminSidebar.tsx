@@ -72,8 +72,17 @@ const SidebarItems = [
 export default function AdminSidebar() {
   const pathname = usePathname();
   const { state } = useSidebar();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const isCollapsed = state === "collapsed";
+
+  const filteredSidebarItems = SidebarItems.filter(item => {
+    // If user is CEO, only show Mailing List
+    if (user?.roles?.includes('ceo')) {
+      return item.title === "Mailing List";
+    }
+    // Default: show all for admin or other roles
+    return true;
+  });
 
   return (
     <Sidebar collapsible="icon" className="border-none">
@@ -103,7 +112,7 @@ export default function AdminSidebar() {
 
         <SidebarContent className="px-4 py-6 overflow-y-auto">
           <SidebarMenu className="space-y-2">
-            {SidebarItems.map((item) => {
+            {filteredSidebarItems.map((item) => {
               const isActive = pathname === item.href;
               const Icon = item.icon;
               return (

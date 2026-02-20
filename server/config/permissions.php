@@ -43,5 +43,12 @@ return [
                 'delete_articles',
             ],
         ],
+        'ceo' => [
+            'permissions' => [
+                'view_articles',
+                'view_mailing_list',
+                'manage_mailing_list',
+            ],
+        ],
     ],
 ];
