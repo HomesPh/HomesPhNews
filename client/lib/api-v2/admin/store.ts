@@ -16,6 +16,7 @@ interface AuthActions {
   login: (credentials: { email: string; password: string }) => Promise<{ token: string, user: UserResource }>;
   logout: () => Promise<void>;
   setHasHydrated: (state: boolean) => void;
+  setAuth: (token: string, user: UserResource) => void;
 }
 
 export interface AuthStore extends AuthState, AuthActions { }
@@ -78,6 +79,24 @@ export const useAuth = create<AuthStore>()(
             user: null,
           });
         }
+      },
+
+      setAuth: (token: string, user: UserResource) => {
+        if (typeof window !== 'undefined') {
+          const names = user.name.split(' ');
+          localStorage.setItem('user_info', JSON.stringify({
+            firstName: names[0],
+            lastName: names.slice(1).join(' '),
+            email: user.email,
+            roles: user.roles
+          }));
+          localStorage.setItem('auth_token', token);
+        }
+
+        set({
+          token: token,
+          user: user
+        });
       },
 
     }),
