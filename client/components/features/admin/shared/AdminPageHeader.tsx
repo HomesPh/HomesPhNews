@@ -1,6 +1,4 @@
-"use client";
-
-import { Plus, LucideIcon } from 'lucide-react';
+import { Plus, LucideIcon, ArrowLeft } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +10,8 @@ interface AdminPageHeaderProps {
     actionIcon?: LucideIcon;
     className?: string;
     children?: React.ReactNode;
+    showBackButton?: boolean;
+    onBack?: () => void;
 }
 
 /**
@@ -24,19 +24,28 @@ export default function AdminPageHeader({
     onAction,
     actionIcon: ActionIcon = Plus,
     className,
-    children
+    children,
+    showBackButton,
+    onBack
 }: AdminPageHeaderProps) {
     return (
         <div className={cn("flex items-center justify-between mb-8", className)}>
-            <div>
-                <h1 className="text-[30px] font-bold text-[#111827] tracking-[-0.5px] leading-[36px]">
-                    {title}
-                </h1>
-                {description && (
-                    <p className="text-[14px] text-[#4b5563] mt-1 tracking-[-0.5px] leading-[20px]">
-                        {description}
-                    </p>
+            <div className="flex items-start gap-4">
+                {showBackButton && onBack && (
+                    <Button variant="ghost" size="icon" onClick={onBack} className="mt-1">
+                        <ArrowLeft className="w-6 h-6" />
+                    </Button>
                 )}
+                <div>
+                    <h1 className="text-[30px] font-bold text-[#111827] tracking-[-0.5px] leading-[36px]">
+                        {title}
+                    </h1>
+                    {description && (
+                        <p className="text-[14px] text-[#4b5563] mt-1 tracking-[-0.5px] leading-[20px]">
+                            {description}
+                        </p>
+                    )}
+                </div>
             </div>
 
             <div className="flex items-center gap-4">

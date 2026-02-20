@@ -378,73 +378,125 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // --- Carousel Logic ---
             const track = document.getElementById('carouselTrack');
-            if (!track) return;
+            
+            // Only initialize carousel if track exists
+            if (track) {
+                const slides = document.querySelectorAll('.carousel-slide');
+                const dots = document.querySelectorAll('.carousel-dot');
+                const prevBtn = document.getElementById('prevBtn');
+                const nextBtn = document.getElementById('nextBtn');
+                let currentIndex = 0;
+                const totalSlides = slides.length;
+                let autoPlayInterval;
 
-            const slides = document.querySelectorAll('.carousel-slide');
-            const dots = document.querySelectorAll('.carousel-dot');
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            let currentIndex = 0;
-            const totalSlides = slides.length;
-            let autoPlayInterval;
+                function updateCarousel() {
+                    track.style.transform = `translateX(-${currentIndex * 100}%)`;
+                    dots.forEach((dot, index) => {
+                        dot.classList.toggle('active', index === currentIndex);
+                    });
+                }
 
-            function updateCarousel() {
-                track.style.transform = `translateX(-${currentIndex * 100}%)`;
-                dots.forEach((dot, index) => {
-                    dot.classList.toggle('active', index === currentIndex);
-                });
-            }
-
-            function nextSlide() {
-                currentIndex = (currentIndex + 1) % totalSlides;
-                updateCarousel();
-            }
-
-            function prevSlide() {
-                currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
-                updateCarousel();
-            }
-
-            if (nextBtn) {
-                nextBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation(); // Prevent link click
-                    nextSlide();
-                    resetAutoPlay();
-                });
-            }
-
-            if (prevBtn) {
-                prevBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation(); // Prevent link click
-                    prevSlide();
-                    resetAutoPlay();
-                });
-            }
-
-            dots.forEach(dot => {
-                dot.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation(); // Prevent link click
-                    currentIndex = parseInt(dot.getAttribute('data-index'));
+                function nextSlide() {
+                    currentIndex = (currentIndex + 1) % totalSlides;
                     updateCarousel();
-                    resetAutoPlay();
+                }
+
+                function prevSlide() {
+                    currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+                    updateCarousel();
+                }
+
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation(); // Prevent link click
+                        nextSlide();
+                        resetAutoPlay();
+                    });
+                }
+
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation(); // Prevent link click
+                        prevSlide();
+                        resetAutoPlay();
+                    });
+                }
+
+                dots.forEach(dot => {
+                    dot.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation(); // Prevent link click
+                        currentIndex = parseInt(dot.getAttribute('data-index'));
+                        updateCarousel();
+                        resetAutoPlay();
+                    });
                 });
-            });
 
-            function startAutoPlay() {
-                autoPlayInterval = setInterval(nextSlide, 3000); // Change slide every 3 seconds
+                function startAutoPlay() {
+                    autoPlayInterval = setInterval(nextSlide, 3000); // Change slide every 3 seconds
+                }
+
+                function resetAutoPlay() {
+                    clearInterval(autoPlayInterval);
+                    startAutoPlay();
+                }
+
+                if (totalSlides > 1) {
+                    startAutoPlay();
+                }
             }
 
-            function resetAutoPlay() {
-                clearInterval(autoPlayInterval);
-                startAutoPlay();
+            // --- Metrics Tracking ---
+            const adUnitId = "{{ $adUnit->id }}";
+            // Use fallback to empty string if campaign is not set
+            const campaignId = "{{ $campaign->id ?? '' }}";
+            const metricsEndpoint = "/api/v1/ads/metrics";
+
+            console.log('Ad Metrics Init:', { adUnitId, campaignId });
+
+            // Helper to send metric
+            function sendMetric(type) {
+                if (!adUnitId) return;
+
+                const payload = {
+                    ad_unit_id: adUnitId,
+                    type: type
+                };
+
+                if (campaignId) {
+                    payload.campaign_id = campaignId;
+                }
+
+                fetch(metricsEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => { throw new Error(text) });
+                    }
+                    console.log('Ad Metric recorded:', type);
+                })
+                .catch(error => console.error('Error recording metric:', error));
             }
 
-            if (totalSlides > 1) {
-                startAutoPlay();
+            // Record Impression
+            sendMetric('impression');
+
+            // Record Click
+            const adContainer = document.querySelector('.ad-container');
+            if (adContainer) {
+                adContainer.addEventListener('click', function() {
+                    sendMetric('click');
+                });
             }
         });
     </script>
