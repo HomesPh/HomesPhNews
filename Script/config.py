@@ -34,6 +34,8 @@ CATEGORIES = [
     "Sports",
 ]
 
+CITIES = {} # country_id -> list of city names
+
 # Restaurant Categories
 RESTAURANT_CATEGORIES = [
     "Fine Dining",
@@ -92,7 +94,7 @@ def load_dynamic_config():
     
     try:
         from database import SessionLocal, check_mysql_connection
-        from models import CategoryDB, CountryDB
+        from models import CategoryDB, CountryDB, CityDB
         
         if not check_mysql_connection():
             print("ℹ️ MySQL not connected, using hardcoded config fallbacks.")
@@ -120,6 +122,19 @@ def load_dynamic_config():
                 COUNTRIES.clear()
                 COUNTRIES.update(new_countries)
                 print(f"✅ Loaded {len(COUNTRIES)} countries from database.")
+
+            # 3. Fetch Cities
+            db_cities = db.query(CityDB).filter(CityDB.is_active == True).all()
+            if db_cities:
+                from collections import defaultdict
+                city_map = defaultdict(list)
+                for city in db_cities:
+                    city_map[city.country_id].append(city.name)
+                
+                # We can store this in a global variable
+                global CITIES
+                CITIES = dict(city_map)
+                print(f"✅ Loaded {len(db_cities)} cities across {len(CITIES)} countries.")
                 
         except Exception as e:
             print(f"⚠️ Error querying dynamic config: {e}")

@@ -160,6 +160,14 @@ class CountryDB(Base):
     ceid = Column(String(50), nullable=False)
     is_active = Column(Boolean, default=True)
 
+class CityDB(Base):
+    __tablename__ = "cities"
+    
+    city_id = Column(Integer, primary_key=True, index=True)
+    country_id = Column(String(10), nullable=False)
+    name = Column(String(255), nullable=False)
+    is_active = Column(Boolean, default=True)
+
 
 # ═══════════════════════════════════════════════════════════════
 # PYDANTIC SCHEMAS FOR DB MODELS

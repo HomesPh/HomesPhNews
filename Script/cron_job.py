@@ -127,31 +127,32 @@ def process_country(country: str, scraper: NewsScraper, ai: AIProcessor, storage
 def run_hourly_job():
     """
     Main job: Process all countries in parallel.
+    Includes cleanup of old news.
     """
     print("\n" + "=" * 70)
-    print(f"🚀 HOMESPH CRON JOB STARTED - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"🚀 HOMESPH FRESH CRON JOB STARTED - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 70)
     
     start_time = time.time()
     
-    # Initialize services (fresh instances for thread safety)
+    # Initialize services
     scraper = NewsScraper()
     ai = AIProcessor()
     storage = StorageHandler()
     
-    # countries = list(COUNTRIES.keys())
-    
-    # ⚠️ COST SAVING MODE: Process only 1 random country ⚠️
-    # To revert to full production:
-    # 1. Uncomment: countries = list(COUNTRIES.keys())
-    # 2. Comment out the lines below
+    # Step 0: Cleanup old news
+    print("🧹 Cleaning up outdated news (>24h)...")
+    purged = storage.purge_old_articles(max_age_hours=24)
+    if purged > 0:
+        print(f"✨ Purged {purged} old articles.")
+
+    # Select countries
+    # ⚠️ For production, use all countries: countries = list(COUNTRIES.keys())
     selected_country = random.choice(list(COUNTRIES.keys()))
     countries = [selected_country]
     
     results = []
-    
-    print(f"📋 Processing {len(countries)} country (TEST MODE): {countries[0]}")
-    # print(f"📋 Countries: {', '.join(countries)}")
+    print(f"📋 Mode: FRESH NEWS ONLY | Processing: {countries[0]}")
     print("-" * 70)
     
     # Process countries in parallel
@@ -176,14 +177,16 @@ def run_hourly_job():
     print("=" * 70)
     print(f"✅ Success:     {success_count}/{len(countries)}")
     print(f"❌ Errors:      {error_count}")
-    print(f"⚠️ No Articles: {no_articles}")
+    print(f"⏳ Stale/None:  {no_articles} countries had no fresh news")
+    print(f"🧹 Purged:      {purged} old articles removed")
     print(f"⏱️ Total Time:  {total_time}s")
     print("-" * 70)
     
     # Detailed results
     for r in results:
-        icon = "✅" if r["status"] == "success" else "❌" if r["status"] == "error" else "⚠️"
-        print(f"{icon} {r['country'][:15]:15} | {r['category']:12} | {r['duration']:5}s | {r.get('title', r.get('error', 'N/A'))[:35]}")
+        icon = "✅" if r["status"] == "success" else "❌" if r["status"] == "error" else "⏳"
+        status_text = r.get("title", r.get("error", "No fresh articles found"))
+        print(f"{icon} {r['country'][:15]:15} | {r['category']:12} | {r['duration']:5}s | {status_text[:35]}")
     
     print("=" * 70)
     print(f"🏁 JOB COMPLETED - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -201,17 +204,17 @@ def run_scheduler():
     # Run every hour at minute 0
     scheduler.add_job(
         run_hourly_job, 
-        CronTrigger(minute=0),  # Every hour at :00
+        CronTrigger(minute=0), # Every hour at :00
         id='hourly_news_job',
-        name='HomesPh Hourly News Scraper'
+        name='HomesPh Fresh Hourly News Scraper'
     )
     
     print("=" * 70)
-    print("📅 HOMESPH SCHEDULER STARTED")
+    print("📅 HOMESPH FRESH NEWS SCHEDULER STARTED")
     print("=" * 70)
-    print("⏰ Schedule: Every hour at :00")
-    print("🌍 Countries: 8")
-    print("📰 Articles per country: 1")
+    print("⏰ Schedule: EVERY HOUR (Real-time mode)")
+    print("🔥 Mode:     FRESH NEWS ONLY (<24h)")
+    print("🧹 Cleanup:  Auto-purge >24h old articles")
     print("-" * 70)
     print("Press Ctrl+C to stop")
     print("=" * 70)

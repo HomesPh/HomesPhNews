@@ -56,6 +56,7 @@ export * from "./admin/service/ads";
 export * from "./admin/service/ads/getAdMetrics";
 export * from "./admin/service/campaigns";
 export * from "./admin/service/scraper";
+export * from "./admin/service/cities";
 export * from "./admin/service/users/createUser";
 
 
@@ -69,5 +70,6 @@ export type * from "./types/Event";
 export type * from "./types/SiteResource";
 export type * from "./types/CategoryResource";
 export type * from "./types/CountryResource";
+export type * from "./types/CityResource";
 export { ApiError } from "./types/ApiError";
 
