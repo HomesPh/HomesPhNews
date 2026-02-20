@@ -82,9 +82,11 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
             const result = await login({ email, password });
 
             // Check roles for redirection
-            const userRoles = result.user?.roles || [];
+            const userRoles = (result.user?.roles || []).map((r: string) => r.toLowerCase());
             if (userRoles.includes('admin') || userRoles.includes('super-admin')) {
                 router.push("/admin");
+            } else if (userRoles.includes('ceo')) {
+                router.push("/admin/mailing-list");
             } else if (userRoles.includes('blogger')) {
                 router.push("/blogger/dashboard");
             } else {
