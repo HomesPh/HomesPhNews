@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Chrome, Github, Apple } from "lucide-react";
+import { Chrome, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/lib/api-v2";
 
 interface SignInFormProps {
     fields: {
@@ -15,16 +16,13 @@ interface SignInFormProps {
     demoCredentials: { email: string; password: string };
 }
 
-import { useSearchParams } from "next/navigation";
-import { useAuth } from "@/lib/api-v2";
-import { useEffect } from "react";
-
 type AuthMode = 'signin' | 'signup-step1' | 'signup-step2';
 
 export default function SignInForm({ fields, submitLabel, demoCredentials }: SignInFormProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const login = useAuth((state) => state.login);
+    const setAuth = useAuth((state) => state.setAuth);
 
     const [mode, setMode] = useState<AuthMode>('signin');
     const [isLoading, setIsLoading] = useState(false);
@@ -33,6 +31,36 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
     // Sign In State
     const [email, setEmail] = useState(searchParams.get('email') || "");
     const [password, setPassword] = useState("");
+
+    // Password Visibility State
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showSignInPassword, setShowSignInPassword] = useState(false);
+
+
+    // Check for existing session and redirect
+    useEffect(() => {
+        const token = localStorage.getItem('auth_token');
+        const storedUser = localStorage.getItem('user_info');
+
+        if (token && storedUser) {
+            try {
+                const user = JSON.parse(storedUser);
+                const userRoles = user.roles || [];
+
+                if (userRoles.includes('admin') || userRoles.includes('super-admin')) {
+                    router.push("/admin");
+                } else if (userRoles.includes('blogger')) {
+                    router.push("/blogger/dashboard");
+                } else {
+                    router.push("/subscriber");
+                }
+            } catch (e) {
+                // Invalid user info, proceed to login
+                console.error("Error parsing stored user info", e);
+            }
+        }
+    }, [router]);
 
     useEffect(() => {
         const fetchUserInfo = async () => {
@@ -60,18 +88,11 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
         email: "",
         password: "",
         confirmPassword: "",
+        verificationCode: "",
     });
 
     const handleGoogleAuth = async () => {
         alert("Google authentication will be implemented with OAuth");
-    };
-
-    const handleGithubAuth = async () => {
-        alert("GitHub authentication will be implemented with OAuth");
-    };
-
-    const handleAppleAuth = async () => {
-        alert("Apple authentication will be implemented with OAuth");
     };
 
     const handleSignIn = async (e: React.FormEvent) => {
@@ -103,8 +124,18 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
     const handleSignUpStep1Continue = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!signupData.firstName || !signupData.lastName || !signupData.email) {
+        if (!signupData.firstName || !signupData.lastName || !signupData.email || !signupData.password || !signupData.confirmPassword) {
             alert("Please fill in all fields");
+            return;
+        }
+
+        if (signupData.password !== signupData.confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
+
+        if (signupData.password.length < 8) {
+            alert("Password must be at least 8 characters");
             return;
         }
 
@@ -114,13 +145,9 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
     const handleSignUpStep2Submit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (signupData.password !== signupData.confirmPassword) {
-            alert("Passwords do not match!");
-            return;
-        }
-
-        if (signupData.password.length < 8) {
-            alert("Password must be at least 8 characters");
+        // Validate verification code (mock)
+        if (!signupData.verificationCode) {
+            alert("Please enter the verification code");
             return;
         }
 
@@ -147,14 +174,18 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
             });
 
             console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers);
 
             // Check if response is JSON
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
                 const text = await response.text();
-                console.error('Server returned non-JSON response:', text.substring(0, 200));
-                alert(`Server error: The registration endpoint is not available yet. Please create the /auth/register API endpoint first.\n\nExpected: ${registerUrl}`);
+                // If endpoint doesn't exist, we will Mock Success for now as requested
+                // "it will create still thbe account succesfully and redirect"
+                console.warn('Server returned non-JSON response, mocking success for demo:', text.substring(0, 200));
+
+                // Mock successful login/redirect
+                alert("Account created successfully! (Mock)");
+                router.push('/subscriber');
                 setIsLoading(false);
                 return;
             }
@@ -162,27 +193,22 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
             const data = await response.json();
 
             if (response.ok) {
-                // Store auth token if provided
-                if (data.token) {
-                    localStorage.setItem('auth_token', data.token);
+                // Update auth store (handles localStorage and state sync)
+                if (data.token && data.user) {
+                    setAuth(data.token, data.user);
                 }
 
-                // Store user info
-                localStorage.setItem('user_info', JSON.stringify({
-                    firstName: signupData.firstName,
-                    lastName: signupData.lastName,
-                    email: signupData.email,
-                    roles: data.user?.roles || [],
-                }));
-
-                // Redirect to subscription plans page
-                router.push('/subscription/plans?plans=free');
+                // Redirect to checkout page for subscription flow
+                const pendingPlan = localStorage.getItem('pending_plan');
+                router.push(`/subscription/checkout?plan=${pendingPlan || 'free'}`);
             } else {
                 alert(data.message || 'Registration failed. Please try again.');
             }
         } catch (error) {
             console.error('Registration error:', error);
-            alert(`Failed to connect to the server.\n\nError: ${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease ensure:\n1. The backend server is running\n2. The /auth/register endpoint exists\n3. CORS is configured correctly`);
+            // Fallback mock success if server is down/not implemented
+            alert("Account created successfully! (Mock Fallback)");
+            router.push('/admin');
         } finally {
             setIsLoading(false);
         }
@@ -190,105 +216,100 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
 
     return (
         <div className="space-y-6">
-            {/* OAuth Buttons */}
-            <div className="space-y-3">
-                <Button
-                    type="button"
-                    onClick={handleGoogleAuth}
-                    className="w-full h-12 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 font-semibold rounded-lg transition-all flex items-center justify-center gap-3"
-                >
-                    <Chrome className="w-5 h-5 text-[#4285F4]" />
-                    Continue with Google
-                </Button>
-
-                <Button
-                    type="button"
-                    onClick={handleGithubAuth}
-                    className="w-full h-12 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 font-semibold rounded-lg transition-all flex items-center justify-center gap-3"
-                >
-                    <Github className="w-5 h-5 text-gray-900" />
-                    Continue with GitHub
-                </Button>
-
-                <Button
-                    type="button"
-                    onClick={handleAppleAuth}
-                    className="w-full h-12 bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 font-semibold rounded-lg transition-all flex items-center justify-center gap-3"
-                >
-                    <Apple className="w-5 h-5 text-gray-900" />
-                    Continue with Apple
-                </Button>
-            </div>
-
-            {/* Divider */}
-            <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-200"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-white text-gray-500 font-medium">Or</span>
-                </div>
-            </div>
-
             {/* Sign In Form */}
             {mode === 'signin' && (
-                <form onSubmit={handleSignIn} className="space-y-4">
-                    {userInfo && (
-                        <div className="p-4 bg-red-50 border border-red-100 rounded-lg mb-4 animate-in fade-in slide-in-from-top-2 flex items-center gap-3">
-                            {userInfo.avatar && (
-                                <img
-                                    src={userInfo.avatar}
-                                    alt={userInfo.first_name}
-                                    className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+                <div className="space-y-6">
+                    <form onSubmit={handleSignIn} className="space-y-4">
+                        {userInfo && (
+                            <div className="p-4 bg-red-50 border border-red-100 rounded-lg mb-4 animate-in fade-in slide-in-from-top-2 flex items-center gap-3">
+                                {userInfo.avatar && (
+                                    <img
+                                        src={userInfo.avatar}
+                                        alt={userInfo.first_name}
+                                        className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+                                    />
+                                )}
+                                <div>
+                                    <p className="text-sm text-red-800">
+                                        Welcome back, <span className="font-bold">{userInfo.first_name} {userInfo.last_name}</span>!
+                                    </p>
+                                    <p className="text-[12px] text-red-600">Please enter your password to continue.</p>
+                                </div>
+                            </div>
+                        )}
+                        <div className="space-y-2">
+                            <label htmlFor="email" className="text-sm font-medium text-slate-800">
+                                {fields.email.label}
+                            </label>
+                            <Input
+                                id="email"
+                                type={fields.email.type}
+                                placeholder={fields.email.placeholder}
+                                className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label htmlFor="password" className="text-sm font-medium text-slate-800">
+                                {fields.password.label}
+                            </label>
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    type={showSignInPassword ? "text" : "password"}
+                                    placeholder={fields.password.placeholder}
+                                    className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg pr-10"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
                                 />
-                            )}
-                            <div>
-                                <p className="text-sm text-red-800">
-                                    Welcome back, <span className="font-bold">{userInfo.first_name} {userInfo.last_name}</span>!
-                                </p>
-                                <p className="text-[12px] text-red-600">Please enter your password to continue.</p>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowSignInPassword(!showSignInPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                >
+                                    {showSignInPassword ? (
+                                        <EyeOff className="h-5 w-5" />
+                                    ) : (
+                                        <Eye className="h-5 w-5" />
+                                    )}
+                                </button>
                             </div>
                         </div>
-                    )}
-                    <div className="space-y-2">
-                        <label htmlFor="email" className="text-sm font-medium text-slate-800">
-                            {fields.email.label}
-                        </label>
-                        <Input
-                            id="email"
-                            type={fields.email.type}
-                            placeholder={fields.email.placeholder}
-                            className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
+
+                        <Button
+                            type="submit"
+                            className="w-full h-12 bg-[#bf0000] hover:bg-[#a60000] text-white font-semibold text-base rounded-lg transition-colors mt-2"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? "Signing in..." : submitLabel}
+                        </Button>
+                    </form>
+
+                    {/* Divider */}
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-200"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-4 bg-white text-gray-500 font-medium">Or</span>
+                        </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <label htmlFor="password" className="text-sm font-medium text-slate-800">
-                            {fields.password.label}
-                        </label>
-                        <Input
-                            id="password"
-                            type={fields.password.type}
-                            placeholder={fields.password.placeholder}
-                            className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-
+                    {/* Google Button */}
                     <Button
-                        type="submit"
-                        className="w-full h-12 bg-[#bf0000] hover:bg-[#a60000] text-white font-semibold text-base rounded-lg transition-colors mt-2"
-                        disabled={isLoading}
+                        type="button"
+                        onClick={handleGoogleAuth}
+                        className="w-full h-12 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-medium rounded-lg transition-all flex items-center justify-center gap-3"
                     >
-                        {isLoading ? "Signing in..." : submitLabel}
+                        <Chrome className="w-5 h-5 text-[#4285F4]" />
+                        Continue with Google
                     </Button>
 
-                    {/* Toggle to Sign Up */}
+                    {/* Sign Up Link */}
                     <div className="text-center pt-2">
                         <p className="text-sm text-gray-600">
                             Don't have an account?{" "}
@@ -301,64 +322,147 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
                             </button>
                         </p>
                     </div>
-                </form>
+                </div>
             )}
 
-            {/* Sign Up Step 1: Name and Email */}
+            {/* Sign Up Step 1: Registration Details */}
             {mode === 'signup-step1' && (
-                <form onSubmit={handleSignUpStep1Continue} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-6">
+                    <form onSubmit={handleSignUpStep1Continue} className="space-y-4">
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <label htmlFor="firstName" className="text-sm font-medium text-slate-800">
+                                    First name
+                                </label>
+                                <Input
+                                    id="firstName"
+                                    type="text"
+                                    placeholder="Your first name"
+                                    className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg"
+                                    value={signupData.firstName}
+                                    onChange={(e) => setSignupData({ ...signupData, firstName: e.target.value })}
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label htmlFor="lastName" className="text-sm font-medium text-slate-800">
+                                    Last name
+                                </label>
+                                <Input
+                                    id="lastName"
+                                    type="text"
+                                    placeholder="Your last name"
+                                    className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg"
+                                    value={signupData.lastName}
+                                    onChange={(e) => setSignupData({ ...signupData, lastName: e.target.value })}
+                                    required
+                                />
+                            </div>
+                        </div>
+
                         <div className="space-y-2">
-                            <label htmlFor="firstName" className="text-sm font-medium text-slate-800">
-                                First name
+                            <label htmlFor="signup-email" className="text-sm font-medium text-slate-800">
+                                Email
                             </label>
                             <Input
-                                id="firstName"
-                                type="text"
-                                placeholder="Your first name"
+                                id="signup-email"
+                                type="email"
+                                placeholder="Your email address"
                                 className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg"
-                                value={signupData.firstName}
-                                onChange={(e) => setSignupData({ ...signupData, firstName: e.target.value })}
+                                value={signupData.email}
+                                onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
                                 required
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label htmlFor="lastName" className="text-sm font-medium text-slate-800">
-                                Last name
-                            </label>
-                            <Input
-                                id="lastName"
-                                type="text"
-                                placeholder="Your last name"
-                                className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg"
-                                value={signupData.lastName}
-                                onChange={(e) => setSignupData({ ...signupData, lastName: e.target.value })}
-                                required
-                            />
+                        {/* Password Section */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <label htmlFor="signup-password" className="text-sm font-medium text-slate-800">
+                                    Password
+                                </label>
+                                <div className="relative">
+                                    <Input
+                                        id="signup-password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder=""
+                                        className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg pr-10"
+                                        value={signupData.password}
+                                        onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                                        required
+                                        minLength={8}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label htmlFor="confirm-password" className="text-sm font-medium text-slate-800">
+                                    Confirm Password
+                                </label>
+                                <div className="relative">
+                                    <Input
+                                        id="confirm-password"
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        placeholder=""
+                                        className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg pr-10"
+                                        value={signupData.confirmPassword}
+                                        onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
+                                        required
+                                        minLength={8}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                    >
+                                        {showConfirmPassword ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <Button
+                            type="submit"
+                            className="w-full h-12 bg-[#bf0000] hover:bg-[#a60000] text-white font-semibold text-base rounded-lg transition-colors mt-2"
+                        >
+                            Continue
+                        </Button>
+                    </form>
+
+                    {/* Divider */}
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-200"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-4 bg-white text-gray-500 font-medium">Or</span>
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <label htmlFor="signup-email" className="text-sm font-medium text-slate-800">
-                            Email
-                        </label>
-                        <Input
-                            id="signup-email"
-                            type="email"
-                            placeholder="Your email address"
-                            className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg"
-                            value={signupData.email}
-                            onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                            required
-                        />
-                    </div>
-
+                    {/* Google Button */}
                     <Button
-                        type="submit"
-                        className="w-full h-12 bg-[#bf0000] hover:bg-[#a60000] text-white font-semibold text-base rounded-lg transition-colors mt-2"
+                        type="button"
+                        onClick={handleGoogleAuth}
+                        className="w-full h-12 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-medium rounded-lg transition-all flex items-center justify-center gap-3"
                     >
-                        Continue
+                        <Chrome className="w-5 h-5 text-[#4285F4]" />
+                        Continue with Google
                     </Button>
 
                     {/* Toggle back to Sign In */}
@@ -374,103 +478,111 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
                             </button>
                         </p>
                     </div>
-                </form>
+                </div>
             )}
 
-            {/* Sign Up Step 2: Create Password */}
+            {/* Sign Up Step 2: Verification Code */}
             {mode === 'signup-step2' && (
-                <form onSubmit={handleSignUpStep2Submit} className="space-y-4">
-                    {/* Email Display */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-500">
-                            Email
-                        </label>
-                        <p className="text-base font-normal text-slate-900">
-                            {signupData.email}
+                <div className="space-y-6">
+                    <div className="text-center">
+                        <h3 className="text-lg font-bold text-gray-900">Verify your email</h3>
+                        <p className="text-sm text-gray-500 mt-2">
+                            We sent a verification code to <span className="font-medium text-gray-900">{signupData.email}</span>
                         </p>
                     </div>
 
-                    {/* Continue with Email Code Option */}
-                    <Button
-                        type="button"
-                        onClick={() => alert("Email verification code will be sent")}
-                        className="w-full h-12 bg-[#bf0000] hover:bg-[#a60000] text-white font-semibold text-base rounded-lg transition-colors"
+                    <form onSubmit={handleSignUpStep2Submit} className="space-y-6">
+                        <div className="space-y-2">
+                            <label htmlFor="otp-0" className="text-sm font-medium text-slate-800 block text-center">
+                                Verification Code
+                            </label>
+                            <div className="flex justify-center gap-2">
+                                {Array.from({ length: 6 }).map((_, index) => (
+                                    <input
+                                        key={index}
+                                        id={`otp-${index}`}
+                                        type="text"
+                                        maxLength={1}
+                                        className="w-12 h-14 text-center text-2xl font-bold bg-gray-50 border border-gray-200 rounded-lg focus:border-[#bf0000] focus:ring-2 focus:ring-[#bf0000] outline-none transition-all"
+                                        value={signupData.verificationCode[index] || ""}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            if (!/^[0-9]*$/.test(value)) return;
 
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        Continue with email code
-                    </Button>
+                                            const newCode = signupData.verificationCode.split('');
+                                            if (value) {
+                                                newCode[index] = value;
+                                                setSignupData({ ...signupData, verificationCode: newCode.join('') });
 
-                    {/* Password Section */}
-                    <div className="space-y-2">
-                        <label htmlFor="signup-password" className="text-sm font-medium text-slate-500">
-                            Password
-                        </label>
-                        <Input
-                            id="signup-password"
-                            type="password"
-                            placeholder="Create a password"
-                            className="h-12 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg text-base"
-                            value={signupData.password}
-                            onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                            required
-                            minLength={8}
-                        />
-                    </div>
+                                                // Focus next input
+                                                if (index < 5) {
+                                                    const nextInput = document.getElementById(`otp-${index + 1}`);
+                                                    nextInput?.focus();
+                                                }
+                                            } else {
+                                                // Handle delete/clear if needed, though backspace handles usually
+                                                newCode[index] = "";
+                                                setSignupData({ ...signupData, verificationCode: newCode.join('') });
+                                            }
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Backspace') {
+                                                if (!signupData.verificationCode[index] && index > 0) {
+                                                    // Focus previous if current is empty
+                                                    const prevInput = document.getElementById(`otp-${index - 1}`);
+                                                    prevInput?.focus();
+                                                }
+                                            }
+                                        }}
+                                        onPaste={(e) => {
+                                            e.preventDefault();
+                                            const pastedData = e.clipboardData.getData('text').slice(0, 6).replace(/[^0-9]/g, '');
+                                            setSignupData({ ...signupData, verificationCode: pastedData });
 
-                    <div className="space-y-2">
-                        <label htmlFor="confirm-password" className="text-sm font-medium text-slate-500">
-                            Confirm Password
-                        </label>
-                        <Input
-                            id="confirm-password"
-                            type="password"
-                            placeholder="Confirm your password"
-                            className="h-12 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg text-base"
-                            value={signupData.confirmPassword}
-                            onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
-                            required
-                            minLength={8}
-                        />
-                    </div>
+                                            // Focus appropriate input after paste
+                                            const nextIndex = Math.min(pastedData.length, 5);
+                                            const nextInput = document.getElementById(`otp-${nextIndex}`);
+                                            nextInput?.focus();
+                                        }}
+                                        required={index === 0} // Only first is strictly required for HTML validation, manual validation checks length
+                                    />
+                                ))}
+                            </div>
+                        </div>
 
-                    {/* Continue Button */}
-                    <Button
-                        type="submit"
-                        className="w-full h-12 bg-[#bf0000] hover:bg-[#a60000] text-white font-semibold text-base rounded-lg transition-colors"
-                        disabled={isLoading}
-                    >
-                        {isLoading ? "Creating Account..." : "Continue"}
-                    </Button>
+                        {/* Continue Button */}
+                        <Button
+                            type="submit"
+                            className="w-full h-12 bg-[#bf0000] hover:bg-[#a60000] text-white font-semibold text-base rounded-lg transition-colors"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? "Creating Account..." : "Verify & Create Account"}
+                        </Button>
 
-                    {/* Go Back Button */}
-                    <button
-                        type="button"
-                        onClick={() => setMode('signup-step1')}
-                        className="w-full text-center text-sm text-gray-600 hover:text-gray-900 transition-colors flex items-center justify-center gap-1"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                        Go back
-                    </button>
-
-                    {/* Toggle back to Sign In */}
-                    <div className="text-center pt-2 border-t border-gray-100">
-                        <p className="text-sm text-gray-600">
-                            Already have an account?{" "}
+                        {/* Resend Code (Mock) */}
+                        <div className="text-center">
                             <button
                                 type="button"
-                                onClick={() => setMode('signin')}
-                                className="font-semibold text-[#bf0000] hover:underline"
+                                onClick={() => alert("Code resent!")}
+                                className="text-sm text-[#bf0000] hover:underline font-medium"
                             >
-                                Sign in
+                                Resend Code
                             </button>
-                        </p>
-                    </div>
-                </form>
+                        </div>
+
+                        {/* Go Back Button */}
+                        <button
+                            type="button"
+                            onClick={() => setMode('signup-step1')}
+                            className="w-full text-center text-sm text-gray-600 hover:text-gray-900 transition-colors flex items-center justify-center gap-1 pt-4 border-t border-gray-100"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                            Back to details
+                        </button>
+                    </form>
+                </div>
             )}
         </div>
     );

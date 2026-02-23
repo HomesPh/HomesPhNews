@@ -20,11 +20,6 @@ class AdDisplayController extends Controller
         // For now, let's just pick one random active campaign
         $campaign = $adUnit->campaigns()->active()->inRandomOrder()->first();
 
-        if ($campaign) {
-            $adUnit->increment('impressions');
-            $campaign->increment('impressions');
-        }
-
         return view('ads.show', compact('campaign', 'adUnit'));
     }
 }

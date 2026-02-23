@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\AdUnitController as AdminAdUnitController;
+use App\Http\Controllers\Api\Admin\AdMetricController as AdminAdMetricController;
 use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\ArticleController as AdminArticleController;
 // Admin Controllers
@@ -16,6 +17,8 @@ use App\Http\Controllers\Api\Admin\SiteController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Auth\SocialAuthController;
 use App\Http\Controllers\Api\PlanSubscriptionController;
+use App\Http\Controllers\Api\Subscriber\ArticleController as SubscriberArticleController;
+
 // User Controllers
 use App\Http\Controllers\Api\SiteContentController;
 use App\Http\Controllers\Api\SubscriptionController;
@@ -117,6 +120,7 @@ Route::prefix('v1')->group(function () {
     // Ads
     Route::get('/ads', [UserAdController::class, 'index']);
     Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
+    Route::post('/ads/metrics', [AdminAdMetricController::class, 'store']);
 
     // Restaurants
     Route::group(['prefix' => 'restaurants', 'as' => 'restaurants.'], function () {
@@ -149,6 +153,12 @@ Route::prefix('v1')->group(function () {
 
         // Plan Subscriptions
         Route::post('/plans/subscribe', [PlanSubscriptionController::class, 'store']);
+
+        // Subscriber Routes (any authenticated user — no admin role required)
+        Route::prefix('subscriber')->group(function () {
+            Route::get('/articles', [SubscriberArticleController::class, 'index']);
+            Route::get('/articles/{id}', [SubscriberArticleController::class, 'show']);
+        });
     });
 
     /*

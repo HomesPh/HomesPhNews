@@ -498,8 +498,7 @@ async def run_hourly_job():
     - Runs 10 times per day
     - Processes ALL countries per run (parallel)
     - Each country: 1 article per run
-    - Over 10 runs: Each country gets 10 articles/day
-    - Total: 12 countries × 1 article × 10 runs = 120 articles/day
+    - PURGES old news (older than 24h) to keep feed fresh.
     """
     global job_status
     
@@ -514,10 +513,17 @@ async def run_hourly_job():
     
     # Header
     print("\n" + "=" * 70)
-    print(f"🚀 SCHEDULED JOB STARTED")
+    print(f"🚀 SCHEDULED JOB STARTED (FRESH NEWS MODE)")
     print(f"📅 Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 70)
     
+    # Step 0: CLEANUP OLD NEWS (User Request: "mawala nana ig ugma")
+    storage = StorageHandler()
+    print("🧹 Cleaning up outdated news...")
+    purged_count = storage.purge_old_articles(max_age_hours=24)
+    if purged_count > 0:
+        print(f"✨ Purged {purged_count} old articles.")
+
     # Process ALL countries (not rotating, all at once)
     all_countries = list(COUNTRIES.keys())
     countries = all_countries
@@ -527,7 +533,6 @@ async def run_hourly_job():
     print(f"📍 Countries: {len(countries)} (Processing ALL in parallel)")
     print(f"📊 Articles per country: {ARTICLES_PER_COUNTRY}")
     print(f"📈 Total articles this run: {len(countries) * ARTICLES_PER_COUNTRY}")
-    print(f"💡 Each country gets 10/day over 10 runs")
     print(f"🔍 Dedup: {dedup_stats['urls_tracked']} URLs | {dedup_stats['titles_tracked']} titles tracked")
     print("-" * 70)
     
@@ -544,6 +549,7 @@ async def run_hourly_job():
     success_count = sum(1 for r in results if r["status"] == "success")
     error_count = sum(1 for r in results if r["status"] == "error")
     duplicate_count = sum(1 for r in results if r["status"] == "all_duplicates")
+    no_fresh_count = sum(1 for r in results if r["status"] == "no_articles")
     total_skipped = sum(r.get("skipped", 0) for r in results)
     
     # Update job status
@@ -561,7 +567,9 @@ async def run_hourly_job():
     print(f"✅ Success:    {success_count}/{len(countries)}")
     print(f"❌ Errors:     {error_count}")
     print(f"🔄 Duplicates: {duplicate_count} countries had no new articles")
+    print(f"⏳ Stale/None: {no_fresh_count} countries had no fresh news")
     print(f"⏭️ Skipped:    {total_skipped} duplicate articles")
+    print(f"🧹 Purged:     {purged_count} old articles")
     print("-" * 70)
     
     # Show next run time

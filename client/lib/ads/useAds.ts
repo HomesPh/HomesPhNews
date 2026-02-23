@@ -2,14 +2,14 @@
 
 import AXIOS_INSTANCE_PUBLIC from "@/lib/api-v2/public/axios-instance";
 import { useEffect, useState } from "react";
-import { Ad } from "./types";
+import { Campaign } from "./types";
 
 interface Params {
   campaign: string;
 }
 
 export default function useAds({ campaign }: Params) {
-  const [ads, setAds] = useState<Ad[]>([]);
+  const [ads, setAds] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,12 +18,10 @@ export default function useAds({ campaign }: Params) {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await AXIOS_INSTANCE_PUBLIC.get<{
-          name: string;
-          ads: Ad[];
-        }>(`/v1/ads/${campaign}`);
+        // The endpoint /v1/ads/{name} returns a single Campaign object
+        const response = await AXIOS_INSTANCE_PUBLIC.get<Campaign>(`/v1/ads/${campaign}`);
 
-        setAds(response.data.ads);
+        setAds([response.data]);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch ads");
       } finally {
