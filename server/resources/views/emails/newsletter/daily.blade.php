@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f1f5f9;
+            background-color: #f4f7fa;
             margin: 0;
             padding: 0;
             -webkit-font-smoothing: antialiased;
@@ -16,34 +16,52 @@
 
         .container {
             max-width: 600px;
-            margin: 40px auto;
+            margin: 30px auto;
             background-color: #ffffff;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eef2f6;
+            border-top: 6px solid #C10007; /* HomesTV Red */
         }
 
         .header {
-            background-color: #ffffff;
-            padding: 40px 30px;
+            background-color: #111827;
+            padding: 32px 20px;
             text-align: center;
-            border-bottom: 2px solid #f1f5f9;
         }
 
-        .header img {
-            max-height: 35px;
+        .logo-wrapper {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            max-height: 28px;
+            width: auto;
+            margin-right: 12px;
+        }
+
+        .logo-text {
+            font-size: 26px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.04em;
+            font-family: 'Inter', sans-serif;
         }
 
         .sub-header {
-            background-color: #0f172a;
-            padding: 18px;
+            background-color: #1f2937;
+            padding: 14px;
             text-align: center;
-            color: #ffffff;
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 0.15em;
+            color: #f3f4f6;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.3em;
             text-transform: uppercase;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .content {
@@ -70,89 +88,111 @@
             display: block;
             text-decoration: none;
             color: inherit;
-            margin-bottom: 30px;
+            margin-bottom: 32px;
             background-color: #ffffff;
-            border: 2px solid #f1f5f9;
-            border-radius: 14px;
+            border: 1px solid #f1f5f9;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease;
         }
 
         .article-image {
             width: 100%;
-            height: auto;
-            background-color: #f3f4f6;
+            height: 220px;
+            object-fit: cover;
+            background-color: #f8fafc;
             display: block;
         }
 
         .article-body {
-            padding: 20px;
+            padding: 24px 28px;
         }
 
         .article-category {
-            font-size: 11px;
-            font-weight: 800;
-            color: #64748b;
+            font-size: 10px;
+            font-weight: 900;
+            color: #C10007; /* HomesTV Red */
             text-transform: uppercase;
-            margin-bottom: 8px;
-            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            letter-spacing: 0.15em;
         }
 
         .article-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1e293b;
+            font-size: 22px;
+            font-weight: 800;
+            color: #111827;
             margin-bottom: 12px;
-            line-height: 1.4;
+            line-height: 1.3;
+            letter-spacing: -0.03em;
         }
 
         .article-summary {
             font-size: 14px;
-            color: #6b7280;
-            margin-bottom: 15px;
+            color: #4b5563;
+            margin-bottom: 24px;
+            line-height: 1.65;
         }
 
-        .btn-link {
-            font-size: 14px;
-            font-weight: 800;
-            color: #0f172a;
+        .btn {
+            display: inline-block;
+            background-color: #334155;
+            color: #ffffff !important;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
             text-decoration: none;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .btn-secondary {
+            /* Same as primary but can be tweaked if needed */
         }
 
         .footer {
-            background-color: #060e21ff;
-            padding: 40px 30px;
+            background-color: #111827;
+            padding: 50px 30px;
             color: #94a3b8;
             text-align: center;
         }
 
+        .footer-logo {
+            margin-bottom: 25px;
+            opacity: 0.8;
+        }
+
         .footer-text {
-            font-size: 11px;
+            font-size: 12px;
             color: #64748b;
-            margin-bottom: 15px;
-            line-height: 1.5;
+            margin-bottom: 24px;
+            line-height: 1.6;
         }
 
         .footer-links a {
-            color: #6b7280;
+            color: #94a3b8;
             text-decoration: none;
-            margin: 0 10px;
+            margin: 0 12px;
             font-size: 12px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+            padding-bottom: 2px;
         }
 
         .tag {
             display: inline-block;
-            padding: 4px 10px;
-            background-color: #f1f5f9;
-            color: #475569;
-            border-radius: 6px;
+            padding: 6px 12px;
+            background-color: #f8fafc;
+            color: #64748b;
+            border-radius: 8px;
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 800;
             margin-right: 6px;
+            margin-bottom: 6px;
             border: 1px solid #e2e8f0;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
         }
     </style>
 </head>
@@ -160,7 +200,10 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="{{ $logo }}" alt="HomesTV" width="120" style="display: block; margin: 0 auto; max-height: 40px; border: 0;">
+            <div class="logo-wrapper">
+                <img src="{{ $logo }}" alt="" class="logo-img">
+                <span class="logo-text">HomesTV</span>
+            </div>
         </div>
         <div class="sub-header">Daily News Digest</div>
 
@@ -204,7 +247,7 @@
                         <div class="article-category">{{ $article->category }} | {{ $article->country }}</div>
                         <div class="article-title">{{ $article->title }}</div>
                         <div class="article-summary">{{ Str::limit(strip_tags($article->summary), 140) }}</div>
-                        <div class="btn-link">Read Full Story &rarr;</div>
+                        <span class="btn">Read Full Story</span>
                     </div>
                 </a>
             @endforeach
@@ -212,24 +255,29 @@
             <div
                 style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin-top: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
                 <div style="font-weight: 700; color: #0f172a; margin-bottom: 6px;">Manage your experience</div>
-                <div style="font-size: 14px; color: #475569; margin-bottom: 18px;">
+                <div style="font-size: 14px; color: #475569; margin-bottom: 24px;">
                     Want to change the topics or locations you follow? You can update your preferences anytime.
                 </div>
-                <a href="{{ $clientUrl }}/subscribe/edit?id={{ $subscriber->sub_Id }}"
-                    style="font-size: 14px; font-weight: 700; color: #0f172a; text-decoration: none;">
-                    Edit Preferences &rarr;
-                </a>
+                <div style="text-align: left;">
+                    <a href="{{ $clientUrl }}/subscribe/edit?id={{ $subscriber->sub_Id }}" class="btn btn-secondary">
+                        Edit your Preferences
+                    </a>
+                </div>
             </div>
         </div>
 
         <div class="footer">
+            <div class="footer-logo">
+                <img src="{{ $logo }}" alt="" style="max-height: 22px; width: auto; opacity: 0.6; filter: grayscale(1);">
+            </div>
             <div class="footer-text">
-                This email was sent to you because you subscribed to HomesTV Daily News.<br>
-                &copy; {{ date('Y') }} HomesTV all rights reserved.
+                This email was sent to you because you subscribed to <strong>HomesTV Daily News</strong>.<br>
+                We value your privacy and only send content based on your selected interests.<br>
+                &copy; {{ date('Y') }} HomesTV. All rights reserved.
             </div>
             <div class="footer-links">
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
+                <a href="{{ $clientUrl }}/privacy-policy">Privacy Policy</a>
+                <a href="{{ $clientUrl }}/terms">Terms of Service</a>
                 <a href="{{ $clientUrl }}/subscribe/edit?id={{ $subscriber->sub_Id }}">Unsubscribe</a>
             </div>
         </div>

@@ -7,27 +7,49 @@
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f4f7f9;
+            background-color: #f4f7fa;
             margin: 0;
             padding: 0;
             -webkit-font-smoothing: antialiased;
         }
+
         .container {
             max-width: 600px;
-            margin: 40px auto;
+            margin: 30px auto;
             background-color: #ffffff;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eef2f6;
+            border-top: 6px solid #C10007; /* HomesTV Red */
         }
+
         .header {
-            background-color: #f8fafc;
-            padding: 30px;
+            background-color: #111827;
+            padding: 32px 20px;
             text-align: center;
-            border-bottom: 3px solid #334155;
+            border-bottom: none;
         }
-        .header img {
-            max-height: 40px;
+
+        .logo-wrapper {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .logo-img {
+            max-height: 28px;
+            width: auto;
+            margin-right: 12px;
+        }
+
+        .logo-text {
+            font-size: 26px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.04em;
+            font-family: 'Inter', sans-serif;
         }
         .content {
             padding: 40px 30px;
@@ -47,40 +69,44 @@
             margin-bottom: 30px;
         }
         .info-card {
-            background-color: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 20px;
+            background-color: #ffffff;
+            border: 2px solid #f1f5f9;
+            border-radius: 14px;
+            padding: 25px;
             margin-bottom: 30px;
         }
         .info-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: #9ca3af;
+            font-size: 11px;
+            font-weight: 800;
+            color: #64748b;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 15px;
+            letter-spacing: 0.1em;
+            margin-bottom: 20px;
         }
         .info-item {
             display: flex;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
         .info-label {
-            font-weight: 600;
-            color: #374151;
+            font-weight: 700;
+            color: #64748b;
+            font-size: 13px;
             width: 100px;
             flex-shrink: 0;
+            display: inline-block;
         }
         .info-value {
-            color: #111827;
+            color: #1a1d2e;
+            font-size: 14px;
+            font-weight: 600;
         }
         .section-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #111827;
+            font-size: 16px;
+            font-weight: 800;
+            color: #1a1d2e;
             margin-bottom: 20px;
-            display: flex;
-            align-items: center;
+            border-left: 4px solid #1a1d2e;
+            padding-left: 15px;
         }
         .article-card {
             display: block;
@@ -108,32 +134,53 @@
             display: inline-block;
             background-color: #334155;
             color: #ffffff !important;
-            padding: 12px 24px;
-            border-radius: 8px;
+            padding: 14px 30px;
+            border-radius: 12px;
+            font-size: 15px;
             font-weight: 700;
             text-decoration: none;
             margin-top: 20px;
             text-align: center;
+            letter-spacing: 0.02em;
+        }
+        .tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background-color: #f1f5f9;
+            color: #475569;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-right: 6px;
+            border: 1px solid #e2e8f0;
         }
         .footer {
-            background-color: #f9fafb;
-            padding: 30px;
+            background-color: #111827;
+            padding: 50px 30px;
+            color: #94a3b8;
             text-align: center;
-            border-top: 1px solid #e5e7eb;
         }
+
+        .footer-logo {
+            margin-bottom: 25px;
+            opacity: 0.8;
+        }
+
         .footer-text {
             font-size: 12px;
-            color: #9ca3af;
-            margin-bottom: 15px;
+            color: #64748b;
+            margin-bottom: 24px;
+            line-height: 1.6;
         }
+
         .footer-links a {
-            color: #6b7280;
+            color: #94a3b8;
             text-decoration: none;
-            margin: 0 10px;
+            margin: 0 12px;
             font-size: 12px;
-        }
-        .footer-links a:hover {
-            color: #334155;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+            padding-bottom: 2px;
         }
         .tag {
             display: inline-block;
@@ -150,7 +197,10 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="https://news.homes.ph/images/HomesTV.png" alt="HomesTV">
+            <div class="logo-wrapper">
+                <img src="https://news.homes.ph/images/HomesTV.png" alt="" class="logo-img">
+                <span class="logo-text">HomesTV</span>
+            </div>
         </div>
         
         <div class="content">
@@ -198,8 +248,12 @@
         </div>
         
         <div class="footer">
+            <div class="footer-logo">
+                <img src="https://news.homes.ph/images/HomesTV.png" alt="" style="max-height: 22px; width: auto; opacity: 0.6; filter: grayscale(1);">
+            </div>
             <div class="footer-text">
-                &copy; {{ date('Y') }} HomesTV. All rights reserved.<br>
+                This email was sent to you because you are a registered user of <strong>HomesTV</strong>.<br>
+                &copy; {{ date('Y') }} HomesTV. All rights reserved.
             </div>
             <div class="footer-links">
                 <a href="{{ $clientUrl }}/privacy-policy">Privacy Policy</a>
