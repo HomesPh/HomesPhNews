@@ -120,7 +120,10 @@ Route::prefix('v1')->group(function () {
     // Ads
     Route::get('/ads', [UserAdController::class, 'index']);
     Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
+
+    // Ad metrics
     Route::post('/ads/metrics', [AdminAdMetricController::class, 'store']);
+    
 
     // Restaurants
     Route::group(['prefix' => 'restaurants', 'as' => 'restaurants.'], function () {
@@ -195,6 +198,9 @@ Route::prefix('v1')->group(function () {
                 // Dashboard & Analytics
                 Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
                 Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
+                Route::get('ad-metrics', [AdminAdMetricController::class, 'index']);
+                Route::get('ad-metrics/units/{adUnit}', [AdminAdMetricController::class, 'showByAdUnit']);
+                Route::get('ad-metrics/campaigns/{campaign}', [AdminAdMetricController::class, 'showByCampaign']);
 
                 // Resources
                 Route::apiResource('article-publications', ArticlePublicationController::class);
