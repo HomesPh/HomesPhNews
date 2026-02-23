@@ -11,7 +11,7 @@ from fastapi import APIRouter, HTTPException, Query
 from models import (
     Article, ArticleSummary, Restaurant, RestaurantSummary, 
     CountryStats, CategoryStats, ImageGenerationRequest,
-    CategoryDB, CountryDB, DBCategory, DBCountry
+    CategoryDB, CountryDB, CityDB, DBCategory, DBCountry, DBCity
 )
 from database import redis_client, PREFIX, get_db
 from sqlalchemy.orm import Session
@@ -40,6 +40,12 @@ async def get_db_countries(db: Session = Depends(get_db)):
     """Fetch all countries from the MySQL database."""
     countries = db.query(CountryDB).all()
     return countries
+
+@router.get("/db/cities", response_model=List[DBCity], tags=["Database"])
+async def get_db_cities(db: Session = Depends(get_db)):
+    """Fetch all cities from the MySQL database."""
+    cities = db.query(CityDB).all()
+    return cities
 
 
 
@@ -457,15 +463,33 @@ async def trigger_sports_job():
 @router.get("/status", tags=["Admin"])
 async def get_status():
     """Get current job status and statistics."""
-    from scheduler import job_status
+    from scheduler import get_job_status
+    status = get_job_status()
     
     return {
-        "is_running": job_status["is_running"],
-        "total_runs": job_status["total_runs"],
-        "total_success": job_status["total_success"],
-        "total_errors": job_status["total_errors"],
-        "total_skipped": job_status["total_skipped"],
-        "last_run": job_status["last_run"],
-        "next_run": job_status["next_run"],
-        "last_results": job_status["last_results"]
+        "is_running": status["is_running"],
+        "total_runs": status["total_runs"],
+        "total_success": status["total_success"],
+        "total_errors": status["total_errors"],
+        "total_skipped": status["total_skipped"],
+        "last_run": status["last_run"],
+        "next_run": status["next_run"],
+        "last_results": status["last_results"]
+    }
+
+
+@router.get("/status/restaurants", tags=["Admin"])
+async def get_restaurant_status():
+    """Get current restaurant job status and statistics."""
+    from scheduler import get_restaurant_job_status
+    status = get_restaurant_job_status()
+    
+    return {
+        "is_running": status["is_running"],
+        "total_runs": status["total_runs"],
+        "total_success": status["total_success"],
+        "total_errors": status["total_errors"],
+        "last_run": status["last_run"],
+        "next_run": status["next_run"],
+        "last_results": status["last_results"]
     }

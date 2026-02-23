@@ -337,6 +337,53 @@ class AIProcessor:
             print(f"⚠️ Restaurant extraction failed: {e}")
             return None
 
+    def enrich_restaurant_metadata(
+        self,
+        name: str,
+        cuisine_type: str,
+        city: str,
+        country: str,
+        rating: float,
+        address: str = "",
+        existing_description: str = "",
+    ):
+        """
+        Generate description, specialty_dish, menu_highlights, clickbait_hook, why_filipinos_love_it
+        for a restaurant (e.g. from Google Places). Fills empty metadata for API responses.
+        Returns dict with those keys, or None if AI unavailable / fails.
+        """
+        if not self.text_model:
+            return None
+        prompt = f"""You are writing short metadata for a Filipino / Pinoy cuisine restaurant listing.
+
+Restaurant: {name}
+Cuisine type: {cuisine_type}
+Location: {city}, {country}
+Rating: {rating}
+Address: {address or 'Not provided'}
+
+{f'Existing review snippet (use only to inspire, do not copy): {existing_description[:300]}' if existing_description else ''}
+
+Return valid JSON only (no markdown), with these exact keys:
+- "description": 2-3 sentences max. Engaging, mention Filipino cuisine and who it's for (OFWs, locals). If existing snippet given, summarize or complement it.
+- "specialty_dish": One signature dish (e.g. "Crispy pata", "Sinigang na baboy")
+- "menu_highlights": 3-5 dishes comma-separated (e.g. "Adobo, Kare-kare, Lechon, Halo-halo")
+- "clickbait_hook": One catchy line for social (e.g. "Best sinigang in Manchester! 🍲")
+- "why_filipinos_love_it": One sentence why OFWs/Filipinos should visit.
+
+Be concise. English only."""
+        try:
+            response = self.text_model.generate_content(prompt)
+            text = response.text
+            start_idx = text.find('{')
+            end_idx = text.rfind('}')
+            if start_idx != -1 and end_idx != -1:
+                json_str = text[start_idx:end_idx + 1].replace('```json', '').replace('```', '').strip()
+                return json.loads(json_str)
+        except Exception as e:
+            print(f"   ⚠️ Enrich metadata failed: {e}")
+        return None
+
     def rewrite_cnn_style(self, original_title, original_content, country, category, original_url=""):
         """
         Rewrites the article in CNN-style professional journalism.
