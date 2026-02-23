@@ -13,6 +13,7 @@ import RestaurantsTabs, { RestaurantTab } from "@/components/features/admin/rest
 import RestaurantEditorModal from "@/components/features/admin/restaurant/RestaurantEditorModal";
 import RestaurantFilters from "@/components/features/admin/restaurant/RestaurantFilters";
 import usePagination from "@/hooks/usePagination";
+import Pagination from "@/components/features/admin/shared/Pagination";
 
 // Reuse generic components if available, otherwise we use standard ones
 // Note: Pagination should ideally be reused. For now, we'll keep it simple or import if available.
@@ -70,7 +71,7 @@ export default function RestaurantPage() {
                 country: filters.country === 'All Countries' ? undefined : filters.country,
                 search: searchQuery || undefined,
                 page: pagination.currentPage,
-                per_page: 10
+                per_page: 5
             } as any;
 
             const response = await getAdminRestaurants(apiFilters);
@@ -202,7 +203,7 @@ export default function RestaurantPage() {
                             ))}
                         </div>
                     ) : filteredRestaurants.length > 0 ? (
-                        filteredRestaurants.map((restaurant) => (
+                        filteredRestaurants.slice(0, 5).map((restaurant) => (
                             <RestaurantListItem
                                 key={restaurant.id}
                                 restaurant={restaurant}
@@ -215,6 +216,15 @@ export default function RestaurantPage() {
                         </div>
                     )}
                 </div>
+            </div>
+
+            {/* Pagination Component */}
+            <div className="mt-8">
+                <Pagination
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    onPageChange={pagination.handlePageChange}
+                />
             </div>
 
             {/* Create Modal */}
