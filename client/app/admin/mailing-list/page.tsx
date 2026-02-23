@@ -278,6 +278,7 @@ export default function ManualNewsletterPage() {
     ];
 
     return (
+        <div className="p-8 bg-[#f9fafb] min-h-screen">
             <AdminPageHeader
                 title="Manual Mailing List Broadcast"
                 description="Targeted article distribution to your subscriber base"
@@ -352,11 +353,16 @@ export default function ManualNewsletterPage() {
                 {/* Step 1: Articles */}
                 {currentStep === 'articles' && (
                     <>
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                    <Input
-                                        placeholder="Search published articles..."
-                                        value={articleSearch}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setArticleSearch(e.target.value)}
+                        <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row gap-4">
+                            <div className="flex-1 relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <Input
+                                    placeholder="Search published articles..."
+                                    value={articleSearch}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setArticleSearch(e.target.value)}
+                                />
+                            </div>
+                        </div>
                         <div className="flex-1 overflow-y-auto max-h-[600px] p-6">
                             {isLoadingArticles ? (
                                 <div className="h-64 flex items-center justify-center flex-col gap-3">
@@ -411,34 +417,49 @@ export default function ManualNewsletterPage() {
                 {/* Step 2: Recipients */}
                 {currentStep === 'recipients' && (
                     <>
-                                    <button
-                                        onClick={() => {
-                                            setRecipientTab('individual');
-                                            setSubscriberSearch('');
-                                        }}
-                                        className={cn(
-                                            recipientTab === 'individual' ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"
-                                        )}
-                                    >
-                                        INDIVIDUALS
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setRecipientTab('groups');
-                                            setSubscriberSearch('');
-                                        }}
-                                        className={cn(
-                                            recipientTab === 'groups' ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"
-                                        )}
-                                    >
-                                        GROUPS
-                                    </button>
-                                </div>
+                        <div className="p-6 border-b border-gray-100 space-y-4">
+                            <div className="bg-gray-100/50 p-1 rounded-xl flex items-center w-full md:w-fit">
+                                <button
+                                    onClick={() => {
+                                        setRecipientTab('individual');
+                                        setSubscriberSearch('');
+                                    }}
+                                    className={cn(
+                                        "flex-1 md:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all",
+                                        recipientTab === 'individual' ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"
+                                    )}
+                                >
+                                    INDIVIDUALS
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setRecipientTab('groups');
+                                        setSubscriberSearch('');
+                                    }}
+                                    className={cn(
+                                        "flex-1 md:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all",
+                                        recipientTab === 'groups' ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"
+                                    )}
+                                >
+                                    GROUPS
+                                </button>
+                            </div>
+
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <div className="flex-1 relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                     <Input
                                         placeholder={recipientTab === 'individual' ? "Search by email..." : "Search groups..."}
                                         value={subscriberSearch}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSubscriberSearch(e.target.value)}
+                                    />
+                                </div>
+                                {recipientTab === 'individual' && (
+                                    <div className="flex gap-2">
+                                        <select
+                                            value={subscriberCategory}
+                                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSubscriberCategory(e.target.value)}
+                                            className="h-10 px-3 border border-gray-200 rounded-lg text-sm"
                                         >
                                             <option value="">Matches Category</option>
                                             {availableFilters.categories.map((c: string) => <option key={c} value={c}>{c}</option>)}
@@ -446,10 +467,15 @@ export default function ManualNewsletterPage() {
                                         <select
                                             value={subscriberCountry}
                                             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSubscriberCountry(e.target.value)}
+                                            className="h-10 px-3 border border-gray-200 rounded-lg text-sm"
                                         >
                                             <option value="">Matches Country</option>
                                             {availableFilters.countries.map((c: string) => <option key={c} value={c}>{c}</option>)}
                                         </select>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                         <div className="flex-1 overflow-y-auto max-h-[600px] p-6">
                             {recipientTab === 'individual' ? (
                                 <>
@@ -459,6 +485,31 @@ export default function ManualNewsletterPage() {
                                             <span className="text-sm font-medium text-gray-400">Loading subscribers...</span>
                                         </div>
                                     ) : filteredSubscribers.length > 0 ? (
+                                        <div className="space-y-2">
+                                            {filteredSubscribers.map((subscriber) => (
+                                                <div
+                                                    key={subscriber.sub_Id}
+                                                    onClick={() => handleToggleSubscriber(subscriber.sub_Id)}
+                                                    className={cn(
+                                                        "flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer hover:shadow-sm",
+                                                        selectedSubscriberIds.includes(subscriber.sub_Id) ? "border-blue-500 bg-blue-50/30" : "border-gray-100 hover:border-blue-200"
+                                                    )}
+                                                >
+                                                    <div className="flex items-center gap-4">
+                                                        <Checkbox
+                                                            checked={selectedSubscriberIds.includes(subscriber.sub_Id)}
+                                                            onCheckedChange={() => handleToggleSubscriber(subscriber.sub_Id)}
+                                                        />
+                                                        <div>
+                                                            <p className="text-sm font-bold text-[#1e293b]">{subscriber.email}</p>
+                                                            <div className="flex gap-2 mt-1">
+                                                                <Badge variant="outline" className="text-[9px] uppercase font-bold">{subscriber.category}</Badge>
+                                                                <Badge variant="outline" className="text-[9px] uppercase font-bold">{subscriber.country}</Badge>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
                                     ) : (
                                         <div className="h-64 flex flex-col items-center justify-center text-gray-400">
@@ -550,12 +601,18 @@ export default function ManualNewsletterPage() {
                             </div>
                         </div>
 
+                        <div className="flex items-center gap-4 w-full">
+                            <Button
+                                variant="outline"
+                                className="flex-1 h-12 font-black tracking-widest text-xs"
+                                onClick={() => setCurrentStep('recipients')}
                             >
                                 BACK
                             </Button>
                             <Button
+                                className="flex-1 h-12 font-black tracking-widest text-xs bg-blue-600 hover:bg-blue-700 text-white gap-2 shadow-lg shadow-blue-100"
                                 onClick={handleSend}
-                                disabled={isSending}
+                                disabled={isSending || selectedArticles.length === 0}
                             >
                                 {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                                 {isSending ? "DISPATCHING..." : "DISPATCH NOW"}
@@ -577,53 +634,55 @@ export default function ManualNewsletterPage() {
                         <h2 className="text-lg font-bold text-[#1e293b]">Broadcast History</h2>
                         <p className="text-sm text-gray-500">Recently dispatched mailing list campaigns.</p>
                     </div>
-                </div>
-                        <thead>
-                            <tr className="bg-white border-b border-gray-100">
-                                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Date Sent</th>
-                                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Articles</th>
-                                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Audience</th>
-                                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {isLoadingStats ? (
-                                Array(3).fill(0).map((_, i: number) => (
-                                    <tr key={i}>
-                                        <td colSpan={4} className="px-6 py-4"><Skeleton className="h-6 w-full" /></td>
-                                    </tr>
-                                ))
-                            ) : mailingStats?.recent_broadcasts && mailingStats.recent_broadcasts.length > 0 ? (
-                                mailingStats.recent_broadcasts.map((log: any) => (
-                                    <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
-                                        <td className="px-6 py-4 text-sm font-bold text-[#1e293b]">
-                                            {new Date(log.sent_at).toLocaleDateString()}
-                                            <span className="block text-[10px] text-gray-400 font-medium">
-                                                {new Date(log.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm font-medium text-gray-600">
-                                            {log.article_count} {log.article_count === 1 ? 'Article' : 'Articles'}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm font-black text-blue-600">
-                                            {log.recipient_count.toLocaleString()}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <Badge className="bg-green-50 text-green-600 border-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter">
-                                                {log.status}
-                                            </Badge>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={4} className="px-6 py-12 text-center text-gray-400 font-medium italic">
-                                        No broadcast history found.
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-white border-b border-gray-100">
+                                    <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Date Sent</th>
+                                    <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Articles</th>
+                                    <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Audience</th>
+                                    <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Status</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {isLoadingStats ? (
+                                    Array(3).fill(0).map((_, i: number) => (
+                                        <tr key={i}>
+                                            <td colSpan={4} className="px-6 py-4"><Skeleton className="h-6 w-full" /></td>
+                                        </tr>
+                                    ))
+                                ) : mailingStats?.recent_broadcasts && mailingStats.recent_broadcasts.length > 0 ? (
+                                    mailingStats.recent_broadcasts.map((log: any) => (
+                                        <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
+                                            <td className="px-6 py-4 text-sm font-bold text-[#1e293b]">
+                                                {new Date(log.sent_at).toLocaleDateString()}
+                                                <span className="block text-[10px] text-gray-400 font-medium">
+                                                    {new Date(log.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm font-medium text-gray-600">
+                                                {log.article_count} {log.article_count === 1 ? 'Article' : 'Articles'}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm font-black text-blue-600">
+                                                {log.recipient_count.toLocaleString()}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <Badge className="bg-green-50 text-green-600 border-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter">
+                                                    {log.status}
+                                                </Badge>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={4} className="px-6 py-12 text-center text-gray-400 font-medium italic">
+                                            No broadcast history found.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
