@@ -22,6 +22,7 @@ from restaurant_scraper import RestaurantScraper
 from ai_service import AIProcessor, clean_markdown
 from storage import StorageHandler
 from database import redis_client, PREFIX
+from places_client import fetch_locations, fetch_restaurants_for_location
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -48,16 +49,37 @@ job_status: Dict = {
     "total_skipped": 0
 }
 
+restaurant_job_status: Dict = {
+    "last_run": None,
+    "next_run": None,
+    "is_running": False,
+    "last_results": [],
+    "total_runs": 0,
+    "total_success": 0,
+    "total_errors": 0
+}
+
 
 def get_job_status() -> Dict:
-    """Get current job status."""
+    """Get current news job status."""
     return job_status
 
 
+def get_restaurant_job_status() -> Dict:
+    """Get current restaurant job status."""
+    return restaurant_job_status
+
+
 def update_next_run(next_run_time: str):
-    """Update next scheduled run time."""
+    """Update next scheduled run time for news."""
     job_status["next_run"] = next_run_time
-    print(f"⏰ Next scheduled run: {next_run_time}")
+    print(f"⏰ Next News run: {next_run_time}")
+
+
+def update_restaurant_next_run(next_run_time: str):
+    """Update next scheduled run time for restaurants."""
+    restaurant_job_status["next_run"] = next_run_time
+    print(f"🍴 Next Restaurant run: {next_run_time}")
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -388,6 +410,81 @@ def process_single_country(country: str, category: str = None) -> Dict:
     return result
 
 
+# Redis set of place_ids already stored (Places API dedup)
+RESTAURANT_PLACE_IDS_KEY = f"{PREFIX}restaurant_place_ids"
+
+
+def process_single_restaurant_location(loc: Dict) -> Dict:
+    """
+    Process one (country, city) using Google Places API.
+    Fetches restaurants for the location, dedupes by place_id, saves to Redis.
+    """
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+    start_time = time.time()
+    result = {
+        "country_id": loc.get("country_id"),
+        "country_name": loc.get("country_name"),
+        "city_id": loc.get("city_id"),
+        "city_name": loc.get("city_name"),
+        "status": "pending",
+        "saved": 0,
+        "skipped_duplicate": 0,
+        "error": None,
+        "duration": 0,
+    }
+    if not api_key:
+        result["status"] = "error"
+        result["error"] = "GOOGLE_MAPS_API_KEY not set"
+        result["duration"] = round(time.time() - start_time, 2)
+        return result
+
+    try:
+        if not redis_client:
+            result["status"] = "error"
+            result["error"] = "Redis not connected"
+            result["duration"] = round(time.time() - start_time, 2)
+            return result
+        city_name = loc.get("city_name", "")
+        country_name = loc.get("country_name", "")
+        print(f"🍴 [{country_name}] [{city_name}] Places search...")
+        restaurants = fetch_restaurants_for_location(loc, api_key)
+        if not restaurants:
+            result["status"] = "no_restaurants"
+            result["duration"] = round(time.time() - start_time, 2)
+            return result
+
+        saved = 0
+        skipped = 0
+        for rest in restaurants:
+            place_id = rest.get("place_id")
+            if not place_id:
+                continue
+            if redis_client and redis_client.sismember(RESTAURANT_PLACE_IDS_KEY, place_id):
+                skipped += 1
+                continue
+            rid = rest["id"]
+            redis_client.set(f"{PREFIX}restaurant:{rid}", json.dumps(rest))
+            redis_client.sadd(f"{PREFIX}all_restaurants", rid)
+            country_slug = (rest.get("country") or country_name or "").lower().replace(" ", "_")
+            redis_client.sadd(f"{PREFIX}country:{country_slug}:restaurants", rid)
+            redis_client.sadd(RESTAURANT_PLACE_IDS_KEY, place_id)
+            saved += 1
+            print(f"   ✅ Saved: {rest.get('name', '')}")
+
+        result["status"] = "success"
+        result["saved"] = saved
+        result["skipped_duplicate"] = skipped
+        if saved:
+            print(f"✅ [{country_name}] [{city_name}] Saved {saved} restaurants ({skipped} duplicates skipped)")
+    except Exception as e:
+        result["status"] = "error"
+        result["error"] = str(e)
+        print(f"❌ [{loc.get('city_name')}] Restaurant Places Error: {e}")
+
+    result["duration"] = round(time.time() - start_time, 2)
+    return result
+
+
 def process_single_restaurant_country(country: str) -> Dict:
     """
     Process one country for restaurants:
@@ -591,26 +688,59 @@ async def run_hourly_job():
 
 
 async def run_restaurant_job():
-    """Trigger job specifically for restaurants."""
-    # Similar logic to run_hourly_job but for restaurants
+    """
+    Restaurant job: uses (country, city) from DB API + Google Places when available,
+    else falls back to news-based scraper per country.
+    """
+    global restaurant_job_status
+
+    if restaurant_job_status["is_running"]:
+        print("⚠️ Previous restaurant job still running, skipping...")
+        return
+
+    restaurant_job_status["is_running"] = True
+    restaurant_job_status["last_run"] = datetime.now().isoformat()
+
     print("\n" + "=" * 70)
     print(f"🍴 RESTAURANT JOB STARTED")
+    print(f"📅 Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 70)
-    
-    all_countries = list(COUNTRIES.keys())
-    # Test with a few countries first or all
-    countries = all_countries 
-    
-    loop = asyncio.get_event_loop()
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = [
-            loop.run_in_executor(executor, process_single_restaurant_country, country)
-            for country in countries
-        ]
-        results = await asyncio.gather(*futures)
-        
-    success_count = sum(1 for r in results if r["status"] == "success")
-    print(f"\n🍴 Restaurant Summary: {success_count} restaurants found.")
+
+    locations = fetch_locations()
+    if locations:
+        print(f"📍 Using Places API for {len(locations)} locations (country+city from DB)")
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            futures = [
+                loop.run_in_executor(executor, process_single_restaurant_location, loc)
+                for loc in locations
+            ]
+            results = await asyncio.gather(*futures)
+        success_count = sum(1 for r in results if r["status"] == "success")
+        total_saved = sum(r.get("saved", 0) for r in results)
+        error_count = sum(1 for r in results if r["status"] == "error")
+        print(f"🍴 Restaurant Summary: {total_saved} new restaurants saved ({success_count} locations with results).")
+    else:
+        print("📍 No DB locations; falling back to news-based scraper by country.")
+        all_countries = list(COUNTRIES.keys())
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            futures = [
+                loop.run_in_executor(executor, process_single_restaurant_country, country)
+                for country in all_countries
+            ]
+            results = await asyncio.gather(*futures)
+        success_count = sum(1 for r in results if r["status"] == "success")
+        error_count = sum(1 for r in results if r["status"] == "error")
+        print(f"🍴 Restaurant Summary: {success_count} restaurants found.")
+
+    restaurant_job_status["total_runs"] += 1
+    restaurant_job_status["total_success"] += success_count
+    restaurant_job_status["total_errors"] += error_count
+    restaurant_job_status["last_results"] = results
+    restaurant_job_status["is_running"] = False
+
+    print("=" * 70 + "\n")
     return results
 
 
