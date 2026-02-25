@@ -269,7 +269,7 @@ export default function BlockDrawer({
                                 Target Platforms
                             </h3>
                             <div className="grid grid-cols-1 gap-2">
-                                {PLATFORMS.map(platform => (
+                                {displayedPlatforms.map(platform => (
                                     <label key={platform} className={`flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-transparent transition-all group ${isEditor && platform !== "Main News Portal" ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-white hover:border-gray-100'}`}>
                                         <span className={`text-[12px] font-bold ${isEditor && platform !== "Main News Portal" ? 'text-gray-400' : 'text-gray-600 group-hover:text-gray-900'}`}>{platform}</span>
                                         <input
