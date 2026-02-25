@@ -17,6 +17,8 @@ export * from "./public/services/ads/getAdsByCampaign";
 export * from "./admin/service/auth/login";
 export * from "./admin/service/auth/user";
 export * from "./admin/service/auth/logout";
+export * from "./admin/service/auth/updateProfile";
+export * from "./admin/service/auth/changePassword";
 export * from "./admin/store";
 
 export * from "./admin/service/article/getAdminArticles";

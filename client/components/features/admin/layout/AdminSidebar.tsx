@@ -80,9 +80,9 @@ export default function AdminSidebar() {
     if (user?.roles?.includes('ceo')) {
       return item.title === "Mailing List";
     }
-    // If user is Editor, only show Articles
+    // If user is Editor, only show Articles and Settings
     if (user?.roles?.includes('editor')) {
-      return item.title === "Articles";
+      return item.title === "Articles" || item.title === "Settings";
     }
     // Default: show all for admin or other roles
     return true;
