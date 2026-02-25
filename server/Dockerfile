@@ -54,8 +54,5 @@ RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 # Configure FrankenPHP
 ENV FRANKENPHP_CONFIG="worker ./public/index.php"
 
-# Setup cron job for Laravel scheduler
-RUN echo "* * * * * cd /app && php artisan schedule:run >> /dev/null 2>&1" > /etc/crontabs/root
-
-# Start Laravel queue worker in the background, crond for scheduler, and then run FrankenPHP
-CMD ["sh", "-c", "php artisan migrate --force ; crond -l 8 ; php artisan queue:work & frankenphp php-server --listen :${PORT:-8080} --root ./public"]
+# Start Laravel scheduler and queue worker in the background and then run FrankenPHP
+CMD ["sh", "-c", "php artisan migrate --force ; php artisan schedule:work & php artisan queue:work & frankenphp php-server --listen :${PORT:-8080} --root ./public"]

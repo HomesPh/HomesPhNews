@@ -80,6 +80,10 @@ export default function AdminSidebar() {
     if (user?.roles?.includes('ceo')) {
       return item.title === "Mailing List";
     }
+    // If user is Editor, only show Articles
+    if (user?.roles?.includes('editor')) {
+      return item.title === "Articles";
+    }
     // Default: show all for admin or other roles
     return true;
   });

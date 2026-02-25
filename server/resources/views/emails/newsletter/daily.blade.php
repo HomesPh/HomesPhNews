@@ -202,7 +202,7 @@
         <div class="header">
             <div class="logo-wrapper">
                 <img src="{{ $logo }}" alt="" class="logo-img">
-                <span class="logo-text">HomesTV</span>
+                <span class="logo-text">HomesPH News</span>
             </div>
         </div>
         <div class="sub-header">Daily News Digest</div>
