@@ -90,14 +90,16 @@ class UserController extends Controller
 
             \Log::info("Sending welcome email to: " . $user->email);
 
+            $subjectRole = ucfirst($roleName);
+
             Mail::send('emails.welcome_blogger', [
                 'firstName' => $user->first_name,
                 'email' => $user->email,
                 'password' => $password,
                 'loginUrl' => $loginUrl
-            ], function ($message) use ($user) {
+            ], function ($message) use ($user, $subjectRole) {
                 $message->to($user->email)
-                        ->subject('Welcome to HomesTV - Your Blogger Account')
+                        ->subject("Welcome to HomesTV - Your {$subjectRole} Account")
                         ->from(config('mail.from.address'), config('mail.from.name'));
             });
             
