@@ -28,6 +28,7 @@ interface ArticleEditorFormProps {
     onSave?: (currentData?: any) => void;
     onPublish?: (currentData?: any) => void;
     onClose?: () => void;
+    mode?: 'create' | 'edit';
 }
 
 export default function ArticleEditorForm({
@@ -40,10 +41,12 @@ export default function ArticleEditorForm({
     onTemplateChange,
     onSave,
     onPublish,
-    onClose
+    onClose,
+    mode = 'create'
 }: ArticleEditorFormProps) {
     const editor = useBlockEditor();
     const { user } = useAuth();
+    const isEditor = user?.roles?.includes('editor') && !user?.roles?.includes('admin') && !user?.roles?.includes('super-admin');
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Initialize Editor with Admin Data
@@ -251,6 +254,13 @@ export default function ArticleEditorForm({
                     onPublish={handleInternalPublish}
                     onPreview={() => setIsPreviewOpen(true)}
                     onClose={onClose} // Pass onClose if integrated
+                    showPublish={true}
+                    saveLabel={mode === 'edit' ? "Save Changes" : "Save as Draft"}
+                    title={mode === 'edit' ? "Edit Article" : "Create New Blog"}
+                    subtitle={mode === 'edit'
+                        ? `${data.status === 'published' ? 'Published' : 'Draft'} - Last saved just now`
+                        : "Draft - Last saved just now"
+                    }
                 />
 
                 <EditorToolbar
@@ -280,6 +290,7 @@ export default function ArticleEditorForm({
                                 availableCategories={availableCategories}
                                 availableCountries={availableCountries}
                                 availableSites={availableSites}
+                                isEditor={isEditor}
                             />
                         </div>
                     </div>

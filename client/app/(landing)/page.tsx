@@ -2,7 +2,7 @@ import { Suspense } from "react";
 export const dynamic = 'force-dynamic';
 
 import DashboardFeed from "@/components/features/dashboard/DashboardFeed";
-import { getArticlesFeed } from "@/lib/api-v2";
+import { getArticlesFeed, getRestaurants } from "@/lib/api-v2";
 import { DashboardSkeleton } from "@/components/features/dashboard/DashboardSkeletons";
 
 type Props = {
@@ -22,12 +22,18 @@ export default async function Dashboard({ searchParams }: Props) {
     category: (category !== "All" && category !== "Articles") ? category : undefined,
   });
 
+  const restaurants = getRestaurants({
+    country: country !== "Global" ? country : undefined,
+    limit: 10,
+  });
+
   return (
     <Suspense fallback={<DashboardSkeleton />}>
       <DashboardFeed
         country={country}
         category={category}
         feed={response}
+        restaurants={restaurants}
       />
     </Suspense>
   );

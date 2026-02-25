@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { cn, decodeHtml } from "@/lib/utils";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from "@/lib/api-v2";
 import { Calendar, Eye, Edit, XCircle, ChevronLeft, Loader2, ExternalLink } from 'lucide-react';
 
 import { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
@@ -47,6 +48,8 @@ function ArticleDetailsContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const from = searchParams.get('from') || '/admin/articles';
+    const { user } = useAuth();
+    const isEditor = user?.roles?.includes('editor') && !user?.roles?.includes('admin') && !user?.roles?.includes('super-admin');
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
@@ -83,6 +86,13 @@ function ArticleDetailsContent() {
                 const responseData = response.data as any;
                 const articleData = responseData.data ?? responseData;
                 console.log('Article API response:', responseData);
+
+                // If editor tries to access a deleted article, redirect them
+                if (isEditor && (articleData.status === 'deleted' || articleData.is_deleted)) {
+                    router.push('/admin/articles');
+                    return;
+                }
+
                 setArticle(articleData as ArticleResource);
 
                 // If filters are present in this response, use them
@@ -117,7 +127,9 @@ function ArticleDetailsContent() {
     }, [availableFilters.categories.length]);
 
     useEffect(() => {
-        getSiteNames().then(res => setAvailableSites(res.data as unknown as string[])).catch(console.error);
+        getSiteNames().then(res => {
+            setAvailableSites(res.data as unknown as string[]);
+        }).catch(console.error);
     }, []);
 
     useEffect(() => {
@@ -125,13 +137,17 @@ function ArticleDetailsContent() {
             const existingSites = Array.isArray(article.published_sites)
                 ? article.published_sites
                 : (article.published_sites ? [article.published_sites] : []);
-            if (existingSites.length > 0) {
+
+            if (isEditor) {
+                // For editors, always ensure Main News Portal is selected and ignore others
+                setPublishToSites(["Main News Portal"]);
+            } else if (existingSites.length > 0) {
                 setPublishToSites(existingSites);
             } else if (availableSites.length > 0) {
                 setPublishToSites(availableSites);
             }
         }
-    }, [article, availableSites.length]);
+    }, [article, isEditor, availableSites.length]);
 
     const handlePublishClick = () => {
         if (!article || !params.id) return;
@@ -524,9 +540,11 @@ function ArticleDetailsContent() {
                                             type="checkbox"
                                             checked={publishToSites.includes(site)}
                                             onChange={() => toggleSite(site)}
-                                            className="w-4 h-4 rounded border-[#d1d5db] text-[#C10007] focus:ring-[#C10007] focus:ring-offset-0 cursor-pointer"
+                                            disabled={isEditor && site !== "Main News Portal"}
+                                            className="w-4 h-4 rounded border-[#d1d5db] text-[#C10007] focus:ring-[#C10007] focus:ring-offset-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                         />
-                                        <span className="text-[14px] text-[#374151] group-hover:text-[#C10007] transition-colors tracking-[-0.5px]">{site}</span>
+                                        <span className={`text-[14px] ${isEditor && site !== "Main News Portal" ? 'text-gray-400' : 'text-[#374151] group-hover:text-[#C10007]'} transition-colors tracking-[-0.5px]`}>{site}</span>
+
                                     </label>
                                 ))}
                             </div>
@@ -585,44 +603,46 @@ function ArticleDetailsContent() {
                                         Send to Subscribers
                                     </button>
                                 )}
-                                {article.is_deleted || article.status === 'deleted' ? (
-                                    <div className="space-y-3">
-                                        <button
-                                            onClick={handleRestoreClick}
-                                            disabled={isRestoring}
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-emerald-200 bg-emerald-50 rounded-[8px] text-[14px] font-medium text-emerald-700 hover:bg-emerald-100 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            {isRestoring ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
-                                            {isRestoring ? 'Restoring...' : 'Restore Article'}
-                                        </button>
-                                        <button
-                                            onClick={handleHardDeleteClick}
-                                            disabled={isHardDeleting}
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-red-200 bg-red-50 rounded-[8px] text-[14px] font-medium text-red-700 hover:bg-red-100 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            {isHardDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
-                                            {isHardDeleting ? 'Deleting...' : 'Permanent Delete'}
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        <button
-                                            onClick={handleDeleteClick}
-                                            disabled={isDeleting}
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#ef4444] hover:bg-red-50 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                                            {isDeleting ? 'Deleting...' : 'Delete Article'}
-                                        </button>
-                                        <button
-                                            onClick={handleHardDeleteClick}
-                                            disabled={isHardDeleting}
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-red-100 rounded-[8px] text-[14px] font-medium text-red-600 hover:bg-red-50 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            {isHardDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
-                                            {isHardDeleting ? 'Deleting...' : 'Permanent Delete'}
-                                        </button>
-                                    </div>
+                                {!isEditor && (
+                                    article.is_deleted || article.status === 'deleted' ? (
+                                        <div className="space-y-3">
+                                            <button
+                                                onClick={handleRestoreClick}
+                                                disabled={isRestoring}
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-emerald-200 bg-emerald-50 rounded-[8px] text-[14px] font-medium text-emerald-700 hover:bg-emerald-100 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {isRestoring ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                                                {isRestoring ? 'Restoring...' : 'Restore Article'}
+                                            </button>
+                                            <button
+                                                onClick={handleHardDeleteClick}
+                                                disabled={isHardDeleting}
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-red-200 bg-red-50 rounded-[8px] text-[14px] font-medium text-red-700 hover:bg-red-100 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {isHardDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
+                                                {isHardDeleting ? 'Deleting...' : 'Permanent Delete'}
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <button
+                                                onClick={handleDeleteClick}
+                                                disabled={isDeleting}
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#ef4444] hover:bg-red-50 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                                {isDeleting ? 'Deleting...' : 'Delete Article'}
+                                            </button>
+                                            <button
+                                                onClick={handleHardDeleteClick}
+                                                disabled={isHardDeleting}
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-red-100 rounded-[8px] text-[14px] font-medium text-red-600 hover:bg-red-50 transition-all active:scale-95 tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {isHardDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
+                                                {isHardDeleting ? 'Deleting...' : 'Permanent Delete'}
+                                            </button>
+                                        </div>
+                                    )
                                 )}
                             </div>
                         </div>

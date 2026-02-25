@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
     LayoutGrid, FileText, Image, Grid, Columns, Maximize,
-    Plus, Minus, X, Info, AlignCenter, AlignLeft, AlignRight, Layout, User, Type
+    Plus, Minus, X, Info, AlignCenter, AlignLeft, AlignRight, Layout, User, Type,
+    ChevronDown, ChevronUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BlogDetails, BlockType } from "@/hooks/useBlockEditor";
@@ -17,6 +18,7 @@ interface BlockDrawerProps {
     availableCategories?: string[];
     availableCountries?: string[];
     availableSites?: string[];
+    isEditor?: boolean;
 }
 
 export default function BlockDrawer({
@@ -25,11 +27,13 @@ export default function BlockDrawer({
     onAddBlock,
     availableCategories: propsCategories,
     availableCountries: propsCountries,
-    availableSites
+    availableSites,
+    isEditor
 }: BlockDrawerProps) {
     const [activeTab, setActiveTab] = useState<'blocks' | 'details'>('blocks');
     const [internalCategories, setInternalCategories] = useState<string[]>([]);
     const [internalCountries, setInternalCountries] = useState<string[]>([]);
+    const [showAllPlatforms, setShowAllPlatforms] = useState(false);
 
     useEffect(() => {
         // Fetch categories if not provided as props
@@ -94,9 +98,20 @@ export default function BlockDrawer({
         }
     ];
 
-    const PLATFORMS = (availableSites && availableSites.length > 0)
-        ? availableSites
-        : ["Apply Na", "Bayanihan", "Faceofmind", "FilipinoHomes", "globalreality", "Homes", "Main News Portal", "PicklePlay"];
+    const sortedPlatforms = useMemo(() => {
+        const list = availableSites !== undefined
+            ? availableSites
+            : ["Apply Na", "Bayanihan", "Faceofmind", "FilipinoHomes", "globalreality", "Homes", "Main News Portal", "PicklePlay"];
+        return [...list].sort((a, b) => a.localeCompare(b));
+    }, [availableSites]);
+
+    const displayedPlatforms = showAllPlatforms ? sortedPlatforms : sortedPlatforms.slice(0, 5);
+
+    useEffect(() => {
+        if (isEditor && !details.platforms.includes("Main News Portal")) {
+            onUpdateDetails({ platforms: ["Main News Portal"] });
+        }
+    }, [isEditor, details.platforms, onUpdateDetails]);
 
     return (
         <aside className="w-[360px] bg-white border-r border-gray-100 flex flex-col shrink-0 z-30 shadow-[4px_0_20px_rgba(0,0,0,0.02)] h-full">
@@ -255,10 +270,11 @@ export default function BlockDrawer({
                             </h3>
                             <div className="grid grid-cols-1 gap-2">
                                 {PLATFORMS.map(platform => (
-                                    <label key={platform} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-white border border-transparent hover:border-gray-100 transition-all group">
-                                        <span className="text-[12px] font-bold text-gray-600 group-hover:text-gray-900">{platform}</span>
+                                    <label key={platform} className={`flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-transparent transition-all group ${isEditor && platform !== "Main News Portal" ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-white hover:border-gray-100'}`}>
+                                        <span className={`text-[12px] font-bold ${isEditor && platform !== "Main News Portal" ? 'text-gray-400' : 'text-gray-600 group-hover:text-gray-900'}`}>{platform}</span>
                                         <input
                                             type="checkbox"
+                                            disabled={isEditor && platform !== "Main News Portal"}
                                             checked={details.platforms.includes(platform)}
                                             onChange={(e) => {
                                                 const newPlatforms = e.target.checked
@@ -266,11 +282,28 @@ export default function BlockDrawer({
                                                     : details.platforms.filter(p => p !== platform);
                                                 onUpdateDetails({ platforms: newPlatforms });
                                             }}
-                                            className="w-4 h-4 rounded border-gray-300 text-[#C10007] focus:ring-[#C10007]"
+                                            className="w-4 h-4 rounded border-gray-300 text-[#C10007] focus:ring-[#C10007] disabled:opacity-50"
                                         />
                                     </label>
                                 ))}
                             </div>
+
+                            {sortedPlatforms.length > 5 && (
+                                <button
+                                    onClick={() => setShowAllPlatforms(!showAllPlatforms)}
+                                    className="w-full mt-3 py-2 flex items-center justify-center gap-2 text-[11px] font-black text-[#C10007] bg-[#C10007]/5 rounded-xl hover:bg-[#C10007]/10 transition-all uppercase tracking-widest"
+                                >
+                                    {showAllPlatforms ? (
+                                        <>
+                                            Show Less <ChevronUp className="w-3.5 h-3.5" />
+                                        </>
+                                    ) : (
+                                        <>
+                                            Show All ({sortedPlatforms.length}) <ChevronDown className="w-3.5 h-3.5" />
+                                        </>
+                                    )}
+                                </button>
+                            )}
                         </section>
                     </div>
                 )}
