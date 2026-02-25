@@ -80,7 +80,6 @@ export default function AdUnitForm({
         type: values.type,
         page_url: values.page_url || null,
         size: values.size,
-        campaigns: null // Handled separately
       };
       await onSave(payload);
     } catch (error) {

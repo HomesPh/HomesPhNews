@@ -120,7 +120,10 @@ Route::prefix('v1')->group(function () {
     // Ads
     Route::get('/ads', [UserAdController::class, 'index']);
     Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
+
+    // Ad metrics
     Route::post('/ads/metrics', [AdminAdMetricController::class, 'store']);
+    
 
     // Restaurants
     Route::group(['prefix' => 'restaurants', 'as' => 'restaurants.'], function () {
@@ -205,10 +208,10 @@ Route::prefix('v1')->group(function () {
                 Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
                 Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
                 Route::post('articles/{id}/send-newsletter', [AdminArticleController::class, 'sendToSubscribers']);
-
+    
                 // Upload Routes
                 Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
-
+    
                 // Resource Routes (Editor needs site info to publish)
                 Route::get('sites/names', [SiteController::class, 'names']);
             });
@@ -220,6 +223,9 @@ Route::prefix('v1')->group(function () {
                 // Dashboard & Analytics
                 Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
                 Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
+                Route::get('ad-metrics', [AdminAdMetricController::class, 'index']);
+                Route::get('ad-metrics/units/{adUnit}', [AdminAdMetricController::class, 'showByAdUnit']);
+                Route::get('ad-metrics/campaigns/{campaign}', [AdminAdMetricController::class, 'showByCampaign']);
 
                 Route::apiResource('campaigns', AdminCampaignController::class);
                 Route::apiResource('ad-units', AdminAdUnitController::class);

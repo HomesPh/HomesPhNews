@@ -110,6 +110,12 @@ class JobStatus(BaseModel):
     last_results: List[dict]
 
 
+class UnifiedStatus(BaseModel):
+    """Unified status showing both news and restaurant jobs."""
+    news: JobStatus
+    restaurants: JobStatus
+
+
 class HealthResponse(BaseModel):
     """Health check response."""
     status: str
@@ -190,6 +196,15 @@ class DBCountry(BaseModel):
     gl: str
     h1: str
     ceid: str
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+class DBCity(BaseModel):
+    city_id: int
+    country_id: str
+    name: str
     is_active: bool
 
     class Config:

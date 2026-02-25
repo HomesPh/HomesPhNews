@@ -21,7 +21,7 @@ export default async function SearchPage({ searchParams }: Props) {
     const category = (params.category as string) || "all";
 
     const page = Number(params.page) || 1;
-    const perPage = 20;
+    const perPage = 16;
 
     let realArticles: ArticleResource[] = [];
     let totalPages = 1;
@@ -94,7 +94,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
             return !seenIds.has(a.id) && matchesCategory && matchesCountry && matchesSearch;
         });
-        filteredArticles = [...realArticles, ...uniqueMock];
+        filteredArticles = [...realArticles, ...uniqueMock].slice(0, perPage);
     }
 
     // Helper lookup for labels
