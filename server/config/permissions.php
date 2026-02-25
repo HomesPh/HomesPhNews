@@ -43,6 +43,12 @@ return [
                 'delete_articles',
             ],
         ],
+        'editor' => [
+            'permissions' => [
+                'view_articles',
+                'manage_articles',
+            ],
+        ],
         'ceo' => [
             'permissions' => [
                 'view_articles',

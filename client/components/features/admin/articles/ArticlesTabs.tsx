@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/api-v2";
 
 export type ArticleTab = 'all' | 'published' | 'pending' | 'deleted';
 
@@ -15,11 +16,14 @@ interface ArticlesTabsProps {
  * ArticlesTabs component exactly matching Create Sign In Page design
  */
 export default function ArticlesTabs({ activeTab, setActiveTab, counts }: ArticlesTabsProps) {
+    const { user } = useAuth();
+    const isEditor = user?.roles?.includes('editor') && !user?.roles?.includes('admin') && !user?.roles?.includes('super-admin');
+
     const tabs = [
         { id: 'all' as ArticleTab, label: 'All Articles' },
         { id: 'published' as ArticleTab, label: 'Published' },
         { id: 'pending' as ArticleTab, label: 'Pending Review' },
-        { id: 'deleted' as ArticleTab, label: 'Deleted' },
+        ...(isEditor ? [] : [{ id: 'deleted' as ArticleTab, label: 'Deleted' }]),
     ];
 
     return (

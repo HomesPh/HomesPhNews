@@ -50,6 +50,10 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
 
                 if (userRoles.includes('admin') || userRoles.includes('super-admin')) {
                     router.push("/admin");
+                } else if (userRoles.includes('ceo')) {
+                    router.push("/admin/mailing-list");
+                } else if (userRoles.includes('editor')) {
+                    router.push("/admin/articles");
                 } else if (userRoles.includes('blogger')) {
                     router.push("/blogger/dashboard");
                 } else {
@@ -108,6 +112,8 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
                 router.push("/admin");
             } else if (userRoles.includes('ceo')) {
                 router.push("/admin/mailing-list");
+            } else if (userRoles.includes('editor')) {
+                router.push("/admin/articles");
             } else if (userRoles.includes('blogger')) {
                 router.push("/blogger/dashboard");
             } else {
