@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
     LayoutGrid, FileText, Image, Grid, Columns, Maximize,
-    Plus, Minus, X, Info, AlignCenter, AlignLeft, AlignRight, Layout, User, Type
+    Plus, Minus, X, Info, AlignCenter, AlignLeft, AlignRight, Layout, User, Type,
+    ChevronDown, ChevronUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BlogDetails, BlockType } from "@/hooks/useBlockEditor";
@@ -30,6 +31,7 @@ export default function BlockDrawer({
     const [activeTab, setActiveTab] = useState<'blocks' | 'details'>('blocks');
     const [internalCategories, setInternalCategories] = useState<string[]>([]);
     const [internalCountries, setInternalCountries] = useState<string[]>([]);
+    const [showAllPlatforms, setShowAllPlatforms] = useState(false);
 
     useEffect(() => {
         // Fetch categories if not provided as props
@@ -94,9 +96,14 @@ export default function BlockDrawer({
         }
     ];
 
-    const PLATFORMS = (availableSites && availableSites.length > 0)
-        ? availableSites
-        : ["Apply Na", "Bayanihan", "Faceofmind", "FilipinoHomes", "globalreality", "Homes", "Main News Portal", "PicklePlay"];
+    const sortedPlatforms = useMemo(() => {
+        const list = availableSites !== undefined
+            ? availableSites
+            : ["Apply Na", "Bayanihan", "Faceofmind", "FilipinoHomes", "globalreality", "Homes", "Main News Portal", "PicklePlay"];
+        return [...list].sort((a, b) => a.localeCompare(b));
+    }, [availableSites]);
+
+    const displayedPlatforms = showAllPlatforms ? sortedPlatforms : sortedPlatforms.slice(0, 5);
 
     return (
         <aside className="w-[360px] bg-white border-r border-gray-100 flex flex-col shrink-0 z-30 shadow-[4px_0_20px_rgba(0,0,0,0.02)] h-full">
@@ -254,7 +261,7 @@ export default function BlockDrawer({
                                 Target Platforms
                             </h3>
                             <div className="grid grid-cols-1 gap-2">
-                                {PLATFORMS.map(platform => (
+                                {displayedPlatforms.map(platform => (
                                     <label key={platform} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-white border border-transparent hover:border-gray-100 transition-all group">
                                         <span className="text-[12px] font-bold text-gray-600 group-hover:text-gray-900">{platform}</span>
                                         <input
@@ -271,6 +278,23 @@ export default function BlockDrawer({
                                     </label>
                                 ))}
                             </div>
+
+                            {sortedPlatforms.length > 5 && (
+                                <button
+                                    onClick={() => setShowAllPlatforms(!showAllPlatforms)}
+                                    className="w-full mt-3 py-2 flex items-center justify-center gap-2 text-[11px] font-black text-[#C10007] bg-[#C10007]/5 rounded-xl hover:bg-[#C10007]/10 transition-all uppercase tracking-widest"
+                                >
+                                    {showAllPlatforms ? (
+                                        <>
+                                            Show Less <ChevronUp className="w-3.5 h-3.5" />
+                                        </>
+                                    ) : (
+                                        <>
+                                            Show All ({sortedPlatforms.length}) <ChevronDown className="w-3.5 h-3.5" />
+                                        </>
+                                    )}
+                                </button>
+                            )}
                         </section>
                     </div>
                 )}
