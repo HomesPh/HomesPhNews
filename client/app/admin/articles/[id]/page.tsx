@@ -128,10 +128,9 @@ function ArticleDetailsContent() {
 
     useEffect(() => {
         getSiteNames().then(res => {
-            const sites = res.data as unknown as string[];
-            setAvailableSites(isEditor ? sites.filter(s => s === "Main News Portal") : sites);
+            setAvailableSites(res.data as unknown as string[]);
         }).catch(console.error);
-    }, [isEditor]);
+    }, []);
 
     useEffect(() => {
         if (article) {
@@ -541,9 +540,11 @@ function ArticleDetailsContent() {
                                             type="checkbox"
                                             checked={publishToSites.includes(site)}
                                             onChange={() => toggleSite(site)}
-                                            className="w-4 h-4 rounded border-[#d1d5db] text-[#C10007] focus:ring-[#C10007] focus:ring-offset-0 cursor-pointer"
+                                            disabled={isEditor && site !== "Main News Portal"}
+                                            className="w-4 h-4 rounded border-[#d1d5db] text-[#C10007] focus:ring-[#C10007] focus:ring-offset-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                         />
-                                        <span className="text-[14px] text-[#374151] group-hover:text-[#C10007] transition-colors tracking-[-0.5px]">{site}</span>
+                                        <span className={`text-[14px] ${isEditor && site !== "Main News Portal" ? 'text-gray-400' : 'text-[#374151] group-hover:text-[#C10007]'} transition-colors tracking-[-0.5px]`}>{site}</span>
+
                                     </label>
                                 ))}
                             </div>

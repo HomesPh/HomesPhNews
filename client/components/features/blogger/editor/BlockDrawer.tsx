@@ -97,7 +97,7 @@ export default function BlockDrawer({
     ];
 
     const PLATFORMS = (availableSites && availableSites.length > 0)
-        ? (isEditor ? availableSites.filter(s => s === "Main News Portal") : availableSites)
+        ? availableSites
         : ["Apply Na", "Bayanihan", "Faceofmind", "FilipinoHomes", "globalreality", "Homes", "Main News Portal", "PicklePlay"];
 
     useEffect(() => {
@@ -263,10 +263,11 @@ export default function BlockDrawer({
                             </h3>
                             <div className="grid grid-cols-1 gap-2">
                                 {PLATFORMS.map(platform => (
-                                    <label key={platform} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-white border border-transparent hover:border-gray-100 transition-all group">
-                                        <span className="text-[12px] font-bold text-gray-600 group-hover:text-gray-900">{platform}</span>
+                                    <label key={platform} className={`flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-transparent transition-all group ${isEditor && platform !== "Main News Portal" ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-white hover:border-gray-100'}`}>
+                                        <span className={`text-[12px] font-bold ${isEditor && platform !== "Main News Portal" ? 'text-gray-400' : 'text-gray-600 group-hover:text-gray-900'}`}>{platform}</span>
                                         <input
                                             type="checkbox"
+                                            disabled={isEditor && platform !== "Main News Portal"}
                                             checked={details.platforms.includes(platform)}
                                             onChange={(e) => {
                                                 const newPlatforms = e.target.checked
@@ -274,7 +275,7 @@ export default function BlockDrawer({
                                                     : details.platforms.filter(p => p !== platform);
                                                 onUpdateDetails({ platforms: newPlatforms });
                                             }}
-                                            className="w-4 h-4 rounded border-gray-300 text-[#C10007] focus:ring-[#C10007]"
+                                            className="w-4 h-4 rounded border-gray-300 text-[#C10007] focus:ring-[#C10007] disabled:opacity-50"
                                         />
                                     </label>
                                 ))}
