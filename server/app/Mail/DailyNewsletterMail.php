@@ -49,10 +49,10 @@ class DailyNewsletterMail extends Mailable
      */
     public function build()
     {
-        // Use the main homestv.ph domain which hosts the images
-        $logo = 'https://news.homes.ph/images/HomesTV.png';
+        // Use the white logo variant as requested
+        $logo = 'https://news.homes.ph/images/HomesTVwhite.png';
         
-        return $this->subject('Your Daily HomesTV News Digest')
+        return $this->subject('Your Daily HomesPHNews Digest')
                     ->view('emails.newsletter.daily')
                     ->with([
                         'logo' => $logo,
