@@ -276,13 +276,10 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                         </button>
 
                                         <button
-                                            onClick={() => {
-                                                router.push('/subscription/plans');
-                                                onClose();
-                                            }}
-                                            className="group flex items-center gap-[16px] p-[20px] bg-white border border-[#e5e7eb] rounded-[20px] text-left transition-all hover:border-[#c10007] hover:shadow-xl"
+                                            disabled
+                                            className="group flex items-center gap-[16px] p-[20px] bg-gray-50/50 border border-[#e5e7eb] rounded-[20px] text-left opacity-70 cursor-not-allowed"
                                         >
-                                            <div className="w-[50px] h-[50px] bg-gray-100 rounded-[12px] flex items-center justify-center text-gray-400 transition-all">
+                                            <div className="w-[50px] h-[50px] bg-gray-100 rounded-[12px] flex items-center justify-center text-gray-400">
                                                 <Briefcase className="w-7 h-7" />
                                             </div>
                                             <div className="flex-1">

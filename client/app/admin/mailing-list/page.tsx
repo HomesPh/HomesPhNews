@@ -353,37 +353,14 @@ export default function ManualNewsletterPage() {
                 {/* Step 1: Articles */}
                 {currentStep === 'articles' && (
                     <>
-                        <div className="p-6 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4 bg-gray-50/50">
-                            <div>
-                                <h2 className="text-lg font-bold text-[#1e293b]">Choose Articles</h2>
-                                <p className="text-sm text-gray-500">Pick one or more published articles for your digest.</p>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-3">
-                                <div className="relative w-64">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                    <Input
-                                        placeholder="Search published articles..."
-                                        value={articleSearch}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setArticleSearch(e.target.value)}
-                                        className="pl-10 rounded-lg border-gray-200"
-                                    />
-                                </div>
-                                <select
-                                    value={articleCategory}
-                                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setArticleCategory(e.target.value)}
-                                    className="h-10 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">All Categories</option>
-                                    {availableFilters.categories.map((c: string) => <option key={c} value={c}>{c}</option>)}
-                                </select>
-                                <select
-                                    value={articleCountry}
-                                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setArticleCountry(e.target.value)}
-                                    className="h-10 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">All Countries</option>
-                                    {availableFilters.countries.map((c: string) => <option key={c} value={c}>{c}</option>)}
-                                </select>
+                        <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row gap-4">
+                            <div className="flex-1 relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <Input
+                                    placeholder="Search published articles..."
+                                    value={articleSearch}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setArticleSearch(e.target.value)}
+                                />
                             </div>
                         </div>
                         <div className="flex-1 overflow-y-auto max-h-[600px] p-6">
@@ -434,72 +411,55 @@ export default function ManualNewsletterPage() {
                                 </div>
                             )}
                         </div>
-                        <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
-                            <p className="text-sm font-bold text-blue-600 uppercase tracking-tight">
-                                {selectedArticles.length} articles selected
-                            </p>
-                            <Button
-                                onClick={() => setCurrentStep('recipients')}
-                                disabled={selectedArticles.length === 0}
-                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 px-8 rounded-full shadow-lg shadow-blue-100 transition-all active:scale-95"
-                            >
-                                NEXT: SELECT RECIPIENTS <ChevronRight className="ml-2 w-4 h-4" />
-                            </Button>
-                        </div>
                     </>
                 )}
 
                 {/* Step 2: Recipients */}
                 {currentStep === 'recipients' && (
                     <>
-                        <div className="p-6 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4 bg-gray-50/50">
-                            <div>
-                                <h2 className="text-lg font-bold text-[#1e293b]">Choose Recipients</h2>
-                                <p className="text-sm text-gray-500">Pick specific people or keep empty to send based on preferences.</p>
+                        <div className="p-6 border-b border-gray-100 space-y-4">
+                            <div className="bg-gray-100/50 p-1 rounded-xl flex items-center w-full md:w-fit">
+                                <button
+                                    onClick={() => {
+                                        setRecipientTab('individual');
+                                        setSubscriberSearch('');
+                                    }}
+                                    className={cn(
+                                        "flex-1 md:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all",
+                                        recipientTab === 'individual' ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"
+                                    )}
+                                >
+                                    INDIVIDUALS
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setRecipientTab('groups');
+                                        setSubscriberSearch('');
+                                    }}
+                                    className={cn(
+                                        "flex-1 md:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all",
+                                        recipientTab === 'groups' ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"
+                                    )}
+                                >
+                                    GROUPS
+                                </button>
                             </div>
-                            <div className="flex flex-wrap items-center gap-3">
-                                <div className="flex bg-gray-100 p-1 rounded-xl mr-2">
-                                    <button
-                                        onClick={() => {
-                                            setRecipientTab('individual');
-                                            setSubscriberSearch('');
-                                        }}
-                                        className={cn(
-                                            "px-4 py-1.5 rounded-lg text-xs font-bold transition-all",
-                                            recipientTab === 'individual' ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"
-                                        )}
-                                    >
-                                        INDIVIDUALS
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setRecipientTab('groups');
-                                            setSubscriberSearch('');
-                                        }}
-                                        className={cn(
-                                            "px-4 py-1.5 rounded-lg text-xs font-bold transition-all",
-                                            recipientTab === 'groups' ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"
-                                        )}
-                                    >
-                                        GROUPS
-                                    </button>
-                                </div>
 
-                                <div className="relative w-64">
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <div className="flex-1 relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                     <Input
                                         placeholder={recipientTab === 'individual' ? "Search by email..." : "Search groups..."}
                                         value={subscriberSearch}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSubscriberSearch(e.target.value)}
-                                        className="pl-10 rounded-lg border-gray-200"
                                     />
                                 </div>
                                 {recipientTab === 'individual' && (
-                                    <>
+                                    <div className="flex gap-2">
                                         <select
                                             value={subscriberCategory}
                                             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSubscriberCategory(e.target.value)}
-                                            className="h-10 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="h-10 px-3 border border-gray-200 rounded-lg text-sm"
                                         >
                                             <option value="">Matches Category</option>
                                             {availableFilters.categories.map((c: string) => <option key={c} value={c}>{c}</option>)}
@@ -507,12 +467,12 @@ export default function ManualNewsletterPage() {
                                         <select
                                             value={subscriberCountry}
                                             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSubscriberCountry(e.target.value)}
-                                            className="h-10 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="h-10 px-3 border border-gray-200 rounded-lg text-sm"
                                         >
                                             <option value="">Matches Country</option>
                                             {availableFilters.countries.map((c: string) => <option key={c} value={c}>{c}</option>)}
                                         </select>
-                                    </>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -525,27 +485,28 @@ export default function ManualNewsletterPage() {
                                             <span className="text-sm font-medium text-gray-400">Loading subscribers...</span>
                                         </div>
                                     ) : filteredSubscribers.length > 0 ? (
-                                        <div className="border border-gray-100 rounded-xl overflow-hidden divide-y divide-gray-50">
-                                            {filteredSubscribers.map((sub) => (
+                                        <div className="space-y-2">
+                                            {filteredSubscribers.map((subscriber) => (
                                                 <div
-                                                    key={sub.sub_Id}
-                                                    onClick={() => handleToggleSubscriber(sub.sub_Id)}
+                                                    key={subscriber.sub_Id}
+                                                    onClick={() => handleToggleSubscriber(subscriber.sub_Id)}
                                                     className={cn(
-                                                        "flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors cursor-pointer",
-                                                        selectedSubscriberIds.includes(sub.sub_Id) && "bg-blue-50/50"
+                                                        "flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer hover:shadow-sm",
+                                                        selectedSubscriberIds.includes(subscriber.sub_Id) ? "border-blue-500 bg-blue-50/30" : "border-gray-100 hover:border-blue-200"
                                                     )}
                                                 >
-                                                    <Checkbox checked={selectedSubscriberIds.includes(sub.sub_Id)} />
-                                                    <div className="flex-1">
-                                                        <p className="text-sm font-bold text-[#1e293b]">{sub.email}</p>
-                                                        <div className="flex gap-2 mt-0.5">
-                                                            {Array.isArray(sub.category) && sub.category.map((c: string, i: number) => (
-                                                                <span key={i} className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">#{c}</span>
-                                                            ))}
+                                                    <div className="flex items-center gap-4">
+                                                        <Checkbox
+                                                            checked={selectedSubscriberIds.includes(subscriber.sub_Id)}
+                                                            onCheckedChange={() => handleToggleSubscriber(subscriber.sub_Id)}
+                                                        />
+                                                        <div>
+                                                            <p className="text-sm font-bold text-[#1e293b]">{subscriber.email}</p>
+                                                            <div className="flex gap-2 mt-1">
+                                                                <Badge variant="outline" className="text-[9px] uppercase font-bold">{subscriber.category}</Badge>
+                                                                <Badge variant="outline" className="text-[9px] uppercase font-bold">{subscriber.country}</Badge>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded tracking-widest uppercase">
-                                                        {Array.isArray(sub.country) ? sub.country[0] : sub.country}
                                                     </div>
                                                 </div>
                                             ))}
@@ -607,69 +568,6 @@ export default function ManualNewsletterPage() {
                                 </>
                             )}
                         </div>
-                        <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
-                            <Button variant="ghost" onClick={() => setCurrentStep('articles')} className="font-bold text-gray-500">
-                                <ChevronLeft className="mr-2 w-4 h-4" /> BACK
-                            </Button>
-                            <div className="flex items-center gap-4">
-                                {selectedSubscriberIds.length > 0 && (
-                                    <Dialog open={isCreateGroupOpen} onOpenChange={setIsCreateGroupOpen}>
-                                        <DialogTrigger asChild>
-                                            <Button variant="outline" className="h-11 px-6 font-bold border-blue-200 text-blue-600 rounded-full hover:bg-blue-50 transition-all">
-                                                <FolderPlus className="w-4 h-4 mr-2" /> SAVE AS GROUP
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent className="sm:max-w-md">
-                                            <DialogHeader>
-                                                <DialogTitle className="text-xl font-black text-[#1e293b] uppercase tracking-tight">Create New Group</DialogTitle>
-                                            </DialogHeader>
-                                            <div className="space-y-6 py-4">
-                                                <div className="space-y-2">
-                                                    <Label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Group Name</Label>
-                                                    <Input
-                                                        placeholder="e.g. VIP Clients, Tech News Group..."
-                                                        value={newGroupName}
-                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewGroupName(e.target.value)}
-                                                        className="rounded-xl border-gray-200 text-sm font-medium h-12"
-                                                    />
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <Label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Description (Optional)</Label>
-                                                    <Textarea
-                                                        placeholder="What is this group for?"
-                                                        value={newGroupDesc}
-                                                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewGroupDesc(e.target.value)}
-                                                        className="rounded-xl border-gray-200 text-sm font-medium resize-none min-h-[100px]"
-                                                    />
-                                                </div>
-                                                <div className="p-4 bg-gray-50 rounded-2xl flex items-center justify-between">
-                                                    <span className="text-[11px] font-black text-gray-400 uppercase leading-none">Members Selected</span>
-                                                    <span className="text-lg font-black text-blue-600 leading-none">{selectedSubscriberIds.length}</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <Button variant="ghost" onClick={() => setIsCreateGroupOpen(false)} className="flex-1 font-bold text-gray-400 h-12">CANCEL</Button>
-                                                <Button
-                                                    onClick={handleCreateGroup}
-                                                    className="flex-[2] bg-blue-600 hover:bg-blue-700 text-white font-black h-12 rounded-xl shadow-lg shadow-blue-100"
-                                                >
-                                                    CREATE GROUP
-                                                </Button>
-                                            </div>
-                                        </DialogContent>
-                                    </Dialog>
-                                )}
-                                <p className="text-sm font-bold text-blue-600 uppercase tracking-tight">
-                                    {selectedSubscriberIds.length > 0 ? `${selectedSubscriberIds.length} recipients selected` : "Sending to matching preferences"}
-                                </p>
-                                <Button
-                                    onClick={() => setCurrentStep('review')}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 px-8 rounded-full shadow-lg transition-all active:scale-95"
-                                >
-                                    NEXT: REVIEW & SEND <ChevronRight className="ml-2 w-4 h-4" />
-                                </Button>
-                            </div>
-                        </div>
                     </>
                 )}
 
@@ -703,18 +601,18 @@ export default function ManualNewsletterPage() {
                             </div>
                         </div>
 
-                        <div className="flex gap-4 w-full">
+                        <div className="flex items-center gap-4 w-full">
                             <Button
                                 variant="outline"
+                                className="flex-1 h-12 font-black tracking-widest text-xs"
                                 onClick={() => setCurrentStep('recipients')}
-                                className="flex-1 h-12 font-bold text-gray-500 rounded-xl"
                             >
                                 BACK
                             </Button>
                             <Button
+                                className="flex-1 h-12 font-black tracking-widest text-xs bg-blue-600 hover:bg-blue-700 text-white gap-2 shadow-lg shadow-blue-100"
                                 onClick={handleSend}
-                                disabled={isSending}
-                                className="flex-[2] h-12 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl shadow-xl shadow-blue-100 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                disabled={isSending || selectedArticles.length === 0}
                             >
                                 {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                                 {isSending ? "DISPATCHING..." : "DISPATCH NOW"}
@@ -736,55 +634,55 @@ export default function ManualNewsletterPage() {
                         <h2 className="text-lg font-bold text-[#1e293b]">Broadcast History</h2>
                         <p className="text-sm text-gray-500">Recently dispatched mailing list campaigns.</p>
                     </div>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-white border-b border-gray-100">
-                                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Date Sent</th>
-                                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Articles</th>
-                                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Audience</th>
-                                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {isLoadingStats ? (
-                                Array(3).fill(0).map((_, i: number) => (
-                                    <tr key={i}>
-                                        <td colSpan={4} className="px-6 py-4"><Skeleton className="h-6 w-full" /></td>
-                                    </tr>
-                                ))
-                            ) : mailingStats?.recent_broadcasts && mailingStats.recent_broadcasts.length > 0 ? (
-                                mailingStats.recent_broadcasts.map((log: any) => (
-                                    <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
-                                        <td className="px-6 py-4 text-sm font-bold text-[#1e293b]">
-                                            {new Date(log.sent_at).toLocaleDateString()}
-                                            <span className="block text-[10px] text-gray-400 font-medium">
-                                                {new Date(log.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm font-medium text-gray-600">
-                                            {log.article_count} {log.article_count === 1 ? 'Article' : 'Articles'}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm font-black text-blue-600">
-                                            {log.recipient_count.toLocaleString()}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <Badge className="bg-green-50 text-green-600 border-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter">
-                                                {log.status}
-                                            </Badge>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={4} className="px-6 py-12 text-center text-gray-400 font-medium italic">
-                                        No broadcast history found.
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-white border-b border-gray-100">
+                                    <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Date Sent</th>
+                                    <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Articles</th>
+                                    <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Audience</th>
+                                    <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Status</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {isLoadingStats ? (
+                                    Array(3).fill(0).map((_, i: number) => (
+                                        <tr key={i}>
+                                            <td colSpan={4} className="px-6 py-4"><Skeleton className="h-6 w-full" /></td>
+                                        </tr>
+                                    ))
+                                ) : mailingStats?.recent_broadcasts && mailingStats.recent_broadcasts.length > 0 ? (
+                                    mailingStats.recent_broadcasts.map((log: any) => (
+                                        <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
+                                            <td className="px-6 py-4 text-sm font-bold text-[#1e293b]">
+                                                {new Date(log.sent_at).toLocaleDateString()}
+                                                <span className="block text-[10px] text-gray-400 font-medium">
+                                                    {new Date(log.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm font-medium text-gray-600">
+                                                {log.article_count} {log.article_count === 1 ? 'Article' : 'Articles'}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm font-black text-blue-600">
+                                                {log.recipient_count.toLocaleString()}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <Badge className="bg-green-50 text-green-600 border-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter">
+                                                    {log.status}
+                                                </Badge>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={4} className="px-6 py-12 text-center text-gray-400 font-medium italic">
+                                            No broadcast history found.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
