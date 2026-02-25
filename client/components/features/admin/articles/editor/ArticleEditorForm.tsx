@@ -254,7 +254,7 @@ export default function ArticleEditorForm({
                     onPublish={handleInternalPublish}
                     onPreview={() => setIsPreviewOpen(true)}
                     onClose={onClose} // Pass onClose if integrated
-                    showPublish={!isEditor}
+                    showPublish={true}
                     saveLabel={mode === 'edit' ? "Save Changes" : "Save as Draft"}
                     title={mode === 'edit' ? "Edit Article" : "Create New Blog"}
                     subtitle={mode === 'edit'
@@ -290,6 +290,7 @@ export default function ArticleEditorForm({
                                 availableCategories={availableCategories}
                                 availableCountries={availableCountries}
                                 availableSites={availableSites}
+                                isEditor={isEditor}
                             />
                         </div>
                     </div>

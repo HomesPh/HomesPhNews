@@ -443,7 +443,7 @@ export default function ArticleEditorModal({
                 category: workingData.category,
                 country: workingData.country,
                 image: effectiveFinalImage,
-                published_sites: workingData.publishTo,
+                published_sites: isEditor ? workingData.publishTo.filter((s: string) => s === "Main News Portal") : workingData.publishTo,
                 status: isPublish
                     ? 'published'
                     : (mode === 'edit' && initialData?.status === 'published' && !isEditor ? 'published' : 'pending review') as 'published' | 'pending review',

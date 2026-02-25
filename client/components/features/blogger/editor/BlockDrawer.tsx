@@ -17,6 +17,7 @@ interface BlockDrawerProps {
     availableCategories?: string[];
     availableCountries?: string[];
     availableSites?: string[];
+    isEditor?: boolean;
 }
 
 export default function BlockDrawer({
@@ -25,7 +26,8 @@ export default function BlockDrawer({
     onAddBlock,
     availableCategories: propsCategories,
     availableCountries: propsCountries,
-    availableSites
+    availableSites,
+    isEditor
 }: BlockDrawerProps) {
     const [activeTab, setActiveTab] = useState<'blocks' | 'details'>('blocks');
     const [internalCategories, setInternalCategories] = useState<string[]>([]);
@@ -95,8 +97,14 @@ export default function BlockDrawer({
     ];
 
     const PLATFORMS = (availableSites && availableSites.length > 0)
-        ? availableSites
+        ? (isEditor ? availableSites.filter(s => s === "Main News Portal") : availableSites)
         : ["Apply Na", "Bayanihan", "Faceofmind", "FilipinoHomes", "globalreality", "Homes", "Main News Portal", "PicklePlay"];
+
+    useEffect(() => {
+        if (isEditor && !details.platforms.includes("Main News Portal")) {
+            onUpdateDetails({ platforms: ["Main News Portal"] });
+        }
+    }, [isEditor, details.platforms, onUpdateDetails]);
 
     return (
         <aside className="w-[360px] bg-white border-r border-gray-100 flex flex-col shrink-0 z-30 shadow-[4px_0_20px_rgba(0,0,0,0.02)] h-full">

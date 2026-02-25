@@ -206,6 +206,7 @@ Route::prefix('v1')->group(function () {
                 // Article Actions
                 Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
                 Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
+                Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
                 Route::post('articles/{id}/send-newsletter', [AdminArticleController::class, 'sendToSubscribers']);
     
                 // Upload Routes
@@ -236,7 +237,6 @@ Route::prefix('v1')->group(function () {
                 Route::delete('articles/{article}', [AdminArticleController::class, 'destroy']);
                 Route::delete('articles/{id}/hard-delete', [AdminArticleController::class, 'hardDelete']);
                 Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
-                Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
                 
                 // Resource Routes
                 Route::apiResource('sites', SiteController::class);
