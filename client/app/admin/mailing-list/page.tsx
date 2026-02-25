@@ -146,7 +146,7 @@ export default function ManualNewsletterPage() {
     };
 
     const filteredArticles = useMemo(() => {
-        return articles.filter((a: ArticleResource) => {
+        return articles.filter(a => {
             const matchesSearch = !articleSearch || a.title.toLowerCase().includes(articleSearch.toLowerCase());
             const matchesCategory = !articleCategory || a.category === articleCategory;
             const matchesCountry = !articleCountry || a.country === articleCountry;
@@ -155,7 +155,7 @@ export default function ManualNewsletterPage() {
     }, [articles, articleSearch, articleCategory, articleCountry]);
 
     const filteredSubscribers = useMemo(() => {
-        return subscribers.filter((s: Subscriber) => {
+        return subscribers.filter(s => {
             const matchesSearch = !subscriberSearch || s.email.toLowerCase().includes(subscriberSearch.toLowerCase());
 
             // For subscribers, category and country can be arrays
@@ -171,10 +171,10 @@ export default function ManualNewsletterPage() {
     }, [subscribers, subscriberSearch, subscriberCategory, subscriberCountry]);
 
     const handleToggleArticle = (article: ArticleResource) => {
-        setSelectedArticles((prev: ArticleResource[]) => {
-            const isSelected = prev.find((a: ArticleResource) => a.id === article.id);
+        setSelectedArticles(prev => {
+            const isSelected = prev.find(a => a.id === article.id);
             if (isSelected) {
-                return prev.filter((a: ArticleResource) => a.id !== article.id);
+                return prev.filter(a => a.id !== article.id);
             } else {
                 return [...prev, article];
             }
@@ -182,8 +182,8 @@ export default function ManualNewsletterPage() {
     };
 
     const handleToggleSubscriber = (id: string) => {
-        setSelectedSubscriberIds((prev: string[]) =>
-            prev.includes(id) ? prev.filter((i: string) => i !== id) : [...prev, id]
+        setSelectedSubscriberIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
         );
     };
 
@@ -201,9 +201,9 @@ export default function ManualNewsletterPage() {
                 console.error("Diagnostic mismatch: subscribers found in DB but ID mapping failed.", groupSubscribers);
             }
 
-            setSelectedSubscriberIds((prev: string[]) => {
+            setSelectedSubscriberIds(prev => {
                 const newIds = [...prev];
-                groupIds.forEach((id: string) => {
+                groupIds.forEach(id => {
                     if (!newIds.includes(id)) newIds.push(id);
                 });
                 return newIds;
@@ -257,7 +257,7 @@ export default function ManualNewsletterPage() {
 
         setIsSending(true);
         try {
-            const articleIds = selectedArticles.map((a: ArticleResource) => a.id);
+            const articleIds = selectedArticles.map(a => a.id);
             const subscriberIds = selectedSubscriberIds.length > 0 ? selectedSubscriberIds : undefined;
 
             const response = await bulkSendNewsletter(articleIds, subscriberIds);
@@ -415,8 +415,8 @@ export default function ManualNewsletterPage() {
                                 </div>
                             ) : filteredArticles.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {filteredArticles.map((article: ArticleResource) => {
-                                        const isSelected = selectedArticles.some((a: ArticleResource) => a.id === article.id);
+                                    {filteredArticles.map((article) => {
+                                        const isSelected = selectedArticles.some(a => a.id === article.id);
                                         return (
                                             <div
                                                 key={article.id}
@@ -608,7 +608,7 @@ export default function ManualNewsletterPage() {
                                     ) : filteredSubscribers.length > 0 ? (
                                         <div className="border border-gray-100 rounded-xl overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent divide-y divide-gray-50">
                                             <div className="min-w-[600px]">
-                                                {filteredSubscribers.map((sub: Subscriber) => (
+                                                {filteredSubscribers.map((sub) => (
                                                     <div
                                                         key={sub.sub_Id}
                                                         onClick={() => handleToggleSubscriber(sub.sub_Id)}
@@ -649,7 +649,7 @@ export default function ManualNewsletterPage() {
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {groups.filter((g: MailingListGroup) => g.name.toLowerCase().includes(subscriberSearch.toLowerCase())).map((group: MailingListGroup) => (
+                                            {groups.filter(g => g.name.toLowerCase().includes(subscriberSearch.toLowerCase())).map((group) => (
                                                 <div
                                                     key={group.id}
                                                     onClick={() => handleSelectGroup(group)}
