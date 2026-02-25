@@ -9,9 +9,10 @@ interface EditorHeaderProps {
     onPublish: () => void;
     onPreview: () => void;
     onClose?: () => void;
+    showPublish?: boolean;
 }
 
-export default function EditorHeader({ onSave, onPublish, onPreview, onClose }: EditorHeaderProps) {
+export default function EditorHeader({ onSave, onPublish, onPreview, onClose, showPublish = true }: EditorHeaderProps) {
     const router = useRouter();
 
     return (
@@ -50,12 +51,14 @@ export default function EditorHeader({ onSave, onPublish, onPreview, onClose }: 
                     Save as Draft
                 </button>
                 <div className="h-6 w-[1px] bg-gray-200"></div>
-                <button
-                    onClick={onPublish}
-                    className="px-5 py-2 text-sm font-semibold text-white bg-[#C10007] hover:bg-[#a00006] rounded-lg shadow-sm shadow-[#C10007]/20 transition-all flex items-center gap-2"
-                >
-                    Publish
-                </button>
+                {showPublish && (
+                    <button
+                        onClick={onPublish}
+                        className="px-5 py-2 text-sm font-semibold text-white bg-[#C10007] hover:bg-[#a00006] rounded-lg shadow-sm shadow-[#C10007]/20 transition-all flex items-center gap-2"
+                    >
+                        Publish
+                    </button>
+                )}
             </div>
         </div>
     );

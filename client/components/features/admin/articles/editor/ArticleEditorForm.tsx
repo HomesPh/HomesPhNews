@@ -44,6 +44,7 @@ export default function ArticleEditorForm({
 }: ArticleEditorFormProps) {
     const editor = useBlockEditor();
     const { user } = useAuth();
+    const isEditor = user?.roles?.includes('editor') && !user?.roles?.includes('admin') && !user?.roles?.includes('super-admin');
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Initialize Editor with Admin Data
@@ -251,6 +252,7 @@ export default function ArticleEditorForm({
                     onPublish={handleInternalPublish}
                     onPreview={() => setIsPreviewOpen(true)}
                     onClose={onClose} // Pass onClose if integrated
+                    showPublish={!isEditor}
                 />
 
                 <EditorToolbar
