@@ -93,6 +93,7 @@ export default function AddUserModal({ onClose, onAdd }: AddUserModalProps) {
                                 className="w-full h-[50px] px-4 border border-[#d1d5db] rounded-[8px] text-[16px] text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] appearance-none"
                             >
                                 <option value="Blogger">Blogger</option>
+                                <option value="Editor">Editor</option>
                                 <option value="Admin">Admin</option>
                             </select>
                             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
