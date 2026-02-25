@@ -125,6 +125,16 @@ class ArticleResource extends JsonResource
 
         // Check if this is an external API call (has authenticated site)
         $isExternalApi = $request->attributes->has('site');
+        
+        // Backward compatibility: legacy status and is_deleted mapping for v1 endpoints only
+        $isV1Api = $request->is('api/v1/*') || $request->is('v1/*');
+        $mappedStatus = $isV1Api 
+            ? ($status === 'pending' ? 'pending review' : ($isDeleted || $status === 'deleted' ? 'rejected' : $status))
+            : ($isDeleted && $status !== 'deleted' ? 'deleted' : $status);
+            
+        $mappedIsDeleted = $isV1Api 
+            ? ($isDeleted || $status === 'deleted')
+            : $isDeleted;
 
         // Get raw content values
         $rawContent = (string) $get('content', '');
@@ -146,7 +156,7 @@ class ArticleResource extends JsonResource
             'content' => $content,
             'category' => (string)$get('category', 'All'),
             'country' => (string)$get('country', $get('location', 'Global')),
-            'status' => $isDeleted ? 'deleted' : $status,
+            'status' => $mappedStatus,
             'created_at' => (string)$date,
             'views_count' => (int)$get('views_count', 0),
             'image_url' => $this->sanitizeImageUrl($data['image_url'] ?? $data['image'] ?? ''),
@@ -162,7 +172,7 @@ class ArticleResource extends JsonResource
             'keywords' => (string)$get('keywords', ''),
             'source' => (string)$get('source', ''),
             'original_url' => (string)$get('original_url', ''),
-            'is_deleted' => $isDeleted,
+            'is_deleted' => $mappedIsDeleted,
             'is_redis' => !$isModel,
             'content_blocks' => is_string($get('content_blocks')) ? json_decode($get('content_blocks'), true) : $get('content_blocks', []),
             'template' => (string)$get('template', ''),

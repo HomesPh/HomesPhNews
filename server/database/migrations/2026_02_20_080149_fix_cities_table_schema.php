@@ -14,11 +14,11 @@ return new class extends Migration {
 
         Schema::create('cities', function (Blueprint $table) {
             $table->id('city_id');
-            $table->string('country_id', 10);
+            $table->string('country_id', 50)->collation('utf8mb4_0900_ai_ci');
             $table->string('name');
             $table->boolean('is_active')->default(true);
 
-            $table->foreign('country_id')->references('id')->on('countries')->onDelete('cascade');
+            // $table->foreign('country_id')->references('id')->on('countries')->onDelete('cascade');
         });
     }
 

@@ -46,7 +46,14 @@ class ArticleController extends Controller
         }
 
         if (!empty($validated['status'])) {
-            $query->where('status', $validated['status']);
+            $status = $validated['status'];
+            if ($status === 'deleted') {
+                $query->where(function($q) {
+                    $q->where('status', 'deleted')->orWhere('is_deleted', true);
+                });
+            } else {
+                $query->where('status', $status);
+            }
         }
 
         $perPage = $validated['per_page'] ?? 10;
@@ -68,7 +75,7 @@ class ArticleController extends Controller
             'country' => 'nullable|string',
             'image' => 'nullable|array',
             'image.*' => 'string',
-            'status' => 'nullable|string|in:published,pending review,rejected',
+            'status' => 'nullable|string|in:published,pending,deleted',
             'published_sites' => 'nullable|array',
             'published_sites.*' => 'string',
         ]);
@@ -79,8 +86,10 @@ class ArticleController extends Controller
         $validated['id'] = Str::uuid()->toString();
         $validated['article_id'] = $validated['id'];
         $validated['slug'] = Str::slug($validated['title']);
-        $validated['status'] = $validated['status'] ?? 'pending review';
-        $validated['is_deleted'] = false;
+        $validated['status'] = $validated['status'] ?? 'pending';
+
+        $dbStatus = $validated['status'];
+        $validated['is_deleted'] = ($dbStatus === 'deleted');
 
         $article = Article::create($validated);
 
@@ -116,7 +125,7 @@ class ArticleController extends Controller
             'country' => 'nullable|string',
             'image' => 'nullable|array',
             'image.*' => 'string',
-            'status' => 'nullable|string|in:published,pending review,rejected',
+            'status' => 'nullable|string|in:published,pending,deleted',
             'published_sites' => 'nullable|array',
             'published_sites.*' => 'string',
         ]);
@@ -132,6 +141,14 @@ class ArticleController extends Controller
             $validated['slug'] = Str::slug($validated['title']);
         }
 
+        if (isset($validated['status'])) {
+            $dbStatus = $validated['status'];
+            if ($dbStatus === 'deleted') {
+                $validated['is_deleted'] = true;
+            }
+            $validated['status'] = $dbStatus;
+        }
+
         $article->update($validated);
 
         return response()->json($article->load('publishedSites'));
@@ -143,7 +160,10 @@ class ArticleController extends Controller
     public function destroy(string $id)
     {
         $article = Article::findOrFail($id);
-        $article->update(['is_deleted' => true]);
+        $article->update([
+            'is_deleted' => true,
+            'status' => 'deleted'
+        ]);
 
         return response()->json(null, 204);
     }

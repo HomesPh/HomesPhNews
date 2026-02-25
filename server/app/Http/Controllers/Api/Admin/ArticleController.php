@@ -48,12 +48,12 @@ class ArticleController extends Controller
             // Filter by status if specified (except 'all' and 'deleted' which handle is_deleted)
             // Note: 'pending' is redirected to getPendingArticlesFromRedis at line 41.
             ->when($status === 'published', fn($q) => $q->where('status', 'published'))
-            ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
-            ->when($status === 'rejected', fn($q) => $q->where('status', 'rejected'))
+            ->when($status === 'pending review', fn($q) => $q->where('status', 'pending'))
+            ->when($status === 'rejected', fn($q) => $q->where('status', 'deleted'))
             ->when(!$status || $status === 'all', function ($q) {
                 // For "All", only show active primary statuses to match getStatusCounts logic
                 // This excludes 'rejected' articles from the general 'All' view
-                return $q->whereIn('status', ['published', 'pending review']);
+                return $q->whereIn('status', ['published', 'pending']);
             })
 
             // Filter by is_deleted based on status
@@ -250,7 +250,12 @@ class ArticleController extends Controller
     {
         $validated = $request->validated();
         $validated['status'] = $validated['status'] ?? 'pending review';
-
+        
+        // Map legacy statuses to new DB schema
+        $dbStatus = $validated['status'];
+        if ($dbStatus === 'pending review') $dbStatus = 'pending';
+        if ($dbStatus === 'rejected') $dbStatus = 'deleted';
+        
         // Generate UUID for the article ID
         $validated['id'] = \Illuminate\Support\Str::uuid()->toString();
         $validated['article_id'] = $validated['id'];
@@ -269,7 +274,8 @@ class ArticleController extends Controller
             $validated['slug'] = \Illuminate\Support\Str::slug($validated['slug']);
         }
 
-        $validated['is_deleted'] = false;
+        $validated['is_deleted'] = ($dbStatus === 'deleted');
+        $validated['status'] = $dbStatus;
         $article = Article::create($validated);
 
         if (!empty($siteNames)) {
@@ -378,6 +384,15 @@ class ArticleController extends Controller
         unset($validated['gallery_images']);
         unset($validated['split_images']); // Not stored in articles table
         unset($validated['date']); // Not a database column
+
+        // Map legacy statuses to DB correctly
+        if (isset($validated['status'])) {
+            if ($validated['status'] === 'pending review') $validated['status'] = 'pending';
+            if ($validated['status'] === 'rejected') {
+                $validated['status'] = 'deleted';
+                $validated['is_deleted'] = true;
+            }
+        }
 
         $article->update($validated);
 
@@ -592,7 +607,7 @@ class ArticleController extends Controller
 
         $article->update([
             'is_deleted' => false,
-            'status' => 'pending review'
+            'status' => 'pending' // Maps back to pending review in APIs
         ]);
 
         return response()->json([
@@ -672,7 +687,7 @@ class ArticleController extends Controller
 
         // Map status names to counts
         $publishedCount = $counts['published'] ?? 0;
-        $pendingReviewCount = $counts['pending review'] ?? 0;
+        $pendingReviewCount = $counts['pending'] ?? 0;
 
         // DB Total (Published + Pending Review) - excluding soft deleted
         $dbTotal = $publishedCount + $pendingReviewCount;
@@ -683,8 +698,10 @@ class ArticleController extends Controller
         return [
             'all' => $allCount,
             'published' => $publishedCount,
-            'pending' => $pendingCount + $pendingReviewCount,
-            'deleted' => $deletedCount,
+            'pending review' => $pendingCount + $pendingReviewCount,
+            'rejected' => $deletedCount,
+            'pending' => $pendingCount + $pendingReviewCount, // Added real pending just in case
+            'deleted' => $deletedCount, // Added real deleted just in case
         ];
     }
     /**

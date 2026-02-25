@@ -32,7 +32,7 @@ class DashboardController extends Controller
             ->toArray();
 
         $totalPublished = $dbCounts['published'] ?? 0;
-        $dbPendingReview = $dbCounts['pending review'] ?? 0;
+        $dbPendingReview = $dbCounts['pending'] ?? 0;
 
         $redisStats = $this->redisService->getStats();
         $redisPending = $redisStats['total_articles'] ?? 0;

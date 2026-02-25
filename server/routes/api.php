@@ -245,3 +245,19 @@ Route::prefix('v1')->group(function () {
             });
     });
 });
+
+/*
+|--------------------------------------------------------------------------
+| V2 Routes
+|--------------------------------------------------------------------------
+*/
+Route::prefix('v2')->name('v2.')->middleware(['auth:sanctum', 'is.authenticated:admin,ceo'])->group(function () {
+    // Database Articles
+    Route::apiResource('articles', ArticleControllerV2::class);
+
+    // Redis Articles
+    Route::get('redis-articles/filters', [\App\Http\Controllers\v2\RedisArticleController::class, 'filters'])->name('redis-articles.filters');
+    Route::get('redis-articles/stats', [\App\Http\Controllers\v2\RedisArticleController::class, 'stats'])->name('redis-articles.stats');
+    Route::post('redis-articles/{redis_article}/publish', [\App\Http\Controllers\v2\RedisArticleController::class, 'publish'])->name('redis-articles.publish');
+    Route::apiResource('redis-articles', \App\Http\Controllers\v2\RedisArticleController::class)->except(['store']);
+});
