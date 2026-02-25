@@ -264,6 +264,9 @@
     <div class="container">
         <div class="header">
             <div class="logo-wrapper">
+                <img src="{{ $logo }}" alt="" class="logo-img">
+                <span class="logo-text">HomesPH News</span>
+                <span class="logo-text">HomesPH News</span>
                 <img src="{{ $logo }}" alt="HomesPHNews" class="logo-img">
                 <span class="logo-text">HomesPHNews</span>
             </div>

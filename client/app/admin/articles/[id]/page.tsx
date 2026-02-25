@@ -127,7 +127,9 @@ function ArticleDetailsContent() {
     }, [availableFilters.categories.length]);
 
     useEffect(() => {
-        getSiteNames().then(res => setAvailableSites(res.data as unknown as string[])).catch(console.error);
+        getSiteNames().then(res => {
+            setAvailableSites(res.data as unknown as string[]);
+        }).catch(console.error);
     }, []);
 
     useEffect(() => {
@@ -135,13 +137,17 @@ function ArticleDetailsContent() {
             const existingSites = Array.isArray(article.published_sites)
                 ? article.published_sites
                 : (article.published_sites ? [article.published_sites] : []);
-            if (existingSites.length > 0) {
+
+            if (isEditor) {
+                // For editors, always ensure Main News Portal is selected and ignore others
+                setPublishToSites(["Main News Portal"]);
+            } else if (existingSites.length > 0) {
                 setPublishToSites(existingSites);
             } else if (availableSites.length > 0) {
                 setPublishToSites(availableSites);
             }
         }
-    }, [article, availableSites.length]);
+    }, [article, isEditor, availableSites.length]);
 
     const handlePublishClick = () => {
         if (!article || !params.id) return;
@@ -534,9 +540,11 @@ function ArticleDetailsContent() {
                                             type="checkbox"
                                             checked={publishToSites.includes(site)}
                                             onChange={() => toggleSite(site)}
-                                            className="w-4 h-4 rounded border-[#d1d5db] text-[#C10007] focus:ring-[#C10007] focus:ring-offset-0 cursor-pointer"
+                                            disabled={isEditor && site !== "Main News Portal"}
+                                            className="w-4 h-4 rounded border-[#d1d5db] text-[#C10007] focus:ring-[#C10007] focus:ring-offset-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                         />
-                                        <span className="text-[14px] text-[#374151] group-hover:text-[#C10007] transition-colors tracking-[-0.5px]">{site}</span>
+                                        <span className={`text-[14px] ${isEditor && site !== "Main News Portal" ? 'text-gray-400' : 'text-[#374151] group-hover:text-[#C10007]'} transition-colors tracking-[-0.5px]`}>{site}</span>
+
                                     </label>
                                 ))}
                             </div>
