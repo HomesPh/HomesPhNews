@@ -10,40 +10,76 @@ import AdSpace from "@/components/features/admin/ads/AdSpace";
 import { use } from "react";
 import { ArticleResource, FeedResponse } from "@/lib/api-v2";
 import { mockSpecialtyContent } from "@/lib/api-v2/mock/mockArticles";
+import { PaginatedRestaurants } from "@/lib/api-v2/public/services/restaurant/getRestaurants";
+import { Restaurant } from "@/lib/api-v2/types/RestaurantResource";
+import { calculateReadTime } from "@/lib/utils";
 
 type DashboardFeedProps = {
     country: string;
     category: string;
     feed: Promise<FeedResponse>;
+    restaurants: Promise<PaginatedRestaurants>;
 };
 
-export default function DashboardFeed({ country, category, feed }: DashboardFeedProps) {
+export default function DashboardFeed({ country, category, feed, restaurants }: DashboardFeedProps) {
     const feedData = use(feed);
+    const restaurantData = use(restaurants);
 
     // -------------------------------------------------------------------------
     // DATA LOGIC: Dynamic Feed Assembly
     // -------------------------------------------------------------------------
     const realArticles = feedData?.latest_global || [];
+    const realRestaurants: ArticleResource[] = (restaurantData?.data || []).map((r: Restaurant) => ({
+        id: r.id,
+        article_id: r.id,
+        slug: r.id,
+        title: r.name,
+        summary: r.description || '',
+        content: r.description || '',
+        category: "Restaurant",
+        country: r.country,
+        status: r.status || 'published',
+        created_at: r.timestamp ? new Date(r.timestamp * 1000).toISOString() : new Date().toISOString(),
+        views_count: r.rating ? Math.floor(r.rating * 1000) : 0,
+        image_url: r.image_url || '',
+        image: r.image_url || '',
+        location: r.city,
+        topics: [r.cuisine_type].filter(Boolean) as string[],
+        source: "HomesPh Restaurant",
+        original_url: r.original_url || '',
+        is_deleted: false,
+        is_redis: false,
+        published_sites: [],
+        sites: [],
+        galleryImages: [],
+        keywords: r.cuisine_type || '',
+        content_blocks: [],
+        template: 'standard',
+        author: 'HomesPh Editor',
+        read_time: calculateReadTime(r.description || ''),
+    }));
 
     let mainListingSet: ArticleResource[] = [];
 
     // Filter mock content by country: Match selected country OR show if 'Global'
+    // Also exclude mock restaurants now that we have real ones
     const countryFilteredMock = mockSpecialtyContent.filter(a =>
-        country === "Global" || a.country === country || a.country === "Global"
+        (country === "Global" || a.country === country || a.country === "Global") &&
+        a.category !== "Restaurant"
     );
 
     if (category === "All") {
-        const seenIds = new Set(realArticles.map(a => a.id));
+        const seenIds = new Set([...realArticles, ...realRestaurants].map(a => a.id));
         const uniqueMock = countryFilteredMock.filter(a => !seenIds.has(a.id));
-        mainListingSet = [...realArticles, ...uniqueMock];
+        mainListingSet = [...realArticles, ...realRestaurants, ...uniqueMock];
     } else if (category === "Articles") {
         mainListingSet = realArticles;
     } else if (category === "Blogs") {
         mainListingSet = countryFilteredMock.filter(a => a.id.includes('mock-blog') || a.id.includes('dummy-blog') || a.category === "Real Estate");
     } else if (category === "Newsletters") {
         mainListingSet = countryFilteredMock.filter(a => a.id.includes('mock-newsletter') || a.id.includes('dummy-newsletter') || a.category === "Business & Economy");
-    } else if (category === "Restaurants") {
-        mainListingSet = countryFilteredMock.filter(a => a.category === "Restaurant");
+    } else if (category === "Restaurants" || category === "Restaurant") {
+        mainListingSet = realRestaurants;
     } else {
         // Category views (e.g. Healthcare, Community)
         mainListingSet = realArticles.filter(a => a.category === category);

@@ -35,6 +35,7 @@ export default async function ArticleBreadcrumbContainer({ id }: ArticleBreadcru
     <ArticleBreadcrumb
       category={getCategoryLabel(article.category)}
       categoryId={article.category}
+      categoryHref={article.category.toLowerCase() === "restaurant" ? "/restaurants" : undefined}
       country={getCountryLabel(article.country)}
       countryId={article.country}
     />
