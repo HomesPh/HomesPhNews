@@ -28,6 +28,7 @@ interface ArticleEditorFormProps {
     onSave?: (currentData?: any) => void;
     onPublish?: (currentData?: any) => void;
     onClose?: () => void;
+    mode?: 'create' | 'edit';
 }
 
 export default function ArticleEditorForm({
@@ -40,7 +41,8 @@ export default function ArticleEditorForm({
     onTemplateChange,
     onSave,
     onPublish,
-    onClose
+    onClose,
+    mode = 'create'
 }: ArticleEditorFormProps) {
     const editor = useBlockEditor();
     const { user } = useAuth();
@@ -253,6 +255,12 @@ export default function ArticleEditorForm({
                     onPreview={() => setIsPreviewOpen(true)}
                     onClose={onClose} // Pass onClose if integrated
                     showPublish={!isEditor}
+                    saveLabel={mode === 'edit' ? "Save Changes" : "Save as Draft"}
+                    title={mode === 'edit' ? "Edit Article" : "Create New Blog"}
+                    subtitle={mode === 'edit'
+                        ? `${data.status === 'published' ? 'Published' : 'Draft'} - Last saved just now`
+                        : "Draft - Last saved just now"
+                    }
                 />
 
                 <EditorToolbar

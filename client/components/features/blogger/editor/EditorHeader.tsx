@@ -10,9 +10,12 @@ interface EditorHeaderProps {
     onPreview: () => void;
     onClose?: () => void;
     showPublish?: boolean;
+    saveLabel?: string;
+    title?: string;
+    subtitle?: string;
 }
 
-export default function EditorHeader({ onSave, onPublish, onPreview, onClose, showPublish = true }: EditorHeaderProps) {
+export default function EditorHeader({ onSave, onPublish, onPreview, onClose, showPublish = true, saveLabel = "Save as Draft", title = "Create New Blog", subtitle = "Draft - Last saved just now" }: EditorHeaderProps) {
     const router = useRouter();
 
     return (
@@ -26,10 +29,10 @@ export default function EditorHeader({ onSave, onPublish, onPreview, onClose, sh
                     <ArrowLeft className="w-5 h-5" />
                 </button>
                 <div>
-                    <h1 className="font-bold text-gray-900 leading-tight">Create New Blog</h1>
+                    <h1 className="font-bold text-gray-900 leading-tight">{title}</h1>
                     <div className="flex items-center gap-2 mt-0.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                        <span className="text-xs text-gray-500 font-medium">Draft - Last saved just now</span>
+                        <span className="text-xs text-gray-500 font-medium">{subtitle}</span>
                     </div>
                 </div>
             </div>
@@ -48,7 +51,7 @@ export default function EditorHeader({ onSave, onPublish, onPreview, onClose, sh
                     onClick={onSave}
                     className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all"
                 >
-                    Save as Draft
+                    {saveLabel}
                 </button>
                 <div className="h-6 w-[1px] bg-gray-200"></div>
                 {showPublish && (
