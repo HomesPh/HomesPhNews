@@ -78,10 +78,42 @@ class ArticleController extends Controller
             'status' => 'nullable|string|in:published,pending,deleted',
             'published_sites' => 'nullable|array',
             'published_sites.*' => 'string',
+            'thumbnail_url' => 'nullable|string',
+            'author' => 'nullable|string',
+            'source' => 'nullable|string',
+            'original_url' => 'nullable|string',
+            'original_title' => 'nullable|string',
+            'topics' => 'nullable|array',
+            'topics.*' => 'string',
+            'keywords' => 'nullable|array',
+            'keywords.*' => 'string',
+            'content_blocks' => 'nullable|array',
+            'template' => 'nullable|string',
         ]);
 
         $siteNames = $validated['published_sites'] ?? [];
         unset($validated['published_sites']);
+
+        // Convert legacy image array to modern format if provided
+        if (!empty($validated['image']) && empty($validated['thumbnail_url'])) {
+            $imageUrl = is_array($validated['image']) ? ($validated['image'][0] ?? null) : $validated['image'];
+            if ($imageUrl) {
+                $validated['thumbnail_url'] = $imageUrl;
+                if (empty($validated['content_blocks'])) {
+                    $validated['content_blocks'] = [
+                        [
+                            'type' => 'image',
+                            'data' => [
+                                'url' => $imageUrl,
+                                'alt' => $validated['title'],
+                            ]
+                        ]
+                    ];
+                }
+            }
+        }
+        // Remove legacy image array completely so it relies on modern fields
+        unset($validated['image']);
 
         $validated['id'] = Str::uuid()->toString();
         $validated['article_id'] = $validated['id'];
@@ -90,6 +122,7 @@ class ArticleController extends Controller
 
         $dbStatus = $validated['status'];
         $validated['is_deleted'] = ($dbStatus === 'deleted');
+        $validated['is_legacy'] = false;
 
         $article = Article::create($validated);
 
@@ -128,6 +161,17 @@ class ArticleController extends Controller
             'status' => 'nullable|string|in:published,pending,deleted',
             'published_sites' => 'nullable|array',
             'published_sites.*' => 'string',
+            'thumbnail_url' => 'nullable|string',
+            'author' => 'nullable|string',
+            'source' => 'nullable|string',
+            'original_url' => 'nullable|string',
+            'original_title' => 'nullable|string',
+            'topics' => 'nullable|array',
+            'topics.*' => 'string',
+            'keywords' => 'nullable|array',
+            'keywords.*' => 'string',
+            'content_blocks' => 'nullable|array',
+            'template' => 'nullable|string',
         ]);
 
         if (isset($validated['published_sites'])) {
@@ -136,6 +180,37 @@ class ArticleController extends Controller
             $article->publishedSites()->sync($siteIds);
             unset($validated['published_sites']);
         }
+
+        // Migrate legacy image to modern fields (either from incoming request or existing DB model)
+        $currentImageUrl = $article->image_url; // uses the accessor from the model
+        if (isset($validated['image'])) {
+            $currentImageUrl = is_array($validated['image']) ? ($validated['image'][0] ?? null) : $validated['image'];
+        }
+
+        // If no thumbnail is set yet, but we found a legacy image url, map it over.
+        if (empty($validated['thumbnail_url']) && empty($article->thumbnail_url) && $currentImageUrl) {
+            $validated['thumbnail_url'] = $currentImageUrl;
+        }
+
+        // If no content blocks are set yet, but we found a legacy image url, map it over.
+        if (empty($validated['content_blocks']) && empty($article->content_blocks) && $currentImageUrl) {
+            $title = $validated['title'] ?? $article->title;
+            $validated['content_blocks'] = [
+                [
+                    'type' => 'image',
+                    'data' => [
+                        'url' => $currentImageUrl,
+                        'alt' => $title,
+                    ]
+                ]
+            ];
+        }
+
+        // Always force update to modern
+        $validated['is_legacy'] = false;
+        
+        // Unset old image field so we don't accidentally update the legacy column with arrays when we move to strings/JSON
+        unset($validated['image']);
 
         if (isset($validated['title'])) {
             $validated['slug'] = Str::slug($validated['title']);

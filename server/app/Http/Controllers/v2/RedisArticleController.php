@@ -62,6 +62,17 @@ class RedisArticleController extends Controller
             'category' => 'nullable|string',
             'country' => 'nullable|string',
             'image_url' => 'nullable|string',
+            'thumbnail_url' => 'nullable|string',
+            'author' => 'nullable|string',
+            'source' => 'nullable|string',
+            'original_url' => 'nullable|string',
+            'original_title' => 'nullable|string',
+            'topics' => 'nullable|array',
+            'topics.*' => 'string',
+            'keywords' => 'nullable|array',
+            'keywords.*' => 'string',
+            'content_blocks' => 'nullable|array',
+            'template' => 'nullable|string',
         ]);
 
         $article = $this->redisArticleModel->update($id, $validated);
@@ -116,25 +127,42 @@ class RedisArticleController extends Controller
             return response()->json(['message' => 'Article not found in Redis'], 404);
         }
 
+        $imageUrl = $redisArticleData['image_url'] ?? null;
+        
+        $contentBlocks = $redisArticleData['content_blocks'] ?? [];
+        if (empty($contentBlocks) && $imageUrl) {
+            $contentBlocks[] = [
+                'type' => 'image',
+                'data' => [
+                    'url' => $imageUrl,
+                    'alt' => $redisArticleData['title'],
+                ],
+            ];
+        }
+
         // Format data for DB Article
         $dbData = [
             'id' => \Illuminate\Support\Str::uuid()->toString(),
             'article_id' => \Illuminate\Support\Str::uuid()->toString(), // For legacy
             'title' => $redisArticleData['title'],
+            'original_title' => $redisArticleData['original_title'] ?? null,
             'summary' => $redisArticleData['summary'] ?? '',
             'content' => $redisArticleData['content'] ?? '',
             'category' => $redisArticleData['category'] ?? 'General',
             'country' => $redisArticleData['country'] ?? 'Global',
-            'image_url' => $redisArticleData['image_url'] ?? null,
+            'thumbnail_url' => $redisArticleData['thumbnail_url'] ?? $imageUrl,
+            'content_blocks' => $contentBlocks,
+            'template' => $redisArticleData['template'] ?? null,
             'source' => $redisArticleData['source'] ?? '',
             'original_url' => $redisArticleData['original_url'] ?? '',
             'slug' => \Illuminate\Support\Str::slug($redisArticleData['title']),
             'status' => 'pending', // Always set to pending per requirements
             'is_deleted' => false,
+            'is_legacy' => false,
             'published_at' => now(),
             'author' => $redisArticleData['author'] ?? null,
             'topics' => is_array($redisArticleData['topics'] ?? null) ? $redisArticleData['topics'] : [],
-            'keywords' => $redisArticleData['keywords'] ?? '',
+            'keywords' => is_array($redisArticleData['keywords'] ?? null) ? $redisArticleData['keywords'] : [],
         ];
 
         \DB::beginTransaction();

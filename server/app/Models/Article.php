@@ -14,13 +14,11 @@ class Article extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'id',              // UUID from Redis (primary key)
-        'article_id',      // UUID from Scraper (legacy, keeping for compatibility)
+        // --- Standard Properties ---
         'title',
         'original_title',
         'summary',
         'content',
-        'image',
         'status',
         'views_count',
         'category',
@@ -28,27 +26,42 @@ class Article extends Model
         'source',
         'original_url',
         'keywords',
-        'topics',          // JSON array of topics
-        'published_sites', // JSON array of site names
-        'content_blocks',  // Structured block data
-        'template',        // Visual template name
         'author',          // Author name
         'is_deleted',
+
+        // --- Modern Properties ---
+        'id',              // UUID from Redis (primary key)
+        'topics',          // JSON array of topics
+        'content_blocks',  // Structured block data
+        'template',        // Visual template name
         'slug',
+        'is_legacy',
+        'thumbnail_url',
+
+        // --- Legacy Properties (Kept for compatibility) ---
+        'article_id',      // UUID from Scraper (legacy, keeping for compatibility)
+        'image',           // Legacy fallback for array image structure
+        'published_sites', // JSON array of site names
     ];
 
     /**
      * Automatic JSON casting for array fields
      */
     protected $casts = [
+        // --- Standard Properties ---
         'keywords' => 'array',
         'custom_titles' => 'array',
-        'topics' => 'array',
-        'published_sites' => 'array', // ["FilipinoHomes", "Rent.ph", ...]
-        'content_blocks' => 'array',
-        'image' => 'array',
         'views_count' => 'integer',
         'is_deleted' => 'boolean',
+
+        // --- Modern Properties ---
+        'topics' => 'array',
+        'content_blocks' => 'array',
+        'is_legacy' => 'boolean',
+
+        // --- Legacy Properties (Kept for compatibility) ---
+        'published_sites' => 'array', // ["FilipinoHomes", "Rent.ph", ...]
+        'image' => 'array',
     ];
 
     /**
