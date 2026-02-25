@@ -127,21 +127,28 @@ function ArticleDetailsContent() {
     }, [availableFilters.categories.length]);
 
     useEffect(() => {
-        getSiteNames().then(res => setAvailableSites(res.data as unknown as string[])).catch(console.error);
-    }, []);
+        getSiteNames().then(res => {
+            const sites = res.data as unknown as string[];
+            setAvailableSites(isEditor ? sites.filter(s => s === "Main News Portal") : sites);
+        }).catch(console.error);
+    }, [isEditor]);
 
     useEffect(() => {
         if (article) {
             const existingSites = Array.isArray(article.published_sites)
                 ? article.published_sites
                 : (article.published_sites ? [article.published_sites] : []);
-            if (existingSites.length > 0) {
+
+            if (isEditor) {
+                // For editors, always ensure Main News Portal is selected and ignore others
+                setPublishToSites(["Main News Portal"]);
+            } else if (existingSites.length > 0) {
                 setPublishToSites(existingSites);
             } else if (availableSites.length > 0) {
                 setPublishToSites(availableSites);
             }
         }
-    }, [article, availableSites.length]);
+    }, [article, isEditor, availableSites.length]);
 
     const handlePublishClick = () => {
         if (!article || !params.id) return;
@@ -547,16 +554,14 @@ function ArticleDetailsContent() {
                             )}
                             <div className="flex gap-3">
                                 <button disabled className="flex-1 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#374151] bg-gray-100 opacity-50 cursor-not-allowed tracking-[-0.5px]">Customize</button>
-                                {!isEditor && (
-                                    <button
-                                        onClick={handlePublishClick}
-                                        disabled={isPublishing || (article.status === 'published' && !article.is_redis)}
-                                        className="flex-1 px-4 py-2.5 bg-[#3b82f6] text-white rounded-[8px] text-[14px] font-semibold hover:bg-[#2563eb] transition-all active:scale-95 tracking-[-0.5px] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                    >
-                                        {isPublishing && <Loader2 className="w-4 h-4 animate-spin" />}
-                                        {isPublishing ? 'Publishing...' : (article.status === 'published' && !article.is_redis ? 'Published' : 'Publish')}
-                                    </button>
-                                )}
+                                <button
+                                    onClick={handlePublishClick}
+                                    disabled={isPublishing || (article.status === 'published' && !article.is_redis)}
+                                    className="flex-1 px-4 py-2.5 bg-[#3b82f6] text-white rounded-[8px] text-[14px] font-semibold hover:bg-[#2563eb] transition-all active:scale-95 tracking-[-0.5px] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {isPublishing && <Loader2 className="w-4 h-4 animate-spin" />}
+                                    {isPublishing ? 'Publishing...' : (article.status === 'published' && !article.is_redis ? 'Published' : 'Publish')}
+                                </button>
                             </div>
                         </div>
 
