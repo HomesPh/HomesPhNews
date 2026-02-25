@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Eye, EyeOff, Lock, X } from "lucide-react";
+import { changePassword } from "@/lib/api-v2";
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -19,15 +20,41 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   if (!isOpen) return null;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (!formData.currentPassword) {
+      alert("Please enter your current password.");
+      return;
+    }
+    if (formData.newPassword.length < 8) {
+      alert("New password must be at least 8 characters long.");
+      return;
+    }
     if (formData.newPassword !== formData.confirmPassword) {
       alert("New passwords do not match!");
       return;
     }
-    alert("Password changed successfully!");
-    onClose();
+
+    setIsLoading(true);
+    try {
+      const response = await changePassword({
+        current_password: formData.currentPassword,
+        new_password: formData.newPassword,
+        new_password_confirmation: formData.confirmPassword
+      });
+
+      alert(response.data.message || "Password changed successfully!");
+      onClose();
+    } catch (e: any) {
+      console.error("Failed to change password", e);
+      const message = e.response?.data?.message || "Failed to change password.";
+      alert(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -163,10 +190,15 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
           </button>
           <button
             onClick={handleSubmit}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#3b82f6] text-white rounded-[8px] hover:bg-[#2563eb] transition-colors text-[14px] font-medium tracking-[-0.5px]"
+            disabled={isLoading}
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#3b82f6] text-white rounded-[8px] hover:bg-[#2563eb] transition-colors text-[14px] font-medium tracking-[-0.5px] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Lock className="w-4 h-4" />
-            Change Password
+            {isLoading ? "Changing..." : (
+              <>
+                <Lock className="w-4 h-4" />
+                Change Password
+              </>
+            )}
           </button>
         </div>
       </div>
