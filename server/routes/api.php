@@ -120,7 +120,10 @@ Route::prefix('v1')->group(function () {
     // Ads
     Route::get('/ads', [UserAdController::class, 'index']);
     Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
+
+    // Ad metrics
     Route::post('/ads/metrics', [AdminAdMetricController::class, 'store']);
+    
 
     // Restaurants
     Route::group(['prefix' => 'restaurants', 'as' => 'restaurants.'], function () {

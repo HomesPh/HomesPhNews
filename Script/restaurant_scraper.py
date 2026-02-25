@@ -35,11 +35,20 @@ class RestaurantScraper(NewsScraper):
         self.ai = AIProcessor()
         self.categories = RESTAURANT_CATEGORIES
         self.google_maps_key = GOOGLE_MAPS_API_KEY
+        # Increase search window for restaurants - news doesn't have to be 'today'
+        self.max_age_hours = 168 # 7 days
         
         if self.google_maps_key:
             print("✅ Google Maps Geocoding API Enabled")
         else:
             print("⚠️ No GOOGLE_MAPS_API_KEY found - geocoding disabled")
+
+    def build_rss_url(self, keyword, country_code):
+        """Override to avoid redundant 'Filipino' and 'breaking' keywords for restaurants."""
+        config = COUNTRIES.get(country_code, {"gl": "US", "hl": "en", "ceid": "US:en"})
+        # Keyword already has 'Filipino' and country from build_restaurant_query
+        encoded_query = urllib.parse.quote(keyword)
+        return f"https://news.google.com/rss/search?q={encoded_query}&hl={config['hl']}&gl={config['gl']}&ceid={config['ceid']}"
 
     def build_restaurant_query(self, category, country):
         """
