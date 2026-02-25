@@ -4,11 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Daily News Digest - HomesTV</title>
+    <title>Your Daily News Digest - HomesPHNews</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f4f7fa;
+            background-color: #f3f4f6;
             margin: 0;
             padding: 0;
             -webkit-font-smoothing: antialiased;
@@ -16,18 +17,15 @@
 
         .container {
             max-width: 600px;
-            margin: 30px auto;
+            margin: 0 auto;
             background-color: #ffffff;
-            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
-            border: 1px solid #eef2f6;
-            border-top: 6px solid #C10007; /* HomesTV Red */
+            border-top: 5px solid #C10007;
         }
 
         .header {
             background-color: #111827;
-            padding: 32px 20px;
+            padding: 24px 20px;
             text-align: center;
         }
 
@@ -39,160 +37,225 @@
         }
 
         .logo-img {
-            max-height: 28px;
+            max-height: 24px;
             width: auto;
             margin-right: 12px;
         }
 
         .logo-text {
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 800;
             color: #ffffff;
             letter-spacing: -0.04em;
-            font-family: 'Inter', sans-serif;
         }
 
         .sub-header {
             background-color: #1f2937;
-            padding: 14px;
+            padding: 12px;
             text-align: center;
-            color: #f3f4f6;
-            font-size: 11px;
+            color: #ffffff;
+            font-size: 10px;
             font-weight: 900;
             letter-spacing: 0.3em;
             text-transform: uppercase;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .content {
-            padding: 35px 30px;
-            color: #1f2937;
-            line-height: 1.6;
+            padding: 40px 25px;
+            color: #111827;
         }
 
         .greeting {
-            font-size: 24px;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 10px;
-            letter-spacing: -0.02em;
+            font-size: 28px;
+            font-weight: 900;
+            color: #111827;
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+            text-align: left;
         }
 
         .message {
-            font-size: 15px;
-            color: #4b5563;
-            margin-bottom: 25px;
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            text-align: left;
+        }
+
+        .tags-container {
+            margin-bottom: 35px;
+            text-align: left;
+            line-height: 2.4;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 6px 16px;
+            background-color: #f8fafc;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            margin-right: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .connector {
+            font-size: 14px;
+            color: #64748b;
+            margin: 0 8px;
+            vertical-align: middle;
+        }
+
+        .section-title-wrapper {
+            border-left: 4px solid #C10007;
+            padding-left: 14px;
+            margin: 40px 0 25px 0;
+            text-align: left;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #111827;
+            text-transform: none;
         }
 
         .article-card {
             display: block;
             text-decoration: none;
             color: inherit;
-            margin-bottom: 32px;
+            margin-bottom: 30px;
             background-color: #ffffff;
-            border: 1px solid #f1f5f9;
-            border-radius: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: left;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .article-image-wrapper {
+            width: 100%;
+            height: 250px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-            transition: transform 0.2s ease;
+            border-radius: 12px;
+            background-color: #f3f4f6;
+            margin-bottom: 20px;
         }
 
         .article-image {
             width: 100%;
-            height: 220px;
+            height: 100%;
             object-fit: cover;
-            background-color: #f8fafc;
             display: block;
         }
 
-        .article-body {
-            padding: 24px 28px;
-        }
-
         .article-category {
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 900;
-            color: #C10007; /* HomesTV Red */
+            color: #C10007;
             text-transform: uppercase;
-            margin-bottom: 12px;
-            letter-spacing: 0.15em;
+            margin-bottom: 10px;
+            letter-spacing: 0.05em;
         }
 
         .article-title {
-            font-size: 22px;
-            font-weight: 800;
+            font-size: 24px;
+            font-weight: 900;
             color: #111827;
             margin-bottom: 12px;
-            line-height: 1.3;
-            letter-spacing: -0.03em;
+            line-height: 1.2;
+            letter-spacing: -0.04em;
         }
 
         .article-summary {
             font-size: 14px;
             color: #4b5563;
             margin-bottom: 24px;
-            line-height: 1.65;
+            line-height: 1.6;
         }
 
         .btn {
             display: inline-block;
-            background-color: #334155;
+            background-color: #374151;
             color: #ffffff !important;
-            padding: 14px 28px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 700;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 800;
             text-decoration: none;
-            margin-top: 15px;
             text-align: center;
         }
 
-        .btn-secondary {
-            /* Same as primary but can be tweaked if needed */
+        .preferences-box {
+            background-color: #ffffff;
+            border: 1px solid #f3f4f6;
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 40px;
+            text-align: left;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .preferences-title {
+            font-weight: 800;
+            color: #111827;
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .preferences-text {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .btn-preferences {
+            background-color: #374151;
+            color: #ffffff !important;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 800;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .footer {
             background-color: #111827;
-            padding: 50px 30px;
+            padding: 60px 40px;
             color: #94a3b8;
             text-align: center;
         }
 
         .footer-logo {
-            margin-bottom: 25px;
-            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+
+        .logo-wrapper-footer {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            opacity: 0.6;
         }
 
         .footer-text {
             font-size: 12px;
             color: #64748b;
-            margin-bottom: 24px;
+            margin-bottom: 30px;
             line-height: 1.6;
         }
 
         .footer-links a {
             color: #94a3b8;
             text-decoration: none;
-            margin: 0 12px;
+            margin: 0 10px;
             font-size: 12px;
             font-weight: 600;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
-            padding-bottom: 2px;
-        }
-
-        .tag {
-            display: inline-block;
-            padding: 6px 12px;
-            background-color: #f8fafc;
-            color: #64748b;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 800;
-            margin-right: 6px;
-            margin-bottom: 6px;
-            border: 1px solid #e2e8f0;
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
         }
     </style>
 </head>
@@ -202,36 +265,37 @@
         <div class="header">
             <div class="logo-wrapper">
                 <img src="{{ $logo }}" alt="" class="logo-img">
-<<<<<<< HEAD
-<<<<<<< HEAD
                 <span class="logo-text">HomesPH News</span>
-=======
-                <span class="logo-text">HomesTV</span>
->>>>>>> 54a58bade3b09862f98387a1ad453e5f45d96282
-=======
                 <span class="logo-text">HomesPH News</span>
->>>>>>> a92c56eff29d164b68f082c301a4f4a5d2856417
+                <img src="{{ $logo }}" alt="HomesPHNews" class="logo-img">
+                <span class="logo-text">HomesPHNews</span>
             </div>
         </div>
         <div class="sub-header">Daily News Digest</div>
 
         <div class="content">
             <h1 class="greeting">{{ $greeting }} {{ $greetingEmoji }}</h1>
-            <p class="message">
-                Here is your personalized news digest from <strong>HomesTV</strong>,
-                tailored to your interests in
-                @foreach($subscriber->category as $cat)<span class="tag">{{ $cat }}</span>@endforeach
-                and
-                @foreach($subscriber->country as $country)<span class="tag">{{ $country }}</span>@endforeach.
-            </p>
+            <div class="message">
+                Here is your personalized news digest from <strong>HomesPHNews</strong>, tailored to your interests in 
+                @foreach($subscriber->category as $cat)
+                    <span class="tag">{{ $cat }}</span>
+                @endforeach
+                
+                @if(count($subscriber->category) > 0 && count($subscriber->country) > 0)
+                    <span class="connector">and</span>
+                @endif
+                
+                @foreach($subscriber->country as $country)
+                    <span class="tag">{{ $country }}</span>
+                @endforeach.
+            </div>
 
-            <div style="margin-bottom: 25px; border-left: 4px solid #0f172a; padding-left: 15px;">
-                <h2 style="font-size: 16px; font-weight: 700; margin: 0; color: #0f172a;">Top Stories for You</h2>
+            <div class="section-title-wrapper">
+                <h2 class="section-title">Top Stories for You</h2>
             </div>
 
             @foreach($articles as $article)
                 @php
-                    // Handle image field (can be array or string)
                     $imageUrl = null;
                     if ($article->image) {
                         if (is_array($article->image)) {
@@ -240,52 +304,59 @@
                             $imageUrl = $article->image;
                         }
 
-                        // Add full URL if not already absolute
                         if ($imageUrl && !str_starts_with($imageUrl, 'http')) {
                             $imageUrl = 'https://homestv.ph/storage/' . $imageUrl;
                         }
                     }
                 @endphp
 
-                <a href="{{ $clientUrl }}/article?id={{ $article->id }}" class="article-card">
-                    @if($imageUrl)
-                        <img src="{{ $imageUrl }}" alt="{{ $article->title }}" class="article-image">
-                    @endif
-                    <div class="article-body">
-                        <div class="article-category">{{ $article->category }} | {{ $article->country }}</div>
-                        <div class="article-title">{{ $article->title }}</div>
-                        <div class="article-summary">{{ Str::limit(strip_tags($article->summary), 140) }}</div>
-                        <span class="btn">Read Full Story</span>
+                <div class="article-card">
+                    <a href="{{ $clientUrl }}/article?id={{ $article->id }}">
+                        <div class="article-image-wrapper">
+                            @if($imageUrl)
+                                <img src="{{ $imageUrl }}" alt="{{ $article->title }}" class="article-image">
+                            @endif
+                        </div>
+                    </a>
+                    <div class="article-category">
+                        @if($article->category) {{ $article->category }} @endif
+                        @if($article->category && $article->country) | @endif
+                        @if($article->country) {{ $article->country }} @endif
                     </div>
-                </a>
+                    <a href="{{ $clientUrl }}/article?id={{ $article->id }}" style="text-decoration: none;">
+                        <div class="article-title">{{ $article->title }}</div>
+                    </a>
+                    <div class="article-summary">{{ Str::limit(strip_tags($article->summary), 160) }}</div>
+                    <a href="{{ $clientUrl }}/article?id={{ $article->id }}" class="btn">Read Full Story</a>
+                </div>
             @endforeach
 
-            <div
-                style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin-top: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-                <div style="font-weight: 700; color: #0f172a; margin-bottom: 6px;">Manage your experience</div>
-                <div style="font-size: 14px; color: #475569; margin-bottom: 24px;">
+            <div class="preferences-box">
+                <div class="preferences-title">Manage your experience</div>
+                <div class="preferences-text">
                     Want to change the topics or locations you follow? You can update your preferences anytime.
                 </div>
-                <div style="text-align: left;">
-                    <a href="{{ $clientUrl }}/subscribe/edit?id={{ $subscriber->sub_Id }}" class="btn btn-secondary">
-                        Edit your Preferences
-                    </a>
-                </div>
+                <a href="{{ $clientUrl }}/subscribe/edit?id={{ $subscriber->sub_Id }}" class="btn-preferences">
+                    Edit your Preferences
+                </a>
             </div>
         </div>
 
         <div class="footer">
             <div class="footer-logo">
-                <img src="{{ $logo }}" alt="" style="max-height: 22px; width: auto; opacity: 0.6; filter: grayscale(1);">
+                <div class="logo-wrapper-footer">
+                    <img src="{{ $logo }}" alt="HomesPHNews" style="max-height: 20px; width: auto; margin-right: 8px;">
+                    <span style="font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.04em;">HomesPHNews</span>
+                </div>
             </div>
             <div class="footer-text">
-                This email was sent to you because you subscribed to <strong>HomesTV Daily News</strong>.<br>
+                This email was sent to you because you subscribed to <strong>HomesPHNews Daily News</strong>.<br>
                 We value your privacy and only send content based on your selected interests.<br>
-                &copy; {{ date('Y') }} HomesTV. All rights reserved.
+                &copy; {{ date('Y') }} HomesPHNews. All rights reserved.
             </div>
             <div class="footer-links">
-                <a href="{{ $clientUrl }}/privacy-policy">Privacy Policy</a>
-                <a href="{{ $clientUrl }}/terms">Terms of Service</a>
+                <a href="https://news.homes.ph/privacy-policy">Privacy Policy</a>
+                <a href="https://news.homes.ph/terms-and-policy">Terms & Policy</a>
                 <a href="{{ $clientUrl }}/subscribe/edit?id={{ $subscriber->sub_Id }}">Unsubscribe</a>
             </div>
         </div>
