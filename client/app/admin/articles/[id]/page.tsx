@@ -283,7 +283,7 @@ function ArticleDetailsContent() {
                                             {article.country /* Use country as location fallback */}
                                         </span>
                                     </div>
-                                    <StatusBadge status={article.status as any} />
+                                    <StatusBadge status={(article.is_redis ? 'being_processed' : article.status) as any} />
                                 </div>
 
                                 <h1 className="text-[32px] font-bold text-[#111827] leading-[44px] tracking-[-0.5px] mb-4">
@@ -550,7 +550,7 @@ function ArticleDetailsContent() {
                             </div>
                             {article.is_redis && (
                                 <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-[12px] text-amber-700 leading-relaxed font-medium">
-                                    This article is currently in the <strong>Pending Review</strong> queue (Redis cached) and is not yet stored in the main database. Click Publish to finalize and store it.
+                                    This article is <strong>Being Processed</strong> (in Redis only) and is not yet in the database. Move it to DB from the Being Processed tab, or click Publish here to save and publish in one step.
                                 </div>
                             )}
                             <div className="flex gap-3">
