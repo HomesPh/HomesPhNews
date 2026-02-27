@@ -19,7 +19,6 @@ Before managing ads, it's essential to understand the basic entities:
    - **Name**: A simple descriptive name for the ad placement.
    - **Type**: Select either `image` or `text` based on the desired format.
    - **Page URL**: The location where this ad unit is expected to be displayed.
-   - **Size**: Select the responsive dimensions (e.g., `adaptive`).
 4. Submit the form to generate the Ad Unit. Once created, the system generates a unique **Ad Unit ID** that can be used snippet generation.
 
 ### Creating an Ad Campaign
@@ -30,7 +29,7 @@ Before managing ads, it's essential to understand the basic entities:
    - **Schedule**: Provide explicit `start_date` and `end_date` bounds defining when the ad is active.
    - **Status**: Set to `active`, `paused`, or `archived`.
    - **Targeting/Links**: The destination `target_url` when the ad is clicked.
-   - **Creative Assets**: Supply an `image_url` (for static image ads), multiple `banner_image_urls` (for image carousels), or a text `headline` (for text-based ads).
+   - **Creative Assets**: Supply an `image_url` (for static image ads), multiple `banner_image_urls` (for image carousels), or a text `headline` (for text-based ads). Uploaded banner images are restricted to standard fixed sizes (300x250, 728x90, 160x600, 320x50, 970x250, 300x600, 320x100).
 4. Save the Campaign.
 5. Link the Campaign to one or more Ad Units via the **Campaign Details** or **Ad Unit Details** sections, which will assign them via the `ad_unit_campaign` pivot table. This dictates where the creative will appear during delivery.
 
@@ -42,9 +41,8 @@ The system relies on three primary database models located in `server/app/Models
 
 ### **AdUnit** (`ad_units` table)
 Represents a predefined location or "placeholder" where advertisements will be displayed.
-- **Properties**: `id`, `name`, `page_url`, `type`, `size`, `impressions`, `clicks`
+- **Properties**: `id`, `name`, `page_url`, `type`, `impressions`, `clicks`
 - **Supported Types**: `image` or `text`
-- **Supported Sizes**: `adaptive`
 - **Relationship**: Belongs-to-many `Campaign` models (via the `ad_unit_campaign` pivot table).
 
 ### **Campaign** (`campaigns` table)
@@ -82,7 +80,9 @@ The backend endpoints manage the CRUD operations and serving logic:
 Ads are rendered server-side via a minimal, self-contained layout: `server/resources/views/ads/show.blade.php`.
 This prevents CSS bleed from host sites and ensures strict layout control.
 
-- **Image Ads**: Can parse a single `$campaign->banner_image_urls[0]` or render a pure CSS/JS carousel if multiple banner images are provided.
+- **Responsive / Size-Matched Image Ads**: Acts like Google AdSense. Based on the selected iframe dimensions (e.g. `?size=728x90`), the tracking script natively searches the Campaign's `banner_image_urls` for the specific image that perfectly matches that slot. 
+  - If a specific size is requested but not found in the campaign, it results in an **unfilled impression** (the iframe safely collapses to prevent warped creative).
+  - If set to `responsive`, it falls back to the first available image.
 - **Text Ads**: Uses the campaign's `image_url` as a full-bleed background, overlaid with a dark gradient, the `headline` text, and a Call-To-Action (CTA).
 
 ### Tracking Telemetry
@@ -95,17 +95,17 @@ The analytics tracking is embedded directly via vanilla JavaScript in `show.blad
 
 ## 6. Embed Guide
 
-To display an ad unit dynamically on any static HTML or client-side application (e.g., Next.js), use an `<iframe>` element pointing to the Ad Server's display route.
+To display an ad unit dynamically on any static HTML or client-side application (e.g., Next.js), use an `<iframe>` element pointing to the Ad Server's display route. You can enforce a strict dimension delivery by appending a `?size=` query parameter.
 
 ```html
-<!-- Example of embedding an Ad Unit using an iframe -->
+<!-- Example of embedding a standard 728x90 Leaderboard Ad Unit -->
 <iframe 
-    src="https://{THE_API_DOMAIN}/ads/units/{AD_UNIT_ID}" 
-    width="100%" 
-    height="250" 
-    style="border: none; overflow: hidden; border-radius: 6px;" 
+    src="https://{THE_API_DOMAIN}/ads/units/{AD_UNIT_ID}?size=728x90" 
+    width="728" 
+    height="90" 
+    style="border: none; overflow: hidden;" 
     scrolling="no"
     title="Advertisement">
 </iframe>
 ```
-*Note: Make sure to replace `{THE_API_DOMAIN}` with the actual domain of the backend API and `{AD_UNIT_ID}` with the ID of the specific Ad Unit.*
+*Note: Make sure to replace `{THE_API_DOMAIN}` with the actual domain of the backend API and `{AD_UNIT_ID}` with the ID of the specific Ad Unit. Standard size pairings are strictly enforced.*
