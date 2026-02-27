@@ -53,7 +53,7 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
                 } else if (userRoles.includes('ceo')) {
                     router.push("/admin/mailing-list");
                 } else if (userRoles.includes('editor')) {
-                    router.push("/admin/articles");
+                    router.push("/editor/articles");
                 } else if (userRoles.includes('blogger')) {
                     router.push("/blogger/dashboard");
                 } else {
@@ -113,7 +113,7 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
             } else if (userRoles.includes('ceo')) {
                 router.push("/admin/mailing-list");
             } else if (userRoles.includes('editor')) {
-                router.push("/admin/articles");
+                router.push("/editor/articles");
             } else if (userRoles.includes('blogger')) {
                 router.push("/blogger/dashboard");
             } else {

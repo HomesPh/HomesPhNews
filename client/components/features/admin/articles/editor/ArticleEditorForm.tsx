@@ -254,7 +254,8 @@ export default function ArticleEditorForm({
                     onPublish={handleInternalPublish}
                     onPreview={() => setIsPreviewOpen(true)}
                     onClose={onClose} // Pass onClose if integrated
-                    showPublish={true}
+                    showPublish={!isEditor}
+                    primarySave={isEditor}
                     saveLabel={mode === 'edit' ? "Save Changes" : "Save as Draft"}
                     title={mode === 'edit' ? "Edit Article" : "Create New Blog"}
                     subtitle={mode === 'edit'
