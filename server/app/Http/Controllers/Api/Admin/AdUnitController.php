@@ -37,7 +37,7 @@ class AdUnitController extends Controller
 
         $adUnit = AdUnit::create($validated);
 
-        if ($request->has('campaigns')) {
+        if (is_array($request->input('campaigns'))) {
             $adUnit->campaigns()->sync($request->input('campaigns'));
         }
 
@@ -79,7 +79,7 @@ class AdUnitController extends Controller
 
         $adUnit->update($validated);
 
-        if ($request->has('campaigns')) {
+        if (is_array($request->input('campaigns'))) {
             $adUnit->campaigns()->sync($request->input('campaigns'));
         }
 
