@@ -78,3 +78,5 @@ This project was migrated from `l5-swagger` to `Scramble` for better auto-genera
 Database Blueprints (Migrations): I created a set of "blueprints" for our database. This means any developer can run a single command and instantly have the exact same database structure. No more guessing what the tables should look like!
 
 Automatic Fake Data (Seeders): This is a huge time-saver. I built a "magic button" (php artisan db:seed) that automatically fills the database with realistic-looking fake news, categories, authors, etc. This is a lifesaver for development because it means you're never working with an empty, boring website.
+
+TEST
