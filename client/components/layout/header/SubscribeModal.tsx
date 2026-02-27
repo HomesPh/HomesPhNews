@@ -242,9 +242,9 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                     {/* Center Section: Logo */}
                     <div className="flex-1 flex items-center justify-center z-10">
                         <img
-                            src="/images/HomesTV.png"
-                            alt="HomesTV"
-                            className="h-9 w-auto object-contain brightness-0 invert"
+                            src="/images/HomesLogo.png"
+                            alt="Homes.ph News Logo"
+                            className="h-9 w-auto object-contain"
                         />
                     </div>
 
@@ -268,7 +268,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                         <h2 className="font-bold text-[24px] text-[#111827] tracking-[-1px] mb-[4px]">
                                             How can we help?
                                         </h2>
-                                        <p className="text-[#6b7280] text-[15px] tracking-[-0.3px]">Choose an option to get started with HomesTV.</p>
+                                        <p className="text-[#6b7280] text-[15px] tracking-[-0.3px]">Choose an option to get started with Homes.ph News.</p>
                                     </div>
 
                                     <div className="grid gap-[12px]">

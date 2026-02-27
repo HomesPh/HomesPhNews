@@ -43,8 +43,8 @@ export default function SubscriberSidebar() {
 
     // Customization State
     const [branding, setBranding] = useState({
-        logo: "/images/HomesTVwhite.png",
-        name: "HomesTV"
+        logo: "/images/HomesLogoW.png",
+        name: "Homes.ph News"
     });
 
     const [theme, setTheme] = useState({
@@ -63,8 +63,8 @@ export default function SubscriberSidebar() {
 
                     // Load Branding
                     setBranding({
-                        logo: prefs.customization?.logo || "/images/HomesTVwhite.png",
-                        name: prefs.customization?.companyName || "HomesTV"
+                        logo: prefs.customization?.logo || "/images/HomesLogoW.png",
+                        name: prefs.customization?.companyName || "Homes.ph News"
                     });
 
                     // Load Theme

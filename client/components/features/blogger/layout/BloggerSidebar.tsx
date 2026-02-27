@@ -52,8 +52,8 @@ export default function BloggerSidebar() {
                     {!isCollapsed ? (
                         <div className="flex items-center gap-3 px-2">
                             <img
-                                src="/images/HomesTVwhite.png"
-                                alt="HomesTV"
+                                src="/images/HomesLogoW.png"
+                                alt="Homes.ph News"
                                 className="w-10 h-10 object-contain"
                             />
                             <div className="flex flex-col">
@@ -61,10 +61,10 @@ export default function BloggerSidebar() {
                             </div>
                         </div>
                     ) : (
-                        <div className="flex justify-center">
+                        <div className="flex items-center justify-center px-2">
                             <img
-                                src="/images/HomesTVwhite.png"
-                                alt="HomesTV"
+                                src="/images/HomesLogoW.png"
+                                alt="Homes.ph News"
                                 className="w-10 h-10 object-contain"
                             />
                         </div>
@@ -117,7 +117,7 @@ export default function BloggerSidebar() {
                         )}
                     </button>
                 </SidebarFooter>
-            </div>
-        </Sidebar>
+            </div >
+        </Sidebar >
     );
 }

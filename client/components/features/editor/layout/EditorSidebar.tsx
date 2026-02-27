@@ -32,19 +32,16 @@ export default function EditorSidebar() {
                     {!isCollapsed ? (
                         <div className="flex items-center gap-3 px-2">
                             <img
-                                src="/images/HomesTVwhite.png"
-                                alt="HomesTV"
-                                className="w-10 h-10 object-contain"
+                                src="/images/HomesLogoW.png"
+                                alt="Homes.ph News"
+                                className="h-10 w-auto object-contain"
                             />
-                            <div className="flex flex-col">
-                                <h1 className="text-[20px] font-bold text-white leading-[1.4] tracking-[-0.5px]">Editor Portal</h1>
-                            </div>
                         </div>
                     ) : (
                         <div className="flex justify-center">
                             <img
-                                src="/images/HomesTVwhite.png"
-                                alt="HomesTV"
+                                src="/images/HomesLogoW.png"
+                                alt="Homes.ph News"
                                 className="w-10 h-10 object-contain"
                             />
                         </div>

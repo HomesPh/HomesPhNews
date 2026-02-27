@@ -265,7 +265,6 @@
         <div class="header">
             <div class="logo-wrapper">
                 <img src="{{ $logo }}" alt="Homes.ph News" class="logo-img">
-                <span class="logo-text">Homes.ph News</span>
             </div>
         </div>
         <div class="sub-header">Daily News Digest</div>
@@ -342,8 +341,7 @@
         <div class="footer">
             <div class="footer-logo">
                 <div class="logo-wrapper-footer">
-                    <img src="{{ $logo }}" alt="Homes.ph News" style="max-height: 20px; width: auto; margin-right: 8px;">
-                    <span style="font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.04em;">Homes.ph News</span>
+                    <img src="{{ $logo }}" alt="Homes.ph News" style="max-height: 30px; width: auto;">
                 </div>
             </div>
             <div class="footer-text">
