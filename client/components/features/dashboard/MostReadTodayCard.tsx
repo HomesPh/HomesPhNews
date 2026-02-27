@@ -47,11 +47,11 @@ export default function MostReadTodayCard({ title = "Most Read Today", items = [
                 style={{ objectPosition: `${article.imagePositionX ?? 50}% ${article.imagePosition ?? 0}%` }}
               />
             </div>
-            <div className="flex flex-col justify-center">
-              <h4 className="text-[11px] font-black uppercase leading-tight text-gray-900 dark:text-gray-200 group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors line-clamp-2 mb-1.5 tracking-tight">
+            <div className="flex flex-col justify-between py-0.5 w-full">
+              <h4 className="text-xs font-black uppercase leading-[1.3] text-gray-900 dark:text-gray-200 group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors line-clamp-3 tracking-tight">
                 {article.title}
               </h4>
-              <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
+              <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-1">
                 <span suppressHydrationWarning>{article.timeAgo || 'Recently'}</span>
                 <span>•</span>
                 <span suppressHydrationWarning>{formatViews(article.views)}</span>

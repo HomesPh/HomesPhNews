@@ -38,11 +38,11 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                     style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                                 />
                                 {/* Tags at bottom left of image */}
-                                <div className="absolute bottom-2 left-2 flex gap-1 z-10 transition-opacity group-hover:opacity-100">
-                                    <div className="bg-[#cc0000] text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter shadow-lg">
+                                <div className="absolute bottom-2 left-2 flex gap-2 z-10 transition-opacity group-hover:opacity-100 items-center">
+                                    <div className="flex items-center justify-center bg-[#cc0000] text-white text-[9px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg leading-none">
                                         {article.category}
                                     </div>
-                                    <div className="bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[8px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors">
+                                    <div className="flex items-center justify-center bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[9px] font-black uppercase px-2 py-1 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors leading-none">
                                         {article.country || "Global"}
                                     </div>
                                 </div>
@@ -95,11 +95,11 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 style={{ objectPosition: `${main?.image_position_x ?? 50}% ${main?.image_position ?? 0}%` }}
                             />
                             {/* Tags at bottom left of image */}
-                            <div className="absolute bottom-3 left-3 flex gap-1 z-10">
-                                <div className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg">
+                            <div className="absolute bottom-3 left-3 flex gap-2 z-10 items-center">
+                                <div className="flex items-center justify-center bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg leading-none">
                                     {main.category}
                                 </div>
-                                <div className="bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors">
+                                <div className="flex items-center justify-center bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors leading-none">
                                     {main.country || "Global"}
                                 </div>
                             </div>
@@ -145,15 +145,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                         className="object-cover group-hover:scale-110 transition-transform duration-500"
                                         style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                                     />
-                                    {/* Small tags for side posts at bottom left */}
-                                    <div className="absolute bottom-1 left-1 flex gap-0.5 z-10 scale-90 origin-bottom-left">
-                                        <div className="bg-[#cc0000] text-white text-[8px] font-black uppercase px-1 py-0.5 tracking-tighter shadow-lg">
-                                            {article.category}
-                                        </div>
-                                        <div className="bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[8px] font-black uppercase px-1 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors">
-                                            {article.country || "Global"}
-                                        </div>
-                                    </div>
+                                    {/* Small tags for side posts at bottom left removed to prevent cramping */}
                                     {/* Share Icons Bottom Right */}
                                     <div className="absolute bottom-1 right-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20 scale-75 origin-bottom-right">
                                         <ShareButtons
@@ -163,11 +155,11 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                         />
                                     </div>
                                 </div>
-                                <div className="flex flex-col justify-center">
-                                    <h4 className="text-xs font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors line-clamp-2 mb-2">
+                                <div className="flex flex-col justify-between py-1 w-full">
+                                    <h4 className="text-sm font-black uppercase leading-[1.3] text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors line-clamp-3">
                                         {article.title}
                                     </h4>
-                                    <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
+                                    <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-auto">
                                         <span suppressHydrationWarning>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                         <span>•</span>
                                         <span suppressHydrationWarning>{formatViews(article.views_count)}</span>
@@ -204,11 +196,11 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                             />
                             {/* Tags at bottom left of image */}
-                            <div className="absolute bottom-2 left-2 flex gap-1 z-10">
-                                <div className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg">
+                            <div className="absolute bottom-2 left-2 flex gap-2 z-10 items-center">
+                                <div className="flex items-center justify-center bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg leading-none">
                                     {article.category}
                                 </div>
-                                <div className="bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors">
+                                <div className="flex items-center justify-center bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors leading-none">
                                     {article.country || "Global"}
                                 </div>
                             </div>
