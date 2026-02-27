@@ -23,8 +23,8 @@ export default function ArticlesTabs({ activeTab, setActiveTab, counts }: Articl
     const tabs = [
         { id: 'all' as ArticleTab, label: 'All Articles' },
         { id: 'published' as ArticleTab, label: 'Published' },
-        { id: 'being_processed' as ArticleTab, label: 'Being Processed' },
         { id: 'pending_review' as ArticleTab, label: 'Pending Review' },
+        { id: 'being_processed' as ArticleTab, label: 'Being Processed' },
         ...(isEditor ? [] : [{ id: 'deleted' as ArticleTab, label: 'Deleted' }]),
     ];
 
