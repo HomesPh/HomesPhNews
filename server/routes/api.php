@@ -150,6 +150,8 @@ Route::prefix('v1')->group(function () {
         // User Info
         Route::get('/user', [AuthController::class, 'me']);
         Route::get('/login', [AuthController::class, 'me'])->name('login'); // Re-using me endpoint for check
+        Route::patch('/user/profile', [AuthController::class, 'updateProfile']);
+        Route::patch('/user/password', [AuthController::class, 'changePassword']);
 
         // Auth Actions
         Route::post('/logout', [AuthController::class, 'logout']);

@@ -17,6 +17,7 @@ interface AuthActions {
   logout: () => Promise<void>;
   setHasHydrated: (state: boolean) => void;
   setAuth: (token: string, user: UserResource) => void;
+  updateUser: (updates: Partial<UserResource>) => void;
 }
 
 export interface AuthStore extends AuthState, AuthActions { }
@@ -96,6 +97,27 @@ export const useAuth = create<AuthStore>()(
         set({
           token: token,
           user: user
+        });
+      },
+
+      updateUser: (updates: Partial<UserResource>) => {
+        set((state) => {
+          if (!state.user) return state;
+
+          const updatedUser = { ...state.user, ...updates };
+
+          if (typeof window !== 'undefined') {
+            const names = updatedUser.name.split(' ');
+            localStorage.setItem('user_info', JSON.stringify({
+              firstName: updatedUser.first_name || names[0],
+              lastName: updatedUser.last_name || names.slice(1).join(' '),
+              email: updatedUser.email,
+              roles: updatedUser.roles,
+              avatar: updatedUser.avatar
+            }));
+          }
+
+          return { ...state, user: updatedUser };
         });
       },
 
