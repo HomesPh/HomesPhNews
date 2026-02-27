@@ -122,6 +122,10 @@ export default function Canvas({
         }
     };
 
+    const isActualMobile = viewMode === 'mobile';
+    const isActualTablet = viewMode === 'tablet';
+    const isDesktop = viewMode === 'desktop';
+
     return (
         <div
             ref={(node) => { drop(node); }}
@@ -130,8 +134,9 @@ export default function Canvas({
                 transformOrigin: 'top center',
             }}
             className={cn(
-                "w-full bg-white min-h-[1200px] shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-sm p-[80px] pt-[60px] pb-[150px] flex flex-col relative transition-all duration-300 pointer-events-auto h-fit",
-                getContainerWidth()
+                "w-full bg-white min-h-[1200px] shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-sm pt-[60px] pb-[150px] flex flex-col relative transition-all duration-300 pointer-events-auto h-fit",
+                getContainerWidth(),
+                isActualMobile ? "px-[24px]" : isActualTablet ? "px-[40px]" : "px-[80px]"
             )}
             onClick={(e) => {
                 // Ensure clicks on the canvas (empty area) clear selection
@@ -153,7 +158,10 @@ export default function Canvas({
 
             {/* 2. Fixed Title Section - Matching Production Typography */}
             <AutoResizeTextarea
-                className="font-bold text-[42px] md:text-[48px] text-[#111827] tracking-tight leading-[1.1] mb-4"
+                className={cn(
+                    "font-bold text-[#111827] tracking-tight leading-[1.1] mb-6",
+                    isActualMobile ? "text-[32px]" : "text-[42px] md:text-[48px]"
+                )}
                 value={details.title}
                 onChange={(val) => onUpdateDetails({ title: val })}
                 placeholder="From Manila to Mackay: How Nigerians Keep Their Culture Alive Down Under"
@@ -161,14 +169,20 @@ export default function Canvas({
 
             {/* 3. Fixed Summary Section - Matching Production Typography */}
             <AutoResizeTextarea
-                className="font-normal text-[20px] text-[#4b5563] tracking-[-0.5px] leading-[1.2] mb-6"
+                className={cn(
+                    "font-normal text-[#4b5563] tracking-[-0.5px] leading-[1.2] mb-10",
+                    isActualMobile ? "text-[18px]" : "text-[20px]"
+                )}
                 value={details.summary}
                 onChange={(val) => onUpdateDetails({ summary: val })}
                 placeholder="The community in Mackay, Australia, maintains strong cultural connections despite geographic distance..."
             />
 
             {/* 4. High-Fidelity Meta Bar - Matching Production Style (Border Top & Bottom) */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between border-y border-[#e5e7eb] py-[20px] gap-4">
+            <div className={cn(
+                "flex justify-between border-y border-[#e5e7eb] py-[20px] gap-4",
+                isActualMobile ? "flex-col items-start" : "flex-row items-center"
+            )}>
                 <div className="flex flex-wrap items-center gap-y-2 gap-x-[20px] md:gap-x-[34px]">
                     <div className="font-semibold text-[14px] text-[#6b7280] tracking-[-0.5px] leading-[20px]">
                         By {details.author}
@@ -216,6 +230,7 @@ export default function Canvas({
                             index={index}
                             block={block}
                             isActive={activeBlockId === block.id}
+                            viewMode={viewMode}
                             onSelect={() => onSelectBlock(block.id)}
                             onUpdate={onUpdateBlock}
                             onRemove={onRemoveBlock}

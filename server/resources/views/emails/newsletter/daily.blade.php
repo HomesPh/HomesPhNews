@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Daily News Digest - HomesPHNews</title>
+    <title>Your Daily News Digest - Homes.ph News</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         body {
@@ -264,11 +264,8 @@
     <div class="container">
         <div class="header">
             <div class="logo-wrapper">
-                <img src="{{ $logo }}" alt="" class="logo-img">
-                <span class="logo-text">HomesPH News</span>
-                <span class="logo-text">HomesPH News</span>
-                <img src="{{ $logo }}" alt="HomesPHNews" class="logo-img">
-                <span class="logo-text">HomesPHNews</span>
+                <img src="{{ $logo }}" alt="Homes.ph News" class="logo-img">
+                <span class="logo-text">Homes.ph News</span>
             </div>
         </div>
         <div class="sub-header">Daily News Digest</div>
@@ -276,7 +273,7 @@
         <div class="content">
             <h1 class="greeting">{{ $greeting }} {{ $greetingEmoji }}</h1>
             <div class="message">
-                Here is your personalized news digest from <strong>HomesPHNews</strong>, tailored to your interests in 
+                Here is your personalized news digest from <strong>Homes.ph News</strong>, tailored to your interests in 
                 @foreach($subscriber->category as $cat)
                     <span class="tag">{{ $cat }}</span>
                 @endforeach
@@ -345,14 +342,14 @@
         <div class="footer">
             <div class="footer-logo">
                 <div class="logo-wrapper-footer">
-                    <img src="{{ $logo }}" alt="HomesPHNews" style="max-height: 20px; width: auto; margin-right: 8px;">
-                    <span style="font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.04em;">HomesPHNews</span>
+                    <img src="{{ $logo }}" alt="Homes.ph News" style="max-height: 20px; width: auto; margin-right: 8px;">
+                    <span style="font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.04em;">Homes.ph News</span>
                 </div>
             </div>
             <div class="footer-text">
-                This email was sent to you because you subscribed to <strong>HomesPHNews Daily News</strong>.<br>
+                This email was sent to you because you subscribed to <strong>Homes.ph News Daily News</strong>.<br>
                 We value your privacy and only send content based on your selected interests.<br>
-                &copy; {{ date('Y') }} HomesPHNews. All rights reserved.
+                &copy; {{ date('Y') }} Homes.ph News. All rights reserved.
             </div>
             <div class="footer-links">
                 <a href="https://news.homes.ph/privacy-policy">Privacy Policy</a>
