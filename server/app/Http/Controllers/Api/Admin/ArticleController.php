@@ -78,30 +78,39 @@ class ArticleController extends Controller
         $availableCategories = (clone $query)->distinct()->whereNotNull('category')->pluck('category')->sort()->values()->toArray();
         $availableCountries = (clone $query)->distinct()->whereNotNull('country')->pluck('country')->sort()->values()->toArray();
 
-        // Merge Redis and DB filters if fetching 'all' or 'being_processed' status
+        // Always include active DB countries/categories so dropdowns show all options (e.g. on pending_review + country filter)
+        $dbActiveCategories = \App\Models\Category::where('is_active', true)->pluck('name')->toArray();
+        $dbActiveCountries = \App\Models\Country::where('is_active', true)->pluck('name')->toArray();
+        $availableCategories = collect(array_merge($availableCategories, $dbActiveCategories))
+            ->unique()
+            ->filter(fn($cat) => !in_array(strtolower($cat), ['restaurant', 'restaurants', 'all']))
+            ->sort()
+            ->values()
+            ->toArray();
+        $availableCountries = collect(array_merge($availableCountries, $dbActiveCountries))
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        // Also merge Redis filters when fetching 'all' or 'being_processed' (Redis = being processed)
         if (!$status || $status === 'all' || $status === 'being_processed') {
             try {
                 $redisCountries = collect($this->redisService->getCountries())->pluck('name')->toArray();
                 $redisCategories = collect($this->redisService->getCategories())->pluck('name')->toArray();
-
-                // Fetch all active options from DB to ensure new/empty ones show up
-                $dbActiveCategories = \App\Models\Category::where('is_active', true)->pluck('name')->toArray();
-                $dbActiveCountries = \App\Models\Country::where('is_active', true)->pluck('name')->toArray();
-
-                // Merge and deduplicate
-                $availableCategories = collect(array_merge($availableCategories, $redisCategories, $dbActiveCategories))
+                $availableCategories = collect(array_merge($availableCategories, $redisCategories))
                     ->unique()
-                    ->filter(fn($cat) => !in_array(strtolower($cat), ['restaurant', 'restaurants']))
+                    ->filter(fn($cat) => !in_array(strtolower($cat), ['restaurant', 'restaurants', 'all']))
                     ->sort()
                     ->values()
                     ->toArray();
-                $availableCountries = collect(array_merge($availableCountries, $redisCountries, $dbActiveCountries))
+                $availableCountries = collect(array_merge($availableCountries, $redisCountries))
                     ->unique()
                     ->sort()
                     ->values()
                     ->toArray();
             } catch (\Exception $e) {
-                \Log::warning('Failed to get Redis/DB filters: ' . $e->getMessage());
+                \Log::warning('Failed to get Redis filters: ' . $e->getMessage());
             }
         }
 

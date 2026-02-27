@@ -10,13 +10,13 @@ interface FilterConfig<T extends string = string> {
   /** Default value when param is not in URL */
   default: T;
   /** Values that should remove the param from URL (e.g., 'all', 'All Category') */
-  resetValues?: T[];
+  resetValues?: readonly T[];
 }
 
 /**
  * Configuration object mapping filter keys to their configs
  */
-type FiltersConfig<T extends Record<string, string>> = {
+export type FiltersConfig<T extends Record<string, string>> = {
   [K in keyof T]: FilterConfig<T[K]>;
 };
 
