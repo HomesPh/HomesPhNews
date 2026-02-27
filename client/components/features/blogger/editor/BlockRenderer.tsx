@@ -15,6 +15,7 @@ interface BlockRendererProps {
     index: number;
     block: Block;
     isActive: boolean;
+    viewMode?: 'desktop' | 'tablet' | 'mobile';
     onSelect: () => void;
     onUpdate: (id: string, content: any) => void;
     onRemove: (id: string) => void;
@@ -218,6 +219,7 @@ export default function BlockRenderer({
     index,
     block,
     isActive,
+    viewMode = 'desktop',
     onSelect,
     onUpdate,
     onRemove,
@@ -230,6 +232,8 @@ export default function BlockRenderer({
     const imageContainerRef = useRef<HTMLDivElement>(null);
     const isDraggingImage = useRef(false);
     const lastMousePos = useRef({ x: 0, y: 0 });
+
+    const isActualMobile = viewMode === 'mobile';
 
     // Drag and Drop Logic
     const [{ isDragging }, drag] = useDrag({
@@ -258,9 +262,10 @@ export default function BlockRenderer({
     drag(drop(ref));
 
     const settings = block.settings || {};
+    const baseFontSize = settings.fontSize || '18px';
     const style: React.CSSProperties = {
         textAlign: settings.textAlign || 'left',
-        fontSize: settings.fontSize || '18px',
+        fontSize: isActualMobile ? (parseFloat(baseFontSize) * 0.9 + 'px') : baseFontSize,
         fontWeight: settings.fontWeight || '400',
         fontStyle: settings.isItalic ? 'italic' : 'normal',
         textDecoration: settings.isUnderline ? 'underline' : 'none',
@@ -320,7 +325,7 @@ export default function BlockRenderer({
                 });
 
                 return (
-                    <div className={cn("space-y-3", block.type === 'centered-image' && "max-w-[400px] mx-auto")}>
+                    <div className={cn("space-y-3", block.type === 'centered-image' && (isActualMobile ? "max-w-full mx-auto" : "max-w-[400px] mx-auto"))}>
                         <DraggableImage
                             src={block.content.src}
                             onUpload={(e) => handleFileSelect(e, (url) => onUpdate(block.id, { src: url }))}
@@ -344,8 +349,12 @@ export default function BlockRenderer({
             case 'right-image':
                 const isLeft = block.type === 'left-image';
                 return (
-                    <div className={cn("flex gap-8 items-start flex-col md:flex-row", !isLeft && "md:flex-row-reverse")}>
-                        <div className="w-full md:w-[180px] shrink-0">
+                    <div className={cn(
+                        "flex gap-8 items-start",
+                        isActualMobile ? "flex-col" : "flex-row",
+                        (!isLeft && !isActualMobile) && "flex-row-reverse"
+                    )}>
+                        <div className={cn("w-full shrink-0", !isActualMobile && "md:w-[180px]")}>
                             <DraggableImage
                                 src={block.content.image || block.content.src}
                                 onUpload={(e) => handleFileSelect(e, (url) => onUpdate(block.id, { image: url }))}
@@ -420,8 +429,9 @@ export default function BlockRenderer({
                 const isSplitLeft = block.type === 'split-left';
                 return (
                     <div className={cn(
-                        "flex flex-col md:flex-row bg-[#f9fafb] rounded-2xl overflow-hidden min-h-[400px] border border-gray-100",
-                        !isSplitLeft && "md:flex-row-reverse"
+                        "flex bg-[#f9fafb] rounded-2xl overflow-hidden min-h-[400px] border border-gray-100",
+                        isActualMobile ? "flex-col" : "md:flex-row",
+                        (!isSplitLeft && !isActualMobile) && "md:flex-row-reverse"
                     )}>
                         <div className="flex-1 min-h-[300px] h-full">
                             <DraggableImage
