@@ -232,12 +232,13 @@ export default function BlockDrawer({
                             </div>
 
                             <div className="mb-4">
-                                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Author (Auto-detected)</label>
+                                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Author</label>
                                 <input
                                     type="text"
                                     value={details.author}
-                                    readOnly
-                                    className="w-full px-4 py-3 bg-gray-100 border border-gray-100 rounded-xl text-xs font-bold text-gray-500 cursor-not-allowed focus:outline-none"
+                                    onChange={(e) => onUpdateDetails({ author: e.target.value })}
+                                    placeholder="HOMESPH NEWS"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#C10007]/20 transition-all font-inter"
                                 />
                             </div>
 

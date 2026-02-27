@@ -292,7 +292,7 @@ function ArticleDetailsContent() {
 
                                 <div className="flex items-center gap-4 mb-6 text-[14px] text-[#6b7280] tracking-[-0.5px]">
                                     <span className="font-medium text-[#111827]">
-                                        By {'HomesPh News' /* Default author */}
+                                        By {article.author || 'HOMESPH NEWS'}
                                     </span>
                                     <span className="text-[#e5e7eb]">|</span>
                                     <div className="flex items-center gap-1.5">

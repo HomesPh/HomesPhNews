@@ -155,7 +155,7 @@ export default function ArticleEditorForm({
                 category: data.category || "",
                 country: data.country || "PHILIPPINES",
                 tags: data.tags || [],
-                author: data.author || user?.name || "",
+                author: data.author || user?.name || "HOMESPH NEWS",
                 authorTitle: "",
                 publishDate: data.publishDate || new Date().toISOString().split('T')[0],
                 publishTime: data.publishTime || "12:00",
