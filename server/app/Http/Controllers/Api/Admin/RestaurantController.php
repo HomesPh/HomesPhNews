@@ -26,35 +26,37 @@ class RestaurantController extends Controller
 
         $query = \App\Models\Restaurant::query();
 
-        // 1. If status is 'all' or 'published', fetch from DB first
-        if (!$status || $status === 'all' || $status === 'published') {
-            $dbRestaurants = $query->when($status === 'published', fn($q) => $q->where('status', 'published'))
-                ->orderBy('created_at', 'desc')
-                ->paginate($limit);
+        // Being Processed = Redis only. Pending Review = DB where status draft.
+        $isBeingProcessed = ($status === 'being_processed' || $status === 'draft' || $status === 'pending');
+        $isPendingReview = ($status === 'pending_review');
 
+        // 1. DB: published, pending_review (draft), or for 'all'
+        $data = [];
+        $dbRestaurants = null;
+        if (!$status || $status === 'all' || $status === 'published' || $isPendingReview) {
+            $dbQuery = clone $query;
+            $dbQuery->when($status === 'published', fn($q) => $q->where('status', 'published'))
+                ->when($isPendingReview, fn($q) => $q->where('status', 'draft'))
+                ->when(!$status || $status === 'all', fn($q) => $q->whereIn('status', ['published', 'draft']))
+                ->orderBy('created_at', 'desc');
+            $dbRestaurants = $dbQuery->paginate($limit);
             $data = $dbRestaurants->items();
-        } else {
-            $data = [];
         }
 
-        // 2. Fetch from Redis if status is 'all', 'draft', or 'pending'
+        // 2. Redis list (Being Processed)
         $redisRestaurants = [];
-        if (!$status || $status === 'all' || $status === 'draft' || $status === 'pending') {
+        $restaurantIds = [];
+        if (!$status || $status === 'all' || $isBeingProcessed) {
             $restaurantIds = Redis::smembers("{$this->prefix}all_restaurants");
-            
             if (!empty($restaurantIds)) {
-                // Deduplicate: Don't show Redis items if they already exist in our DB
                 $dbIds = \App\Models\Restaurant::pluck('id')->toArray();
-                $pendingIds = array_diff($restaurantIds, $dbIds);
-
-                // Sort and slice for simple pagination if status is specifically 'draft'
-                if ($status === 'draft' || $status === 'pending') {
-                    $sortedIds = collect($pendingIds)->sort()->reverse()->slice($offset, $limit);
+                $pendingIds = array_values(array_diff($restaurantIds, $dbIds));
+                $sortedIds = collect($pendingIds)->sort()->reverse()->values()->all();
+                if ($isBeingProcessed) {
+                    $sortedIds = array_slice($sortedIds, $offset, $limit);
                 } else {
-                    // For 'all', just take some
-                    $sortedIds = collect($pendingIds)->sort()->reverse()->take(10);
+                    $sortedIds = array_slice($sortedIds, 0, 10);
                 }
-
                 foreach ($sortedIds as $rid) {
                     $redisData = Redis::get("{$this->prefix}restaurant:{$rid}");
                     if ($redisData) {
@@ -71,37 +73,51 @@ class RestaurantController extends Controller
                             'timestamp' => $r['timestamp'] ?? 0,
                             'status' => $r['status'] ?? 'draft',
                             'is_filipino_owned' => $r['is_filipino_owned'] ?? false,
+                            'is_redis' => true,
                         ];
                     }
                 }
             }
         }
 
-        // Merge results if status is 'all'
-        if (!$status || $status === 'all') {
-            $allMerged = collect($redisRestaurants)->merge($data);
-            
-            // Re-format into paginated style for frontend compatibility
-            return response()->json([
-                'data' => $allMerged,
-                'current_page' => $page,
-                'last_page' => isset($dbRestaurants) ? $dbRestaurants->lastPage() : 1,
-                'total' => (isset($dbRestaurants) ? $dbRestaurants->total() : 0) + count($redisRestaurants),
-                'status_counts' => $this->getStatusCounts(),
-            ]);
-        }
-
-        // If specifically requested drafts/pending
-        if ($status === 'draft' || $status === 'pending') {
+        // Being Processed tab: Redis only
+        if ($isBeingProcessed) {
+            $totalRedis = count(array_diff($restaurantIds, \App\Models\Restaurant::pluck('id')->toArray()));
             return response()->json([
                 'data' => $redisRestaurants,
                 'current_page' => $page,
-                'total' => count($restaurantIds ?? []), // Approximate
+                'last_page' => (int) max(1, ceil($totalRedis / $limit)),
+                'total' => $totalRedis,
                 'status_counts' => $this->getStatusCounts(),
             ]);
         }
 
-        // Default DB response
+        // Pending Review tab: DB draft only
+        if ($isPendingReview) {
+            return response()->json([
+                'data' => $data,
+                'current_page' => $dbRestaurants->currentPage(),
+                'last_page' => $dbRestaurants->lastPage(),
+                'total' => $dbRestaurants->total(),
+                'status_counts' => $this->getStatusCounts(),
+            ]);
+        }
+
+        // Merge results if status is 'all'
+        if (!$status || $status === 'all') {
+            $allMerged = collect($redisRestaurants)->merge($data);
+            $dbTotal = $dbRestaurants ? $dbRestaurants->total() : 0;
+            $redisTotal = count(array_diff($restaurantIds, \App\Models\Restaurant::pluck('id')->toArray()));
+            return response()->json([
+                'data' => $allMerged,
+                'current_page' => $page,
+                'last_page' => max(1, (int) ceil(($dbTotal + $redisTotal) / $limit)),
+                'total' => $dbTotal + $redisTotal,
+                'status_counts' => $this->getStatusCounts(),
+            ]);
+        }
+
+        // Published or default DB response
         return response()->json([
             'data' => $data,
             'current_page' => $dbRestaurants->currentPage(),
@@ -126,6 +142,7 @@ class RestaurantController extends Controller
         $data = Redis::get("{$this->prefix}restaurant:{$id}");
         if ($data) {
             $r = json_decode($data, true);
+            $r['is_redis'] = true;
             return response()->json($r);
         }
 
@@ -253,18 +270,102 @@ class RestaurantController extends Controller
     }
 
     /**
+     * Bulk move Redis restaurants to database with status 'draft' (Pending Review).
+     */
+    public function moveToDb(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'required|string',
+        ]);
+        $ids = array_values(array_unique($validated['ids']));
+        $inserted = [];
+        $failed = [];
+        $chunkSize = 5;
+        $delayMs = 150;
+
+        foreach (array_chunk($ids, $chunkSize) as $chunk) {
+            foreach ($chunk as $id) {
+                try {
+                    $data = Redis::get("{$this->prefix}restaurant:{$id}");
+                    if (!$data) {
+                        $failed[] = ['id' => $id, 'reason' => 'Restaurant not found in Redis'];
+                        continue;
+                    }
+                    if (\App\Models\Restaurant::where('id', $id)->exists()) {
+                        $failed[] = ['id' => $id, 'reason' => 'Already exists in database'];
+                        continue;
+                    }
+                    $r = json_decode($data, true);
+                    \App\Models\Restaurant::create([
+                        'id' => $id,
+                        'name' => $r['name'] ?? 'Unknown',
+                        'description' => $r['description'] ?? '',
+                        'country' => $r['country'] ?? '',
+                        'city' => $r['city'] ?? '',
+                        'cuisine_type' => $r['cuisine_type'] ?? '',
+                        'address' => $r['address'] ?? '',
+                        'image_url' => $r['image_url'] ?? '',
+                        'google_maps_url' => $r['google_maps_url'] ?? '',
+                        'is_filipino_owned' => $r['is_filipino_owned'] ?? false,
+                        'price_range' => $r['price_range'] ?? '',
+                        'budget_category' => $r['budget_category'] ?? '',
+                        'avg_meal_cost' => $r['avg_meal_cost'] ?? '',
+                        'rating' => $r['rating'] ?? 0,
+                        'specialty_dish' => $r['specialty_dish'] ?? '',
+                        'menu_highlights' => $r['menu_highlights'] ?? '',
+                        'brand_story' => $r['brand_story'] ?? '',
+                        'why_filipinos_love_it' => $r['why_filipinos_love_it'] ?? '',
+                        'contact_info' => $r['contact_info'] ?? '',
+                        'website' => $r['website'] ?? '',
+                        'social_media' => $r['social_media'] ?? '',
+                        'opening_hours' => $r['opening_hours'] ?? '',
+                        'original_url' => $r['original_url'] ?? '',
+                        'clickbait_hook' => $r['clickbait_hook'] ?? '',
+                        'status' => 'draft',
+                        'timestamp' => $r['timestamp'] ?? time(),
+                        'tags' => $r['tags'] ?? [],
+                        'features' => $r['features'] ?? [],
+                        'is_featured' => $r['is_featured'] ?? false,
+                        'is _featured' => $r['is _featured'] ?? false,
+                    ]);
+                    Redis::del("{$this->prefix}restaurant:{$id}");
+                    Redis::srem("{$this->prefix}all_restaurants", $id);
+                    $inserted[] = $id;
+                } catch (\Exception $e) {
+                    \Log::warning("Restaurant moveToDb failed for {$id}: " . $e->getMessage());
+                    $failed[] = ['id' => $id, 'reason' => $e->getMessage()];
+                }
+            }
+            if ($delayMs > 0 && count($chunk) === $chunkSize) {
+                usleep($delayMs * 1000);
+            }
+        }
+
+        return response()->json([
+            'message' => count($inserted) . ' moved to database' . (count($failed) > 0 ? ', ' . count($failed) . ' failed' : ''),
+            'inserted' => $inserted,
+            'failed' => $failed,
+        ]);
+    }
+
+    /**
      * Helper to get status counts for UI tabs.
      */
     protected function getStatusCounts()
     {
         $published = \App\Models\Restaurant::where('status', 'published')->count();
-        $draft = Redis::scard("{$this->prefix}all_restaurants");
-        
+        $dbDraft = \App\Models\Restaurant::where('status', 'draft')->count();
+        $redisCount = (int) Redis::scard("{$this->prefix}all_restaurants");
+        $deleted = \App\Models\Restaurant::where('status', 'deleted')->count();
+        // Being Processed = Redis only. Pending = DB draft only.
         return [
-            'all' => $published + $draft,
+            'all' => $published + $dbDraft + $redisCount,
             'published' => $published,
-            'draft' => $draft,
-            'deleted' => \App\Models\Restaurant::where('status', 'deleted')->count(),
+            'being_processed' => $redisCount,
+            'pending' => $dbDraft,
+            'draft' => $redisCount + $dbDraft, // legacy
+            'deleted' => $deleted,
         ];
     }
 

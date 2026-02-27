@@ -246,6 +246,7 @@ Route::prefix('v1')->group(function () {
 
                 Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
                 Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
+                Route::post('restaurants/move-to-db', [AdminRestaurantController::class, 'moveToDb'])->name('restaurants.move-to-db');
                 Route::apiResource('restaurants', AdminRestaurantController::class);
 
                 // Additional Management

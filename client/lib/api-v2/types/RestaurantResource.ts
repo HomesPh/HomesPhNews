@@ -20,6 +20,8 @@ export interface RestaurantSummary {
   // Status & detailed pricing
   status?: 'published' | 'draft' | 'deleted' | 'archived';
   avg_meal_cost?: string;
+  /** True when item is from Redis (Being Processed), not yet in DB */
+  is_redis?: boolean;
 }
 
 export interface Restaurant {
@@ -73,6 +75,8 @@ export interface Restaurant {
   status?: 'published' | 'draft' | 'deleted' | 'archived';
   tags?: string[];
   features?: string[];
+  /** True when from Redis (Being Processed), not yet in DB */
+  is_redis?: boolean;
 }
 
 export interface RestaurantStats {
