@@ -46,11 +46,7 @@ export default function AdUnitListItem({
                 {adUnit.type.toUpperCase()}
               </Badge>
             )}
-            {adUnit.size && (
-              <Badge variant="secondary" className="text-xs">
-                {adUnit.size}
-              </Badge>
-            )}
+
           </div>
 
           <div className="text-sm text-gray-500">

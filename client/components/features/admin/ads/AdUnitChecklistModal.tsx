@@ -107,7 +107,6 @@ export default function AdUnitChecklistModal({
                         {au.name}
                       </Label>
                       <p className="text-xs text-muted-foreground">
-                        {au.size ? au.size : "Unspecified size"} •{" "}
                         {au.type ? au.type.toUpperCase() : "ANY"}
                       </p>
                     </div>

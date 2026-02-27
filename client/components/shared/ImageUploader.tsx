@@ -13,6 +13,7 @@ interface ImageUploaderProps {
   multiple?: boolean;
   label?: string;
   className?: string;
+  uploadType?: string;
 }
 
 export function ImageUploader({
@@ -21,6 +22,7 @@ export function ImageUploader({
   multiple = false,
   label,
   className,
+  uploadType,
 }: ImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -38,12 +40,42 @@ export function ImageUploader({
     setIsUploading(true);
     const uploadedUrls: string[] = [];
 
+    // Helper to check image dimensions
+    const checkDimensions = (file: File): Promise<boolean> => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const validSizes = [
+            [300, 250], [728, 90], [160, 600], [320, 50],
+            [970, 250], [300, 600], [320, 100]
+          ];
+          const isValid = validSizes.some(size => size[0] === img.width && size[1] === img.height);
+          if (!isValid) {
+            alert(`Invalid dimensions: ${img.width}x${img.height}px. Allowed: 300x250, 728x90, 160x600, 320x50, 970x250, 300x600, 320x100`);
+          }
+          resolve(isValid);
+        };
+        img.onerror = () => resolve(false);
+        img.src = URL.createObjectURL(file);
+      });
+    };
+
     try {
-      // Upload each file sequentially
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+
+        if (uploadType === "ad_banner") {
+          const isValid = await checkDimensions(file);
+          if (!isValid) {
+            continue; // Skip invalid files
+          }
+        }
+
         const formData = new FormData();
         formData.append("image", file);
+        if (uploadType) {
+          formData.append("type", uploadType);
+        }
 
         const response = await AXIOS_INSTANCE_ADMIN.post(
           "/v1/admin/upload/image",
