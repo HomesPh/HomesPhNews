@@ -8,17 +8,23 @@ import { Button } from "@/components/ui/button";
 import { getAdminRestaurants } from "@/lib/api-v2/admin/service/restaurant/getAdminRestaurants";
 import type { RestaurantSummary } from "@/lib/api-v2/types/RestaurantResource";
 import RestaurantListItem from "@/components/features/admin/restaurant/RestaurantListItem";
-import RestaurantsTabs, { RestaurantTab } from "@/components/features/admin/restaurant/RestaurantsTabs";
+import RestaurantsTabs, { type RestaurantTab } from "@/components/features/admin/restaurant/RestaurantsTabs";
 import RestaurantEditorModal from "@/components/features/admin/restaurant/RestaurantEditorModal";
 import RestaurantFilters from "@/components/features/admin/restaurant/RestaurantFilters";
 import usePagination from "@/hooks/usePagination";
 import Pagination from "@/components/features/admin/shared/Pagination";
-import useUrlFilters from "@/hooks/useUrlFilters";
+import useUrlFilters, { type FiltersConfig } from "@/hooks/useUrlFilters";
 
-const URL_FILTERS_CONFIG = {
-    status: { default: 'all' as const, resetValues: ['all'] as const },
-    category: { default: 'All Category' as const, resetValues: ['All Category'] as const },
-    country: { default: 'All Countries' as const, resetValues: ['All Countries'] as const },
+type RestaurantFilters = {
+    status: RestaurantTab | 'draft';
+    category: string;
+    country: string;
+};
+
+const URL_FILTERS_CONFIG: FiltersConfig<RestaurantFilters> = {
+    status: { default: 'all', resetValues: ['all'] },
+    category: { default: 'All Category', resetValues: ['All Category'] },
+    country: { default: 'All Countries', resetValues: ['All Countries'] },
 };
 
 export default function RestaurantPage() {
