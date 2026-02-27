@@ -1,0 +1,318 @@
+diff --git a/client/components/features/admin/layout/AdminSidebar.tsx b/client/components/features/admin/layout/AdminSidebar.tsx
+index d1c1560..73b7812 100644
+--- a/client/components/features/admin/layout/AdminSidebar.tsx
++++ b/client/components/features/admin/layout/AdminSidebar.tsx
+@@ -95,20 +95,17 @@ export default function AdminSidebar() {
+           {!isCollapsed ? (
+             <div className="flex items-center gap-3 px-2">
+               <img
+-                src="/images/HomesTVwhite.png"
+-                alt="HomesTV"
+-                className="w-10 h-10 object-contain"
++                src="/images/HomesLogoW.png"
++                alt="Homes.ph News"
++                className="h-12 w-auto object-contain"
+               />
+-              <div className="flex flex-col">
+-                <h1 className="text-[20px] font-bold text-white leading-[1.4] tracking-[-0.5px]">HomesTV</h1>
+-              </div>
+             </div>
+           ) : (
+             <div className="flex justify-center">
+               <img
+-                src="/images/HomesTVwhite.png"
+-                alt="HomesTV"
+-                className="w-10 h-10 object-contain"
++                src="/images/HomesLogoW.png"
++                alt="Homes.ph News"
++                className="h-10 w-auto object-contain"
+               />
+             </div>
+           )}
+diff --git a/client/components/features/admin/sites/SiteEditorModal.tsx b/client/components/features/admin/sites/SiteEditorModal.tsx
+index 7c0b4f9..f3a7033 100644
+--- a/client/components/features/admin/sites/SiteEditorModal.tsx
++++ b/client/components/features/admin/sites/SiteEditorModal.tsx
+@@ -63,7 +63,7 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
+             description: formData.description,
+             categories: formData.categories,
+             country: formData.country,
+-            image: formData.logoUrl || "/images/HomesTV.png",
++            image: formData.logoUrl || "/images/HomesLogo.png",
+             // Remove legacy fields if not in request type, or keep if harmless? 
+             // Better to match request type. Status is handled by updateSite but mainly via toggle?
+             // UpdateSiteRequest supports status.
+diff --git a/client/components/features/admin/sites/SiteListItem.tsx b/client/components/features/admin/sites/SiteListItem.tsx
+index d027f1b..e95c21b 100644
+--- a/client/components/features/admin/sites/SiteListItem.tsx
++++ b/client/components/features/admin/sites/SiteListItem.tsx
+@@ -40,7 +40,7 @@ export default function SiteListItem({ site, onEdit, onDelete, onToggleStatus, o
+                         className="w-full h-full object-cover"
+                         onError={(e) => {
+                             const target = e.target as HTMLImageElement;
+-                            target.src = "/images/HomesTV.png";
++                            target.src = "/images/HomesLogo.png";
+                         }}
+                     />
+                 </div>
+diff --git a/client/components/features/blogger/layout/BloggerSidebar.tsx b/client/components/features/blogger/layout/BloggerSidebar.tsx
+index ddc801d..fab0d54 100644
+--- a/client/components/features/blogger/layout/BloggerSidebar.tsx
++++ b/client/components/features/blogger/layout/BloggerSidebar.tsx
+@@ -52,8 +52,8 @@ export default function BloggerSidebar() {
+                     {!isCollapsed ? (
+                         <div className="flex items-center gap-3 px-2">
+                             <img
+-                                src="/images/HomesTVwhite.png"
+-                                alt="HomesTV"
++                                src="/images/HomesLogoW.png"
++                                alt="Homes.ph News"
+                                 className="w-10 h-10 object-contain"
+                             />
+                             <div className="flex flex-col">
+@@ -61,10 +61,10 @@ export default function BloggerSidebar() {
+                             </div>
+                         </div>
+                     ) : (
+-                        <div className="flex justify-center">
++                        <div className="flex items-center justify-center px-2">
+                             <img
+-                                src="/images/HomesTVwhite.png"
+-                                alt="HomesTV"
++                                src="/images/HomesLogoW.png"
++                                alt="Homes.ph News"
+                                 className="w-10 h-10 object-contain"
+                             />
+                         </div>
+@@ -117,7 +117,7 @@ export default function BloggerSidebar() {
+                         )}
+                     </button>
+                 </SidebarFooter>
+-            </div>
+-        </Sidebar>
++            </div >
++        </Sidebar >
+     );
+ }
+diff --git a/client/components/features/editor/layout/EditorSidebar.tsx b/client/components/features/editor/layout/EditorSidebar.tsx
+index 724e64a..918b83c 100644
+--- a/client/components/features/editor/layout/EditorSidebar.tsx
++++ b/client/components/features/editor/layout/EditorSidebar.tsx
+@@ -32,19 +32,16 @@ export default function EditorSidebar() {
+                     {!isCollapsed ? (
+                         <div className="flex items-center gap-3 px-2">
+                             <img
+-                                src="/images/HomesTVwhite.png"
+-                                alt="HomesTV"
+-                                className="w-10 h-10 object-contain"
++                                src="/images/HomesLogoW.png"
++                                alt="Homes.ph News"
++                                className="h-10 w-auto object-contain"
+                             />
+-                            <div className="flex flex-col">
+-                                <h1 className="text-[20px] font-bold text-white leading-[1.4] tracking-[-0.5px]">Editor Portal</h1>
+-                            </div>
+                         </div>
+                     ) : (
+                         <div className="flex justify-center">
+                             <img
+-                                src="/images/HomesTVwhite.png"
+-                                alt="HomesTV"
++                                src="/images/HomesLogoW.png"
++                                alt="Homes.ph News"
+                                 className="w-10 h-10 object-contain"
+                             />
+                         </div>
+diff --git a/client/components/features/subscriber/layout/SubscriberSidebar.tsx b/client/components/features/subscriber/layout/SubscriberSidebar.tsx
+index 385b76b..29dc083 100644
+--- a/client/components/features/subscriber/layout/SubscriberSidebar.tsx
++++ b/client/components/features/subscriber/layout/SubscriberSidebar.tsx
+@@ -43,8 +43,8 @@ export default function SubscriberSidebar() {
+ 
+     // Customization State
+     const [branding, setBranding] = useState({
+-        logo: "/images/HomesTVwhite.png",
+-        name: "HomesTV"
++        logo: "/images/HomesLogoW.png",
++        name: "Homes.ph News"
+     });
+ 
+     const [theme, setTheme] = useState({
+@@ -63,8 +63,8 @@ export default function SubscriberSidebar() {
+ 
+                     // Load Branding
+                     setBranding({
+-                        logo: prefs.customization?.logo || "/images/HomesTVwhite.png",
+-                        name: prefs.customization?.companyName || "HomesTV"
++                        logo: prefs.customization?.logo || "/images/HomesLogoW.png",
++                        name: prefs.customization?.companyName || "Homes.ph News"
+                     });
+ 
+                     // Load Theme
+diff --git a/client/components/features/subscription/PlanConfigurationModal.tsx b/client/components/features/subscription/PlanConfigurationModal.tsx
+index cc81c0f..edd6413 100644
+--- a/client/components/features/subscription/PlanConfigurationModal.tsx
++++ b/client/components/features/subscription/PlanConfigurationModal.tsx
+@@ -81,9 +81,9 @@ export default function PlanConfigurationModal({
+                 <div className="h-[70px] bg-[#c10007] relative overflow-hidden flex items-center justify-center flex-shrink-0">
+                     <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+                     <img
+-                        src="/images/HomesTV.png"
+-                        alt="HomesTV"
+-                        className="h-9 w-auto object-contain brightness-0 invert"
++                        src="/images/HomesLogo.png"
++                        alt="Homes.ph News Logo"
++                        className="h-9 w-auto object-contain"
+                     />
+                 </div>
+ 
+@@ -184,8 +184,8 @@ export default function PlanConfigurationModal({
+                                                 });
+                                             }}
+                                             className={`px-4 py-2 rounded-full text-xs font-semibold border transition-all ${formData.categories.includes(category.id)
+-                                                    ? 'bg-[#fef2f2] border-[#c10007] text-[#c10007] shadow-sm'
+-                                                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
++                                                ? 'bg-[#fef2f2] border-[#c10007] text-[#c10007] shadow-sm'
++                                                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                                                 }`}
+                                         >
+                                             {category.label}
+diff --git a/client/components/layout/footer/LandingFooter.tsx b/client/components/layout/footer/LandingFooter.tsx
+index bb695e2..1acd999 100644
+--- a/client/components/layout/footer/LandingFooter.tsx
++++ b/client/components/layout/footer/LandingFooter.tsx
+@@ -184,7 +184,7 @@ function FooterContent() {
+       {/* Copyright */}
+       <div className="border-t border-[#374151] pt-6 flex flex-col items-center">
+         <p className="font-normal text-[12px] text-[#6b7280] text-center">
+-          © 2026 HomesTV. All rights reserved.
++          © 2026 Homes.ph News. All rights reserved.
+         </p>
+       </div>
+     </div>
+diff --git a/client/components/layout/header/LandingHeader.tsx b/client/components/layout/header/LandingHeader.tsx
+index 1d66eba..31cf930 100644
+--- a/client/components/layout/header/LandingHeader.tsx
++++ b/client/components/layout/header/LandingHeader.tsx
+@@ -104,22 +104,12 @@ export default function LandingHeader() {
+ 
+               {/* Logo Section */}
+               <Link href="/" className="flex items-center gap-2 md:gap-3">
+-                <div className="relative w-8 h-8 md:w-10 md:h-10">
++                <div className="relative h-4 md:h-6 w-auto">
+                   <img
+-                    src="/images/HomesTV.png"
+-                    alt="HomesTV Logo"
+-                    className="dark:hidden object-contain w-full h-full"
++                    src="/images/HomesLogo.png"
++                    alt="Homes.ph News Logo"
++                    className="object-contain h-full w-auto"
+                   />
+-                  <img
+-                    src="/images/HomesTVwhite.png"
+-                    alt="HomesTV Logo"
+-                    className="hidden dark:block object-contain w-full h-full"
+-                  />
+-                </div>
+-                <div className="flex flex-col">
+-                  <span className="font-bold text-[18px] md:text-[22px] leading-none text-[#111827] dark:text-white tracking-tight">
+-                    HomesTV
+-                  </span>
+                 </div>
+               </Link>
+ 
+diff --git a/client/components/layout/header/LandingMobileMenu.tsx b/client/components/layout/header/LandingMobileMenu.tsx
+index 0c76a8a..765f1f9 100644
+--- a/client/components/layout/header/LandingMobileMenu.tsx
++++ b/client/components/layout/header/LandingMobileMenu.tsx
+@@ -35,20 +35,10 @@ export default function LandingMobileMenu({
+                 <div className="px-4 py-6 border-b border-gray-100 dark:border-[rgba(255,255,255,0.1)]">
+                     <div className="flex items-center gap-3 px-2">
+                         <img
+-                            src="/images/HomesTV.png"
+-                            alt="HomesTV"
+-                            className="w-10 h-10 object-contain dark:hidden"
++                            src="/images/HomesLogo.png"
++                            alt="Homes.ph News Logo"
++                            className="h-10 w-auto object-contain"
+                         />
+-                        <img
+-                            src="/images/HomesTVwhite.png"
+-                            alt="HomesTV"
+-                            className="w-10 h-10 object-contain hidden dark:block"
+-                        />
+-                        <div className="flex flex-col">
+-                            <h1 className="text-[20px] font-bold text-gray-900 dark:text-white leading-[1.4] tracking-[-0.5px]">
+-                                HomesTV
+-                            </h1>
+-                        </div>
+                     </div>
+                 </div>
+ 
+diff --git a/client/components/layout/header/SubscribeModal.tsx b/client/components/layout/header/SubscribeModal.tsx
+index 6d30781..dec8da7 100644
+--- a/client/components/layout/header/SubscribeModal.tsx
++++ b/client/components/layout/header/SubscribeModal.tsx
+@@ -242,9 +242,9 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
+                     {/* Center Section: Logo */}
+                     <div className="flex-1 flex items-center justify-center z-10">
+                         <img
+-                            src="/images/HomesTV.png"
+-                            alt="HomesTV"
+-                            className="h-9 w-auto object-contain brightness-0 invert"
++                            src="/images/HomesLogo.png"
++                            alt="Homes.ph News Logo"
++                            className="h-9 w-auto object-contain"
+                         />
+                     </div>
+ 
+@@ -268,7 +268,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
+                                         <h2 className="font-bold text-[24px] text-[#111827] tracking-[-1px] mb-[4px]">
+                                             How can we help?
+                                         </h2>
+-                                        <p className="text-[#6b7280] text-[15px] tracking-[-0.3px]">Choose an option to get started with HomesTV.</p>
++                                        <p className="text-[#6b7280] text-[15px] tracking-[-0.3px]">Choose an option to get started with Homes.ph News.</p>
+                                     </div>
+ 
+                                     <div className="grid gap-[12px]">
+diff --git a/client/public/images/Homes Logo.png b/client/public/images/Homes Logo.png
+deleted file mode 100644
+index f48c679..0000000
+Binary files a/client/public/images/Homes Logo.png and /dev/null differ
+diff --git a/server/app/Mail/DailyNewsletterMail.php b/server/app/Mail/DailyNewsletterMail.php
+index d0a7041..6f5007a 100644
+--- a/server/app/Mail/DailyNewsletterMail.php
++++ b/server/app/Mail/DailyNewsletterMail.php
+@@ -49,8 +49,8 @@ public function __construct($subscriber, $articles)
+      */
+     public function build()
+     {
+-        // Use the white logo variant as requested
+-        $logo = 'https://news.homes.ph/images/HomesTVwhite.png';
++        // Using localhost for local testing (since the real logo is not deployed yet)
++        $logo = 'http://localhost:3000/images/HomesLogo.png';
+         
+         return $this->subject('Your Daily Homes.ph News Digest')
+                     ->view('emails.newsletter.daily')
+diff --git a/server/resources/views/emails/newsletter/daily.blade.php b/server/resources/views/emails/newsletter/daily.blade.php
+index 74bfd28..47131f7 100644
+--- a/server/resources/views/emails/newsletter/daily.blade.php
++++ b/server/resources/views/emails/newsletter/daily.blade.php
+@@ -265,7 +265,6 @@
+         <div class="header">
+             <div class="logo-wrapper">
+                 <img src="{{ $logo }}" alt="Homes.ph News" class="logo-img">
+-                <span class="logo-text">Homes.ph News</span>
+             </div>
+         </div>
+         <div class="sub-header">Daily News Digest</div>
+@@ -342,8 +341,7 @@
+         <div class="footer">
+             <div class="footer-logo">
+                 <div class="logo-wrapper-footer">
+-                    <img src="{{ $logo }}" alt="Homes.ph News" style="max-height: 20px; width: auto; margin-right: 8px;">
+-                    <span style="font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.04em;">Homes.ph News</span>
++                    <img src="{{ $logo }}" alt="Homes.ph News" style="max-height: 30px; width: auto;">
+                 </div>
+             </div>
+             <div class="footer-text">

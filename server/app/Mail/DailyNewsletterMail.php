@@ -49,8 +49,8 @@ class DailyNewsletterMail extends Mailable
      */
     public function build()
     {
-        // Use the white logo variant as requested
-        $logo = 'https://news.homes.ph/images/HomesTVwhite.png';
+        // Using localhost for local testing (since the real logo is not deployed yet)
+        $logo = 'http://localhost:3000/images/HomesLogo.png';
         
         return $this->subject('Your Daily Homes.ph News Digest')
                     ->view('emails.newsletter.daily')

@@ -63,7 +63,7 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
             description: formData.description,
             categories: formData.categories,
             country: formData.country,
-            image: formData.logoUrl || "/images/HomesTV.png",
+            image: formData.logoUrl || "/images/HomesLogo.png",
             // Remove legacy fields if not in request type, or keep if harmless? 
             // Better to match request type. Status is handled by updateSite but mainly via toggle?
             // UpdateSiteRequest supports status.
