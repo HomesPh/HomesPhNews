@@ -17,7 +17,6 @@ class AdUnit extends Model
         'impressions',
         'clicks',
         'type', // image or text
-        'size', // adaptive
     ];
 
     protected $casts = [
@@ -37,15 +36,7 @@ class AdUnit extends Model
         ];
     }
 
-    // Simulating enum for now as per "size - an enum, for now, will only have 'adaptive'"
-    public const SIZE_ADAPTIVE = 'adaptive';
 
-    public static function getSizes(): array
-    {
-        return [
-            self::SIZE_ADAPTIVE,
-        ];
-    }
 
     public function campaigns()
     {
