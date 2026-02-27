@@ -34,10 +34,8 @@ class DashboardController extends Controller
         $totalPublished = $dbCounts['published'] ?? 0;
         $dbPendingReview = $dbCounts['pending review'] ?? 0;
 
-        $redisStats = $this->redisService->getStats();
-        $redisPending = $redisStats['total_articles'] ?? 0;
-
-        $pendingReview = $redisPending + $dbPendingReview;
+        // Pending Review = DB only (naa na sa database). Being Processed (Redis) is separate and not tallied here.
+        $pendingReview = $dbPendingReview;
         $totalArticles = $totalPublished + $pendingReview;
         $totalViews = Article::where('is_deleted', false)->sum('views_count');
 

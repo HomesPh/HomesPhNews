@@ -22,6 +22,7 @@ interface BaseArticleCardProps {
         views_count?: number;
         views?: string;           // Legacy fallback
         status: string;
+        is_redis?: boolean;
         topics?: string[] | null; // Allow null
         sites?: string[];         // Legacy fallback
         published_sites?: string | string[]; // New API field
@@ -99,16 +100,16 @@ export default function BaseArticleCard({
                 )}
             >
                 <div className="flex gap-4 items-center">
-                    {article.status === 'published' && selection && (
-                        <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
-                            <input
-                                type="checkbox"
-                                checked={selection.isSelected}
-                                onChange={(e) => selection.onSelect(e.target.checked)}
-                                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                            />
-                        </div>
-                    )}
+            {selection && (
+                <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
+                    <input
+                        type="checkbox"
+                        checked={selection.isSelected}
+                        onChange={(e) => selection.onSelect(e.target.checked)}
+                        className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    />
+                </div>
+            )}
                     {/* Article Image Container */}
                     <div className="relative w-[80px] h-[80px] flex-shrink-0">
                         <img
@@ -168,7 +169,7 @@ export default function BaseArticleCard({
                 className
             )}
         >
-            {article.status === 'published' && selection && (
+            {selection && (
                 <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0 self-center">
                     <input
                         type="checkbox"
@@ -201,7 +202,7 @@ export default function BaseArticleCard({
                             {location}
                         </span>
                     </div>
-                    {!hideStatus && <StatusBadge status={article.status as any} />}
+                    {!hideStatus && <StatusBadge status={(article.is_redis ? 'being_processed' : article.status) as any} />}
                 </div>
 
                 {/* Title */}

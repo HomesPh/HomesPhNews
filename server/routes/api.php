@@ -208,6 +208,7 @@ Route::prefix('v1')->group(function () {
                 // Article Actions
                 Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
                 Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
+                Route::post('articles/move-to-db', [AdminArticleController::class, 'moveToDb']);
                 Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
                 Route::post('articles/{id}/send-newsletter', [AdminArticleController::class, 'sendToSubscribers']);
     
