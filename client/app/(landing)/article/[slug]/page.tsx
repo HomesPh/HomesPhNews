@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                 images: article.image ? [article.image] : [],
                 type: "article",
                 publishedTime: article.created_at,
-                authors: ["HomesPh News"],
+                authors: [article.author || "HOMESPH NEWS"],
             },
             twitter: {
                 card: "summary_large_image",

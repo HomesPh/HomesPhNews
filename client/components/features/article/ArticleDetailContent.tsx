@@ -60,7 +60,7 @@ export default async function ArticleDetailContent({ id }: ArticleDetailContentP
         subtitle={
           article.summary || (stripHtml(article.content).substring(0, 160) + "...")
         }
-        author={{ name: "HomesPh News" }}
+        author={{ name: article.author || "HOMESPH NEWS" }}
         date={new Date(article.created_at || Date.now()).toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
