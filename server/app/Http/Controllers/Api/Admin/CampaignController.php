@@ -71,7 +71,7 @@ class CampaignController extends Controller
             'status' => 'sometimes|string|in:active,paused,archived',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'image_url' => 'sometimes|url',
+            'image_url' => 'nullable|url',
             'target_url' => 'sometimes|url',
             'headline' => 'nullable|string|max:255',
             'banner_image_urls' => 'nullable|array',
