@@ -42,7 +42,7 @@ class CampaignController extends Controller
 
         $campaign = Campaign::create($validated);
 
-        if ($request->has('ad_units')) {
+        if (is_array($request->input('ad_units'))) {
             $campaign->adUnits()->sync($request->input('ad_units'));
         }
 
@@ -82,7 +82,7 @@ class CampaignController extends Controller
 
         $campaign->update($validated);
 
-        if ($request->has('ad_units')) {
+        if (is_array($request->input('ad_units'))) {
             $campaign->adUnits()->sync($request->input('ad_units'));
         }
 
