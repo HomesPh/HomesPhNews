@@ -35,7 +35,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                     <Link
                         key={article.id}
                         href={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
-                        className="group cursor-pointer flex flex-col md:flex-row gap-8 pb-10 border-b border-gray-300 dark:border-gray-700 last:border-0"
+                        className="group cursor-pointer flex flex-col md:flex-row gap-8 pb-10 border-b border-gray-300 dark:border-gray-700 last:border-0 last:pb-0"
                     >
                         <div className="md:w-1/3 aspect-[4/3] shrink-0 overflow-hidden relative rounded-sm">
                             <Image
@@ -47,11 +47,11 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                                 style={{ objectPosition: `${article?.image_position_x ?? 50}% ${article?.image_position ?? 0}%` }}
                             />
                             {/* Tags at bottom left of image */}
-                            <div className="absolute bottom-3 left-3 flex gap-1 z-10 transition-opacity group-hover:opacity-100">
-                                <span className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg" suppressHydrationWarning>
+                            <div className="absolute bottom-3 left-3 flex gap-2 z-10 transition-opacity group-hover:opacity-100 items-center">
+                                <span className="flex items-center justify-center bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg leading-none" suppressHydrationWarning>
                                     {article.category}
                                 </span>
-                                <span className="bg-white dark:bg-[#111827] text-black dark:text-white text-[9px] font-black uppercase px-2 py-0.5 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors" suppressHydrationWarning>
+                                <span className="flex items-center justify-center bg-white dark:bg-[#111827] text-black dark:text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors leading-none" suppressHydrationWarning>
                                     {article.country || "Global"}
                                 </span>
                             </div>
@@ -93,7 +93,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
             </div>
 
             {viewAllHref ? (
-                <div className="pt-4 text-center">
+                <div className="pt-4 text-left">
                     <Link
                         href={viewAllHref}
                         className="bg-[#cc0000] text-white px-10 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-black dark:hover:bg-red-700 transition-all transform hover:-translate-y-1 shadow-xl shadow-red-500/10 inline-block"
@@ -102,7 +102,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                     </Link>
                 </div>
             ) : hasMore && (
-                <div className="pt-4 text-center">
+                <div className="pt-4 text-left">
                     <button
                         onClick={handleLoadMore}
                         className="bg-[#cc0000] text-white px-10 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-black dark:hover:bg-red-700 transition-all transform hover:-translate-y-1 shadow-xl shadow-red-500/10"

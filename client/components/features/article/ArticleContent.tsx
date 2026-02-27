@@ -3,6 +3,51 @@
 import AdSpace from "@/components/features/admin/ads/AdSpace";
 import { cn, decodeHtml } from "@/lib/utils";
 
+// Splits text into multiple paragraphs if there are more than 5 sentences
+const formatParagraphs = (htmlOrText: string, maxSentences: number = 5): string => {
+  if (!htmlOrText) return htmlOrText;
+
+  const splitIntoChunks = (text: string) => {
+    // Match sentences safely ensuring we don't break HTML tags if possible
+    const sentences = text.match(/[^.!?]+[.!?]+(?:\s+|$)|[^.!?]+$/g);
+    if (!sentences || sentences.length <= maxSentences) return null;
+
+    const chunks = [];
+    for (let i = 0; i < sentences.length; i += maxSentences) {
+      chunks.push(sentences.slice(i, i + maxSentences).join('').trim());
+    }
+    return chunks;
+  };
+
+  const hasBlockTags = /<(p|div|ul|ol|table|blockquote|h[1-6])[\s>]/i.test(htmlOrText);
+
+  if (hasBlockTags) {
+    if (/<p[\s>]/i.test(htmlOrText)) {
+      return htmlOrText.replace(/<p([^>]*)>([\s\S]*?)<\/p>/gi, (match, pAttrs, pInner) => {
+        // Avoid splitting paragraphs that contain block elements
+        if (/<(div|ul|ol|table|blockquote|h[1-6])/i.test(pInner)) return match;
+
+        const chunks = splitIntoChunks(pInner);
+        if (!chunks) return match;
+
+        // Instead of breaking into multiple <p> tags with CSS margins,
+        // we simulate hitting Enter twice between split chunks
+        return `<p${pAttrs}>${chunks.join('<br><br>')}</p>`;
+      });
+    }
+    return htmlOrText;
+  } else {
+    // Treat as inline HTML / plain text by splitting on double newlines and then sentences
+    // the whitespace-pre-wrap utility will render \n\n as empty lines
+    const paras = htmlOrText.split(/\n\s*\n/).filter(p => p.trim());
+    return paras.map(p => {
+      const chunks = splitIntoChunks(p);
+      if (!chunks) return p;
+      return chunks.join('\n\n');
+    }).join('\n\n\n'); // Allow some distinction between manual paras and automatic chunks
+  }
+};
+
 interface ArticleContentProps {
   content: string;
   contentBlocks?: any[];
@@ -72,7 +117,7 @@ export default function ArticleContent({ content, contentBlocks, topics, origina
                           settings?.listType === 'number' && "list-decimal ml-8",
                           idx === 0 && "drop-cap"
                         )}
-                        dangerouslySetInnerHTML={{ __html: bContent?.text || bContent || '' }}
+                        dangerouslySetInnerHTML={{ __html: formatParagraphs(bContent?.text || bContent || '') }}
                       />
                     )}
 
@@ -113,7 +158,7 @@ export default function ArticleContent({ content, contentBlocks, topics, origina
                         <div
                           style={blockStyle}
                           className={cn("whitespace-pre-wrap flex-1 text-[18px] leading-[34px] [&_p]:min-h-[1.5em]", darkClass("text-[#0c0c0c] dark:text-gray-200"))}
-                          dangerouslySetInnerHTML={{ __html: bContent?.text || bContent || '' }}
+                          dangerouslySetInnerHTML={{ __html: formatParagraphs(bContent?.text || bContent || '') }}
                         />
                       </div>
                     )}
@@ -150,7 +195,7 @@ export default function ArticleContent({ content, contentBlocks, topics, origina
                         <div
                           style={blockStyle}
                           className={cn("whitespace-pre-wrap flex-1 p-10 md:p-14 flex items-center text-[22px] leading-[1.4] font-medium tracking-tight [&_p]:min-h-[1.5em]", darkClass("text-[#111827] dark:text-white"))}
-                          dangerouslySetInnerHTML={{ __html: bContent?.text || bContent || '' }}
+                          dangerouslySetInnerHTML={{ __html: formatParagraphs(bContent?.text || bContent || '') }}
                         />
                       </div>
                     )}
@@ -184,33 +229,12 @@ export default function ArticleContent({ content, contentBlocks, topics, origina
           </div>
         ) : (
           (() => {
-            const decodedContent = content; // Use raw content directly
-            return decodedContent.includes('<') ? (
+            const decodedContent = formatParagraphs(content); // Use raw content directly, parsed for 5 sentences
+            return (
               <div
                 className={`whitespace-pre-wrap text-[18px] leading-[32px] text-[#0c0c0c] ${darkClass('dark:text-gray-100')} drop-cap break-words [&>b]:font-bold [&>i]:italic [&>u]:underline [&>a]:text-blue-600 [&>a]:underline [&_ul]:list-disc [&_ul]:ml-6 [&_ol]:list-decimal [&_ol]:ml-6 [&_li]:mb-1 [&_p[style*='text-align: center']]:text-center [&_p[style*='text-align: right']]:text-right [&_p[style*='text-align: justify']]:text-justify [&_div[style*='text-align: center']]:text-center [&_div[style*='text-align: right']]:text-right [&_div[style*='text-align: justify']]:text-justify [&>h1]:text-3xl [&>h1]:font-bold [&>h1]:mb-4 ${darkClass('[&>h1]:dark:text-white')} [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mb-3 ${darkClass('[&>h2]:dark:text-white')} [&_p]:min-h-[1.5em]`}
                 dangerouslySetInnerHTML={{ __html: decodedContent }}
               />
-            ) : (
-              (() => {
-                const paragraphs = decodedContent.split(/\n\s*\n/).filter(p => p.trim());
-
-                return paragraphs.map((para, idx) => {
-                  const trimmed = para.trim();
-                  if (!trimmed) return null;
-
-                  return (
-                    <p
-                      key={idx}
-                      className={cn(
-                        `whitespace-pre-wrap text-[18px] leading-[32px] text-[#0c0c0c] ${darkClass('dark:text-gray-100')} font-normal break-words min-h-[1.5em]`,
-                        idx === 0 && "drop-cap"
-                      )}
-                    >
-                      {trimmed}
-                    </p>
-                  );
-                });
-              })()
             );
           })()
         )}

@@ -75,7 +75,7 @@ export default function ShareButtons({ url, title, description, className, size 
     const currentSize = sizes[size];
 
     return (
-        <div className={cn("flex items-center gap-1", className)}>
+        <div className={cn("flex items-center gap-2", className)}>
             <button
                 onClick={(e) => handleShare(e, 'whatsapp')}
                 className={cn("flex items-center justify-center bg-[#25D366]/90 hover:bg-[#128C7E] text-white transition-colors rounded backdrop-blur-sm", currentSize.btn)}
