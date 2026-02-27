@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 
-export type RestaurantTab = 'all' | 'published' | 'draft' | 'archived' | 'deleted';
+export type RestaurantTab = 'all' | 'published' | 'being_processed' | 'pending_review' | 'deleted';
 
 interface RestaurantsTabsProps {
     activeTab: RestaurantTab;
@@ -10,18 +10,21 @@ interface RestaurantsTabsProps {
     counts?: {
         all: number;
         published: number;
-        draft: number;
+        being_processed?: number;
+        pending?: number;
+        draft?: number;
         deleted: number;
         archived?: number;
     };
 }
 
+/** Being Processed = Redis only. Pending Review = in DB, status draft. Same style as Articles. */
 export default function RestaurantsTabs({ activeTab, setActiveTab, counts }: RestaurantsTabsProps) {
     const tabs: { id: RestaurantTab; label: string; count?: number }[] = [
         { id: 'all', label: 'All', count: counts?.all },
         { id: 'published', label: 'Published', count: counts?.published },
-        { id: 'draft', label: 'Pending Review', count: counts?.draft },
-        // { id: 'archived', label: 'Archived', count: counts?.archived },
+        { id: 'pending_review', label: 'Pending Review', count: counts?.pending ?? 0 },
+        { id: 'being_processed', label: 'Being Processed', count: counts?.being_processed ?? counts?.draft },
         { id: 'deleted', label: 'Trash', count: counts?.deleted },
     ];
 
@@ -45,7 +48,12 @@ export default function RestaurantsTabs({ activeTab, setActiveTab, counts }: Res
                                     <path d="M12.916 3.667a.833.833 0 00-1.167 0L4.916 10.5 2.25 7.833a.833.833 0 10-1.167 1.167l3.25 3.25a.833.833 0 001.167 0l7.417-7.417a.833.833 0 000-1.167z" fill={isActive ? '#C10007' : '#4B5563'} />
                                 </svg>
                             )}
-                            {tab.id === 'draft' && (
+                            {tab.id === 'pending_review' && (
+                                <svg className="w-[16px] h-[16px]" fill="none" viewBox="0 0 16 16">
+                                    <path d="M8 1.333A6.667 6.667 0 1014.667 8 6.667 6.667 0 008 1.333zm0 12A5.333 5.333 0 1113.333 8 5.333 5.333 0 018 13.333zM8.333 4h-1v4.667h4v-1h-3V4z" fill={isActive ? '#C10007' : '#4B5563'} />
+                                </svg>
+                            )}
+                            {tab.id === 'being_processed' && (
                                 <svg className="w-[16px] h-[16px]" fill="none" viewBox="0 0 16 16">
                                     <path d="M8 1.333A6.667 6.667 0 1014.667 8 6.667 6.667 0 008 1.333zm0 12A5.333 5.333 0 1113.333 8 5.333 5.333 0 018 13.333zM8.333 4h-1v4.667h4v-1h-3V4z" fill={isActive ? '#C10007' : '#4B5563'} />
                                 </svg>
