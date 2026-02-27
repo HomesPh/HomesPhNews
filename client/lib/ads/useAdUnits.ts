@@ -31,7 +31,6 @@ export interface CreateAdUnitPayload {
   name: string;
   type: "image" | "text" | null;
   page_url: string | null;
-  size: "adaptive" | null;
   campaigns?: number[] | null;
 }
 

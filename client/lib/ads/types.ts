@@ -21,7 +21,6 @@ export type AdUnit = {
   name: string;
   type: "image" | "text" | null;
   page_url: string | null;
-  size: "adaptive" | null;
   created_at: string;
   updated_at: string;
   campaigns?: Campaign[];

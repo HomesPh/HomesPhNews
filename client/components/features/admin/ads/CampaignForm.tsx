@@ -211,8 +211,12 @@ export default function CampaignForm({
                   label="Main Image"
                   value={field.value || null}
                   onChange={field.onChange}
+                  uploadType="ad_banner"
                 />
               </FormControl>
+              <FormDescription>
+                Only standard sizes accepted: 300x250, 728x90, 160x600, 320x50, 970x250, 300x600, 320x100
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -229,8 +233,12 @@ export default function CampaignForm({
                   multiple
                   value={field.value || []}
                   onChange={field.onChange}
+                  uploadType="ad_banner"
                 />
               </FormControl>
+              <FormDescription>
+                Upload different sizes of the same ad (e.g., one 728x90 and one 300x250) for responsive delivery.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -250,15 +258,15 @@ export default function CampaignForm({
           )}
         />
 
-        <div className="flex justify-end gap-4">
+        < div className="flex justify-end gap-4" >
           <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {initialData ? "Save Changes" : "Create Campaign"}
           </Button>
-        </div>
-      </form>
-    </Form>
+        </div >
+      </form >
+    </Form >
   );
 }

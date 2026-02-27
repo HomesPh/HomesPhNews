@@ -17,7 +17,42 @@ class UploadController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
+            'type' => 'nullable|string',
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            if ($request->input('type') === 'ad_banner' && $request->hasFile('image') && $request->file('image')->isValid()) {
+                $image = $request->file('image');
+                $dimensions = getimagesize($image->getRealPath());
+                if ($dimensions) {
+                    $width = $dimensions[0];
+                    $height = $dimensions[1];
+                    
+                    // Standard IAB Ad Unit Dimensions
+                    $validSizes = [
+                        [300, 250], // Medium Rectangle
+                        [728, 90],  // Leaderboard
+                        [160, 600], // Wide Skyscraper
+                        [320, 50],  // Mobile Leaderboard
+                        [970, 250], // Billboard
+                        [300, 600], // Half Page
+                        [320, 100], // Large Mobile Banner
+                    ];
+                    
+                    $isValid = false;
+                    foreach ($validSizes as $size) {
+                        if ($width === $size[0] && $height === $size[1]) {
+                            $isValid = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!$isValid) {
+                        $validator->errors()->add('image', "Invalid banner dimensions ({$width}x{$height}px). Allowed fixed sizes are: 300x250, 728x90, 160x600, 320x50, 970x250, 300x600, 320x100.");
+                    }
+                }
+            }
+        });
 
         if ($validator->fails()) {
             return response()->json(['message' => 'Validation failed', 'errors' => $validator->errors()], 422);
