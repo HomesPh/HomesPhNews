@@ -214,7 +214,7 @@ function RestaurantDetailContent() {
                                         )}
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <StatusBadge status={restaurant.status as any} />
+                                        <StatusBadge status={((restaurant as any).is_redis ? 'being_processed' : restaurant.status) as any} />
                                         {restaurant.status === 'published' && (
                                             <a
                                                 href={`/restaurants/${restaurant.id}`}
@@ -429,13 +429,18 @@ function RestaurantDetailContent() {
                                     </label>
                                 ))}
                             </div>
+                            {(restaurant as any).is_redis && (
+                                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-[12px] text-amber-700 leading-relaxed font-medium">
+                                    This restaurant is <strong>Being Processed</strong> (in Redis only) and is not yet in the database. Move it to DB from the Being Processed tab, or click Publish here to save and publish in one step.
+                                </div>
+                            )}
                             <button
                                 onClick={handlePublishClick}
-                                disabled={isPublishing || restaurant.status === 'published'}
+                                disabled={isPublishing || (restaurant.status === 'published' && !(restaurant as any).is_redis)}
                                 className="w-full px-4 py-2.5 bg-[#3b82f6] text-white rounded-[8px] text-[14px] font-semibold hover:bg-[#2563eb] transition-all active:scale-95 tracking-[-0.5px] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {isPublishing && <Loader2 className="w-4 h-4 animate-spin" />}
-                                {isPublishing ? 'Publishing...' : (restaurant.status === 'published' ? 'Published' : 'Publish')}
+                                {isPublishing ? 'Publishing...' : (restaurant.status === 'published' && !(restaurant as any).is_redis ? 'Published' : 'Publish')}
                             </button>
                         </div>
 
