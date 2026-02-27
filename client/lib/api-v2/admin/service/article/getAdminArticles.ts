@@ -30,6 +30,7 @@ export interface AdminArticleStatusCounts {
   rejected?: number | string;
   pending_review?: number | string;
   being_processed?: number | string;
+  edited?: number | string;
   deleted: number | string;
 }
 

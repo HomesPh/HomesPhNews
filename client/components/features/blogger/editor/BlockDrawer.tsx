@@ -264,48 +264,50 @@ export default function BlockDrawer({
                             </div>
                         </section>
 
-                        <section className="pt-6 border-t border-gray-100">
-                            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-6 flex items-center gap-2">
-                                <div className="w-1 h-1 rounded-full bg-[#C10007]" />
-                                Target Platforms
-                            </h3>
-                            <div className="grid grid-cols-1 gap-2">
-                                {displayedPlatforms.map(platform => (
-                                    <label key={platform} className={`flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-transparent transition-all group ${isEditor && platform !== "Main News Portal" ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-white hover:border-gray-100'}`}>
-                                        <span className={`text-[12px] font-bold ${isEditor && platform !== "Main News Portal" ? 'text-gray-400' : 'text-gray-600 group-hover:text-gray-900'}`}>{platform}</span>
-                                        <input
-                                            type="checkbox"
-                                            disabled={isEditor && platform !== "Main News Portal"}
-                                            checked={details.platforms.includes(platform)}
-                                            onChange={(e) => {
-                                                const newPlatforms = e.target.checked
-                                                    ? [...details.platforms, platform]
-                                                    : details.platforms.filter(p => p !== platform);
-                                                onUpdateDetails({ platforms: newPlatforms });
-                                            }}
-                                            className="w-4 h-4 rounded border-gray-300 text-[#C10007] focus:ring-[#C10007] disabled:opacity-50"
-                                        />
-                                    </label>
-                                ))}
-                            </div>
+                        {!isEditor && (
+                            <section className="pt-6 border-t border-gray-100">
+                                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-6 flex items-center gap-2">
+                                    <div className="w-1 h-1 rounded-full bg-[#C10007]" />
+                                    Target Platforms
+                                </h3>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {displayedPlatforms.map(platform => (
+                                        <label key={platform} className={`flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-transparent transition-all group ${isEditor && platform !== "Main News Portal" ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-white hover:border-gray-100'}`}>
+                                            <span className={`text-[12px] font-bold ${isEditor && platform !== "Main News Portal" ? 'text-gray-400' : 'text-gray-600 group-hover:text-gray-900'}`}>{platform}</span>
+                                            <input
+                                                type="checkbox"
+                                                disabled={isEditor && platform !== "Main News Portal"}
+                                                checked={details.platforms.includes(platform)}
+                                                onChange={(e) => {
+                                                    const newPlatforms = e.target.checked
+                                                        ? [...details.platforms, platform]
+                                                        : details.platforms.filter(p => p !== platform);
+                                                    onUpdateDetails({ platforms: newPlatforms });
+                                                }}
+                                                className="w-4 h-4 rounded border-gray-300 text-[#C10007] focus:ring-[#C10007] disabled:opacity-50"
+                                            />
+                                        </label>
+                                    ))}
+                                </div>
 
-                            {sortedPlatforms.length > 5 && (
-                                <button
-                                    onClick={() => setShowAllPlatforms(!showAllPlatforms)}
-                                    className="w-full mt-3 py-2 flex items-center justify-center gap-2 text-[11px] font-black text-[#C10007] bg-[#C10007]/5 rounded-xl hover:bg-[#C10007]/10 transition-all uppercase tracking-widest"
-                                >
-                                    {showAllPlatforms ? (
-                                        <>
-                                            Show Less <ChevronUp className="w-3.5 h-3.5" />
-                                        </>
-                                    ) : (
-                                        <>
-                                            Show All ({sortedPlatforms.length}) <ChevronDown className="w-3.5 h-3.5" />
-                                        </>
-                                    )}
-                                </button>
-                            )}
-                        </section>
+                                {sortedPlatforms.length > 5 && (
+                                    <button
+                                        onClick={() => setShowAllPlatforms(!showAllPlatforms)}
+                                        className="w-full mt-3 py-2 flex items-center justify-center gap-2 text-[11px] font-black text-[#C10007] bg-[#C10007]/5 rounded-xl hover:bg-[#C10007]/10 transition-all uppercase tracking-widest"
+                                    >
+                                        {showAllPlatforms ? (
+                                            <>
+                                                Show Less <ChevronUp className="w-3.5 h-3.5" />
+                                            </>
+                                        ) : (
+                                            <>
+                                                Show All ({sortedPlatforms.length}) <ChevronDown className="w-3.5 h-3.5" />
+                                            </>
+                                        )}
+                                    </button>
+                                )}
+                            </section>
+                        )}
                     </div>
                 )}
             </div>

@@ -52,7 +52,7 @@ class DailyNewsletterMail extends Mailable
         // Use the white logo variant as requested
         $logo = 'https://news.homes.ph/images/HomesTVwhite.png';
         
-        return $this->subject('Your Daily HomesPHNews Digest')
+        return $this->subject('Your Daily Homes.ph News Digest')
                     ->view('emails.newsletter.daily')
                     ->with([
                         'logo' => $logo,

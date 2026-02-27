@@ -26,6 +26,9 @@ export default function BlogPreviewModal({ blocks, details, onClose }: BlogPrevi
     const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
     const renderBlogContent = () => {
+        const isActualMobile = viewMode === 'mobile';
+        const isActualTablet = viewMode === 'tablet';
+
         return (
             <div className="flex flex-col">
                 {/* 1. Category | Location Bar - Matching Production */}
@@ -40,17 +43,26 @@ export default function BlogPreviewModal({ blocks, details, onClose }: BlogPrevi
                 </div>
 
                 {/* 2. Title Section - Matching Production Typography */}
-                <h1 className="font-bold text-[36px] md:text-[42px] lg:text-[48px] text-[#111827] tracking-tight leading-[1.1] mb-8 whitespace-pre-wrap">
+                <h1 className={cn(
+                    "font-bold text-[#111827] tracking-tight leading-[1.1] mb-8 whitespace-pre-wrap",
+                    isActualMobile ? "text-[32px]" : "text-[36px] md:text-[42px] lg:text-[48px]"
+                )}>
                     {details.title}
                 </h1>
 
                 {/* 3. Summary Section - Matching Production Typography */}
-                <p className="font-normal text-[20px] text-[#4b5563] tracking-[-0.5px] leading-[1.2] mb-8 whitespace-pre-wrap">
+                <p className={cn(
+                    "font-normal text-[#4b5563] tracking-[-0.5px] leading-[1.2] mb-8 whitespace-pre-wrap",
+                    isActualMobile ? "text-[18px]" : "text-[20px]"
+                )}>
                     {details.summary}
                 </p>
 
                 {/* 4. High-Fidelity Meta Bar - Matching Production Style */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between border-y border-[#e5e7eb] py-[20px] gap-4 mb-6">
+                <div className={cn(
+                    "flex border-y border-[#e5e7eb] py-[20px] gap-4 mb-6",
+                    isActualMobile ? "flex-col items-start" : "flex-row items-center justify-between"
+                )}>
                     <div className="flex flex-wrap items-center gap-y-2 gap-x-[20px] md:gap-x-[34px]">
                         <div className="font-semibold text-[14px] text-[#6b7280] tracking-[-0.5px] leading-[20px]">
                             By {details.author}
@@ -107,7 +119,10 @@ export default function BlogPreviewModal({ blocks, details, onClose }: BlogPrevi
                                 return (
                                     <div
                                         key={block.id}
-                                        style={style}
+                                        style={{
+                                            ...style,
+                                            fontSize: isActualMobile ? (parseFloat((style.fontSize as string) || '18px') * 0.9 + 'px') : style.fontSize
+                                        }}
                                         className="leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.5em]"
                                         dangerouslySetInnerHTML={{ __html: block.content.text }}
                                     />
@@ -115,7 +130,7 @@ export default function BlogPreviewModal({ blocks, details, onClose }: BlogPrevi
                             case 'image':
                             case 'centered-image':
                                 return (
-                                    <div key={block.id} className={cn("space-y-3", block.type === 'centered-image' && "max-w-[800px] mx-auto text-center")}>
+                                    <div key={block.id} className={cn("space-y-3", block.type === 'centered-image' && (isActualMobile ? "max-w-full mx-auto" : "max-w-[800px] mx-auto text-center"))}>
                                         <div className="rounded-2xl overflow-hidden shadow-lg bg-gray-50 flex justify-center">
                                             <img
                                                 src={block.content.src || "https://images.unsplash.com/photo-1516156008625-3a9d6067fab5?w=1200"}
@@ -130,8 +145,12 @@ export default function BlogPreviewModal({ blocks, details, onClose }: BlogPrevi
                             case 'right-image':
                                 const isLeft = block.type === 'left-image';
                                 return (
-                                    <div key={block.id} className={cn("flex flex-col md:flex-row gap-8 items-start", !isLeft && "md:flex-row-reverse")}>
-                                        <div className="w-full md:w-[300px] shrink-0 rounded-xl shadow-md overflow-hidden">
+                                    <div key={block.id} className={cn(
+                                        "flex gap-8 items-start",
+                                        isActualMobile ? "flex-col" : "flex-row",
+                                        (!isLeft && !isActualMobile) && "flex-row-reverse"
+                                    )}>
+                                        <div className={cn("w-full shrink-0 rounded-xl shadow-md overflow-hidden", !isActualMobile && "md:w-[300px]")}>
                                             <img
                                                 src={block.content.image || "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=600"}
                                                 className="w-full h-full aspect-square object-cover"
@@ -139,7 +158,10 @@ export default function BlogPreviewModal({ blocks, details, onClose }: BlogPrevi
                                             />
                                         </div>
                                         <div
-                                            style={style}
+                                            style={{
+                                                ...style,
+                                                fontSize: isActualMobile ? (parseFloat((style.fontSize as string) || '18px') * 0.9 + 'px') : style.fontSize
+                                            }}
                                             className="flex-1 leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.5em]"
                                             dangerouslySetInnerHTML={{ __html: block.content.text }}
                                         />
@@ -149,9 +171,11 @@ export default function BlogPreviewModal({ blocks, details, onClose }: BlogPrevi
                                 const images = block.content.images || ["", ""];
                                 const imagePositions = block.content.imagePositions || {};
 
-                                const gridClass = images.length === 1 ? 'grid-cols-1' :
-                                    images.length === 2 ? 'grid-cols-2' :
-                                        images.length === 3 ? 'grid-cols-3' : 'grid-cols-2';
+                                const gridClass = isActualMobile ? 'grid-cols-1' : (
+                                    images.length === 1 ? 'grid-cols-1' :
+                                        images.length === 2 ? 'grid-cols-2' :
+                                            images.length === 3 ? 'grid-cols-3' : 'grid-cols-2'
+                                );
 
                                 return (
                                     <div key={block.id} className={cn("grid gap-4", gridClass)}>
@@ -217,9 +241,6 @@ export default function BlogPreviewModal({ blocks, details, onClose }: BlogPrevi
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2 text-xs font-black text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-widest">
-                        <Download className="w-4 h-4" /> Export
-                    </button>
                     <button
                         onClick={onClose}
                         className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-all"
