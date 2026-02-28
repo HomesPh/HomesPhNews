@@ -68,8 +68,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
             if (pathname.startsWith('/admin') && !pathname.includes('/login')) {
                 const isAdmin = roles.some(r => ['admin', 'super-admin'].includes(r));
                 const isCEO = roles.includes('ceo');
+                const isEditor = roles.includes('editor');
 
-                if (!isAdmin && !isCEO) {
+                if (!isAdmin && !isCEO && !isEditor) {
                     router.push('/blogger/dashboard');
                     return;
                 }
@@ -77,6 +78,12 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                 // If CEO tries to access anything other than mailing list, redirect
                 if (isCEO && !isAdmin && !pathname.startsWith('/admin/mailing-list')) {
                     router.push('/admin/mailing-list');
+                    return;
+                }
+
+                // If Editor tries to access anything other than articles or settings, redirect
+                if (isEditor && !isAdmin && !pathname.startsWith('/admin/articles') && !pathname.startsWith('/admin/settings')) {
+                    router.push('/admin/articles');
                     return;
                 }
             } else if (pathname.startsWith('/blogger')) {

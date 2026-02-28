@@ -29,7 +29,6 @@ const adUnitSchema = z.object({
   name: z.string().min(1, "Name is required"),
   type: z.enum(["image", "text"]).nullable(),
   page_url: z.string().optional().or(z.literal("")),
-  size: z.enum(["adaptive"]).nullable(),
 });
 
 interface AdUnitFormProps {
@@ -51,7 +50,6 @@ export default function AdUnitForm({
       name: "",
       type: "image",
       page_url: "",
-      size: "adaptive",
     },
   });
 
@@ -61,14 +59,12 @@ export default function AdUnitForm({
         name: initialData.name,
         type: initialData.type || "image",
         page_url: initialData.page_url || "",
-        size: initialData.size || "adaptive",
       });
     } else {
       form.reset({
         name: "",
         type: "image",
         page_url: "",
-        size: "adaptive",
       });
     }
   }, [initialData, form]);
@@ -79,8 +75,6 @@ export default function AdUnitForm({
         name: values.name,
         type: values.type,
         page_url: values.page_url || null,
-        size: values.size,
-        campaigns: null // Handled separately
       };
       await onSave(payload);
     } catch (error) {
@@ -125,31 +119,6 @@ export default function AdUnitForm({
                   <SelectContent>
                     <SelectItem value="image">Image</SelectItem>
                     <SelectItem value="text">Text</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="size"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Size</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value || "adaptive"}
-                  value={field.value || "adaptive"}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select size" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="adaptive">Adaptive</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

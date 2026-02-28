@@ -13,6 +13,7 @@ import { deleteRestaurant } from "@/lib/api-v2/admin/service/restaurant/deleteRe
 import { restoreRestaurant } from "@/lib/api-v2/admin/service/restaurant/restoreRestaurant";
 import type { Restaurant } from "@/lib/api-v2/types/RestaurantResource";
 import RestaurantEditorModal from "@/components/features/admin/restaurant/RestaurantEditorModal";
+import RestaurantLocationMap from "@/components/features/admin/restaurant/RestaurantLocationMap";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 import RestaurantBreadcrumb from "@/components/features/admin/restaurant/RestaurantBreadcrumb";
 import {
@@ -193,9 +194,9 @@ function RestaurantDetailContent() {
                                         <p className="text-lg text-white/90 font-medium mb-3 italic">{restaurant.clickbait_hook}</p>
                                     )}
                                     <div className="flex items-center gap-4 text-sm font-medium">
-                                        <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {restaurant.city || restaurant.location || 'Manila'}</span>
-                                        <span className="flex items-center gap-1"><Utensils className="w-4 h-4" /> {restaurant.cuisine_type || 'Restaurant'}</span>
-                                        {restaurant.rating > 0 && <span className="flex items-center gap-1 text-yellow-400"><Star className="w-4 h-4 fill-current" /> {restaurant.rating}</span>}
+                                        <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {[restaurant.city, restaurant.country].filter(Boolean).join(", ") || restaurant.location || "—"}</span>
+                                        <span className="flex items-center gap-1"><Utensils className="w-4 h-4" /> {restaurant.cuisine_type || restaurant.category || "Restaurant"}</span>
+                                        {(restaurant.rating ?? 0) > 0 && <span className="flex items-center gap-1 text-yellow-400"><Star className="w-4 h-4 fill-current" /> {restaurant.rating}</span>}
                                     </div>
                                 </div>
                             </div>
@@ -204,7 +205,7 @@ function RestaurantDetailContent() {
                                 <div className="mb-6 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <span className="px-3 py-1 bg-gray-100 border border-gray-200 rounded-[4px] text-[12px] font-semibold text-gray-700 uppercase tracking-wider">
-                                            {restaurant.category}
+                                            {restaurant.cuisine_type || restaurant.category || "Restaurant"}
                                         </span>
                                         {restaurant.is_filipino_owned && (
                                             <span className="px-3 py-1 bg-blue-50 border border-blue-100 rounded-[4px] text-[12px] font-semibold text-blue-700 uppercase tracking-wider">
@@ -213,7 +214,7 @@ function RestaurantDetailContent() {
                                         )}
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <StatusBadge status={restaurant.status as any} />
+                                        <StatusBadge status={((restaurant as any).is_redis ? 'being_processed' : restaurant.status) as any} />
                                         {restaurant.status === 'published' && (
                                             <a
                                                 href={`/restaurants/${restaurant.id}`}
@@ -229,15 +230,21 @@ function RestaurantDetailContent() {
 
                                 <div className="prose prose-lg max-w-none text-gray-600 mb-8">
                                     <h3 className="text-xl font-bold text-gray-900 mb-3 block">About</h3>
-                                    <p>{restaurant.description || "No description provided."}</p>
+                                    <p>{restaurant.description || "—"}</p>
                                 </div>
 
                                 {/* Quick Info Grid */}
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+                                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                        <p className="text-xs text-gray-400 uppercase font-bold mb-1">Rating</p>
+                                        <p className="text-lg font-bold text-gray-900 flex items-center gap-1">
+                                            {(restaurant.rating ?? 0) > 0 ? <><Star className="w-4 h-4 text-amber-500 fill-amber-500" /> {restaurant.rating}</> : "—"}
+                                        </p>
+                                    </div>
                                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
                                         <p className="text-xs text-gray-400 uppercase font-bold mb-1">Price Range</p>
                                         <div className="flex flex-col">
-                                            <p className="text-lg font-bold text-gray-900 leading-tight">{restaurant.price_range || "N/A"}</p>
+                                            <p className="text-lg font-bold text-gray-900 leading-tight">{restaurant.price_range || "—"}</p>
                                             {restaurant.avg_meal_cost && (
                                                 <p className="text-xs text-gray-500 mt-1 font-medium">{restaurant.avg_meal_cost}</p>
                                             )}
@@ -245,81 +252,52 @@ function RestaurantDetailContent() {
                                     </div>
                                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
                                         <p className="text-xs text-gray-400 uppercase font-bold mb-1">Budget</p>
-                                        <p className="text-lg font-bold text-gray-900">{restaurant.budget_category || "N/A"}</p>
+                                        <p className="text-lg font-bold text-gray-900">{restaurant.budget_category || "—"}</p>
                                     </div>
                                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
                                         <p className="text-xs text-gray-400 uppercase font-bold mb-1">Specialty</p>
-                                        <p className="text-lg font-bold text-gray-900 truncate" title={restaurant.specialty_dish}>{restaurant.specialty_dish || "N/A"}</p>
+                                        <p className="text-lg font-bold text-gray-900 truncate" title={restaurant.specialty_dish || undefined}>{restaurant.specialty_dish || "—"}</p>
                                     </div>
                                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
                                         <p className="text-xs text-gray-400 uppercase font-bold mb-1">Contact</p>
-                                        <p className="text-sm font-bold text-gray-900 truncate" title={restaurant.contact_info}>{restaurant.contact_info || "N/A"}</p>
+                                        <p className="text-sm font-bold text-gray-900 truncate" title={restaurant.contact_info || undefined}>{restaurant.contact_info || "—"}</p>
                                     </div>
                                 </div>
 
                                 {/* Extra Details Section */}
                                 <div className="space-y-6 border-t border-gray-100 pt-8">
-                                    {restaurant.why_filipinos_love_it && (
-                                        <div>
-                                            <h4 className="flex items-center gap-2 font-bold text-gray-900 mb-2">
-                                                <Heart className="w-4 h-4 text-[#C10007]" /> Why Filipinos Love It
-                                            </h4>
-                                            <p className="text-gray-600">{restaurant.why_filipinos_love_it}</p>
-                                        </div>
-                                    )}
-                                    {restaurant.menu_highlights && (
-                                        <div>
-                                            <h4 className="flex items-center gap-2 font-bold text-gray-900 mb-2">
-                                                <ChefHat className="w-4 h-4 text-emerald-600" /> Menu Highlights
-                                            </h4>
-                                            <p className="text-gray-600">{restaurant.menu_highlights}</p>
-                                        </div>
-                                    )}
+                                    <div>
+                                        <h4 className="flex items-center gap-2 font-bold text-gray-900 mb-2">
+                                            <Heart className="w-4 h-4 text-[#C10007]" /> Why Filipinos Love It
+                                        </h4>
+                                        <p className="text-gray-600">{restaurant.why_filipinos_love_it || "—"}</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="flex items-center gap-2 font-bold text-gray-900 mb-2">
+                                            <ChefHat className="w-4 h-4 text-emerald-600" /> Menu Highlights
+                                        </h4>
+                                        <p className="text-gray-600">{restaurant.menu_highlights || "—"}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Map Section */}
+                        {/* Map Section — click map to see the place (marker + info) */}
                         <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-8 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] mb-8">
                             <h3 className="text-[18px] font-bold text-[#111827] mb-4 flex items-center gap-2">
                                 <MapIcon className="w-5 h-5 text-gray-500" /> Location Map
                             </h3>
-                            <div className="w-full aspect-[16/9] bg-gray-100 rounded-lg overflow-hidden border border-gray-200 relative flex items-center justify-center">
-                                {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && restaurant.google_maps_url ? (
-                                    <iframe
-                                        width="100%"
-                                        height="100%"
-                                        frameBorder="0"
-                                        style={{ border: 0 }}
-                                        src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(restaurant.address || restaurant.name)}`}
-                                        allowFullScreen
-                                    ></iframe>
-                                ) : (
-                                    <div className="text-center p-6 flex flex-col items-center">
-                                        <MapPin className="w-12 h-12 text-gray-300 mb-3" />
-                                        <p className="text-gray-500 mb-4 font-medium">Map Preview Unavailable</p>
-                                        <div className="flex flex-col gap-2">
-                                            <p className="text-xs text-gray-400 max-w-[200px]">
-                                                {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-                                                    ? "Invalid Coordinates or Address"
-                                                    : "Google Maps API Key missing in environment"}
-                                            </p>
-                                            {restaurant.google_maps_url && (
-                                                <a
-                                                    href={restaurant.google_maps_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-100 transition-colors flex items-center gap-2"
-                                                >
-                                                    <ExternalLink className="w-4 h-4" /> Open in Google Maps
-                                                </a>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                            <RestaurantLocationMap
+                                name={restaurant.name}
+                                address={restaurant.address}
+                                latitude={restaurant.latitude}
+                                longitude={restaurant.longitude}
+                                google_maps_url={restaurant.google_maps_url}
+                                city={restaurant.city}
+                                country={restaurant.country}
+                            />
                             <p className="mt-4 text-sm text-gray-500 flex items-center gap-2">
-                                <MapPin className="w-4 h-4" /> {restaurant.address || restaurant.location}
+                                <MapPin className="w-4 h-4" /> {restaurant.address || (restaurant.city && restaurant.country ? `${restaurant.city}, ${restaurant.country}` : restaurant.location) || "—"}
                             </p>
                         </div>
 
@@ -337,7 +315,7 @@ function RestaurantDetailContent() {
                                                 Visit <ExternalLink className="w-3 h-3" />
                                             </a>
                                         </div>
-                                    ) : <p className="text-sm text-gray-400 italic">No website added</p>}
+                                    ) : <p className="text-sm text-gray-400">Website: —</p>}
 
                                     {restaurant.social_media ? (
                                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -346,7 +324,7 @@ function RestaurantDetailContent() {
                                                 Profile <ExternalLink className="w-3 h-3" />
                                             </a>
                                         </div>
-                                    ) : <p className="text-sm text-gray-400 italic">No social media added</p>}
+                                    ) : <p className="text-sm text-gray-400">Social Media: —</p>}
                                 </div>
                             </div>
 
@@ -359,41 +337,52 @@ function RestaurantDetailContent() {
                                         {restaurant.opening_hours}
                                     </p>
                                 ) : (
-                                    <p className="text-sm text-gray-400 italic">No opening hours available</p>
+                                    <p className="text-sm text-gray-400">—</p>
                                 )}
                             </div>
                         </div>
 
-                        {/* Additional Details: Story, Tags, Source */}
+                        {/* Additional Details: Story, Owner, Tags, Source */}
                         <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-sm mt-6">
                             <h3 className="text-[16px] font-bold text-[#111827] mb-4 pb-2 border-b border-gray-100">
                                 More Details
                             </h3>
                             <div className="space-y-6">
-                                {restaurant.brand_story && (
-                                    <div>
-                                        <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">The Story</h4>
-                                        <p className="text-gray-600 leading-relaxed">{restaurant.brand_story}</p>
-                                    </div>
-                                )}
+                                <div>
+                                    <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">The Story</h4>
+                                    <p className="text-gray-600 leading-relaxed">{restaurant.brand_story || "—"}</p>
+                                </div>
 
-                                {(restaurant.tags || []).length > 0 && (
-                                    <div>
-                                        <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Food Tags</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {(restaurant.tags || []).map((tag, i) => (
+                                <div>
+                                    <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Owner / Chef</h4>
+                                    <p className="text-gray-600">{restaurant.owner_info || "—"}</p>
+                                </div>
+
+                                <div>
+                                    <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Food Tags</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(restaurant.tags && restaurant.tags.length > 0
+                                            ? restaurant.tags
+                                            : (restaurant.food_topics || "").split(",").map((t) => t.trim()).filter(Boolean)
+                                        ).length > 0 ? (
+                                            (restaurant.tags && restaurant.tags.length > 0
+                                                ? restaurant.tags
+                                                : (restaurant.food_topics || "").split(",").map((t) => t.trim()).filter(Boolean)
+                                            ).map((tag, i) => (
                                                 <span key={i} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
                                                     {tag}
                                                 </span>
-                                            ))}
-                                        </div>
+                                            ))
+                                        ) : (
+                                            <span className="text-gray-400 text-sm">—</span>
+                                        )}
                                     </div>
-                                )}
+                                </div>
 
                                 {restaurant.original_url && (
                                     <div>
                                         <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Original Source</h4>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-wrap">
                                             <a
                                                 href={restaurant.original_url}
                                                 target="_blank"
@@ -414,9 +403,9 @@ function RestaurantDetailContent() {
                                     </div>
                                 )}
 
-                                <div className="pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
-                                    <p>Added: {new Date((restaurant.timestamp || 0) * 1000).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                                    {restaurant.address && <p className="text-right max-w-[300px] truncate">{restaurant.address}</p>}
+                                <div className="pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400 flex-wrap gap-2">
+                                    <p>Added: {restaurant.timestamp ? (() => { const d = new Date((typeof restaurant.timestamp === "number" && restaurant.timestamp < 1e12 ? restaurant.timestamp * 1000 : restaurant.timestamp)); return isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }); })() : "—"}</p>
+                                    {(restaurant.address || restaurant.city) && <p className="text-right max-w-[300px] truncate">{restaurant.address || (restaurant.city && restaurant.country ? `${restaurant.city}, ${restaurant.country}` : "")}</p>}
                                 </div>
                             </div>
                         </div>
@@ -440,13 +429,18 @@ function RestaurantDetailContent() {
                                     </label>
                                 ))}
                             </div>
+                            {(restaurant as any).is_redis && (
+                                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-[12px] text-amber-700 leading-relaxed font-medium">
+                                    This restaurant is <strong>Being Processed</strong> (in Redis only) and is not yet in the database. Move it to DB from the Being Processed tab, or click Publish here to save and publish in one step.
+                                </div>
+                            )}
                             <button
                                 onClick={handlePublishClick}
-                                disabled={isPublishing || restaurant.status === 'published'}
+                                disabled={isPublishing || (restaurant.status === 'published' && !(restaurant as any).is_redis)}
                                 className="w-full px-4 py-2.5 bg-[#3b82f6] text-white rounded-[8px] text-[14px] font-semibold hover:bg-[#2563eb] transition-all active:scale-95 tracking-[-0.5px] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {isPublishing && <Loader2 className="w-4 h-4 animate-spin" />}
-                                {isPublishing ? 'Publishing...' : (restaurant.status === 'published' ? 'Published' : 'Publish')}
+                                {isPublishing ? 'Publishing...' : (restaurant.status === 'published' && !(restaurant as any).is_redis ? 'Published' : 'Publish')}
                             </button>
                         </div>
 

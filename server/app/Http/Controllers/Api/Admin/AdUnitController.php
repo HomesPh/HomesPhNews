@@ -30,14 +30,13 @@ class AdUnitController extends Controller
             'name' => 'required|string|max:255',
             'type' => 'nullable|string|in:image,text',
             'page_url' => 'nullable|string|max:255',
-            'size' => 'nullable|string|in:adaptive',
             'campaigns' => 'nullable|array',
             'campaigns.*' => 'exists:campaigns,id',
         ]);
 
         $adUnit = AdUnit::create($validated);
 
-        if ($request->has('campaigns')) {
+        if (is_array($request->input('campaigns'))) {
             $adUnit->campaigns()->sync($request->input('campaigns'));
         }
 
@@ -72,14 +71,13 @@ class AdUnitController extends Controller
             'name' => 'sometimes|string|max:255',
             'type' => 'sometimes|string|in:image,text',
             'page_url' => 'nullable|string|max:255',
-            'size' => 'nullable|string|in:adaptive',
             'campaigns' => 'nullable|array',
             'campaigns.*' => 'exists:campaigns,id',
         ]);
 
         $adUnit->update($validated);
 
-        if ($request->has('campaigns')) {
+        if (is_array($request->input('campaigns'))) {
             $adUnit->campaigns()->sync($request->input('campaigns'));
         }
 

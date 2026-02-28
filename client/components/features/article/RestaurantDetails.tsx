@@ -85,7 +85,7 @@ export default function RestaurantDetails({ restaurant }: RestaurantDetailsProps
                 {restaurant.why_filipinos_love_it && (
                     <div className="group">
                         <h4 className="flex items-center gap-2 font-bold text-gray-900 dark:text-white mb-3 text-[16px]">
-                            <Heart className="w-5 h-5 text-[#C10007] fill-[#C10007]/10" /> Why Filipinos Love It
+                            <Heart className="w-5 h-5 text-[#C10007] fill-currentColor" /> Why Filipinos Love It
                         </h4>
                         <p className="text-[15px] text-gray-600 dark:text-gray-400 leading-relaxed font-normal">
                             {restaurant.why_filipinos_love_it}
@@ -96,7 +96,7 @@ export default function RestaurantDetails({ restaurant }: RestaurantDetailsProps
                 {restaurant.menu_highlights && (
                     <div className="group">
                         <h4 className="flex items-center gap-2 font-bold text-gray-900 dark:text-white mb-3 text-[16px]">
-                            <ChefHat className="w-5 h-5 text-emerald-600" /> Menu Highlights
+                            <ChefHat className="w-5 h-5 text-emerald-600 fill-currentColor" /> Menu Highlights
                         </h4>
                         <p className="text-[15px] text-gray-600 dark:text-gray-400 leading-relaxed font-normal">
                             {restaurant.menu_highlights}
@@ -109,7 +109,7 @@ export default function RestaurantDetails({ restaurant }: RestaurantDetailsProps
             <div className="bg-white dark:bg-[#1a1d2e] rounded-2xl border border-gray-100 dark:border-[#2a2d3e] p-6 md:p-8 shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                     <h3 className="text-[18px] font-bold text-[#111827] dark:text-white flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-[#C10007]" /> Location & Directions
+                        <MapPin className="w-5 h-5 text-[#C10007] fill-currentColor" /> Location & Directions
                     </h3>
                     {restaurant.google_maps_url && (
                         <a
@@ -144,7 +144,7 @@ export default function RestaurantDetails({ restaurant }: RestaurantDetailsProps
                     )}
                 </div>
                 <div className="mt-5 p-4 bg-gray-50 dark:bg-[#252836] rounded-xl flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-[#C10007] shrink-0 mt-0.5" />
+                    <MapPin className="w-5 h-5 text-[#C10007] shrink-0 mt-0.5 fill-currentColor" />
                     <div className="space-y-1">
                         <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">Address</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
@@ -158,7 +158,7 @@ export default function RestaurantDetails({ restaurant }: RestaurantDetailsProps
             <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-white dark:bg-[#1a1d2e] rounded-2xl border border-gray-100 dark:border-[#2a2d3e] p-6 shadow-sm">
                     <h3 className="text-[16px] font-bold text-[#111827] dark:text-white mb-4 flex items-center gap-2 tracking-tight">
-                        <Globe className="w-4 h-4 text-blue-500" /> Online Presence
+                        <Globe className="w-4 h-4 text-blue-500 fill-currentColor" /> Online Presence
                     </h3>
                     <div className="space-y-3">
                         {restaurant.website ? (
@@ -183,7 +183,7 @@ export default function RestaurantDetails({ restaurant }: RestaurantDetailsProps
 
                 <div className="bg-white dark:bg-[#1a1d2e] rounded-2xl border border-gray-100 dark:border-[#2a2d3e] p-6 shadow-sm">
                     <h3 className="text-[16px] font-bold text-[#111827] dark:text-white mb-4 flex items-center gap-2 tracking-tight">
-                        <Clock className="w-4 h-4 text-emerald-500" /> Opening Hours
+                        <Clock className="w-4 h-4 text-emerald-500 fill-currentColor" /> Opening Hours
                     </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line leading-relaxed font-medium">
                         {restaurant.opening_hours || "No opening hours available"}

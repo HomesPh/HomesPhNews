@@ -3,8 +3,8 @@ HomesPh Global News Engine - Main Service
 FastAPI + APScheduler running on port 8000.
 
 Usage:
-    python main.py                 # Start on port 8000
-    python main.py --port 9000     # Custom port
+    python main.py                 # Start News Service (Port 8001)
+    python main_restaurant.py      # Start Restaurant Service (Port 8002)
 """
 
 import argparse
@@ -18,10 +18,13 @@ from apscheduler.triggers.cron import CronTrigger
 
 # Local imports
 from database import ping_redis, get_total_articles, get_country_count
-from models import HealthResponse, JobStatus
+from models import HealthResponse, UnifiedStatus
 from config import COUNTRIES
 from routes import router as article_router
-from scheduler import run_hourly_job, get_job_status, update_next_run
+from scheduler import (
+    run_hourly_job, get_job_status, update_next_run,
+    run_restaurant_job, get_restaurant_job_status, update_restaurant_next_run
+)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -41,45 +44,48 @@ async def lifespan(app: FastAPI):
     """Handle startup and shutdown events."""
     
     # ─── Startup ───
-    # Schedule: Run every hour to ensure news stays fresh
-    # This aligns with the user's request for "Latest" news.
+    # 1. Schedule News: Run every hour to ensure news stays fresh
     scheduler.add_job(
         run_hourly_job,
-        CronTrigger(minute=0), # Every hour at :00
+        CronTrigger(minute=0), 
         id='hourly_job',
         name='HomesPh Fresh News Engine (Hourly)',
         replace_existing=True
     )
+    
+    # 2. Schedule Restaurants: Run twice a day (06:00 and 18:00)
+    # This runs in parallel with the news task via APScheduler
+    scheduler.add_job(
+        run_restaurant_job,
+        CronTrigger(hour="6,18", minute=0), 
+        id='restaurant_job',
+        name='HomesPh Restaurant Scraper (Twice Daily)',
+        replace_existing=True
+    )
+    
     scheduler.start()
     
-    # Update next run time
-    job = scheduler.get_job('hourly_job')
-    next_run = job.next_run_time if job else None
-    
-    if next_run:
-        update_next_run(next_run.isoformat())
-        # Make timezone-naive for comparison
-        next_run_naive = next_run.replace(tzinfo=None)
-        time_until = next_run_naive - datetime.now()
-        minutes_until = int(time_until.total_seconds() / 60)
-    else:
-        minutes_until = 0
+    # Update next run for News
+    news_job = scheduler.get_job('hourly_job')
+    if news_job:
+        update_next_run(news_job.next_run_time.isoformat())
+        
+    # Update next run for Restaurants
+    rest_job = scheduler.get_job('restaurant_job')
+    if rest_job:
+        update_restaurant_next_run(rest_job.next_run_time.isoformat())
     
     # Startup message
     print("")
     print("=" * 60)
-    print("🚀 HOMESPH FRESH NEWS SERVICE STARTED")
+    print("🚀 HOMESPH UNIFIED ENGINE STARTED")
     print("=" * 60)
     print(f"📡 API:      http://localhost:8001")
     print(f"📖 Docs:     http://localhost:8001/docs")
     print("-" * 60)
-    print(f"⏰ Schedule: EVERY HOUR (Real-time mode)")
-    print(f"🔥 Mode:     FRESH NEWS ONLY (<24h age)")
-    print(f"🧹 Cleanup:  Auto-purge >24h old articles")
-    print(f"📊 Target:   {len(COUNTRIES) * 24} articles/day")
-    print(f"📅 Next run: {next_run.strftime('%Y-%m-%d %H:%M:%S') if next_run else 'N/A'}")
-    print(f"⏳ In:       {minutes_until} minutes")
-    print("=" * 60)
+    print(f"⏰ News:       EVERY HOUR")
+    print(f"🍴 Restaurant: TWICE DAILY (06:00, 18:00)")
+    print("-" * 60)
     print("Press Ctrl+C to stop")
     print("=" * 60)
     
@@ -95,9 +101,9 @@ async def lifespan(app: FastAPI):
 # ═══════════════════════════════════════════════════════════════
 
 app = FastAPI(
-    title="HomesPh News API",
-    description="AI-Powered Global Real Estate News Platform",
-    version="2.0.0",
+    title="HomesPh Unified News & Restaurant API",
+    description="AI-Powered Platform for Global Real Estate News & Filipino Restaurants",
+    version="2.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan
@@ -141,29 +147,41 @@ async def health_check():
     }
 
 
-@app.get("/status", response_model=JobStatus, tags=["Scheduler"])
+@app.get("/status", response_model=UnifiedStatus, tags=["Scheduler"])
 async def status():
-    """Get scheduler and job status."""
-    return get_job_status()
+    """Get unified scheduler and job status for both news and restaurants."""
+    return {
+        "news": get_job_status(),
+        "restaurants": get_restaurant_job_status()
+    }
 
 
 @app.post("/trigger", tags=["Scheduler"])
-async def trigger_job(background_tasks: BackgroundTasks):
-    """Manually trigger the hourly job."""
-    job_status = get_job_status()
-    
-    if job_status["is_running"]:
-        raise HTTPException(status_code=409, detail="Job already running")
-    
+async def trigger_news_job(background_tasks: BackgroundTasks):
+    """Manually trigger the hourly news job."""
+    status = get_job_status()
+    if status["is_running"]:
+        raise HTTPException(status_code=409, detail="News job already running")
     background_tasks.add_task(run_hourly_job)
-    return {"message": "Job triggered", "status": "running"}
+    return {"message": "News job triggered", "status": "running"}
+
+
+@app.post("/trigger/restaurants", tags=["Scheduler"])
+async def trigger_restaurant_job_manual(background_tasks: BackgroundTasks):
+    """Manually trigger the restaurant job."""
+    status = get_restaurant_job_status()
+    if status["is_running"]:
+        raise HTTPException(status_code=409, detail="Restaurant job already running")
+    background_tasks.add_task(run_restaurant_job)
+    return {"message": "Restaurant job triggered", "status": "running"}
 
 
 @app.get("/stats", tags=["System"])
 async def stats():
     """Get database and scheduler statistics."""
-    job_status = get_job_status()
     from database import check_mysql_connection
+    news_status = get_job_status()
+    restaurant_status = get_restaurant_job_status()
     
     return {
         "database": {
@@ -172,12 +190,20 @@ async def stats():
             "mysql_ok": check_mysql_connection()
         },
         "scheduler": {
-            "total_runs": job_status["total_runs"],
-            "total_success": job_status["total_success"],
-            "total_errors": job_status["total_errors"],
-            "last_run": job_status["last_run"],
-            "next_run": job_status["next_run"],
-            "is_running": job_status["is_running"]
+            "news": {
+                "total_runs": news_status["total_runs"],
+                "total_success": news_status["total_success"],
+                "last_run": news_status["last_run"],
+                "next_run": news_status["next_run"],
+                "is_running": news_status["is_running"]
+            },
+            "restaurants": {
+                "total_runs": restaurant_status["total_runs"],
+                "total_success": restaurant_status["total_success"],
+                "last_run": restaurant_status["last_run"],
+                "next_run": restaurant_status["next_run"],
+                "is_running": restaurant_status["is_running"]
+            }
         }
     }
 

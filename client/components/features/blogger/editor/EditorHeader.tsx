@@ -3,15 +3,31 @@
 import { ChevronLeft, Eye, Save, Send } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 interface EditorHeaderProps {
     onSave: () => void;
     onPublish: () => void;
     onPreview: () => void;
     onClose?: () => void;
+    showPublish?: boolean;
+    saveLabel?: string;
+    title?: string;
+    subtitle?: string;
+    primarySave?: boolean;
 }
 
-export default function EditorHeader({ onSave, onPublish, onPreview, onClose }: EditorHeaderProps) {
+export default function EditorHeader({
+    onSave,
+    onPublish,
+    onPreview,
+    onClose,
+    showPublish = true,
+    saveLabel = "Save as Draft",
+    title = "Create New Blog",
+    subtitle = "Draft - Last saved just now",
+    primarySave = false
+}: EditorHeaderProps) {
     const router = useRouter();
 
     return (
@@ -25,10 +41,10 @@ export default function EditorHeader({ onSave, onPublish, onPreview, onClose }: 
                     <ArrowLeft className="w-5 h-5" />
                 </button>
                 <div>
-                    <h1 className="font-bold text-gray-900 leading-tight">Create New Blog</h1>
+                    <h1 className="font-bold text-gray-900 leading-tight">{title}</h1>
                     <div className="flex items-center gap-2 mt-0.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                        <span className="text-xs text-gray-500 font-medium">Draft - Last saved just now</span>
+                        <span className="text-xs text-gray-500 font-medium">{subtitle}</span>
                     </div>
                 </div>
             </div>
@@ -45,17 +61,26 @@ export default function EditorHeader({ onSave, onPublish, onPreview, onClose }: 
                 <div className="h-6 w-[1px] bg-gray-200"></div>
                 <button
                     onClick={onSave}
-                    className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all"
+                    className={cn(
+                        "px-4 py-2 text-sm font-semibold transition-all rounded-lg",
+                        primarySave
+                            ? "text-white bg-[#C10007] hover:bg-[#a00006] shadow-sm shadow-[#C10007]/20"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    )}
                 >
-                    Save as Draft
+                    {saveLabel}
                 </button>
-                <div className="h-6 w-[1px] bg-gray-200"></div>
-                <button
-                    onClick={onPublish}
-                    className="px-5 py-2 text-sm font-semibold text-white bg-[#C10007] hover:bg-[#a00006] rounded-lg shadow-sm shadow-[#C10007]/20 transition-all flex items-center gap-2"
-                >
-                    Publish
-                </button>
+                {showPublish && (
+                    <>
+                        <div className="h-6 w-[1px] bg-gray-200"></div>
+                        <button
+                            onClick={onPublish}
+                            className="px-5 py-2 text-sm font-semibold text-white bg-[#C10007] hover:bg-[#a00006] rounded-lg shadow-sm shadow-[#C10007]/20 transition-all flex items-center gap-2"
+                        >
+                            Publish
+                        </button>
+                    </>
+                )}
             </div>
         </div>
     );

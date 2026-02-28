@@ -2,8 +2,9 @@
 
 import { useMemo } from 'react';
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/api-v2";
 
-export type ArticleTab = 'all' | 'published' | 'pending' | 'deleted';
+export type ArticleTab = 'all' | 'published' | 'being_processed' | 'pending_review' | 'deleted';
 
 interface ArticlesTabsProps {
     activeTab: ArticleTab;
@@ -13,13 +14,18 @@ interface ArticlesTabsProps {
 
 /**
  * ArticlesTabs component exactly matching Create Sign In Page design
+ * Being Processed = Redis only (not in DB yet). Pending Review = in DB, awaiting publish.
  */
 export default function ArticlesTabs({ activeTab, setActiveTab, counts }: ArticlesTabsProps) {
+    const { user } = useAuth();
+    const isEditor = user?.roles?.includes('editor') && !user?.roles?.includes('admin') && !user?.roles?.includes('super-admin');
+
     const tabs = [
         { id: 'all' as ArticleTab, label: 'All Articles' },
         { id: 'published' as ArticleTab, label: 'Published' },
-        { id: 'pending' as ArticleTab, label: 'Pending Review' },
-        { id: 'deleted' as ArticleTab, label: 'Deleted' },
+        { id: 'pending_review' as ArticleTab, label: 'Pending Review' },
+        { id: 'being_processed' as ArticleTab, label: 'Being Processed' },
+        ...(isEditor ? [] : [{ id: 'deleted' as ArticleTab, label: 'Deleted' }]),
     ];
 
     return (
@@ -48,6 +54,11 @@ export default function ArticlesTabs({ activeTab, setActiveTab, counts }: Articl
                                 </svg>
                             )}
                             {index === 3 && (
+                                <svg className="w-[16px] h-[16px]" fill="none" viewBox="0 0 16 16">
+                                    <path d="M8 1.333A6.667 6.667 0 1014.667 8 6.667 6.667 0 008 1.333zm0 12A5.333 5.333 0 1113.333 8 5.333 5.333 0 018 13.333zM8.333 4h-1v4.667h4v-1h-3V4z" fill={isActive ? '#C10007' : '#4B5563'} />
+                                </svg>
+                            )}
+                            {tab.id === 'deleted' && (
                                 <svg className="w-[12px] h-[16px]" fill="none" viewBox="0 0 12 16">
                                     <path d="M11.667 3.518l-1.185-1.185L6 6.815 1.518 2.333.333 3.518l4.482 4.482-4.482 4.482 1.185 1.185L6 9.185l4.482 4.482 1.185-1.185-4.482-4.482 4.482-4.482z" fill={isActive ? '#C10007' : '#4B5563'} />
                                 </svg>
@@ -67,7 +78,7 @@ export default function ArticlesTabs({ activeTab, setActiveTab, counts }: Articl
                                         : "bg-[#e5e7eb] text-[#4b5563] font-medium"
                                 )}
                             >
-                                {counts[tab.id]}
+                                {tab.id === 'pending_review' ? (counts['pending'] ?? counts[tab.id] ?? 0) : (counts[tab.id] ?? 0)}
                             </span>
                         </button>
                     );

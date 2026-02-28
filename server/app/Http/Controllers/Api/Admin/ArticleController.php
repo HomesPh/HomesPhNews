@@ -37,9 +37,9 @@ class ArticleController extends Controller
         $sortBy = $validated['sort_by'] ?? 'created_at';
         $sortDirection = $validated['sort_direction'] ?? 'desc';
 
-        // Redirect to specialized Redis fetcher if status is 'pending'
-        // This ensures we get the full list from the scraper/Redis
-        if ($status === 'pending') {
+        // Redirect to specialized Redis fetcher if status is 'being_processed' or legacy 'pending'
+        // This ensures we get the full list from the scraper/Redis (Being Processed tab)
+        if ($status === 'being_processed' || $status === 'pending') {
             return $this->getPendingArticlesFromRedis($validated, $perPage, (int) $page);
         }
 
@@ -78,30 +78,39 @@ class ArticleController extends Controller
         $availableCategories = (clone $query)->distinct()->whereNotNull('category')->pluck('category')->sort()->values()->toArray();
         $availableCountries = (clone $query)->distinct()->whereNotNull('country')->pluck('country')->sort()->values()->toArray();
 
-        // Merge Redis and DB filters if fetching 'all' or 'pending' status
-        if (!$status || $status === 'all' || $status === 'pending') {
+        // Always include active DB countries/categories so dropdowns show all options (e.g. on pending_review + country filter)
+        $dbActiveCategories = \App\Models\Category::where('is_active', true)->pluck('name')->toArray();
+        $dbActiveCountries = \App\Models\Country::where('is_active', true)->pluck('name')->toArray();
+        $availableCategories = collect(array_merge($availableCategories, $dbActiveCategories))
+            ->unique()
+            ->filter(fn($cat) => !in_array(strtolower($cat), ['restaurant', 'restaurants', 'all']))
+            ->sort()
+            ->values()
+            ->toArray();
+        $availableCountries = collect(array_merge($availableCountries, $dbActiveCountries))
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        // Also merge Redis filters when fetching 'all' or 'being_processed' (Redis = being processed)
+        if (!$status || $status === 'all' || $status === 'being_processed') {
             try {
                 $redisCountries = collect($this->redisService->getCountries())->pluck('name')->toArray();
                 $redisCategories = collect($this->redisService->getCategories())->pluck('name')->toArray();
-
-                // Fetch all active options from DB to ensure new/empty ones show up
-                $dbActiveCategories = \App\Models\Category::where('is_active', true)->pluck('name')->toArray();
-                $dbActiveCountries = \App\Models\Country::where('is_active', true)->pluck('name')->toArray();
-
-                // Merge and deduplicate
-                $availableCategories = collect(array_merge($availableCategories, $redisCategories, $dbActiveCategories))
+                $availableCategories = collect(array_merge($availableCategories, $redisCategories))
                     ->unique()
-                    ->filter(fn($cat) => !in_array(strtolower($cat), ['restaurant', 'restaurants']))
+                    ->filter(fn($cat) => !in_array(strtolower($cat), ['restaurant', 'restaurants', 'all']))
                     ->sort()
                     ->values()
                     ->toArray();
-                $availableCountries = collect(array_merge($availableCountries, $redisCountries, $dbActiveCountries))
+                $availableCountries = collect(array_merge($availableCountries, $redisCountries))
                     ->unique()
                     ->sort()
                     ->values()
                     ->toArray();
             } catch (\Exception $e) {
-                \Log::warning('Failed to get Redis/DB filters: ' . $e->getMessage());
+                \Log::warning('Failed to get Redis filters: ' . $e->getMessage());
             }
         }
 
@@ -112,15 +121,15 @@ class ArticleController extends Controller
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage);
 
-        // Merge Redis articles if on early page of 'all' or 'pending'
-        if ((!$status || $status === 'all' || $status === 'pending') && $page == 1) {
+        // Merge Redis articles if on early page of 'all' only (Being Processed has its own list)
+        if ((!$status || $status === 'all') && $page == 1) {
             try {
                 // Pass all active filters to Redis filterArticles
                 $redisRaw = $this->redisService->filterArticles([
                     'search' => $validated['search'] ?? null,
                     'category' => $validated['category'] ?? null,
                     'country' => $validated['country'] ?? null,
-                ], ($status === 'pending') ? 50 : 5);
+                ], 5);
 
                 $redisItems = collect($redisRaw)->map(function ($a) {
                     return [
@@ -683,10 +692,102 @@ class ArticleController extends Controller
         return [
             'all' => $allCount,
             'published' => $publishedCount,
-            'pending' => $pendingCount + $pendingReviewCount,
+            'being_processed' => $pendingCount,
+            'pending' => $pendingReviewCount,
             'deleted' => $deletedCount,
         ];
     }
+
+    /**
+     * Bulk move Redis articles to database with status 'pending review'.
+     * Processes in chunks with a short delay to avoid overloading the DB.
+     * Returns inserted IDs and failed items with reasons.
+     */
+    public function moveToDb(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'required|string|uuid',
+        ]);
+        $ids = array_values(array_unique($validated['ids']));
+        $inserted = [];
+        $failed = [];
+
+        $chunkSize = 5;
+        $delayMs = 150;
+
+        foreach (array_chunk($ids, $chunkSize) as $chunk) {
+            foreach ($chunk as $id) {
+                try {
+                    $redisArticle = $this->redisService->getArticle($id);
+                    if (!$redisArticle) {
+                        $failed[] = ['id' => $id, 'reason' => 'Article not found in Redis'];
+                        continue;
+                    }
+                    if (Article::where('id', $id)->exists()) {
+                        $failed[] = ['id' => $id, 'reason' => 'Article already exists in database'];
+                        continue;
+                    }
+
+                    $slug = \Illuminate\Support\Str::slug($redisArticle['title'] ?? 'article-' . $id);
+                    if (Article::where('slug', $slug)->exists()) {
+                        $slug = $slug . '-' . substr($id, 0, 8);
+                    }
+
+                    $payload = [
+                        'id' => $id,
+                        'article_id' => $id,
+                        'title' => $redisArticle['title'] ?? 'Untitled',
+                        'original_title' => $redisArticle['title'] ?? null,
+                        'summary' => $redisArticle['summary'] ?? substr($redisArticle['content'] ?? '', 0, 500),
+                        'content' => $redisArticle['content'] ?? '',
+                        'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? null,
+                        'category' => $redisArticle['category'] ?? '',
+                        'country' => $redisArticle['country'] ?? '',
+                        'source' => $redisArticle['source'] ?? 'Scraper',
+                        'original_url' => $redisArticle['original_url'] ?? null,
+                        'keywords' => $redisArticle['keywords'] ?? null,
+                        'topics' => $redisArticle['topics'] ?? [],
+                        'content_blocks' => $redisArticle['content_blocks'] ?? [],
+                        'template' => $redisArticle['template'] ?? '',
+                        'author' => $redisArticle['author'] ?? '',
+                        'slug' => $slug,
+                        'status' => 'pending review',
+                        'views_count' => 0,
+                        'is_deleted' => false,
+                    ];
+
+                    $article = Article::create($payload);
+
+                    // Sync gallery images if present
+                    $galleryImages = $redisArticle['gallery_images'] ?? $redisArticle['galleryImages'] ?? [];
+                    if (is_array($galleryImages) && !empty($galleryImages)) {
+                        foreach ($galleryImages as $imagePath) {
+                            if (!empty($imagePath)) {
+                                $article->images()->create(['image_path' => $imagePath]);
+                            }
+                        }
+                    }
+
+                    $this->redisService->deleteArticle($id);
+                    $inserted[] = $id;
+                } catch (\Exception $e) {
+                    \Log::warning("moveToDb failed for {$id}: " . $e->getMessage());
+                    $failed[] = ['id' => $id, 'reason' => $e->getMessage()];
+                }
+            }
+            if ($delayMs > 0 && count($chunk) === $chunkSize) {
+                usleep($delayMs * 1000);
+            }
+        }
+
+        return response()->json([
+            'message' => count($inserted) . ' moved to database' . (count($failed) > 0 ? ', ' . count($failed) . ' failed' : ''),
+            'inserted' => $inserted,
+            'failed' => $failed,
+        ]);
+    }
+
     /**
      * Send a selected article to matching subscribers manually.
      */

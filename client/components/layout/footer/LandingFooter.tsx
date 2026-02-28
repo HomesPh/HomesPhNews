@@ -184,7 +184,7 @@ function FooterContent() {
       {/* Copyright */}
       <div className="border-t border-[#374151] pt-6 flex flex-col items-center">
         <p className="font-normal text-[12px] text-[#6b7280] text-center">
-          © 2026 HomesTV. All rights reserved.
+          © 2026 Homes.ph News. All rights reserved.
         </p>
       </div>
     </div>

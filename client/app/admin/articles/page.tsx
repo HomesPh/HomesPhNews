@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
-import { Plus, Send, Trash, CheckSquare, Square } from 'lucide-react';
+import { Plus, Trash } from 'lucide-react';
 import ArticlesTabs, { ArticleTab } from "@/components/features/admin/articles/ArticlesTabs";
 import ArticlesFilters from "@/components/features/admin/articles/ArticlesFilters";
 import ArticleListItem from "@/components/features/admin/articles/ArticleListItem";
@@ -14,9 +14,9 @@ import usePagination from '@/hooks/usePagination';
 import useUrlFilters from '@/hooks/useUrlFilters';
 import { getAdminArticles } from "@/lib/api-v2/admin/service/article/getAdminArticles";
 import ArticlesSkeleton from "@/components/features/admin/articles/ArticlesSkeleton";
-import SendNewsletterModal from "@/components/features/admin/articles/SendNewsletterModal";
 
 // Filter configuration with defaults and reset values
+// Only 'all' should remove the status param from URL; other tab values must stay so the correct tab stays active
 const URL_FILTERS_CONFIG = {
     status: {
         default: 'all' as const,
@@ -41,11 +41,16 @@ export default function ArticlesPage() {
     // URL-synced filters (status, category, country)
     const { filters, setFilter } = useUrlFilters(URL_FILTERS_CONFIG);
 
+    // Normalize legacy ?status=pending to being_processed so the correct tab is active
+    useEffect(() => {
+        if (filters.status === 'pending') {
+            setFilter('status', 'being_processed');
+        }
+    }, []);
+
     // Local state (not synced to URL)
     const [searchQuery, setSearchQuery] = useState('');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [selectedArticleIds, setSelectedArticleIds] = useState<string[]>([]);
-    const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
     // Pagination state handler
     const pagination = usePagination();
@@ -67,22 +72,32 @@ export default function ArticlesPage() {
     const [counts, setCounts] = useState({
         all: 0,
         published: 0,
+        being_processed: 0,
         pending: 0,
         deleted: 0,
     });
+
+    // Multi-select for Being Processed tab (Move to DB)
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [isMovingToDb, setIsMovingToDb] = useState(false);
+    const [moveResult, setMoveResult] = useState<{ inserted: number; failed: number } | null>(null);
+    const selectAllRef = useRef<HTMLInputElement>(null);
     useEffect(() => {
         const fetchArticles = async () => {
             setIsLoading(true);
             try {
-                // Map frontend filter values to backend expected values
-                // Status 'pending' will trigger the Redis fetch on the backend
+                // Map frontend tab ids to backend status: pending_review -> 'pending review'
+                const statusParam = filters.status === 'all' ? undefined
+                    : filters.status === 'pending_review' ? 'pending review'
+                    : filters.status;
+
                 const apiFilters = {
-                    status: filters.status === 'all' ? undefined : filters.status,
+                    status: statusParam,
                     category: filters.category === '' ? undefined : filters.category,
                     country: filters.country === '' ? undefined : filters.country,
                     search: searchQuery || undefined,
                     page: pagination.currentPage,
-                    per_page: 10
+                    per_page: 5
                 } as any;
 
                 const response = await getAdminArticles(apiFilters);
@@ -101,7 +116,8 @@ export default function ArticlesPage() {
                     setCounts({
                         all: Number(status_counts.all),
                         published: Number(status_counts.published),
-                        pending: Number(status_counts.pending),
+                        being_processed: Number(status_counts.being_processed ?? 0),
+                        pending: Number(status_counts.pending ?? 0),
                         deleted: Number(status_counts.deleted || 0),
                     });
                 }
@@ -128,6 +144,79 @@ export default function ArticlesPage() {
 
         return () => clearTimeout(timer);
     }, [filters, searchQuery, pagination.currentPage]);
+
+    // Clear selection when switching away from Being Processed
+    useEffect(() => {
+        if (filters.status !== 'being_processed') {
+            setSelectedIds(new Set());
+            setMoveResult(null);
+        }
+    }, [filters.status]);
+
+    // Indeterminate state for "Select all" when only some selected
+    useEffect(() => {
+        const el = selectAllRef.current;
+        if (!el || filters.status !== 'being_processed') return;
+        const pageIds = filteredArticles.map((a) => a.id).filter(Boolean);
+        const some = selectedIds.size > 0;
+        const all = pageIds.length > 0 && selectedIds.size === pageIds.length;
+        el.indeterminate = some && !all;
+    }, [filters.status, selectedIds, filteredArticles]);
+
+    const handleToggleSelect = (id: string, checked: boolean) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (checked) next.add(id);
+            else next.delete(id);
+            return next;
+        });
+    };
+
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedIds(new Set(filteredArticles.map((a) => a.id).filter(Boolean)));
+        } else {
+            setSelectedIds(new Set());
+        }
+    };
+
+    const handleMoveToDb = async () => {
+        if (selectedIds.size === 0) return;
+        setIsMovingToDb(true);
+        setMoveResult(null);
+        try {
+            const { moveArticlesToDb } = await import("@/lib/api-v2/admin/service/article/moveArticlesToDb");
+            const res = await moveArticlesToDb(Array.from(selectedIds));
+            const { inserted, failed } = res.data;
+            setMoveResult({ inserted: inserted.length, failed: failed.length });
+            setSelectedIds(new Set());
+            // Refetch current list and counts
+            const response = await getAdminArticles({
+                status: 'being_processed',
+                category: filters.category === '' ? undefined : filters.category,
+                country: filters.country === '' ? undefined : filters.country,
+                search: searchQuery || undefined,
+                page: pagination.currentPage,
+                per_page: 5,
+            } as any);
+            const { data, status_counts: sc } = response.data;
+            setFilteredArticles(data ?? []);
+            if (sc) {
+                setCounts({
+                    all: Number(sc.all),
+                    published: Number(sc.published),
+                    being_processed: Number(sc.being_processed ?? 0),
+                    pending: Number(sc.pending ?? 0),
+                    deleted: Number(sc.deleted || 0),
+                });
+            }
+        } catch (err) {
+            console.error("Move to DB failed:", err);
+            setMoveResult({ inserted: 0, failed: selectedIds.size });
+        } finally {
+            setIsMovingToDb(false);
+        }
+    };
 
     return (
         <div className="p-8 bg-[#f9fafb] min-h-screen">
@@ -158,46 +247,54 @@ export default function ArticlesPage() {
                     availableCountries={availableFilters.countries}
                 />
 
-                <div className="flex items-center px-5 py-3 border-b border-[#f3f4f6] bg-[#fafbfc]">
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            checked={filteredArticles.length > 0 && filteredArticles.every(a => selectedArticleIds.includes(a.id))}
-                            onChange={(e) => {
-                                if (e.target.checked) {
-                                    const newSelected = [...new Set([...selectedArticleIds, ...filteredArticles.map(a => a.id)])];
-                                    setSelectedArticleIds(newSelected);
-                                } else {
-                                    const visibleIds = filteredArticles.map(a => a.id);
-                                    setSelectedArticleIds(prev => prev.filter(id => !visibleIds.includes(id)));
-                                }
-                            }}
-                            className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                        />
-                        <span className="text-[12px] font-black text-[#64748b] tracking-widest uppercase">Select All Visible</span>
+                {/* Being Processed: bulk Move to DB bar */}
+                {filters.status === 'being_processed' && filteredArticles.length > 0 && (
+                    <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-[#e5e7eb] bg-amber-50/50">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                ref={selectAllRef}
+                                checked={selectedIds.size > 0 && selectedIds.size === filteredArticles.filter((a) => a.id).length}
+                                onChange={(e) => handleSelectAll(e.target.checked)}
+                                className="w-4 h-4 rounded border-gray-300 text-[#C10007] focus:ring-[#C10007]"
+                            />
+                            <span className="text-[14px] font-medium text-[#374151]">Select all on this page</span>
+                        </label>
+                        <div className="flex items-center gap-3">
+                            {moveResult !== null && (
+                                <span className="text-[14px] text-[#059669]">
+                                    {moveResult.inserted} moved to Pending Review
+                                    {moveResult.failed > 0 && <span className="text-amber-600">, {moveResult.failed} failed</span>}
+                                </span>
+                            )}
+                            <button
+                                type="button"
+                                onClick={handleMoveToDb}
+                                disabled={selectedIds.size === 0 || isMovingToDb}
+                                className="px-4 py-2 rounded-lg bg-[#C10007] text-white text-[14px] font-semibold hover:bg-[#a00006] disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isMovingToDb ? 'Moving…' : `Move to DB (${selectedIds.size})`}
+                            </button>
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <div className="flex flex-col">
                     {isLoading ? (
                         <ArticlesSkeleton />
                     ) : filteredArticles.length > 0 ? (
-                        filteredArticles.map((article) => (
+                        filteredArticles.slice(0, 5).map((article) => (
                             <ArticleListItem
                                 key={article.id}
                                 article={article}
-                                selection={{
-                                    isSelected: selectedArticleIds.includes(article.id),
-                                    onSelect: (checked) => {
-                                        setSelectedArticleIds(prev =>
-                                            checked ? [...prev, article.id] : prev.filter(id => id !== article.id)
-                                        );
-                                    }
-                                }}
                                 onClick={() => {
                                     const currentPath = window.location.pathname + window.location.search;
                                     router.push(`/admin/articles/${article.id}?from=${encodeURIComponent(currentPath)}`);
                                 }}
+                                selection={filters.status === 'being_processed' ? {
+                                    isSelected: selectedIds.has(article.id),
+                                    onSelect: (checked) => handleToggleSelect(article.id, checked),
+                                } : undefined}
                             />
                         ))
                     ) : (
@@ -218,32 +315,6 @@ export default function ArticlesPage() {
             </div>
 
             {/* Bulk Action Bar */}
-            {selectedArticleIds.length > 0 && (
-                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white border border-[#e5e7eb] shadow-2xl rounded-full px-6 py-3 flex items-center gap-6 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                    <div className="flex items-center gap-2 pr-4 border-r border-gray-100">
-                        <span className="bg-blue-600 text-white text-[12px] font-black w-6 h-6 rounded-full flex items-center justify-center">
-                            {selectedArticleIds.length}
-                        </span>
-                        <span className="text-[13px] font-bold text-[#1e293b] uppercase tracking-tight">Selected</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => setIsBulkModalOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-[13px] font-bold transition-all active:scale-95 shadow-lg shadow-blue-100"
-                        >
-                            <Send className="w-4 h-4" />
-                            BROADCAST NEWSLETTER
-                        </button>
-                        <button
-                            onClick={() => setSelectedArticleIds([])}
-                            className="px-4 py-2 hover:bg-gray-50 text-[#64748b] rounded-full text-[13px] font-bold transition-colors"
-                        >
-                            CLEAR
-                        </button>
-                    </div>
-                </div>
-            )}
 
             {/* Create Article Modal */}
             <ArticleEditorModal
@@ -254,20 +325,6 @@ export default function ArticlesPage() {
                 availableCountries={availableFilters.countries}
             />
 
-            {/* Bulk Newsletter Modal */}
-            <SendNewsletterModal
-                isOpen={isBulkModalOpen}
-                onClose={() => setIsBulkModalOpen(false)}
-                articles={filteredArticles
-                    .filter(a => selectedArticleIds.includes(a.id))
-                    .map(a => ({
-                        id: a.id,
-                        title: a.title,
-                        category: a.category,
-                        country: a.country
-                    }))
-                }
-            />
         </div>
     );
 }

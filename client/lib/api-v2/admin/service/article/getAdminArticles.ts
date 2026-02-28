@@ -14,7 +14,7 @@ export type AdminArticleListParams = {
   topics?: string;
   limit?: number;
   offset?: number;
-  status?: "published" | "pending" | "rejected" | "pending review" | "all" | "deleted";
+  status?: "published" | "pending" | "rejected" | "pending review" | "being_processed" | "all" | "deleted";
   sort_by?: "created_at" | "views_count" | "title" | "timestamp";
   sort_direction?: "asc" | "desc";
   per_page?: number;
@@ -24,11 +24,13 @@ export type AdminArticleListParams = {
 };
 
 export interface AdminArticleStatusCounts {
-  all: string;
+  all: number | string;
   published: number | string;
   pending: number | string;
-  rejected: number | string;
-  pending_review: number | string;
+  rejected?: number | string;
+  pending_review?: number | string;
+  being_processed?: number | string;
+  edited?: number | string;
   deleted: number | string;
 }
 

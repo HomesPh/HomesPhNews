@@ -80,6 +80,10 @@ export default function AdminSidebar() {
     if (user?.roles?.includes('ceo')) {
       return item.title === "Mailing List";
     }
+    // If user is Editor, only show Articles and Settings
+    if (user?.roles?.includes('editor')) {
+      return item.title === "Articles" || item.title === "Settings";
+    }
     // Default: show all for admin or other roles
     return true;
   });
@@ -91,20 +95,17 @@ export default function AdminSidebar() {
           {!isCollapsed ? (
             <div className="flex items-center gap-3 px-2">
               <img
-                src="/images/HomesTVwhite.png"
-                alt="HomesTV"
-                className="w-10 h-10 object-contain"
+                src="/images/HomesLogoW.png"
+                alt="Homes.ph News"
+                className="h-12 w-auto object-contain"
               />
-              <div className="flex flex-col">
-                <h1 className="text-[20px] font-bold text-white leading-[1.4] tracking-[-0.5px]">HomesTV</h1>
-              </div>
             </div>
           ) : (
             <div className="flex justify-center">
               <img
-                src="/images/HomesTVwhite.png"
-                alt="HomesTV"
-                className="w-10 h-10 object-contain"
+                src="/images/HomesLogoW.png"
+                alt="Homes.ph News"
+                className="h-10 w-auto object-contain"
               />
             </div>
           )}

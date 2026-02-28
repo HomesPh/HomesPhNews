@@ -59,6 +59,7 @@ export default function SitesPage() {
             setSitesList(data);
             setCounts(counts as any);
             // In a real paginated API, we'd update totalPages here from response meta
+            pagination.setTotalPages(Math.ceil(data.length / 5) || 1);
         } catch (error) {
             console.error("Failed to fetch sites:", error);
         } finally {
@@ -199,7 +200,7 @@ export default function SitesPage() {
                         <Skeleton key={i} className="h-[100px] rounded-lg bg-white" />
                     ))
                 ) : sitesList.length > 0 ? (
-                    sitesList.map((site) => (
+                    sitesList.slice((pagination.currentPage - 1) * 5, pagination.currentPage * 5).map((site) => (
                         <SiteListItem
                             key={site.id}
                             site={site}

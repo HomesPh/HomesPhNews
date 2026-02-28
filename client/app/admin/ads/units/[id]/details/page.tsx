@@ -12,6 +12,18 @@ import { Loader2, ArrowLeft, Calendar, ExternalLink, Globe, Layout, Monitor, Cop
 import Link from "next/link";
 import { format } from "date-fns";
 import AdMetricsOverview from "@/components/features/admin/ads/AdMetricsOverview";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const STANDARD_SIZES = [
+  { label: "Responsive (Auto)", value: "responsive" },
+  { label: "300x250 (Medium Rectangle)", value: "300x250" },
+  { label: "728x90 (Leaderboard)", value: "728x90" },
+  { label: "160x600 (Wide Skyscraper)", value: "160x600" },
+  { label: "320x50 (Mobile Leaderboard)", value: "320x50" },
+  { label: "970x250 (Billboard)", value: "970x250" },
+  { label: "300x600 (Half Page)", value: "300x600" },
+  { label: "320x100 (Large Mobile Banner)", value: "320x100" },
+];
 
 export default function AdUnitDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -19,6 +31,7 @@ export default function AdUnitDetailsPage({ params }: { params: Promise<{ id: st
   const { adUnit, fetchAdUnit, isLoading, error } = useAdUnit();
   const [origin, setOrigin] = useState<string>("");
   const [copied, setCopied] = useState(false);
+  const [embedSize, setEmbedSize] = useState<string>("responsive");
 
   useEffect(() => {
     fetchAdUnit(id);
@@ -49,15 +62,18 @@ export default function AdUnitDetailsPage({ params }: { params: Promise<{ id: st
       src = `${baseUrl}/ads/${adUnit.id}`;
     }
 
-    // Parse size if possible (e.g. "300x250")
-    let width = "300";
+    if (embedSize !== "responsive") {
+      src += `?size=${embedSize}`;
+    }
+
+    let width = "100%";
     let height = "250";
 
-    if (adUnit.size && adUnit.size.includes("x")) {
-      const [w, h] = adUnit.size.split("x");
-      if (!isNaN(Number(w)) && !isNaN(Number(h))) {
-        width = w;
-        height = h;
+    if (embedSize !== "responsive") {
+      const parts = embedSize.split("x");
+      if (parts.length === 2) {
+        width = parts[0];
+        height = parts[1];
       }
     }
 
@@ -206,8 +222,25 @@ export default function AdUnitDetailsPage({ params }: { params: Promise<{ id: st
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-gray-500">
-                Copy and paste this code into your website where you want the ad to appear.
+                Configure the ad size and copy the code snippet below into your website. The ad will automatically serve the creative asset that matches this dimension.
               </p>
+
+              <div className="space-y-2 mb-4">
+                <label className="text-sm font-medium">Ad Unit Size</label>
+                <Select value={embedSize} onValueChange={setEmbedSize}>
+                  <SelectTrigger className="w-full sm:w-[300px]">
+                    <SelectValue placeholder="Select a size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STANDARD_SIZES.map(size => (
+                      <SelectItem key={size.value} value={size.value}>
+                        {size.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="relative">
                 <pre className="p-4 bg-gray-900 text-gray-100 rounded-md text-xs overflow-x-auto whitespace-pre-wrap break-all">
                   <code>{getEmbedCode()}</code>

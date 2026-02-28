@@ -18,7 +18,9 @@ return new class extends Migration {
             $table->string('name');
             $table->boolean('is_active')->default(true);
 
-            $table->foreign('country_id')->references('id')->on('countries')->onDelete('cascade');
+            if (Schema::hasTable('countries')) {
+                $table->foreign('country_id')->references('id')->on('countries')->onDelete('cascade');
+            }
         });
     }
 

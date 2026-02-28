@@ -120,7 +120,10 @@ Route::prefix('v1')->group(function () {
     // Ads
     Route::get('/ads', [UserAdController::class, 'index']);
     Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
+
+    // Ad metrics
     Route::post('/ads/metrics', [AdminAdMetricController::class, 'store']);
+    
 
     // Restaurants
     Route::group(['prefix' => 'restaurants', 'as' => 'restaurants.'], function () {
@@ -147,6 +150,8 @@ Route::prefix('v1')->group(function () {
         // User Info
         Route::get('/user', [AuthController::class, 'me']);
         Route::get('/login', [AuthController::class, 'me'])->name('login'); // Re-using me endpoint for check
+        Route::patch('/user/profile', [AuthController::class, 'updateProfile']);
+        Route::patch('/user/password', [AuthController::class, 'changePassword']);
 
         // Auth Actions
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -170,7 +175,7 @@ Route::prefix('v1')->group(function () {
     |
     */
 
-    Route::middleware(['auth:sanctum', 'is.authenticated:admin,ceo'])
+    Route::middleware(['auth:sanctum', 'is.authenticated:admin,ceo,editor'])
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
@@ -189,13 +194,9 @@ Route::prefix('v1')->group(function () {
             Route::get('articles', [AdminArticleController::class, 'index']);
 
             // ═══════════════════════════════════════════════════════════════
-            // ADMIN ONLY ROUTES
+            // SHARED ROUTES (Admin & Editor)
             // ═══════════════════════════════════════════════════════════════
-            Route::middleware('is.authenticated:admin')->group(function () {
-                // Dashboard & Analytics
-                Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
-                Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
-
+            Route::middleware('is.authenticated:admin,editor')->group(function () {
                 // Resources
                 Route::apiResource('article-publications', ArticlePublicationController::class);
                 
@@ -203,39 +204,64 @@ Route::prefix('v1')->group(function () {
                 Route::post('articles', [AdminArticleController::class, 'store']);
                 Route::get('articles/{article}', [AdminArticleController::class, 'show']);
                 Route::match(['put', 'patch'], 'articles/{article}', [AdminArticleController::class, 'update']);
-                Route::delete('articles/{article}', [AdminArticleController::class, 'destroy']);
                 
+                // Article Actions
+                Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
+                Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
+                Route::post('articles/move-to-db', [AdminArticleController::class, 'moveToDb']);
+                Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
+                Route::post('articles/{id}/send-newsletter', [AdminArticleController::class, 'sendToSubscribers']);
+    
+                // Upload Routes
+                Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
+    
+                // Resource Routes (Editor needs site info to publish)
+                Route::get('sites/names', [SiteController::class, 'names']);
+            });
+
+            // ═══════════════════════════════════════════════════════════════
+            // ADMIN ONLY ROUTES
+            // ═══════════════════════════════════════════════════════════════
+            Route::middleware('is.authenticated:admin')->group(function () {
+                // Dashboard & Analytics
+                Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
+                Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
+                Route::get('ad-metrics', [AdminAdMetricController::class, 'index']);
+                Route::get('ad-metrics/units/{adUnit}', [AdminAdMetricController::class, 'showByAdUnit']);
+                Route::get('ad-metrics/campaigns/{campaign}', [AdminAdMetricController::class, 'showByCampaign']);
+
                 Route::apiResource('campaigns', AdminCampaignController::class);
                 Route::apiResource('ad-units', AdminAdUnitController::class);
                 Route::apiResource('categories', CategoryController::class);
                 Route::apiResource('countries', CountryController::class);
                 Route::apiResource('cities', CityController::class);
                 
+                // Article Deletion/Restoration (Admin Only)
+                Route::delete('articles/{article}', [AdminArticleController::class, 'destroy']);
+                Route::delete('articles/{id}/hard-delete', [AdminArticleController::class, 'hardDelete']);
+                Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
+                
                 // Resource Routes
-                Route::get('sites/names', [SiteController::class, 'names']);
                 Route::apiResource('sites', SiteController::class);
 
                 Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
                 Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
+                Route::post('restaurants/move-to-db', [AdminRestaurantController::class, 'moveToDb'])->name('restaurants.move-to-db');
                 Route::apiResource('restaurants', AdminRestaurantController::class);
 
                 // Additional Management
                 Route::patch('sites/{id}/toggle-status', [SiteController::class, 'toggleStatus']);
                 Route::patch('sites/{id}/refresh-key', [SiteController::class, 'refreshKey']);
 
-                // Article Actions
-                Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
-                Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
-                Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
-                Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
-                Route::post('articles/{id}/send-newsletter', [AdminArticleController::class, 'sendToSubscribers']);
-                Route::delete('articles/{id}/hard-delete', [AdminArticleController::class, 'hardDelete']);
-
                 // Restaurant routes (Database Persistence)
                 Route::post('restaurants/{id}/publish', [AdminRestaurantController::class, 'publish'])->name('restaurants.publish');
-
-                // Upload Routes
-                Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
             });
     });
+});
+
+Route::prefix('v2')->middleware(['auth:sanctum', 'is.authenticated:admin'])->group(function () {
+    Route::apiResource('users', UserControllerV2::class);
+    Route::apiResource('roles', RoleControllerV2::class);
+    Route::get('public/user/info', [UserControllerV2::class, 'getPublicInfo'])->withoutMiddleware(['auth:sanctum', 'is.authenticated:admin']);
+    Route::put('users/{id}/role', [UserControllerV2::class, 'updateRole']);
 });

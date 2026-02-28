@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X, ArrowLeft, Save, Send } from 'lucide-react';
 import { cn } from "@/lib/utils";
-import { getSiteNames, updatePendingArticle, createArticle, updateArticle, publishArticle, uploadArticleImage } from "@/lib/api-v2";
+import { getSiteNames, updatePendingArticle, createArticle, updateArticle, publishArticle, uploadArticleImage, useAuth } from "@/lib/api-v2";
 import { blocksToHtml } from "@/lib/converter/blocksToHtml";
 import ArticleEditorForm from "./editor/ArticleEditorForm";
 import {
@@ -50,6 +50,8 @@ export default function ArticleEditorModal({
     const [availableSites, setAvailableSites] = useState<string[]>([]);
     const [showPublishDialog, setShowPublishDialog] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    const { user } = useAuth();
+    const isEditor = user?.roles?.includes('editor') && !user?.roles?.includes('admin') && !user?.roles?.includes('super-admin');
 
     // Initialize articleData with initialData if available, otherwise use defaults
     const getInitialArticleData = () => {
@@ -63,7 +65,7 @@ export default function ArticleEditorModal({
                 country: initialData.country || initialData.location || 'Philippines',
                 image: initialData.image || null,
                 tags: initialData.topics || initialData.tags || [],
-                author: initialData.author || 'Maria Santos',
+                author: initialData.author || 'HOMESPH NEWS',
                 publishDate: initialData.date || new Date().toISOString().split('T')[0],
                 publishTime: '14:30',
                 publishTo: initialData.published_sites || initialData.sites || [],
@@ -71,7 +73,9 @@ export default function ArticleEditorModal({
                 splitImages: initialData.split_images || [],
                 contentBlocks: initialData.content_blocks || [],
                 image_position: initialData.image_position || 0,
-                image_position_x: initialData.image_position_x || 50
+                image_position_x: initialData.image_position_x || 50,
+                status: initialData.status,
+                is_redis: initialData.is_redis
             };
         }
 
@@ -85,7 +89,7 @@ export default function ArticleEditorModal({
             country: 'Philippines',
             image: null as string | null,
             tags: [] as string[],
-            author: 'Maria Santos',
+            author: 'HOMESPH NEWS',
             publishDate: new Date().toISOString().split('T')[0],
             publishTime: '14:30',
             publishTo: [] as string[],
@@ -116,7 +120,7 @@ export default function ArticleEditorModal({
                 country: initialData.country || initialData.location || 'Philippines',
                 image: initialData.image || null,
                 tags: initialData.topics || initialData.tags || [],
-                author: initialData.author || 'Maria Santos',
+                author: initialData.author || 'HOMESPH NEWS',
                 publishDate: initialData.date || new Date().toISOString().split('T')[0],
                 publishTime: '14:30',
                 publishTo: initialData.published_sites || initialData.sites || [],
@@ -140,7 +144,7 @@ export default function ArticleEditorModal({
                 country: 'Philippines',
                 image: null,
                 tags: ['Technology', 'AI', 'Singapore'],
-                author: 'Maria Santos',
+                author: 'HOMESPH NEWS',
                 publishDate: new Date().toISOString().split('T')[0],
                 publishTime: '14:30',
                 publishTo: [],
@@ -439,10 +443,12 @@ export default function ArticleEditorModal({
                 category: workingData.category,
                 country: workingData.country,
                 image: effectiveFinalImage,
-                published_sites: workingData.publishTo,
-                status: (isPublish ? 'published' : 'pending review') as 'published' | 'pending review',
+                published_sites: isEditor ? workingData.publishTo.filter((s: string) => s === "Main News Portal") : workingData.publishTo,
+                status: isPublish
+                    ? 'published'
+                    : (mode === 'edit' && initialData?.status === 'published' && !isEditor ? 'published' : 'pending review') as 'published' | 'pending review',
                 topics: workingData.tags,
-                author: workingData.author,
+                author: workingData.author || 'HOMESPH NEWS',
                 date: workingData.publishDate,
                 gallery_images: finalGalleryImages,
                 split_images: finalSplitImages,
@@ -526,6 +532,7 @@ export default function ArticleEditorModal({
     return (
         <div className="force-light fixed inset-0 bg-white z-[100] flex flex-col animate-in fade-in duration-200">
             <ArticleEditorForm
+                mode={mode}
                 data={articleData}
                 availableSites={availableSites}
                 availableCategories={availableCategories}

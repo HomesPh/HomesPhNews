@@ -35,20 +35,10 @@ export default function LandingMobileMenu({
                 <div className="px-4 py-6 border-b border-gray-100 dark:border-[rgba(255,255,255,0.1)]">
                     <div className="flex items-center gap-3 px-2">
                         <img
-                            src="/images/HomesTV.png"
-                            alt="HomesTV"
-                            className="w-10 h-10 object-contain dark:hidden"
+                            src="/images/HomesLogo.png"
+                            alt="Homes.ph News Logo"
+                            className="h-10 w-auto object-contain"
                         />
-                        <img
-                            src="/images/HomesTVwhite.png"
-                            alt="HomesTV"
-                            className="w-10 h-10 object-contain hidden dark:block"
-                        />
-                        <div className="flex flex-col">
-                            <h1 className="text-[20px] font-bold text-gray-900 dark:text-white leading-[1.4] tracking-[-0.5px]">
-                                HomesTV
-                            </h1>
-                        </div>
                     </div>
                 </div>
 

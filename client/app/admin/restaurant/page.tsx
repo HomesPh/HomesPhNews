@@ -1,59 +1,114 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
 import { Plus, Search, Filter, RefreshCcw } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { getAdminRestaurants } from "@/lib/api-v2/admin/service/restaurant/getAdminRestaurants";
-import { deleteRestaurant } from "@/lib/api-v2/admin/service/restaurant/deleteRestaurant";
 import type { RestaurantSummary } from "@/lib/api-v2/types/RestaurantResource";
 import RestaurantListItem from "@/components/features/admin/restaurant/RestaurantListItem";
-import RestaurantsTabs, { RestaurantTab } from "@/components/features/admin/restaurant/RestaurantsTabs";
+import RestaurantsTabs, { type RestaurantTab } from "@/components/features/admin/restaurant/RestaurantsTabs";
 import RestaurantEditorModal from "@/components/features/admin/restaurant/RestaurantEditorModal";
 import RestaurantFilters from "@/components/features/admin/restaurant/RestaurantFilters";
 import usePagination from "@/hooks/usePagination";
+import Pagination from "@/components/features/admin/shared/Pagination";
+import useUrlFilters, { type FiltersConfig } from "@/hooks/useUrlFilters";
 
-// Reuse generic components if available, otherwise we use standard ones
-// Note: Pagination should ideally be reused. For now, we'll keep it simple or import if available.
+type RestaurantFilters = {
+    status: RestaurantTab | 'draft';
+    category: string;
+    country: string;
+};
+
+const URL_FILTERS_CONFIG: FiltersConfig<RestaurantFilters> = {
+    status: { default: 'all', resetValues: ['all'] },
+    category: { default: 'All Category', resetValues: ['All Category'] },
+    country: { default: 'All Countries', resetValues: ['All Countries'] },
+};
 
 export default function RestaurantPage() {
     const router = useRouter();
+    const { filters, setFilter } = useUrlFilters(URL_FILTERS_CONFIG);
 
-    // State
-    const [pageKey, setPageKey] = useState(0); // For forcing refresh
+    const [pageKey, setPageKey] = useState(0);
     const [searchQuery, setSearchQuery] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-    // Data state
-    const [restaurants, setRestaurants] = useState<RestaurantSummary[]>([]);
     const [filteredRestaurants, setFilteredRestaurants] = useState<RestaurantSummary[]>([]);
-
-    // Filter state
-    const [filters, setFilters] = useState({
-        status: 'all' as RestaurantTab,
-        category: 'All Category',
-        country: 'All Countries'
-    });
 
     // Pagination
     const pagination = usePagination({ totalPages: 1 });
 
-    // Counts for tabs
     const [counts, setCounts] = useState({
         all: 0,
         published: 0,
-        draft: 0,
+        being_processed: 0,
+        pending: 0,
         deleted: 0
     });
 
-    // Helper to update filters
-    const setFilter = (key: keyof typeof filters, value: any) => {
-        setFilters(prev => ({ ...prev, [key]: value }));
-        // Reset to page 1 on filter change
-        if (pagination.currentPage !== 1) {
-            pagination.handlePageChange(1);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [isMovingToDb, setIsMovingToDb] = useState(false);
+    const [moveResult, setMoveResult] = useState<{ inserted: number; failed: number } | null>(null);
+    const selectAllRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (filters.status === 'draft') setFilter('status', 'being_processed');
+    }, []);
+
+    useEffect(() => {
+        if (filters.status !== 'being_processed') {
+            setSelectedIds(new Set());
+            setMoveResult(null);
+        }
+    }, [filters.status]);
+
+    const handleToggleSelect = (id: string, checked: boolean) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (checked) next.add(id); else next.delete(id);
+            return next;
+        });
+    };
+
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) setSelectedIds(new Set(filteredRestaurants.map(r => r.id).filter(Boolean)));
+        else setSelectedIds(new Set());
+    };
+
+    const handleMoveToDb = async () => {
+        if (selectedIds.size === 0) return;
+        setIsMovingToDb(true);
+        setMoveResult(null);
+        try {
+            const { moveRestaurantsToDb } = await import("@/lib/api-v2/admin/service/restaurant/moveRestaurantsToDb");
+            const res = await moveRestaurantsToDb(Array.from(selectedIds));
+            const { inserted, failed } = res.data;
+            setMoveResult({ inserted: inserted.length, failed: failed.length });
+            setSelectedIds(new Set());
+            const response = await getAdminRestaurants({
+                status: 'being_processed',
+                page: pagination.currentPage,
+                per_page: 5,
+            } as any);
+            const resData = response.data as any;
+            setFilteredRestaurants(resData?.data ?? []);
+            if (resData?.status_counts) {
+                setCounts({
+                    all: Number(resData.status_counts.all),
+                    published: Number(resData.status_counts.published),
+                    being_processed: Number(resData.status_counts.being_processed ?? 0),
+                    pending: Number(resData.status_counts.pending ?? 0),
+                    deleted: Number(resData.status_counts.deleted ?? 0),
+                });
+            }
+        } catch (err) {
+            console.error("Move to DB failed:", err);
+            setMoveResult({ inserted: 0, failed: selectedIds.size });
+        } finally {
+            setIsMovingToDb(false);
         }
     };
 
@@ -64,39 +119,32 @@ export default function RestaurantPage() {
     const fetchData = async () => {
         setIsLoading(true);
         try {
+            const statusParam = filters.status === 'all' ? undefined : filters.status;
             const apiFilters = {
-                status: filters.status === 'all' ? undefined : filters.status,
+                status: statusParam,
                 category: filters.category === 'All Category' ? undefined : filters.category,
                 country: filters.country === 'All Countries' ? undefined : filters.country,
                 search: searchQuery || undefined,
                 page: pagination.currentPage,
-                per_page: 10
+                per_page: 5
             } as any;
 
             const response = await getAdminRestaurants(apiFilters);
 
-            // Handle response structure
-            let data = [];
+            let data: RestaurantSummary[] = [];
             let meta = { current_page: 1, last_page: 1, total: 0 };
-            let status_counts = { all: 0, published: 0, draft: 0, deleted: 0 };
+            let status_counts = { all: 0, published: 0, being_processed: 0, pending: 0, deleted: 0 };
 
             if (Array.isArray(response.data)) {
-                // Legacy/Current simple array response
                 data = response.data;
-                // Client-side filtering if API doesn't handle it yet
-                if (apiFilters.status && apiFilters.status !== 'all') {
-                    data = data.filter((r: any) => r.status === apiFilters.status || (apiFilters.status === 'trash' && r.status === 'deleted'));
-                }
-                // Mock counts with safe fallback for missing status
                 status_counts = {
-                    all: response.data.length,
-                    published: response.data.filter((r: any) => r.status === 'published').length,
-                    // If status is missing, we consider it a draft
-                    draft: response.data.filter((r: any) => !r.status || r.status === 'draft' || r.status === 'pending').length,
-                    deleted: response.data.filter((r: any) => r.status === 'deleted').length,
+                    all: data.length,
+                    published: data.filter((r: any) => r.status === 'published').length,
+                    being_processed: data.filter((r: any) => (r as any).is_redis).length,
+                    pending: data.filter((r: any) => r.status === 'draft' && !(r as any).is_redis).length,
+                    deleted: data.filter((r: any) => r.status === 'deleted').length,
                 };
             } else {
-                // Modern paginated response
                 const resData = response.data as any;
                 data = resData.data ?? [];
                 meta = {
@@ -108,31 +156,18 @@ export default function RestaurantPage() {
                     status_counts = {
                         all: Number(resData.status_counts.all),
                         published: Number(resData.status_counts.published),
-                        draft: Number(resData.status_counts.draft || resData.status_counts.pending || 0),
-                        deleted: Number(resData.status_counts.deleted || 0),
+                        being_processed: Number(resData.status_counts.being_processed ?? 0),
+                        pending: Number(resData.status_counts.pending ?? 0),
+                        deleted: Number(resData.status_counts.deleted ?? 0),
                     };
                 }
             }
 
             setFilteredRestaurants(data);
-
-            // Debugging: Log the first restaurant to check fields
-            if (data.length > 0) {
-                console.log("Restaurant Data Debug:", {
-                    firstItem: data[0],
-                    hasAvgCost: 'avg_meal_cost' in data[0],
-                    avgCostValue: data[0].avg_meal_cost,
-                    hasStatus: 'status' in data[0],
-                    statusValue: data[0].status
-                });
-            }
-
             if (!Array.isArray(response.data)) {
                 pagination.handlePageChange(meta.current_page);
                 pagination.setTotalPages(meta.last_page);
             }
-
-            // Update counts
             setCounts(status_counts);
 
         } catch (error) {
@@ -143,15 +178,19 @@ export default function RestaurantPage() {
         }
     };
 
-    // Fetch data with debounce
     useEffect(() => {
-        const timer = setTimeout(() => {
-            fetchData();
-        }, 300);
-
+        const timer = setTimeout(() => fetchData(), 300);
         return () => clearTimeout(timer);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filters, searchQuery, pagination.currentPage, pageKey]);
+
+    useEffect(() => {
+        const el = selectAllRef.current;
+        if (!el || filters.status !== 'being_processed') return;
+        const pageIds = filteredRestaurants.map(r => r.id).filter(Boolean);
+        const some = selectedIds.size > 0;
+        const all = pageIds.length > 0 && selectedIds.size === pageIds.length;
+        el.indeterminate = some && !all;
+    }, [filters.status, selectedIds, filteredRestaurants]);
 
     return (
         <div className="p-8 bg-[#f9fafb] min-h-screen">
@@ -175,9 +214,43 @@ export default function RestaurantPage() {
             <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
                 <RestaurantsTabs
                     activeTab={filters.status as RestaurantTab}
-                    setActiveTab={(tab) => setFilter('status', tab)}
+                    setActiveTab={(tab) => {
+                        setFilter('status', tab);
+                        if (pagination.currentPage !== 1) pagination.handlePageChange(1);
+                    }}
                     counts={counts}
                 />
+
+                {filters.status === 'being_processed' && filteredRestaurants.length > 0 && (
+                    <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-[#e5e7eb] bg-amber-50/50">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                ref={selectAllRef}
+                                checked={selectedIds.size > 0 && selectedIds.size === filteredRestaurants.filter(r => r.id).length}
+                                onChange={(e) => handleSelectAll(e.target.checked)}
+                                className="w-4 h-4 rounded border-gray-300 text-[#C10007] focus:ring-[#C10007]"
+                            />
+                            <span className="text-[14px] font-medium text-[#374151]">Select all on this page</span>
+                        </label>
+                        <div className="flex items-center gap-3">
+                            {moveResult !== null && (
+                                <span className="text-[14px] text-[#059669]">
+                                    {moveResult.inserted} moved to Pending Review
+                                    {moveResult.failed > 0 && <span className="text-amber-600">, {moveResult.failed} failed</span>}
+                                </span>
+                            )}
+                            <button
+                                type="button"
+                                onClick={handleMoveToDb}
+                                disabled={selectedIds.size === 0 || isMovingToDb}
+                                className="px-4 py-2 rounded-lg bg-[#C10007] text-white text-[14px] font-semibold hover:bg-[#a00006] disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isMovingToDb ? 'Moving…' : `Move to DB (${selectedIds.size})`}
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 <RestaurantFilters
                     searchQuery={searchQuery}
@@ -202,11 +275,15 @@ export default function RestaurantPage() {
                             ))}
                         </div>
                     ) : filteredRestaurants.length > 0 ? (
-                        filteredRestaurants.map((restaurant) => (
+                        filteredRestaurants.slice(0, 5).map((restaurant) => (
                             <RestaurantListItem
                                 key={restaurant.id}
                                 restaurant={restaurant}
                                 onClick={() => router.push(`/admin/restaurant/${restaurant.id}`)}
+                                selection={filters.status === 'being_processed' ? {
+                                    isSelected: selectedIds.has(restaurant.id),
+                                    onSelect: (checked) => handleToggleSelect(restaurant.id, checked),
+                                } : undefined}
                             />
                         ))
                     ) : (
@@ -215,6 +292,15 @@ export default function RestaurantPage() {
                         </div>
                     )}
                 </div>
+            </div>
+
+            {/* Pagination Component */}
+            <div className="mt-8">
+                <Pagination
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    onPageChange={pagination.handlePageChange}
+                />
             </div>
 
             {/* Create Modal */}
