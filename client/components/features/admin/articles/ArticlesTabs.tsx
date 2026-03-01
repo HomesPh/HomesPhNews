@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/api-v2";
 
-export type ArticleTab = 'all' | 'published' | 'being_processed' | 'pending_review' | 'deleted';
+export type ArticleTab = 'all' | 'published' | 'being_processed' | 'pending_review' | 'edited' | 'deleted';
 
 interface ArticlesTabsProps {
     activeTab: ArticleTab;
@@ -24,6 +24,7 @@ export default function ArticlesTabs({ activeTab, setActiveTab, counts }: Articl
         { id: 'all' as ArticleTab, label: 'All Articles' },
         { id: 'published' as ArticleTab, label: 'Published' },
         { id: 'pending_review' as ArticleTab, label: 'Pending Review' },
+        { id: 'edited' as ArticleTab, label: 'Edited' },
         { id: 'being_processed' as ArticleTab, label: 'Being Processed' },
         ...(isEditor ? [] : [{ id: 'deleted' as ArticleTab, label: 'Deleted' }]),
     ];
