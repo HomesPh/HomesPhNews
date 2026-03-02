@@ -201,6 +201,12 @@ export default function DashboardFeed({ country, category, feed, restaurants }: 
                             {/* CATEGORY SPECIFIC BLOCKS ON HOME PAGE */}
                             {category === "All" && (
                                 <>
+                                    <iframe
+                                        src="https://homesphnews-api-394504332858.asia-southeast1.run.app/ads/14"
+                                        width="100%"
+                                        height="250"
+                                        className="border-0 overflow-hidden"
+                                    />
                                     {mainListingSet.filter(a => a.category === "Community").length > 0 && (
                                         <LandingNewsBlock
                                             title="Community Spotlight"
@@ -283,10 +289,11 @@ export default function DashboardFeed({ country, category, feed, restaurants }: 
 
                 {/* Sidebar Column (Right) */}
                 <aside className="w-full lg:w-[350px] flex-shrink-0 space-y-10">
-                    <AdSpace
-                        width={336}
-                        height={280}
-                        rotateInterval={10000}
+                    <iframe
+                        src="https://homesphnews-api-394504332858.asia-southeast1.run.app/ads/14"
+                        width="100%"
+                        height="250"
+                        className="border-0 overflow-hidden"
                     />
 
                     <MostReadTodayCard
