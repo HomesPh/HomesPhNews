@@ -24,7 +24,7 @@ const SidebarItems = [
     },
     {
         title: "Mailing List",
-        href: "/admin/mailing-list",
+        href: "/ceo/mailing-list",
         icon: Send,
     }
 ];
@@ -46,16 +46,13 @@ export default function CEOSidebar() {
                                 alt="Homes.ph News"
                                 className="h-10 w-auto object-contain"
                             />
-                            <span className="text-[10px] text-[#9ca3af] font-medium tracking-widest uppercase px-1">
-                                CEO Portal
-                            </span>
                         </div>
                     ) : (
                         <div className="flex justify-center">
                             <img
-                                src="/images/HomesLogoW.png"
+                                src="/images/HLogo.png"
                                 alt="Homes.ph News"
-                                className="w-10 h-10 object-contain"
+                                className="w-6 h-6 object-contain"
                             />
                         </div>
                     )}

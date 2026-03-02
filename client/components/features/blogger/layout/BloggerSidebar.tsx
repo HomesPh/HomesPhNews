@@ -63,9 +63,9 @@ export default function BloggerSidebar() {
                     ) : (
                         <div className="flex items-center justify-center px-2">
                             <img
-                                src="/images/HomesLogoW.png"
+                                src="/images/HLogo.png"
                                 alt="Homes.ph News"
-                                className="w-10 h-10 object-contain"
+                                className="w-6 h-6 object-contain"
                             />
                         </div>
                     )}
