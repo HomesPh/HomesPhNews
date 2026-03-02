@@ -15,10 +15,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HomesTV",
-  description: "Stay informed with HomesTV - Your trusted source for global news.",
+  title: "Homes.ph News",
+  description: "Stay informed with Homes.ph News - Your trusted source for global news.",
   icons: {
-    icon: "/images/HomesTV.png",
+    icon: "/images/HomesFav.png",
   },
 };
 
