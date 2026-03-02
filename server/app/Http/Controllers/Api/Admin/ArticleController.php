@@ -683,6 +683,7 @@ class ArticleController extends Controller
         $publishedCount = $counts['published'] ?? 0;
         $pendingReviewCount = $counts['pending review'] ?? 0;
         $editedCount = $counts['edited'] ?? 0;
+        $rejectedCount = $counts['rejected'] ?? 0;
 
         // DB Total (Published + Pending Review + Edited) - excluding soft deleted
         $dbTotal = $publishedCount + $pendingReviewCount + $editedCount;
@@ -696,6 +697,7 @@ class ArticleController extends Controller
             'being_processed' => $pendingCount,
             'pending' => $pendingReviewCount,
             'edited' => $editedCount,
+            'rejected' => $rejectedCount,
             'deleted' => $deletedCount,
         ];
     }
