@@ -74,6 +74,7 @@ export default function ArticlesPage() {
         published: 0,
         being_processed: 0,
         pending: 0,
+        edited: 0,
         deleted: 0,
     });
 
@@ -89,7 +90,7 @@ export default function ArticlesPage() {
                 // Map frontend tab ids to backend status: pending_review -> 'pending review'
                 const statusParam = filters.status === 'all' ? undefined
                     : filters.status === 'pending_review' ? 'pending review'
-                    : filters.status;
+                        : filters.status;
 
                 const apiFilters = {
                     status: statusParam,
@@ -118,6 +119,7 @@ export default function ArticlesPage() {
                         published: Number(status_counts.published),
                         being_processed: Number(status_counts.being_processed ?? 0),
                         pending: Number(status_counts.pending ?? 0),
+                        edited: Number(status_counts.edited ?? 0),
                         deleted: Number(status_counts.deleted || 0),
                     });
                 }
@@ -207,6 +209,7 @@ export default function ArticlesPage() {
                     published: Number(sc.published),
                     being_processed: Number(sc.being_processed ?? 0),
                     pending: Number(sc.pending ?? 0),
+                    edited: Number(sc.edited ?? 0),
                     deleted: Number(sc.deleted || 0),
                 });
             }

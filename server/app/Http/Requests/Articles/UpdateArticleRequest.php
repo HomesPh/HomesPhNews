@@ -31,7 +31,7 @@ class UpdateArticleRequest extends FormRequest
             'image_url' => 'nullable|string|max:2000', // Support both for flexiblity
             'published_sites' => 'nullable|array',
             'published_sites.*' => 'string',
-            'status' => 'nullable|string|in:published,pending review,rejected,deleted',
+            'status' => 'nullable|string|in:published,pending review,rejected,deleted,edited',
             'custom_titles' => 'nullable|array',
             'topics' => 'nullable|array',
             'keywords' => 'nullable|string|max:255',

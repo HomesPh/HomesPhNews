@@ -12,7 +12,7 @@ import { publishArticle } from "@/lib/api-v2/admin/service/article/publishArticl
 import { deleteArticle } from "@/lib/api-v2/admin/service/article/deleteArticle";
 import { restoreArticle } from "@/lib/api-v2/admin/service/article/restoreArticle";
 import { hardDeleteArticle } from "@/lib/api-v2/admin/service/article/hardDeleteArticle";
-import { Trash2, RotateCcw, ShieldAlert, Send } from 'lucide-react';
+import { Trash2, RotateCcw, ShieldAlert, Send, CheckCircle2 } from 'lucide-react';
 import { sendNewsletter } from "@/lib/api-v2/admin/service/article/sendNewsletter";
 import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
 import CustomizeTitlesModal from "@/components/features/admin/articles/CustomizeTitlesModal";
@@ -591,10 +591,12 @@ function ArticleDetailsContent() {
                         <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-sm">
                             <h3 className="text-[16px] font-semibold text-[#111827] mb-4 tracking-[-0.5px]">Quick Actions</h3>
                             <div className="space-y-3">
-                                <button onClick={() => setIsEditModalOpen(true)} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#374151] hover:bg-gray-50 transition-all active:scale-95 tracking-[-0.5px]">
-                                    <Edit className="w-4 h-4" /> Edit Article
-                                </button>
-                                {article.status === 'published' && !article.is_deleted && (
+                                {!isEditor && (
+                                    <button onClick={() => setIsEditModalOpen(true)} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#374151] hover:bg-gray-50 transition-all active:scale-95 tracking-[-0.5px]">
+                                        <Edit className="w-4 h-4" /> Edit Article
+                                    </button>
+                                )}
+                                {article.status === 'published' && !article.is_deleted && !isEditor && (
                                     <button
                                         onClick={handleSendNewsletter}
                                         className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-[#3b82f6] text-[#3b82f6] rounded-[8px] text-[14px] font-medium hover:bg-blue-50 transition-all active:scale-95 tracking-[-0.5px]"

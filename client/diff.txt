@@ -1,318 +1,848 @@
 diff --git a/client/components/features/admin/layout/AdminSidebar.tsx b/client/components/features/admin/layout/AdminSidebar.tsx
-index d1c1560..73b7812 100644
+index ee908d4..5b42855 100644
 --- a/client/components/features/admin/layout/AdminSidebar.tsx
 +++ b/client/components/features/admin/layout/AdminSidebar.tsx
-@@ -95,20 +95,17 @@ export default function AdminSidebar() {
-           {!isCollapsed ? (
-             <div className="flex items-center gap-3 px-2">
-               <img
--                src="/images/HomesTVwhite.png"
--                alt="HomesTV"
--                className="w-10 h-10 object-contain"
-+                src="/images/HomesLogoW.png"
-+                alt="Homes.ph News"
-+                className="h-12 w-auto object-contain"
-               />
--              <div className="flex flex-col">
--                <h1 className="text-[20px] font-bold text-white leading-[1.4] tracking-[-0.5px]">HomesTV</h1>
--              </div>
-             </div>
-           ) : (
-             <div className="flex justify-center">
-               <img
--                src="/images/HomesTVwhite.png"
--                alt="HomesTV"
--                className="w-10 h-10 object-contain"
-+                src="/images/HomesLogoW.png"
-+                alt="Homes.ph News"
-+                className="h-10 w-auto object-contain"
-               />
-             </div>
-           )}
-diff --git a/client/components/features/admin/sites/SiteEditorModal.tsx b/client/components/features/admin/sites/SiteEditorModal.tsx
-index 7c0b4f9..f3a7033 100644
---- a/client/components/features/admin/sites/SiteEditorModal.tsx
-+++ b/client/components/features/admin/sites/SiteEditorModal.tsx
-@@ -63,7 +63,7 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
-             description: formData.description,
-             categories: formData.categories,
-             country: formData.country,
--            image: formData.logoUrl || "/images/HomesTV.png",
-+            image: formData.logoUrl || "/images/HomesLogo.png",
-             // Remove legacy fields if not in request type, or keep if harmless? 
-             // Better to match request type. Status is handled by updateSite but mainly via toggle?
-             // UpdateSiteRequest supports status.
-diff --git a/client/components/features/admin/sites/SiteListItem.tsx b/client/components/features/admin/sites/SiteListItem.tsx
-index d027f1b..e95c21b 100644
---- a/client/components/features/admin/sites/SiteListItem.tsx
-+++ b/client/components/features/admin/sites/SiteListItem.tsx
-@@ -40,7 +40,7 @@ export default function SiteListItem({ site, onEdit, onDelete, onToggleStatus, o
-                         className="w-full h-full object-cover"
-                         onError={(e) => {
-                             const target = e.target as HTMLImageElement;
--                            target.src = "/images/HomesTV.png";
-+                            target.src = "/images/HomesLogo.png";
-                         }}
-                     />
-                 </div>
-diff --git a/client/components/features/blogger/layout/BloggerSidebar.tsx b/client/components/features/blogger/layout/BloggerSidebar.tsx
-index ddc801d..fab0d54 100644
---- a/client/components/features/blogger/layout/BloggerSidebar.tsx
-+++ b/client/components/features/blogger/layout/BloggerSidebar.tsx
-@@ -52,8 +52,8 @@ export default function BloggerSidebar() {
-                     {!isCollapsed ? (
-                         <div className="flex items-center gap-3 px-2">
-                             <img
--                                src="/images/HomesTVwhite.png"
--                                alt="HomesTV"
-+                                src="/images/HomesLogoW.png"
-+                                alt="Homes.ph News"
-                                 className="w-10 h-10 object-contain"
-                             />
-                             <div className="flex flex-col">
-@@ -61,10 +61,10 @@ export default function BloggerSidebar() {
-                             </div>
-                         </div>
-                     ) : (
--                        <div className="flex justify-center">
-+                        <div className="flex items-center justify-center px-2">
-                             <img
--                                src="/images/HomesTVwhite.png"
--                                alt="HomesTV"
-+                                src="/images/HomesLogoW.png"
-+                                alt="Homes.ph News"
-                                 className="w-10 h-10 object-contain"
-                             />
-                         </div>
-@@ -117,7 +117,7 @@ export default function BloggerSidebar() {
-                         )}
-                     </button>
-                 </SidebarFooter>
--            </div>
--        </Sidebar>
-+            </div >
-+        </Sidebar >
-     );
- }
-diff --git a/client/components/features/editor/layout/EditorSidebar.tsx b/client/components/features/editor/layout/EditorSidebar.tsx
-index 724e64a..918b83c 100644
---- a/client/components/features/editor/layout/EditorSidebar.tsx
-+++ b/client/components/features/editor/layout/EditorSidebar.tsx
-@@ -32,19 +32,16 @@ export default function EditorSidebar() {
-                     {!isCollapsed ? (
-                         <div className="flex items-center gap-3 px-2">
-                             <img
--                                src="/images/HomesTVwhite.png"
--                                alt="HomesTV"
--                                className="w-10 h-10 object-contain"
-+                                src="/images/HomesLogoW.png"
-+                                alt="Homes.ph News"
-+                                className="h-10 w-auto object-contain"
-                             />
--                            <div className="flex flex-col">
--                                <h1 className="text-[20px] font-bold text-white leading-[1.4] tracking-[-0.5px]">Editor Portal</h1>
--                            </div>
-                         </div>
-                     ) : (
-                         <div className="flex justify-center">
-                             <img
--                                src="/images/HomesTVwhite.png"
--                                alt="HomesTV"
-+                                src="/images/HomesLogoW.png"
-+                                alt="Homes.ph News"
-                                 className="w-10 h-10 object-contain"
-                             />
-                         </div>
-diff --git a/client/components/features/subscriber/layout/SubscriberSidebar.tsx b/client/components/features/subscriber/layout/SubscriberSidebar.tsx
-index 385b76b..29dc083 100644
---- a/client/components/features/subscriber/layout/SubscriberSidebar.tsx
-+++ b/client/components/features/subscriber/layout/SubscriberSidebar.tsx
-@@ -43,8 +43,8 @@ export default function SubscriberSidebar() {
- 
-     // Customization State
-     const [branding, setBranding] = useState({
--        logo: "/images/HomesTVwhite.png",
--        name: "HomesTV"
-+        logo: "/images/HomesLogoW.png",
-+        name: "Homes.ph News"
-     });
- 
-     const [theme, setTheme] = useState({
-@@ -63,8 +63,8 @@ export default function SubscriberSidebar() {
- 
-                     // Load Branding
-                     setBranding({
--                        logo: prefs.customization?.logo || "/images/HomesTVwhite.png",
--                        name: prefs.customization?.companyName || "HomesTV"
-+                        logo: prefs.customization?.logo || "/images/HomesLogoW.png",
-+                        name: prefs.customization?.companyName || "Homes.ph News"
-                     });
- 
-                     // Load Theme
-diff --git a/client/components/features/subscription/PlanConfigurationModal.tsx b/client/components/features/subscription/PlanConfigurationModal.tsx
-index cc81c0f..edd6413 100644
---- a/client/components/features/subscription/PlanConfigurationModal.tsx
-+++ b/client/components/features/subscription/PlanConfigurationModal.tsx
-@@ -81,9 +81,9 @@ export default function PlanConfigurationModal({
-                 <div className="h-[70px] bg-[#c10007] relative overflow-hidden flex items-center justify-center flex-shrink-0">
-                     <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
-                     <img
--                        src="/images/HomesTV.png"
--                        alt="HomesTV"
--                        className="h-9 w-auto object-contain brightness-0 invert"
-+                        src="/images/HomesLogo.png"
-+                        alt="Homes.ph News Logo"
-+                        className="h-9 w-auto object-contain"
-                     />
-                 </div>
- 
-@@ -184,8 +184,8 @@ export default function PlanConfigurationModal({
-                                                 });
-                                             }}
-                                             className={`px-4 py-2 rounded-full text-xs font-semibold border transition-all ${formData.categories.includes(category.id)
--                                                    ? 'bg-[#fef2f2] border-[#c10007] text-[#c10007] shadow-sm'
--                                                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
-+                                                ? 'bg-[#fef2f2] border-[#c10007] text-[#c10007] shadow-sm'
-+                                                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
-                                                 }`}
-                                         >
-                                             {category.label}
-diff --git a/client/components/layout/footer/LandingFooter.tsx b/client/components/layout/footer/LandingFooter.tsx
-index bb695e2..1acd999 100644
---- a/client/components/layout/footer/LandingFooter.tsx
-+++ b/client/components/layout/footer/LandingFooter.tsx
-@@ -184,7 +184,7 @@ function FooterContent() {
-       {/* Copyright */}
-       <div className="border-t border-[#374151] pt-6 flex flex-col items-center">
-         <p className="font-normal text-[12px] text-[#6b7280] text-center">
--          © 2026 HomesTV. All rights reserved.
-+          © 2026 Homes.ph News. All rights reserved.
-         </p>
-       </div>
-     </div>
+@@ -118,7 +118,7 @@ export default function AdminSidebar() {
+               if (item.title === "Articles" && user?.roles?.includes('ceo')) {
+                 href = "/ceo/articles";
+               }
+-              const isActive = pathname.startsWith(href);
++              const isActive = href === "/admin" || href === "/ceo" ? pathname === href : pathname.startsWith(href);
+               const Icon = item.icon;
+               return (
+                 <SidebarMenuItem key={item.title}>
 diff --git a/client/components/layout/header/LandingHeader.tsx b/client/components/layout/header/LandingHeader.tsx
-index 1d66eba..31cf930 100644
+index 31cf930..e52a739 100644
 --- a/client/components/layout/header/LandingHeader.tsx
 +++ b/client/components/layout/header/LandingHeader.tsx
-@@ -104,22 +104,12 @@ export default function LandingHeader() {
+@@ -104,11 +104,16 @@ export default function LandingHeader() {
  
                {/* Logo Section */}
                <Link href="/" className="flex items-center gap-2 md:gap-3">
--                <div className="relative w-8 h-8 md:w-10 md:h-10">
-+                <div className="relative h-4 md:h-6 w-auto">
+-                <div className="relative h-4 md:h-6 w-auto">
++                <div className="relative h-4 md:h-6 w-auto flex items-center">
                    <img
--                    src="/images/HomesTV.png"
--                    alt="HomesTV Logo"
--                    className="dark:hidden object-contain w-full h-full"
-+                    src="/images/HomesLogo.png"
+                     src="/images/HomesLogo.png"
+                     alt="Homes.ph News Logo"
+-                    className="object-contain h-full w-auto"
++                    className="object-contain h-full w-auto dark:hidden"
++                  />
++                  <img
++                    src="/images/HomesLogoW.png"
 +                    alt="Homes.ph News Logo"
-+                    className="object-contain h-full w-auto"
++                    className="object-contain h-full w-auto hidden dark:block"
                    />
--                  <img
--                    src="/images/HomesTVwhite.png"
--                    alt="HomesTV Logo"
--                    className="hidden dark:block object-contain w-full h-full"
--                  />
--                </div>
--                <div className="flex flex-col">
--                  <span className="font-bold text-[18px] md:text-[22px] leading-none text-[#111827] dark:text-white tracking-tight">
--                    HomesTV
--                  </span>
                  </div>
                </Link>
- 
 diff --git a/client/components/layout/header/LandingMobileMenu.tsx b/client/components/layout/header/LandingMobileMenu.tsx
-index 0c76a8a..765f1f9 100644
+index 765f1f9..b09c58d 100644
 --- a/client/components/layout/header/LandingMobileMenu.tsx
 +++ b/client/components/layout/header/LandingMobileMenu.tsx
-@@ -35,20 +35,10 @@ export default function LandingMobileMenu({
-                 <div className="px-4 py-6 border-b border-gray-100 dark:border-[rgba(255,255,255,0.1)]">
-                     <div className="flex items-center gap-3 px-2">
+@@ -37,7 +37,12 @@ export default function LandingMobileMenu({
                          <img
--                            src="/images/HomesTV.png"
--                            alt="HomesTV"
--                            className="w-10 h-10 object-contain dark:hidden"
-+                            src="/images/HomesLogo.png"
+                             src="/images/HomesLogo.png"
+                             alt="Homes.ph News Logo"
+-                            className="h-10 w-auto object-contain"
++                            className="h-10 w-auto object-contain dark:hidden"
++                        />
++                        <img
++                            src="/images/HomesLogoW.png"
 +                            alt="Homes.ph News Logo"
-+                            className="h-10 w-auto object-contain"
++                            className="h-10 w-auto object-contain hidden dark:block"
                          />
--                        <img
--                            src="/images/HomesTVwhite.png"
--                            alt="HomesTV"
--                            className="w-10 h-10 object-contain hidden dark:block"
--                        />
--                        <div className="flex flex-col">
--                            <h1 className="text-[20px] font-bold text-gray-900 dark:text-white leading-[1.4] tracking-[-0.5px]">
--                                HomesTV
--                            </h1>
--                        </div>
                      </div>
                  </div>
- 
-diff --git a/client/components/layout/header/SubscribeModal.tsx b/client/components/layout/header/SubscribeModal.tsx
-index 6d30781..dec8da7 100644
---- a/client/components/layout/header/SubscribeModal.tsx
-+++ b/client/components/layout/header/SubscribeModal.tsx
-@@ -242,9 +242,9 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
-                     {/* Center Section: Logo */}
-                     <div className="flex-1 flex items-center justify-center z-10">
-                         <img
--                            src="/images/HomesTV.png"
--                            alt="HomesTV"
--                            className="h-9 w-auto object-contain brightness-0 invert"
-+                            src="/images/HomesLogo.png"
-+                            alt="Homes.ph News Logo"
-+                            className="h-9 w-auto object-contain"
-                         />
-                     </div>
- 
-@@ -268,7 +268,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
-                                         <h2 className="font-bold text-[24px] text-[#111827] tracking-[-1px] mb-[4px]">
-                                             How can we help?
-                                         </h2>
--                                        <p className="text-[#6b7280] text-[15px] tracking-[-0.3px]">Choose an option to get started with HomesTV.</p>
-+                                        <p className="text-[#6b7280] text-[15px] tracking-[-0.3px]">Choose an option to get started with Homes.ph News.</p>
-                                     </div>
- 
-                                     <div className="grid gap-[12px]">
-diff --git a/client/public/images/Homes Logo.png b/client/public/images/Homes Logo.png
-deleted file mode 100644
-index f48c679..0000000
-Binary files a/client/public/images/Homes Logo.png and /dev/null differ
-diff --git a/server/app/Mail/DailyNewsletterMail.php b/server/app/Mail/DailyNewsletterMail.php
-index d0a7041..6f5007a 100644
---- a/server/app/Mail/DailyNewsletterMail.php
-+++ b/server/app/Mail/DailyNewsletterMail.php
-@@ -49,8 +49,8 @@ public function __construct($subscriber, $articles)
-      */
-     public function build()
-     {
--        // Use the white logo variant as requested
--        $logo = 'https://news.homes.ph/images/HomesTVwhite.png';
-+        // Using localhost for local testing (since the real logo is not deployed yet)
-+        $logo = 'http://localhost:3000/images/HomesLogo.png';
-         
-         return $this->subject('Your Daily Homes.ph News Digest')
-                     ->view('emails.newsletter.daily')
+diff --git a/client/diff.txt b/client/diff.txt
+index a9d0451..e69de29 100644
+--- a/client/diff.txt
++++ b/client/diff.txt
+@@ -1,318 +0,0 @@
+-diff --git a/client/components/features/admin/layout/AdminSidebar.tsx b/client/components/features/admin/layout/AdminSidebar.tsx
+-index d1c1560..73b7812 100644
+---- a/client/components/features/admin/layout/AdminSidebar.tsx
+-+++ b/client/components/features/admin/layout/AdminSidebar.tsx
+-@@ -95,20 +95,17 @@ export default function AdminSidebar() {
+-           {!isCollapsed ? (
+-             <div className="flex items-center gap-3 px-2">
+-               <img
+--                src="/images/HomesTVwhite.png"
+--                alt="HomesTV"
+--                className="w-10 h-10 object-contain"
+-+                src="/images/HomesLogoW.png"
+-+                alt="Homes.ph News"
+-+                className="h-12 w-auto object-contain"
+-               />
+--              <div className="flex flex-col">
+--                <h1 className="text-[20px] font-bold text-white leading-[1.4] tracking-[-0.5px]">HomesTV</h1>
+--              </div>
+-             </div>
+-           ) : (
+-             <div className="flex justify-center">
+-               <img
+--                src="/images/HomesTVwhite.png"
+--                alt="HomesTV"
+--                className="w-10 h-10 object-contain"
+-+                src="/images/HomesLogoW.png"
+-+                alt="Homes.ph News"
+-+                className="h-10 w-auto object-contain"
+-               />
+-             </div>
+-           )}
+-diff --git a/client/components/features/admin/sites/SiteEditorModal.tsx b/client/components/features/admin/sites/SiteEditorModal.tsx
+-index 7c0b4f9..f3a7033 100644
+---- a/client/components/features/admin/sites/SiteEditorModal.tsx
+-+++ b/client/components/features/admin/sites/SiteEditorModal.tsx
+-@@ -63,7 +63,7 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
+-             description: formData.description,
+-             categories: formData.categories,
+-             country: formData.country,
+--            image: formData.logoUrl || "/images/HomesTV.png",
+-+            image: formData.logoUrl || "/images/HomesLogo.png",
+-             // Remove legacy fields if not in request type, or keep if harmless? 
+-             // Better to match request type. Status is handled by updateSite but mainly via toggle?
+-             // UpdateSiteRequest supports status.
+-diff --git a/client/components/features/admin/sites/SiteListItem.tsx b/client/components/features/admin/sites/SiteListItem.tsx
+-index d027f1b..e95c21b 100644
+---- a/client/components/features/admin/sites/SiteListItem.tsx
+-+++ b/client/components/features/admin/sites/SiteListItem.tsx
+-@@ -40,7 +40,7 @@ export default function SiteListItem({ site, onEdit, onDelete, onToggleStatus, o
+-                         className="w-full h-full object-cover"
+-                         onError={(e) => {
+-                             const target = e.target as HTMLImageElement;
+--                            target.src = "/images/HomesTV.png";
+-+                            target.src = "/images/HomesLogo.png";
+-                         }}
+-                     />
+-                 </div>
+-diff --git a/client/components/features/blogger/layout/BloggerSidebar.tsx b/client/components/features/blogger/layout/BloggerSidebar.tsx
+-index ddc801d..fab0d54 100644
+---- a/client/components/features/blogger/layout/BloggerSidebar.tsx
+-+++ b/client/components/features/blogger/layout/BloggerSidebar.tsx
+-@@ -52,8 +52,8 @@ export default function BloggerSidebar() {
+-                     {!isCollapsed ? (
+-                         <div className="flex items-center gap-3 px-2">
+-                             <img
+--                                src="/images/HomesTVwhite.png"
+--                                alt="HomesTV"
+-+                                src="/images/HomesLogoW.png"
+-+                                alt="Homes.ph News"
+-                                 className="w-10 h-10 object-contain"
+-                             />
+-                             <div className="flex flex-col">
+-@@ -61,10 +61,10 @@ export default function BloggerSidebar() {
+-                             </div>
+-                         </div>
+-                     ) : (
+--                        <div className="flex justify-center">
+-+                        <div className="flex items-center justify-center px-2">
+-                             <img
+--                                src="/images/HomesTVwhite.png"
+--                                alt="HomesTV"
+-+                                src="/images/HomesLogoW.png"
+-+                                alt="Homes.ph News"
+-                                 className="w-10 h-10 object-contain"
+-                             />
+-                         </div>
+-@@ -117,7 +117,7 @@ export default function BloggerSidebar() {
+-                         )}
+-                     </button>
+-                 </SidebarFooter>
+--            </div>
+--        </Sidebar>
+-+            </div >
+-+        </Sidebar >
+-     );
+- }
+-diff --git a/client/components/features/editor/layout/EditorSidebar.tsx b/client/components/features/editor/layout/EditorSidebar.tsx
+-index 724e64a..918b83c 100644
+---- a/client/components/features/editor/layout/EditorSidebar.tsx
+-+++ b/client/components/features/editor/layout/EditorSidebar.tsx
+-@@ -32,19 +32,16 @@ export default function EditorSidebar() {
+-                     {!isCollapsed ? (
+-                         <div className="flex items-center gap-3 px-2">
+-                             <img
+--                                src="/images/HomesTVwhite.png"
+--                                alt="HomesTV"
+--                                className="w-10 h-10 object-contain"
+-+                                src="/images/HomesLogoW.png"
+-+                                alt="Homes.ph News"
+-+                                className="h-10 w-auto object-contain"
+-                             />
+--                            <div className="flex flex-col">
+--                                <h1 className="text-[20px] font-bold text-white leading-[1.4] tracking-[-0.5px]">Editor Portal</h1>
+--                            </div>
+-                         </div>
+-                     ) : (
+-                         <div className="flex justify-center">
+-                             <img
+--                                src="/images/HomesTVwhite.png"
+--                                alt="HomesTV"
+-+                                src="/images/HomesLogoW.png"
+-+                                alt="Homes.ph News"
+-                                 className="w-10 h-10 object-contain"
+-                             />
+-                         </div>
+-diff --git a/client/components/features/subscriber/layout/SubscriberSidebar.tsx b/client/components/features/subscriber/layout/SubscriberSidebar.tsx
+-index 385b76b..29dc083 100644
+---- a/client/components/features/subscriber/layout/SubscriberSidebar.tsx
+-+++ b/client/components/features/subscriber/layout/SubscriberSidebar.tsx
+-@@ -43,8 +43,8 @@ export default function SubscriberSidebar() {
+- 
+-     // Customization State
+-     const [branding, setBranding] = useState({
+--        logo: "/images/HomesTVwhite.png",
+--        name: "HomesTV"
+-+        logo: "/images/HomesLogoW.png",
+-+        name: "Homes.ph News"
+-     });
+- 
+-     const [theme, setTheme] = useState({
+-@@ -63,8 +63,8 @@ export default function SubscriberSidebar() {
+- 
+-                     // Load Branding
+-                     setBranding({
+--                        logo: prefs.customization?.logo || "/images/HomesTVwhite.png",
+--                        name: prefs.customization?.companyName || "HomesTV"
+-+                        logo: prefs.customization?.logo || "/images/HomesLogoW.png",
+-+                        name: prefs.customization?.companyName || "Homes.ph News"
+-                     });
+- 
+-                     // Load Theme
+-diff --git a/client/components/features/subscription/PlanConfigurationModal.tsx b/client/components/features/subscription/PlanConfigurationModal.tsx
+-index cc81c0f..edd6413 100644
+---- a/client/components/features/subscription/PlanConfigurationModal.tsx
+-+++ b/client/components/features/subscription/PlanConfigurationModal.tsx
+-@@ -81,9 +81,9 @@ export default function PlanConfigurationModal({
+-                 <div className="h-[70px] bg-[#c10007] relative overflow-hidden flex items-center justify-center flex-shrink-0">
+-                     <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+-                     <img
+--                        src="/images/HomesTV.png"
+--                        alt="HomesTV"
+--                        className="h-9 w-auto object-contain brightness-0 invert"
+-+                        src="/images/HomesLogo.png"
+-+                        alt="Homes.ph News Logo"
+-+                        className="h-9 w-auto object-contain"
+-                     />
+-                 </div>
+- 
+-@@ -184,8 +184,8 @@ export default function PlanConfigurationModal({
+-                                                 });
+-                                             }}
+-                                             className={`px-4 py-2 rounded-full text-xs font-semibold border transition-all ${formData.categories.includes(category.id)
+--                                                    ? 'bg-[#fef2f2] border-[#c10007] text-[#c10007] shadow-sm'
+--                                                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+-+                                                ? 'bg-[#fef2f2] border-[#c10007] text-[#c10007] shadow-sm'
+-+                                                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+-                                                 }`}
+-                                         >
+-                                             {category.label}
+-diff --git a/client/components/layout/footer/LandingFooter.tsx b/client/components/layout/footer/LandingFooter.tsx
+-index bb695e2..1acd999 100644
+---- a/client/components/layout/footer/LandingFooter.tsx
+-+++ b/client/components/layout/footer/LandingFooter.tsx
+-@@ -184,7 +184,7 @@ function FooterContent() {
+-       {/* Copyright */}
+-       <div className="border-t border-[#374151] pt-6 flex flex-col items-center">
+-         <p className="font-normal text-[12px] text-[#6b7280] text-center">
+--          © 2026 HomesTV. All rights reserved.
+-+          © 2026 Homes.ph News. All rights reserved.
+-         </p>
+-       </div>
+-     </div>
+-diff --git a/client/components/layout/header/LandingHeader.tsx b/client/components/layout/header/LandingHeader.tsx
+-index 1d66eba..31cf930 100644
+---- a/client/components/layout/header/LandingHeader.tsx
+-+++ b/client/components/layout/header/LandingHeader.tsx
+-@@ -104,22 +104,12 @@ export default function LandingHeader() {
+- 
+-               {/* Logo Section */}
+-               <Link href="/" className="flex items-center gap-2 md:gap-3">
+--                <div className="relative w-8 h-8 md:w-10 md:h-10">
+-+                <div className="relative h-4 md:h-6 w-auto">
+-                   <img
+--                    src="/images/HomesTV.png"
+--                    alt="HomesTV Logo"
+--                    className="dark:hidden object-contain w-full h-full"
+-+                    src="/images/HomesLogo.png"
+-+                    alt="Homes.ph News Logo"
+-+                    className="object-contain h-full w-auto"
+-                   />
+--                  <img
+--                    src="/images/HomesTVwhite.png"
+--                    alt="HomesTV Logo"
+--                    className="hidden dark:block object-contain w-full h-full"
+--                  />
+--                </div>
+--                <div className="flex flex-col">
+--                  <span className="font-bold text-[18px] md:text-[22px] leading-none text-[#111827] dark:text-white tracking-tight">
+--                    HomesTV
+--                  </span>
+-                 </div>
+-               </Link>
+- 
+-diff --git a/client/components/layout/header/LandingMobileMenu.tsx b/client/components/layout/header/LandingMobileMenu.tsx
+-index 0c76a8a..765f1f9 100644
+---- a/client/components/layout/header/LandingMobileMenu.tsx
+-+++ b/client/components/layout/header/LandingMobileMenu.tsx
+-@@ -35,20 +35,10 @@ export default function LandingMobileMenu({
+-                 <div className="px-4 py-6 border-b border-gray-100 dark:border-[rgba(255,255,255,0.1)]">
+-                     <div className="flex items-center gap-3 px-2">
+-                         <img
+--                            src="/images/HomesTV.png"
+--                            alt="HomesTV"
+--                            className="w-10 h-10 object-contain dark:hidden"
+-+                            src="/images/HomesLogo.png"
+-+                            alt="Homes.ph News Logo"
+-+                            className="h-10 w-auto object-contain"
+-                         />
+--                        <img
+--                            src="/images/HomesTVwhite.png"
+--                            alt="HomesTV"
+--                            className="w-10 h-10 object-contain hidden dark:block"
+--                        />
+--                        <div className="flex flex-col">
+--                            <h1 className="text-[20px] font-bold text-gray-900 dark:text-white leading-[1.4] tracking-[-0.5px]">
+--                                HomesTV
+--                            </h1>
+--                        </div>
+-                     </div>
+-                 </div>
+- 
+-diff --git a/client/components/layout/header/SubscribeModal.tsx b/client/components/layout/header/SubscribeModal.tsx
+-index 6d30781..dec8da7 100644
+---- a/client/components/layout/header/SubscribeModal.tsx
+-+++ b/client/components/layout/header/SubscribeModal.tsx
+-@@ -242,9 +242,9 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
+-                     {/* Center Section: Logo */}
+-                     <div className="flex-1 flex items-center justify-center z-10">
+-                         <img
+--                            src="/images/HomesTV.png"
+--                            alt="HomesTV"
+--                            className="h-9 w-auto object-contain brightness-0 invert"
+-+                            src="/images/HomesLogo.png"
+-+                            alt="Homes.ph News Logo"
+-+                            className="h-9 w-auto object-contain"
+-                         />
+-                     </div>
+- 
+-@@ -268,7 +268,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
+-                                         <h2 className="font-bold text-[24px] text-[#111827] tracking-[-1px] mb-[4px]">
+-                                             How can we help?
+-                                         </h2>
+--                                        <p className="text-[#6b7280] text-[15px] tracking-[-0.3px]">Choose an option to get started with HomesTV.</p>
+-+                                        <p className="text-[#6b7280] text-[15px] tracking-[-0.3px]">Choose an option to get started with Homes.ph News.</p>
+-                                     </div>
+- 
+-                                     <div className="grid gap-[12px]">
+-diff --git a/client/public/images/Homes Logo.png b/client/public/images/Homes Logo.png
+-deleted file mode 100644
+-index f48c679..0000000
+-Binary files a/client/public/images/Homes Logo.png and /dev/null differ
+-diff --git a/server/app/Mail/DailyNewsletterMail.php b/server/app/Mail/DailyNewsletterMail.php
+-index d0a7041..6f5007a 100644
+---- a/server/app/Mail/DailyNewsletterMail.php
+-+++ b/server/app/Mail/DailyNewsletterMail.php
+-@@ -49,8 +49,8 @@ public function __construct($subscriber, $articles)
+-      */
+-     public function build()
+-     {
+--        // Use the white logo variant as requested
+--        $logo = 'https://news.homes.ph/images/HomesTVwhite.png';
+-+        // Using localhost for local testing (since the real logo is not deployed yet)
+-+        $logo = 'http://localhost:3000/images/HomesLogo.png';
+-         
+-         return $this->subject('Your Daily Homes.ph News Digest')
+-                     ->view('emails.newsletter.daily')
+-diff --git a/server/resources/views/emails/newsletter/daily.blade.php b/server/resources/views/emails/newsletter/daily.blade.php
+-index 74bfd28..47131f7 100644
+---- a/server/resources/views/emails/newsletter/daily.blade.php
+-+++ b/server/resources/views/emails/newsletter/daily.blade.php
+-@@ -265,7 +265,6 @@
+-         <div class="header">
+-             <div class="logo-wrapper">
+-                 <img src="{{ $logo }}" alt="Homes.ph News" class="logo-img">
+--                <span class="logo-text">Homes.ph News</span>
+-             </div>
+-         </div>
+-         <div class="sub-header">Daily News Digest</div>
+-@@ -342,8 +341,7 @@
+-         <div class="footer">
+-             <div class="footer-logo">
+-                 <div class="logo-wrapper-footer">
+--                    <img src="{{ $logo }}" alt="Homes.ph News" style="max-height: 20px; width: auto; margin-right: 8px;">
+--                    <span style="font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.04em;">Homes.ph News</span>
+-+                    <img src="{{ $logo }}" alt="Homes.ph News" style="max-height: 30px; width: auto;">
+-                 </div>
+-             </div>
+-             <div class="footer-text">
 diff --git a/server/resources/views/emails/newsletter/daily.blade.php b/server/resources/views/emails/newsletter/daily.blade.php
-index 74bfd28..47131f7 100644
+index 47131f7..306885a 100644
 --- a/server/resources/views/emails/newsletter/daily.blade.php
 +++ b/server/resources/views/emails/newsletter/daily.blade.php
-@@ -265,7 +265,6 @@
+@@ -15,6 +15,14 @@
+             -webkit-font-smoothing: antialiased;
+         }
+ 
++        @media only screen and (max-width: 600px) {
++            .article-title { font-size: 20px !important; }
++            .article-summary { font-size: 13px !important; }
++            .greeting { font-size: 22px !important; }
++            .message { font-size: 13px !important; }
++            .section-title { font-size: 13px !important; }
++        }
++
+         .container {
+             max-width: 600px;
+             margin: 0 auto;
+diff --git a/server/resources/views/emails/subscription.blade.php b/server/resources/views/emails/subscription.blade.php
+index c087a13..4df9816 100644
+--- a/server/resources/views/emails/subscription.blade.php
++++ b/server/resources/views/emails/subscription.blade.php
+@@ -13,22 +13,26 @@
+             -webkit-font-smoothing: antialiased;
+         }
+ 
++        @media only screen and (max-width: 600px) {
++            .article-title { font-size: 20px !important; }
++            .article-summary { font-size: 13px !important; }
++            .greeting { font-size: 22px !important; }
++            .message { font-size: 13px !important; }
++            .section-title { font-size: 13px !important; }
++        }
++
+         .container {
+             max-width: 600px;
+-            margin: 30px auto;
++            margin: 0 auto;
+             background-color: #ffffff;
+-            border-radius: 16px;
+             overflow: hidden;
+-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+-            border: 1px solid #eef2f6;
+-            border-top: 6px solid #C10007; /* HomesTV Red */
++            border-top: 5px solid #C10007;
+         }
+ 
+         .header {
+             background-color: #111827;
+-            padding: 32px 20px;
++            padding: 24px 20px;
+             text-align: center;
+-            border-bottom: none;
+         }
+ 
+         .logo-wrapper {
+@@ -39,48 +43,43 @@
+         }
+ 
+         .logo-img {
+-            max-height: 28px;
++            max-height: 24px;
+             width: auto;
+             margin-right: 12px;
+         }
+-
+-        .logo-text {
+-            font-size: 26px;
+-            font-weight: 800;
+-            color: #ffffff;
+-            letter-spacing: -0.04em;
+-            font-family: 'Inter', sans-serif;
+-        }
+         .content {
+-            padding: 40px 30px;
+-            color: #1f2937;
+-            line-height: 1.6;
++            padding: 40px 25px;
++            color: #111827;
+         }
+         .greeting {
+-            font-size: 24px;
+-            font-weight: 800;
++            font-size: 28px;
++            font-weight: 900;
+             color: #111827;
+-            margin-bottom: 10px;
+-            letter-spacing: -0.025em;
++            margin-bottom: 12px;
++            letter-spacing: -0.03em;
++            text-align: left;
+         }
+         .message {
+-            font-size: 16px;
+-            color: #4b5563;
+-            margin-bottom: 30px;
++            font-size: 14px;
++            color: #64748b;
++            margin-bottom: 20px;
++            line-height: 1.6;
++            text-align: left;
+         }
+         .info-card {
+             background-color: #ffffff;
+-            border: 2px solid #f1f5f9;
+-            border-radius: 14px;
+-            padding: 25px;
+-            margin-bottom: 30px;
++            border: 1px solid #f3f4f6;
++            border-radius: 16px;
++            padding: 30px;
++            margin-top: 40px;
++            margin-bottom: 40px;
++            text-align: left;
++            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+         }
+         .info-title {
+-            font-size: 11px;
+             font-weight: 800;
+-            color: #64748b;
+-            text-transform: uppercase;
+-            letter-spacing: 0.1em;
++            color: #111827;
++            font-size: 15px;
+             margin-bottom: 20px;
+         }
+         .info-item {
+@@ -101,47 +100,69 @@
+             font-weight: 600;
+         }
+         .section-title {
+-            font-size: 16px;
++            font-size: 14px;
+             font-weight: 800;
+-            color: #1a1d2e;
+-            margin-bottom: 20px;
+-            border-left: 4px solid #1a1d2e;
+-            padding-left: 15px;
++            color: #111827;
++            margin-bottom: 25px;
++            border-left: 4px solid #C10007;
++            padding-left: 14px;
++            text-align: left;
+         }
+         .article-card {
+             display: block;
+             text-decoration: none;
+             color: inherit;
+-            margin-bottom: 20px;
+-            border-bottom: 1px solid #f3f4f6;
+-            padding-bottom: 20px;
++            margin-bottom: 30px;
++            background-color: #ffffff;
++            border: 1px solid #e5e7eb;
++            border-radius: 16px;
++            padding: 24px;
++            text-align: left;
++            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+         }
+         .article-card:last-child {
+-            border-bottom: none;
++            border-bottom: 1px solid #e5e7eb;
+         }
+         .article-title {
+-            font-size: 16px;
+-            font-weight: 700;
+-            color: #334155;
+-            margin-bottom: 5px;
++            font-size: 24px;
++            font-weight: 900;
++            color: #111827;
++            margin-bottom: 12px;
++            line-height: 1.2;
++            letter-spacing: -0.04em;
+         }
+         .article-summary {
+             font-size: 14px;
+-            color: #6b7280;
+-            margin-bottom: 10px;
++            color: #4b5563;
++            margin-bottom: 24px;
++            line-height: 1.6;
+         }
+         .btn {
+             display: inline-block;
+-            background-color: #334155;
++            background-color: #374151;
+             color: #ffffff !important;
+-            padding: 14px 30px;
+-            border-radius: 12px;
+-            font-size: 15px;
+-            font-weight: 700;
++            padding: 12px 28px;
++            border-radius: 8px;
++            font-size: 14px;
++            font-weight: 800;
+             text-decoration: none;
+-            margin-top: 20px;
+             text-align: center;
+-            letter-spacing: 0.02em;
++        }
++
++        .article-image-wrapper {
++            width: 100%;
++            height: 250px;
++            overflow: hidden;
++            border-radius: 12px;
++            background-color: #f3f4f6;
++            margin-bottom: 20px;
++        }
++
++        .article-image {
++            width: 100%;
++            height: 100%;
++            object-fit: cover;
++            display: block;
+         }
+         .tag {
+             display: inline-block;
+@@ -156,31 +177,36 @@
+         }
+         .footer {
+             background-color: #111827;
+-            padding: 50px 30px;
++            padding: 60px 40px;
+             color: #94a3b8;
+             text-align: center;
+         }
+ 
+         .footer-logo {
+-            margin-bottom: 25px;
+-            opacity: 0.8;
++            margin-bottom: 30px;
++        }
++
++        .logo-wrapper-footer {
++            display: inline-flex;
++            align-items: center;
++            justify-content: center;
++            text-decoration: none;
++            opacity: 0.6;
+         }
+ 
+         .footer-text {
+             font-size: 12px;
+             color: #64748b;
+-            margin-bottom: 24px;
++            margin-bottom: 30px;
+             line-height: 1.6;
+         }
+ 
+         .footer-links a {
+             color: #94a3b8;
+             text-decoration: none;
+-            margin: 0 12px;
++            margin: 0 10px;
+             font-size: 12px;
+             font-weight: 600;
+-            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+-            padding-bottom: 2px;
+         }
+         .tag {
+             display: inline-block;
+@@ -198,8 +224,7 @@
+     <div class="container">
          <div class="header">
              <div class="logo-wrapper">
-                 <img src="{{ $logo }}" alt="Homes.ph News" class="logo-img">
--                <span class="logo-text">Homes.ph News</span>
+-                <img src="https://news.homes.ph/images/HomesTV.png" alt="" class="logo-img">
+-                <span class="logo-text">HomesTV</span>
++                <img src="http://localhost:3000/images/HomesLogo.png" alt="Homes.ph News" class="logo-img">
              </div>
          </div>
-         <div class="sub-header">Daily News Digest</div>
-@@ -342,8 +341,7 @@
+         
+@@ -234,31 +259,52 @@
+             @if(count($articles) > 0)
+                 <div class="section-title">Latest tailoring for you</div>
+                 @foreach($articles as $article)
++                    @php
++                        $imageUrl = null;
++                        if ($article->image) {
++                            if (is_array($article->image)) {
++                                $imageUrl = $article->image[0] ?? null;
++                            } else {
++                                $imageUrl = $article->image;
++                            }
++
++                            if ($imageUrl && !str_starts_with($imageUrl, 'http')) {
++                                $imageUrl = 'https://news.homes.ph/storage/' . $imageUrl;
++                            }
++                        }
++                    @endphp
+                     <a href="{{ $clientUrl }}/article?id={{ $article->id }}" class="article-card">
++                        @if($imageUrl)
++                            <div class="article-image-wrapper">
++                                <img src="{{ $imageUrl }}" alt="{{ $article->title }}" class="article-image">
++                            </div>
++                        @endif
+                         <div class="article-title">{{ $article->title }}</div>
+-                        <div class="article-summary">{{ Str::limit($article->summary, 120) }}</div>
++                        <div class="article-summary">{{ Str::limit(strip_tags($article->summary), 120) }}</div>
+                         <div style="font-size: 12px; font-weight: 600; color: #9ca3af;">Read more &rarr;</div>
+                     </a>
+                 @endforeach
+             @endif
+ 
+-            <div style="text-align: center;">
++            <div style="text-align: left;">
+                 <a href="{{ $actionUrl }}" class="btn">{{ $actionText }}</a>
+             </div>
+         </div>
+         
          <div class="footer">
              <div class="footer-logo">
-                 <div class="logo-wrapper-footer">
--                    <img src="{{ $logo }}" alt="Homes.ph News" style="max-height: 20px; width: auto; margin-right: 8px;">
--                    <span style="font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: -0.04em;">Homes.ph News</span>
-+                    <img src="{{ $logo }}" alt="Homes.ph News" style="max-height: 30px; width: auto;">
-                 </div>
+-                <img src="https://news.homes.ph/images/HomesTV.png" alt="" style="max-height: 22px; width: auto; opacity: 0.6; filter: grayscale(1);">
++                <div class="logo-wrapper-footer">
++                    <img src="http://localhost:3000/images/HomesLogo.png" alt="Homes.ph News" style="max-height: 30px; width: auto;">
++                </div>
              </div>
              <div class="footer-text">
+-                This email was sent to you because you are a registered user of <strong>HomesTV</strong>.<br>
+-                &copy; {{ date('Y') }} HomesTV. All rights reserved.
++                This email was sent to you because you are a registered user of <strong>Homes.ph News</strong>.<br>
++                &copy; {{ date('Y') }} Homes.ph News. All rights reserved.
+             </div>
+             <div class="footer-links">
+                 <a href="{{ $clientUrl }}/privacy-policy">Privacy Policy</a>
+                 <a href="{{ $clientUrl }}/terms-and-policy">Terms of Service</a>
+-                <a href="{{ $clientUrl }}/subscribe/edit?id={{ $subId }}">Preference Center</a>
++                <a href="{{ $clientUrl }}/subscribe/edit?id={{ $subId }}">Unsubscribe</a>
+             </div>
+         </div>
+     </div>
+diff --git a/server/resources/views/emails/welcome_blogger.blade.php b/server/resources/views/emails/welcome_blogger.blade.php
+index 18dcce6..fea17d4 100644
+--- a/server/resources/views/emails/welcome_blogger.blade.php
++++ b/server/resources/views/emails/welcome_blogger.blade.php
+@@ -3,19 +3,29 @@
+ <head>
+     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+-    <title>Welcome to HomesTV</title>
++    <title>Welcome to Homes.ph News</title>
++    <style>
++        @media only screen and (max-width: 600px) {
++            h1 {
++                font-size: 20px !important;
++            }
++            p, span, td {
++                font-size: 14px !important;
++            }
++        }
++    </style>
+ </head>
+ <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f7f9; -webkit-font-smoothing: antialiased;">
+     <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f7f9;">
+         <tr>
+             <td align="center" style="padding: 40px 0;">
+                 <!-- Main Container -->
+-                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);">
++                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-top: 5px solid #C10007; overflow: hidden;">
+                     
+                     <!-- Header -->
+                     <tr>
+-                        <td align="center" style="background-color: #c10007; padding: 30px;">
+-                            <img src="https://news.homes.ph/images/HomesTV.png" alt="HomesTV" width="100" style="display: block; max-height: 40px; filter: brightness(0) invert(1); border: 0;" />
++                        <td align="center" style="background-color: #111827; padding: 24px 20px;">
++                            <img src="http://localhost:3000/images/HomesLogo.png" alt="Homes.ph News" style="display: block; max-height: 24px; width: auto; border: 0;" />
+                         </td>
+                         
+                     </tr>
+@@ -26,7 +36,7 @@
+                             <h1 style="margin: 0 0 10px 0; font-size: 24px; font-weight: 800; color: #111827; letter-spacing: -0.025em;">Welcome, {{ $firstName }}!</h1>
+                             
+                             <p style="margin: 0 0 30px 0; font-size: 16px; color: #4b5563;">
+-                                Your blogger account has been created on HomesTV. Use the credentials below to access your dashboard:
++                                Your blogger account has been created on Homes.ph News. Use the credentials below to access your dashboard:
+                             </p>
+                             
+                             <!-- Credentials Card -->
+@@ -73,9 +83,12 @@
+ 
+                     <!-- Footer -->
+                     <tr>
+-                        <td align="center" style="background-color: #f9fafb; padding: 30px; border-top: 1px solid #e5e7eb;">
+-                            <p style="margin: 0; font-size: 12px; color: #9ca3af;">
+-                                &copy; {{ date('Y') }} HomesTV. All rights reserved.
++                        <td align="center" style="background-color: #111827; padding: 60px 40px;">
++                            <a href="#" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; opacity: 0.6; margin-bottom: 30px;">
++                                <img src="http://localhost:3000/images/HomesLogo.png" alt="Homes.ph News" style="max-height: 30px; width: auto; border: 0;" />
++                            </a>
++                            <p style="margin: 0; font-size: 12px; color: #64748b; line-height: 1.6;">
++                                &copy; {{ date('Y') }} Homes.ph News. All rights reserved.
+                             </p>
+                         </td>
+                     </tr>
+diff --git a/server/routes/web.php b/server/routes/web.php
+index c39f370..b388da3 100644
+--- a/server/routes/web.php
++++ b/server/routes/web.php
+@@ -15,4 +15,69 @@
+     $articles = \App\Models\Article::latest()->take(3)->get();
+     
+     return new \App\Mail\DailyNewsletterMail($subscriber, $articles);
++});
++
++Route::get('/preview-email/welcome-blogger', function () {
++    return new \App\Mail\WelcomeBloggerMail(
++        'John Doe', 
++        'blogger@homes.ph', 
++        'password123', 
++        env('APP_URL_CLIENT', 'http://localhost:3000') . '/login'
++    );
++});
++
++Route::get('/preview-email/welcome', function () {
++    $articles = \App\Models\Article::latest()->take(3)->get();
++    $clientUrl = env('APP_URL_CLIENT', 'http://localhost:3000');
++    
++    return view('emails.subscription', [
++        'subject' => 'Welcome to Homes.ph News Subscription!',
++        'title' => 'Successfully Subscribed!',
++        'messageText' => 'Thank you for joining Homes.ph News. You will now receive the latest real estate updates tailored to your interests.',
++        'email' => 'subscriber@homes.ph',
++        'categories' => ['Real Estate', 'Business'],
++        'countries' => ['Philippines'],
++        'articles' => $articles,
++        'clientUrl' => $clientUrl,
++        'actionUrl' => $clientUrl . "/subscribe/edit?id=preview-sub-id",
++        'actionText' => 'Edit Preferences',
++        'subId' => 'preview-sub-id'
++    ]);
++});
++
++Route::get('/preview-email/welcome-back', function () {
++    $clientUrl = env('APP_URL_CLIENT', 'http://localhost:3000');
++    
++    return view('emails.subscription', [
++        'subject' => 'Subscription Already Exists - Homes.ph News',
++        'title' => 'Welcome back!',
++        'messageText' => 'You are already subscribed to Homes.ph News. We noticed you tried to sign up again, so we\'ve provided a link to manage your current preferences below.',
++        'email' => 'subscriber@homes.ph',
++        'categories' => ['Real Estate'],
++        'countries' => ['Philippines'],
++        'articles' => [],
++        'clientUrl' => $clientUrl,
++        'actionUrl' => $clientUrl . "/subscribe/edit?id=preview-sub-id",
++        'actionText' => 'Edit your Preferences',
++        'subId' => 'preview-sub-id'
++    ]);
++});
++
++Route::get('/preview-email/preferences-updated', function () {
++    $articles = \App\Models\Article::latest()->take(3)->get();
++    $clientUrl = env('APP_URL_CLIENT', 'http://localhost:3000');
++    
++    return view('emails.subscription', [
++        'subject' => 'Preferences Updated - Homes.ph News',
++        'title' => 'Preferences Saved!',
++        'messageText' => 'Your subscription preferences have been updated successfully. We\'ve selected these latest news pieces based on your new interests.',
++        'email' => 'subscriber@homes.ph',
++        'categories' => ['Technology', 'Design'],
++        'countries' => ['Global'],
++        'articles' => $articles,
++        'clientUrl' => $clientUrl,
++        'actionUrl' => $clientUrl . "/subscribe/edit?id=preview-sub-id",
++        'actionText' => 'Manage Preferences',
++        'subId' => 'preview-sub-id'
++    ]);
+ });
+\ No newline at end of file
