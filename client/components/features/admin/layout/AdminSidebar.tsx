@@ -118,7 +118,7 @@ export default function AdminSidebar() {
               if (item.title === "Articles" && user?.roles?.includes('ceo')) {
                 href = "/ceo/articles";
               }
-              const isActive = pathname.startsWith(href);
+              const isActive = href === "/admin" || href === "/ceo" ? pathname === href : pathname.startsWith(href);
               const Icon = item.icon;
               return (
                 <SidebarMenuItem key={item.title}>

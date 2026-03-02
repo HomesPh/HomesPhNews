@@ -104,11 +104,16 @@ export default function LandingHeader() {
 
               {/* Logo Section */}
               <Link href="/" className="flex items-center gap-2 md:gap-3">
-                <div className="relative h-4 md:h-6 w-auto">
+                <div className="relative h-4 md:h-6 w-auto flex items-center">
                   <img
                     src="/images/HomesLogo.png"
                     alt="Homes.ph News Logo"
-                    className="object-contain h-full w-auto"
+                    className="object-contain h-full w-auto dark:hidden"
+                  />
+                  <img
+                    src="/images/HomesLogoW.png"
+                    alt="Homes.ph News Logo"
+                    className="object-contain h-full w-auto hidden dark:block"
                   />
                 </div>
               </Link>

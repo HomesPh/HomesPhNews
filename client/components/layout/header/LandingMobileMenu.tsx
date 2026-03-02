@@ -37,7 +37,12 @@ export default function LandingMobileMenu({
                         <img
                             src="/images/HomesLogo.png"
                             alt="Homes.ph News Logo"
-                            className="h-10 w-auto object-contain"
+                            className="h-10 w-auto object-contain dark:hidden"
+                        />
+                        <img
+                            src="/images/HomesLogoW.png"
+                            alt="Homes.ph News Logo"
+                            className="h-10 w-auto object-contain hidden dark:block"
                         />
                     </div>
                 </div>
