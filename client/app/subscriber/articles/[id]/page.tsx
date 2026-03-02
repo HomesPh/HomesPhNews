@@ -91,7 +91,7 @@ export default function SubscriberArticleDetailsPage() {
 
     return (
         <div className="min-h-screen bg-[#f9fafb]">
-            <div className="max-w-[1400px] mx-auto px-6 py-8">
+            <div className="w-full px-8 py-8">
                 {/* Back link */}
                 <button
                     onClick={() => router.push('/subscriber/articles')}
@@ -103,9 +103,9 @@ export default function SubscriberArticleDetailsPage() {
 
                 <div className="flex gap-8">
                     {/* ── Main Content ── */}
-                    <div className="flex-1 max-w-[800px]">
+                    <div className="flex-1 min-w-0">
                         {/* Article card */}
-                        <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-8 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] mb-8">
+                        <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] mb-8">
                             <article>
                                 {/* Category + Country + Status */}
                                 <div className="mb-6 flex items-center justify-between">
@@ -240,7 +240,7 @@ export default function SubscriberArticleDetailsPage() {
 
                         {/* ── Topics + Source card (below article, same as admin) ── */}
                         {(topics.length > 0 || article.original_url) && (
-                            <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-8 shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
+                            <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
                                 {topics.length > 0 && (
                                     <>
                                         <h3 className="text-[14px] font-semibold text-[#111827] mb-4 tracking-[-0.5px]">Topics:</h3>

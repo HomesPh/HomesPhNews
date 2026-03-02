@@ -84,10 +84,6 @@ export default function AdminSidebar() {
     if (user?.roles?.includes('editor')) {
       return item.title === "Articles" || item.title === "Settings";
     }
-    // If user is Editor, only show Articles and Settings
-    if (user?.roles?.includes('editor')) {
-      return item.title === "Articles" || item.title === "Settings";
-    }
     // Default: show all for admin or other roles
     return true;
   });
@@ -107,9 +103,9 @@ export default function AdminSidebar() {
           ) : (
             <div className="flex justify-center">
               <img
-                src="/images/HomesLogoW.png"
+                src="/images/HLogo.png"
                 alt="Homes.ph News"
-                className="h-10 w-auto object-contain"
+                className="w-6 h-6 object-contain"
               />
             </div>
           )}

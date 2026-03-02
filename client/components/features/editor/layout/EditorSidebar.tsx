@@ -40,9 +40,9 @@ export default function EditorSidebar() {
                     ) : (
                         <div className="flex justify-center">
                             <img
-                                src="/images/HomesLogoW.png"
+                                src="/images/HLogo.png"
                                 alt="Homes.ph News"
-                                className="w-10 h-10 object-contain"
+                                className="w-6 h-6 object-contain"
                             />
                         </div>
                     )}
@@ -51,7 +51,7 @@ export default function EditorSidebar() {
                 <SidebarContent className="px-4 py-6 overflow-y-auto">
                     <SidebarMenu className="space-y-2">
                         {SidebarItems.map((item) => {
-                            const isActive = pathname === item.href;
+                            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
                             const Icon = item.icon;
                             return (
                                 <SidebarMenuItem key={item.title}>

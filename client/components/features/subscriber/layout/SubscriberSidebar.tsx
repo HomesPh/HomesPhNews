@@ -122,9 +122,9 @@ export default function SubscriberSidebar() {
                     ) : (
                         <div className="flex justify-center">
                             <img
-                                src={branding.logo}
+                                src="/images/HLogo.png"
                                 alt={branding.name}
-                                className="w-10 h-10 object-contain"
+                                className="w-6 h-6 object-contain"
                             />
                         </div>
                     )}
