@@ -47,6 +47,19 @@
             width: auto;
             margin-right: 12px;
         }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 800;
+            color: #ffffff !important;
+            letter-spacing: -0.04em;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .logo-dot-ph {
+            font-weight: 500;
+        }
         .content {
             padding: 40px 25px;
             color: #111827;
@@ -236,7 +249,7 @@
     <div class="container">
         <div class="header">
             <div class="logo-wrapper">
-                <img src="http://localhost:3000/images/HomesLogo.png" alt="Homes.ph News" class="logo-img">
+                <span class="logo-text">Homes<span class="logo-dot-ph">.ph</span> News</span>
             </div>
         </div>
         
@@ -306,7 +319,7 @@
         <div class="footer">
             <div class="footer-logo">
                 <div class="logo-wrapper-footer">
-                    <img src="http://localhost:3000/images/HomesLogo.png" alt="Homes.ph News" style="max-height: 30px; width: auto;">
+                    <span class="logo-text" style="font-size: 20px;">Homes<span class="logo-dot-ph">.ph</span> News</span>
                 </div>
             </div>
             <div class="footer-text">
