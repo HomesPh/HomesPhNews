@@ -88,6 +88,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                 }
             } else if (pathname.startsWith('/ceo')) {
                 const isCEO = roles.includes('ceo');
+                const isEditor = roles.includes('editor');
                 if (!isCEO && !isAdmin) {
                     router.push('/admin/login');
                     return;
