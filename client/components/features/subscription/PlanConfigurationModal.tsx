@@ -81,9 +81,9 @@ export default function PlanConfigurationModal({
                 <div className="h-[70px] bg-[#c10007] relative overflow-hidden flex items-center justify-center flex-shrink-0">
                     <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
                     <img
-                        src="/images/HomesTV.png"
-                        alt="HomesTV"
-                        className="h-9 w-auto object-contain brightness-0 invert"
+                        src="/images/HomesLogo.png"
+                        alt="Homes.ph News Logo"
+                        className="h-9 w-auto object-contain"
                     />
                 </div>
 
@@ -184,8 +184,8 @@ export default function PlanConfigurationModal({
                                                 });
                                             }}
                                             className={`px-4 py-2 rounded-full text-xs font-semibold border transition-all ${formData.categories.includes(category.id)
-                                                    ? 'bg-[#fef2f2] border-[#c10007] text-[#c10007] shadow-sm'
-                                                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                                                ? 'bg-[#fef2f2] border-[#c10007] text-[#c10007] shadow-sm'
+                                                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
                                                 }`}
                                         >
                                             {category.label}

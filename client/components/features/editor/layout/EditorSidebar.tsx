@@ -32,20 +32,17 @@ export default function EditorSidebar() {
                     {!isCollapsed ? (
                         <div className="flex items-center gap-3 px-2">
                             <img
-                                src="/images/HomesTVwhite.png"
-                                alt="HomesTV"
-                                className="w-10 h-10 object-contain"
+                                src="/images/HomesLogoW.png"
+                                alt="Homes.ph News"
+                                className="h-10 w-auto object-contain"
                             />
-                            <div className="flex flex-col">
-                                <h1 className="text-[20px] font-bold text-white leading-[1.4] tracking-[-0.5px]">Editor Portal</h1>
-                            </div>
                         </div>
                     ) : (
                         <div className="flex justify-center">
                             <img
-                                src="/images/HomesTVwhite.png"
-                                alt="HomesTV"
-                                className="w-10 h-10 object-contain"
+                                src="/images/HLogo.png"
+                                alt="Homes.ph News"
+                                className="w-6 h-6 object-contain"
                             />
                         </div>
                     )}
@@ -54,7 +51,7 @@ export default function EditorSidebar() {
                 <SidebarContent className="px-4 py-6 overflow-y-auto">
                     <SidebarMenu className="space-y-2">
                         {SidebarItems.map((item) => {
-                            const isActive = pathname === item.href;
+                            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
                             const Icon = item.icon;
                             return (
                                 <SidebarMenuItem key={item.title}>

@@ -40,7 +40,7 @@ export default function SiteListItem({ site, onEdit, onDelete, onToggleStatus, o
                         className="w-full h-full object-cover"
                         onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            target.src = "/images/HomesTV.png";
+                            target.src = "/images/HomesLogo.png";
                         }}
                     />
                 </div>

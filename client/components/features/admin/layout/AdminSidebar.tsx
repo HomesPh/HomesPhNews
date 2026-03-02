@@ -76,9 +76,9 @@ export default function AdminSidebar() {
   const isCollapsed = state === "collapsed";
 
   const filteredSidebarItems = SidebarItems.filter(item => {
-    // If user is CEO, only show Mailing List
+    // If user is CEO, only show Mailing List in admin sidebar
     if (user?.roles?.includes('ceo')) {
-      return item.title === "Mailing List";
+      return item.title === "Mailing List" || item.title === "Articles";
     }
     // If user is Editor, only show Articles and Settings
     if (user?.roles?.includes('editor')) {
@@ -95,20 +95,17 @@ export default function AdminSidebar() {
           {!isCollapsed ? (
             <div className="flex items-center gap-3 px-2">
               <img
-                src="/images/HomesTVwhite.png"
-                alt="HomesTV"
-                className="w-10 h-10 object-contain"
+                src="/images/HomesLogoW.png"
+                alt="Homes.ph News"
+                className="h-12 w-auto object-contain"
               />
-              <div className="flex flex-col">
-                <h1 className="text-[20px] font-bold text-white leading-[1.4] tracking-[-0.5px]">HomesTV</h1>
-              </div>
             </div>
           ) : (
             <div className="flex justify-center">
               <img
-                src="/images/HomesTVwhite.png"
-                alt="HomesTV"
-                className="w-10 h-10 object-contain"
+                src="/images/HLogo.png"
+                alt="Homes.ph News"
+                className="w-6 h-6 object-contain"
               />
             </div>
           )}
@@ -117,7 +114,11 @@ export default function AdminSidebar() {
         <SidebarContent className="px-4 py-6 overflow-y-auto">
           <SidebarMenu className="space-y-2">
             {filteredSidebarItems.map((item) => {
-              const isActive = pathname === item.href;
+              let href = item.href;
+              if (item.title === "Articles" && user?.roles?.includes('ceo')) {
+                href = "/ceo/articles";
+              }
+              const isActive = href === "/admin" || href === "/ceo" ? pathname === href : pathname.startsWith(href);
               const Icon = item.icon;
               return (
                 <SidebarMenuItem key={item.title}>
@@ -132,10 +133,18 @@ export default function AdminSidebar() {
                     )}
                     tooltip={isCollapsed ? item.title : undefined}
                   >
-                    <Link href={item.href} className={cn("flex items-center w-full", isCollapsed ? "justify-center" : "")}>
+                    <Link
+                      href={href}
+                      className={cn(
+                        "flex items-center w-full",
+                        isCollapsed ? "justify-center" : ""
+                      )}
+                    >
                       <Icon className="w-5 h-5 flex-shrink-0" />
                       {!isCollapsed && (
-                        <span className="text-[14px] font-medium tracking-[-0.5px]">{item.title}</span>
+                        <span className="text-[14px] font-medium tracking-[-0.5px]">
+                          {item.title}
+                        </span>
                       )}
                     </Link>
                   </SidebarMenuButton>

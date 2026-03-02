@@ -12,7 +12,7 @@ import { publishArticle } from "@/lib/api-v2/admin/service/article/publishArticl
 import { deleteArticle } from "@/lib/api-v2/admin/service/article/deleteArticle";
 import { restoreArticle } from "@/lib/api-v2/admin/service/article/restoreArticle";
 import { hardDeleteArticle } from "@/lib/api-v2/admin/service/article/hardDeleteArticle";
-import { Trash2, RotateCcw, ShieldAlert, Send } from 'lucide-react';
+import { Trash2, RotateCcw, ShieldAlert, Send, CheckCircle2 } from 'lucide-react';
 import { sendNewsletter } from "@/lib/api-v2/admin/service/article/sendNewsletter";
 import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
 import CustomizeTitlesModal from "@/components/features/admin/articles/CustomizeTitlesModal";
@@ -264,14 +264,14 @@ function ArticleDetailsContent() {
 
     return (
         <div className="min-h-screen bg-[#f9fafb]">
-            <div className="max-w-[1400px] mx-auto px-6 py-8">
+            <div className="w-full px-8 py-8">
                 <div className="mb-6">
                     <ArticleBreadcrumb homeLabel="Article" homeHref={from} category="Details" categoryHref="#" />
                 </div>
 
                 <div className="flex gap-8">
-                    <div className="flex-1 max-w-[800px]">
-                        <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-8 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] mb-8">
+                    <div className="flex-1 min-w-0">
+                        <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] mb-8">
                             <article>
                                 <div className="mb-6 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
@@ -497,7 +497,7 @@ function ArticleDetailsContent() {
                             if (topics.length === 0 && !article.original_url) return null;
 
                             return (
-                                <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-8 shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
+                                <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
                                     {topics.length > 0 && (
                                         <>
                                             <h3 className="text-[14px] font-semibold text-[#111827] mb-4 tracking-[-0.5px]">Topics:</h3>
@@ -591,10 +591,12 @@ function ArticleDetailsContent() {
                         <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-sm">
                             <h3 className="text-[16px] font-semibold text-[#111827] mb-4 tracking-[-0.5px]">Quick Actions</h3>
                             <div className="space-y-3">
-                                <button onClick={() => setIsEditModalOpen(true)} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#374151] hover:bg-gray-50 transition-all active:scale-95 tracking-[-0.5px]">
-                                    <Edit className="w-4 h-4" /> Edit Article
-                                </button>
-                                {article.status === 'published' && !article.is_deleted && (
+                                {!isEditor && (
+                                    <button onClick={() => setIsEditModalOpen(true)} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#374151] hover:bg-gray-50 transition-all active:scale-95 tracking-[-0.5px]">
+                                        <Edit className="w-4 h-4" /> Edit Article
+                                    </button>
+                                )}
+                                {article.status === 'published' && !article.is_deleted && !isEditor && (
                                     <button
                                         onClick={handleSendNewsletter}
                                         className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-[#3b82f6] text-[#3b82f6] rounded-[8px] text-[14px] font-medium hover:bg-blue-50 transition-all active:scale-95 tracking-[-0.5px]"

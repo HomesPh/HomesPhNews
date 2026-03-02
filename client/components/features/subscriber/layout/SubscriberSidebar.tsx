@@ -43,8 +43,8 @@ export default function SubscriberSidebar() {
 
     // Customization State
     const [branding, setBranding] = useState({
-        logo: "/images/HomesTVwhite.png",
-        name: "HomesTV"
+        logo: "/images/HomesLogoW.png",
+        name: "Homes.ph News"
     });
 
     const [theme, setTheme] = useState({
@@ -63,8 +63,8 @@ export default function SubscriberSidebar() {
 
                     // Load Branding
                     setBranding({
-                        logo: prefs.customization?.logo || "/images/HomesTVwhite.png",
-                        name: prefs.customization?.companyName || "HomesTV"
+                        logo: prefs.customization?.logo || "/images/HomesLogoW.png",
+                        name: prefs.customization?.companyName || "Homes.ph News"
                     });
 
                     // Load Theme
@@ -122,9 +122,9 @@ export default function SubscriberSidebar() {
                     ) : (
                         <div className="flex justify-center">
                             <img
-                                src={branding.logo}
+                                src="/images/HLogo.png"
                                 alt={branding.name}
-                                className="w-10 h-10 object-contain"
+                                className="w-6 h-6 object-contain"
                             />
                         </div>
                     )}

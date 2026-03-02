@@ -223,31 +223,41 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                 `}</style>
 
                 {/* Brand Header */}
-                <div className="h-[70px] bg-[#c10007] relative overflow-hidden flex items-center justify-center flex-shrink-0">
+                <div className="h-[70px] bg-[#c10007] relative overflow-hidden flex items-center justify-between px-[20px] flex-shrink-0">
                     <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
-                    <img
-                        src="/images/HomesTV.png"
-                        alt="HomesTV"
-                        className="h-9 w-auto object-contain brightness-0 invert"
-                    />
+
+                    {/* Left Section: Back Button */}
+                    <div className="w-[80px] flex items-center justify-start z-10">
+                        {step !== 'choice' && !isSubmitted && (
+                            <button
+                                onClick={handleBack}
+                                className="text-white/80 hover:text-white transition-colors flex items-center gap-1 text-[14px] font-medium"
+                            >
+                                <ArrowLeft className="w-4 h-4" />
+                                Back
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Center Section: Logo */}
+                    <div className="flex-1 flex items-center justify-center z-10">
+                        <img
+                            src="/images/HomesLogo.png"
+                            alt="Homes.ph News Logo"
+                            className="h-9 w-auto object-contain"
+                        />
+                    </div>
+
+                    {/* Right Section: Close Button */}
+                    <div className="w-[80px] flex items-center justify-end z-10">
+                        <button
+                            onClick={onClose}
+                            className="text-white/80 hover:text-white transition-colors"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
                 </div>
-
-                <button
-                    onClick={onClose}
-                    className="absolute top-[20px] right-[20px] text-white/80 hover:text-white transition-colors z-10"
-                >
-                    <X className="w-6 h-6" />
-                </button>
-
-                {step !== 'choice' && !isSubmitted && (
-                    <button
-                        onClick={handleBack}
-                        className="absolute top-[20px] left-[20px] text-white/80 hover:text-white transition-colors z-10 flex items-center gap-1 text-[14px] font-medium"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        Back
-                    </button>
-                )}
 
                 <div className="p-5 md:p-[30px] flex-1">
                     {!isSubmitted ? (
@@ -258,7 +268,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                         <h2 className="font-bold text-[24px] text-[#111827] tracking-[-1px] mb-[4px]">
                                             How can we help?
                                         </h2>
-                                        <p className="text-[#6b7280] text-[15px] tracking-[-0.3px]">Choose an option to get started with HomesTV.</p>
+                                        <p className="text-[#6b7280] text-[15px] tracking-[-0.3px]">Choose an option to get started with Homes.ph News.</p>
                                     </div>
 
                                     <div className="grid gap-[12px]">

@@ -3,19 +3,29 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Welcome to HomesTV</title>
+    <title>Welcome to Homes.ph News</title>
+    <style>
+        @media only screen and (max-width: 600px) {
+            h1 {
+                font-size: 20px !important;
+            }
+            p, span, td {
+                font-size: 14px !important;
+            }
+        }
+    </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f7f9; -webkit-font-smoothing: antialiased;">
     <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f7f9;">
         <tr>
             <td align="center" style="padding: 40px 0;">
                 <!-- Main Container -->
-                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-top: 5px solid #C10007; overflow: hidden;">
                     
                     <!-- Header -->
                     <tr>
-                        <td align="center" style="background-color: #c10007; padding: 30px;">
-                            <img src="https://news.homes.ph/images/HomesTV.png" alt="HomesTV" width="100" style="display: block; max-height: 40px; filter: brightness(0) invert(1); border: 0;" />
+                        <td align="center" style="background-color: #111827; padding: 24px 20px;">
+                            <img src="http://localhost:3000/images/HomesLogo.png" alt="Homes.ph News" style="display: block; max-height: 24px; width: auto; border: 0;" />
                         </td>
                         
                     </tr>
@@ -26,7 +36,7 @@
                             <h1 style="margin: 0 0 10px 0; font-size: 24px; font-weight: 800; color: #111827; letter-spacing: -0.025em;">Welcome, {{ $firstName }}!</h1>
                             
                             <p style="margin: 0 0 30px 0; font-size: 16px; color: #4b5563;">
-                                Your blogger account has been created on HomesTV. Use the credentials below to access your dashboard:
+                                Your blogger account has been created on Homes.ph News. Use the credentials below to access your dashboard:
                             </p>
                             
                             <!-- Credentials Card -->
@@ -73,9 +83,12 @@
 
                     <!-- Footer -->
                     <tr>
-                        <td align="center" style="background-color: #f9fafb; padding: 30px; border-top: 1px solid #e5e7eb;">
-                            <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                                &copy; {{ date('Y') }} HomesTV. All rights reserved.
+                        <td align="center" style="background-color: #111827; padding: 60px 40px;">
+                            <a href="#" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; opacity: 0.6; margin-bottom: 30px;">
+                                <img src="http://localhost:3000/images/HomesLogo.png" alt="Homes.ph News" style="max-height: 30px; width: auto; border: 0;" />
+                            </a>
+                            <p style="margin: 0; font-size: 12px; color: #64748b; line-height: 1.6;">
+                                &copy; {{ date('Y') }} Homes.ph News. All rights reserved.
                             </p>
                         </td>
                     </tr>
