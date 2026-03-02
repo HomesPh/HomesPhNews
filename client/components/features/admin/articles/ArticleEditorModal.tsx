@@ -446,7 +446,10 @@ export default function ArticleEditorModal({
                 published_sites: isEditor ? workingData.publishTo.filter((s: string) => s === "Main News Portal") : workingData.publishTo,
                 status: isPublish
                     ? 'published'
-                    : (mode === 'edit' && initialData?.status === 'published' && !isEditor ? 'published' : 'pending review') as 'published' | 'pending review',
+                    : (isEditor
+                        ? 'edited'
+                        : (mode === 'edit' && initialData?.status === 'published' ? 'published' : 'pending review')
+                    ) as 'published' | 'pending review' | 'edited',
                 topics: workingData.tags,
                 author: workingData.author || 'HOMESPH NEWS',
                 date: workingData.publishDate,

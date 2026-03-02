@@ -50,10 +50,10 @@ class ArticleController extends Controller
             ->when($status === 'published', fn($q) => $q->where('status', 'published'))
             ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
             ->when($status === 'rejected', fn($q) => $q->where('status', 'rejected'))
+            ->when($status === 'edited', fn($q) => $q->where('status', 'edited'))
             ->when(!$status || $status === 'all', function ($q) {
-                // For "All", only show active primary statuses to match getStatusCounts logic
-                // This excludes 'rejected' articles from the general 'All' view
-                return $q->whereIn('status', ['published', 'pending review']);
+                // For "All", show active primary statuses
+                return $q->whereIn('status', ['published', 'pending review', 'edited']);
             })
 
             // Filter by is_deleted based on status
@@ -682,9 +682,10 @@ class ArticleController extends Controller
         // Map status names to counts
         $publishedCount = $counts['published'] ?? 0;
         $pendingReviewCount = $counts['pending review'] ?? 0;
+        $editedCount = $counts['edited'] ?? 0;
 
-        // DB Total (Published + Pending Review) - excluding soft deleted
-        $dbTotal = $publishedCount + $pendingReviewCount;
+        // DB Total (Published + Pending Review + Edited) - excluding soft deleted
+        $dbTotal = $publishedCount + $pendingReviewCount + $editedCount;
 
         // All = DB Total + Redis Pending
         $allCount = $dbTotal + $pendingCount;
@@ -694,6 +695,7 @@ class ArticleController extends Controller
             'published' => $publishedCount,
             'being_processed' => $pendingCount,
             'pending' => $pendingReviewCount,
+            'edited' => $editedCount,
             'deleted' => $deletedCount,
         ];
     }

@@ -12,7 +12,7 @@ export interface StoreArticleRequest {
   country: string;
   slug?: string;
   image?: string | null;
-  status?: "published" | "pending review" | null;
+  status?: "published" | "pending review" | "edited" | null;
   topics?: string[] | null;
   published_sites?: string[] | null;
   author?: string;
