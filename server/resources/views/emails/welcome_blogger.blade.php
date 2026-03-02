@@ -25,7 +25,7 @@
                     <!-- Header -->
                     <tr>
                         <td align="center" style="background-color: #111827; padding: 24px 20px;">
-                            <img src="http://localhost:3000/images/HomesLogo.png" alt="Homes.ph News" style="display: block; max-height: 24px; width: auto; border: 0;" />
+                            <span style="font-size: 24px; font-weight: 800; color: #ffffff !important; letter-spacing: -0.04em; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">Homes<span style="font-weight: 500;">.ph</span> News</span>
                         </td>
                         
                     </tr>
@@ -84,9 +84,9 @@
                     <!-- Footer -->
                     <tr>
                         <td align="center" style="background-color: #111827; padding: 60px 40px;">
-                            <a href="#" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; opacity: 0.6; margin-bottom: 30px;">
-                                <img src="http://localhost:3000/images/HomesLogo.png" alt="Homes.ph News" style="max-height: 30px; width: auto; border: 0;" />
-                            </a>
+                            <div style="text-decoration: none; margin-bottom: 30px;">
+                                <span style="font-size: 20px; font-weight: 800; color: #ffffff !important; letter-spacing: -0.04em; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">Homes<span style="font-weight: 500;">.ph</span> News</span>
+                            </div>
                             <p style="margin: 0; font-size: 12px; color: #64748b; line-height: 1.6;">
                                 &copy; {{ date('Y') }} Homes.ph News. All rights reserved.
                             </p>
