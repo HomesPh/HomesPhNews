@@ -15,6 +15,14 @@
             -webkit-font-smoothing: antialiased;
         }
 
+        @media only screen and (max-width: 600px) {
+            .article-title { font-size: 20px !important; }
+            .article-summary { font-size: 13px !important; }
+            .greeting { font-size: 22px !important; }
+            .message { font-size: 13px !important; }
+            .section-title { font-size: 13px !important; }
+        }
+
         .container {
             max-width: 600px;
             margin: 0 auto;
