@@ -147,6 +147,18 @@
             font-weight: 800;
             text-decoration: none;
             text-align: center;
+            letter-spacing: 0.02em;
+        }
+        .tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background-color: #f1f5f9;
+            color: #475569;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-right: 6px;
+            border: 1px solid #e2e8f0;
         }
 
         .article-image-wrapper {
@@ -204,7 +216,7 @@
         .footer-links a {
             color: #94a3b8;
             text-decoration: none;
-            margin: 0 10px;
+            margin: 0 12px;
             font-size: 12px;
             font-weight: 600;
         }

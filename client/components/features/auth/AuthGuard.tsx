@@ -92,6 +92,12 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                     router.push('/admin/login');
                     return;
                 }
+
+                // If Editor tries to access anything other than articles or settings, redirect
+                if (isEditor && !isAdmin && !pathname.startsWith('/admin/articles') && !pathname.startsWith('/admin/settings')) {
+                    router.push('/admin/articles');
+                    return;
+                }
             } else if (pathname.startsWith('/blogger')) {
                 if (!isBlogger) {
                     if (isSubscriber) router.push('/subscriber');
