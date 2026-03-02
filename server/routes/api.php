@@ -124,7 +124,7 @@ Route::prefix('v1')->group(function () {
 
     // Ad metrics
     Route::post('/ads/metrics', [AdminAdMetricController::class, 'store']);
-    
+
 
     // Restaurants
     Route::group(['prefix' => 'restaurants', 'as' => 'restaurants.'], function () {
@@ -182,42 +182,51 @@ Route::prefix('v1')->group(function () {
         ->group(function () {
 
             // ═══════════════════════════════════════════════════════════════
-            // SHARED ROUTES (Admin & CEO)
+            // SHARED ROUTES (Admin, CEO & Editor)
             // ═══════════════════════════════════════════════════════════════
-            
+    
             // Mailing list functionality
             Route::get('/analytics/mailing-list', [AnalyticsController::class, 'mailingListStats']);
             Route::apiResource('mailing-list-groups', MailingListGroupController::class);
             Route::get('subscribers', [AdminArticleController::class, 'getSubscribers']);
             Route::post('articles/bulk-send-newsletter', [AdminArticleController::class, 'bulkSend']);
-            
-            // CEO needs to see published articles to pick them for newsletter
+
+            // Article listing & detail — accessible by Admin, CEO, and Editor
             Route::get('articles', [AdminArticleController::class, 'index']);
+            Route::get('articles/{article}', [AdminArticleController::class, 'show']);
+
+            // Site names — CEO needs this to select publish targets
+            Route::get('sites/names', [SiteController::class, 'names']);
+
+            // Article update — CEO needs PATCH to set status=rejected
+            Route::match(['put', 'patch'], 'articles/{article}', [AdminArticleController::class, 'update']);
 
             // ═══════════════════════════════════════════════════════════════
-            // SHARED ROUTES (Admin & Editor)
+            // SHARED ROUTES (Admin & Editor only)
             // ═══════════════════════════════════════════════════════════════
             Route::middleware('is.authenticated:admin,editor')->group(function () {
                 // Resources
                 Route::apiResource('article-publications', ArticlePublicationController::class);
-                
-                // Rest of Article Resource routes (Store, Show, Update, Delete)
+
+                // Article write operations (Store)
                 Route::post('articles', [AdminArticleController::class, 'store']);
-                Route::get('articles/{article}', [AdminArticleController::class, 'show']);
-                Route::match(['put', 'patch'], 'articles/{article}', [AdminArticleController::class, 'update']);
-                
+
                 // Article Actions
                 Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
                 Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
                 Route::post('articles/move-to-db', [AdminArticleController::class, 'moveToDb']);
-                Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
                 Route::post('articles/{id}/send-newsletter', [AdminArticleController::class, 'sendToSubscribers']);
-    
+
                 // Upload Routes
                 Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
-    
-                // Resource Routes (Editor needs site info to publish)
-                Route::get('sites/names', [SiteController::class, 'names']);
+            });
+
+            // ═══════════════════════════════════════════════════════════════
+            // SHARED ROUTES (Admin & CEO only)
+            // ═══════════════════════════════════════════════════════════════
+            Route::middleware('is.authenticated:admin,ceo')->group(function () {
+                // CEO can approve (publish) articles
+                Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
             });
 
             // ═══════════════════════════════════════════════════════════════
@@ -236,12 +245,12 @@ Route::prefix('v1')->group(function () {
                 Route::apiResource('categories', CategoryController::class);
                 Route::apiResource('countries', CountryController::class);
                 Route::apiResource('cities', CityController::class);
-                
+
                 // Article Deletion/Restoration (Admin Only)
                 Route::delete('articles/{article}', [AdminArticleController::class, 'destroy']);
                 Route::delete('articles/{id}/hard-delete', [AdminArticleController::class, 'hardDelete']);
                 Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
-                
+
                 // Resource Routes
                 Route::apiResource('sites', SiteController::class);
 
@@ -257,7 +266,7 @@ Route::prefix('v1')->group(function () {
                 // Restaurant routes (Database Persistence)
                 Route::post('restaurants/{id}/publish', [AdminRestaurantController::class, 'publish'])->name('restaurants.publish');
             });
-    });
+        });
 });
 
 Route::prefix('v2')->middleware(['auth:sanctum', 'is.authenticated:admin'])->group(function () {
