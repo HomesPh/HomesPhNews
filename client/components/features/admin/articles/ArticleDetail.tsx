@@ -253,14 +253,21 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
 
     return (
         <div className="min-h-screen bg-[#f9fafb]">
-            <div className="max-w-[1400px] mx-auto px-6 py-8">
-                <div className="mb-6">
+            <div className="w-full px-8 py-8">
+                <div className="flex items-center justify-between mb-6">
                     <ArticleBreadcrumb homeLabel="Article" homeHref={from} category="Details" categoryHref="#" />
+                    <button
+                        onClick={() => router.push(from)}
+                        className="flex items-center gap-2 text-[14px] text-[#6b7280] hover:text-[#111827] font-medium transition-colors"
+                    >
+                        <ChevronLeft className="w-4 h-4" />
+                        Back to List
+                    </button>
                 </div>
 
                 <div className="flex gap-8">
-                    <div className="flex-1 max-w-[800px]">
-                        <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-8 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] mb-8">
+                    <div className="flex-1 min-w-0">
+                        <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] mb-8">
                             <article>
                                 <div className="mb-6 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
@@ -464,7 +471,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                             if (topics.length === 0 && !article.original_url) return null;
 
                             return (
-                                <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-8 shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
+                                <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
                                     {topics.length > 0 && (
                                         <>
                                             <h3 className="text-[14px] font-semibold text-[#111827] mb-4 tracking-[-0.5px]">Topics:</h3>
