@@ -1,6 +1,6 @@
 
 export const loginData = {
-    title: "Welcome to HomesTV",
+    /*title: "Welcome to",*/
     subtitle: "The new way to discover real estate news",
     demoCredentials: {
         label: "Demo Credentials:",
@@ -21,7 +21,7 @@ export const loginData = {
     },
     submitButtonLabel: "Sign In",
     logo: {
-        title: "HomesTV",
+        title: "Homes.ph News",
         subtitle: ""
     }
 }
