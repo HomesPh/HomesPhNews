@@ -6,12 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Services\OTPService;
+use App\Jobs\SendMailJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    protected $otpService;
+
+    public function __construct(OTPService $otpService)
+    {
+        $this->otpService = $otpService;
+    }
     /**
      * Authenticate user and return token.
      */
@@ -38,7 +46,12 @@ class AuthController extends Controller
     }
 
     /**
-     * Register a new user.
+     * Register a new user
+     * 
+     * Creates a new subscriber account and automatically sends a verification OTP
+     * to the user's email address.
+     * 
+     * @group Authentication
      */
     public function register(Request $request): JsonResponse
     {
@@ -63,16 +76,33 @@ class AuthController extends Controller
         ]);
 
         // Attach default 'subscriber' role
-        $user->roles()->attach(\App\Models\Role::where('name', 'subscriber')->first());
+        $subscriberRole = \App\Models\Role::where('name', 'subscriber')->first();
+        if ($subscriberRole) {
+            $user->roles()->attach($subscriberRole);
+        }
+
+        // Generate and send OTP
+        $otpData = $this->otpService->generateOTP();
+        $user->update([
+            'otp' => $otpData['otp'],
+            'otp_expires_at' => $otpData['otp_expires_at']
+        ]);
+
+        SendMailJob::dispatch(
+            $user->name,
+            $user->email,
+            $otpData['otp']
+        );
 
         // Create a token for the user
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'success' => true,
-            'message' => 'User registered successfully',
+            'message' => 'User registered successfully. Please check your email for the verification code.',
             'token' => $token,
             'user' => new UserResource($user->load('roles')),
+            'otp_expires_in' => 10,
         ], 201);
     }
 
