@@ -18,7 +18,9 @@ import {
     Users2,
     Trash2,
     ArrowLeft,
-    Inbox
+    Inbox,
+    Eye,
+    X
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,6 +68,9 @@ export default function ManualNewsletterPage() {
     const [mailingStats, setMailingStats] = useState<MailingListStats | null>(null);
     const [groups, setGroups] = useState<MailingListGroup[]>([]);
     const [isSending, setIsSending] = useState(false);
+
+    // Broadcast detail state
+    const [selectedBroadcast, setSelectedBroadcast] = useState<MailingListStats['recent_broadcasts'][number] | null>(null);
 
     // Group Creation State
     const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
@@ -765,6 +770,7 @@ export default function ManualNewsletterPage() {
                                 <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Articles</th>
                                 <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Audience</th>
                                 <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -794,11 +800,21 @@ export default function ManualNewsletterPage() {
                                                 {log.status}
                                             </Badge>
                                         </td>
+                                        <td className="px-6 py-4">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setSelectedBroadcast(log)}
+                                                className="h-8 px-3 text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-bold text-xs gap-1.5 rounded-lg"
+                                            >
+                                                <Eye className="w-3.5 h-3.5" /> View
+                                            </Button>
+                                        </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-12 text-center text-gray-400 font-medium italic">
+                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-400 font-medium italic">
                                         No broadcast history found.
                                     </td>
                                 </tr>
@@ -807,6 +823,146 @@ export default function ManualNewsletterPage() {
                     </table>
                 </div>
             </div>
+
+            {/* Broadcast Detail Dialog */}
+            {selectedBroadcast && (
+                <Dialog open={!!selectedBroadcast} onOpenChange={(open) => { if (!open) setSelectedBroadcast(null); }}>
+                    <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-black text-[#1e293b] uppercase tracking-tight flex items-center gap-2">
+                                <Send className="w-5 h-5 text-blue-600" />
+                                Broadcast Details
+                            </DialogTitle>
+                        </DialogHeader>
+
+                        <div className="space-y-5 py-2">
+                            {/* Meta info grid */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-gray-50 rounded-xl p-3">
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Date Sent</p>
+                                    <p className="text-sm font-bold text-[#1e293b]">{new Date(selectedBroadcast.sent_at).toLocaleDateString()}</p>
+                                    <p className="text-xs text-gray-400">{new Date(selectedBroadcast.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                </div>
+                                <div className="bg-gray-50 rounded-xl p-3">
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Type</p>
+                                    <p className="text-sm font-bold text-[#1e293b] capitalize">{selectedBroadcast.type || 'Manual'}</p>
+                                </div>
+                                <div className="bg-gray-50 rounded-xl p-3">
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Status</p>
+                                    <Badge className="bg-green-50 text-green-600 border-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter mt-1">
+                                        {selectedBroadcast.status}
+                                    </Badge>
+                                </div>
+                                <div className="bg-blue-50 rounded-xl p-3 col-span-1">
+                                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Total Articles</p>
+                                    <p className="text-2xl font-black text-blue-600">{selectedBroadcast.article_count}</p>
+                                </div>
+                            </div>
+
+                            {/* Articles Sent section */}
+                            <div>
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">
+                                    Articles Sent ({selectedBroadcast.article_count})
+                                </p>
+                                <div className="space-y-2 max-h-72 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+                                    {(selectedBroadcast.articles ?? []).length > 0 ? (
+                                        (selectedBroadcast.articles ?? []).map((article, idx) => (
+                                            <div key={article.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-100 transition-colors">
+                                                {/* Thumbnail */}
+                                                <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-200 shrink-0">
+                                                    {article.image ? (
+                                                        <img
+                                                            src={article.image}
+                                                            alt=""
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center">
+                                                            <FileText className="w-5 h-5 text-gray-400" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {/* Info */}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-1.5 mb-1">
+                                                        <span className="text-[9px] font-black text-gray-400 bg-white border border-gray-200 rounded px-1.5 py-0.5 shrink-0">#{idx + 1}</span>
+                                                        {article.category && (
+                                                            <Badge variant="secondary" className="bg-blue-50 text-blue-600 border-none text-[9px] font-bold uppercase px-1.5 py-0">
+                                                                {article.category}
+                                                            </Badge>
+                                                        )}
+                                                        {article.country && (
+                                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-tight">{article.country}</span>
+                                                        )}
+                                                    </div>
+                                                    {article.title ? (
+                                                        <p className="text-sm font-bold text-[#1e293b] leading-snug line-clamp-2">{article.title}</p>
+                                                    ) : (
+                                                        <p className="text-xs font-mono text-gray-400 truncate">{article.id}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (selectedBroadcast.article_ids ?? []).length > 0 ? (
+                                        // Fallback for cases where 'articles' detail array is missing but IDs exist
+                                        selectedBroadcast.article_ids.map((id, idx) => (
+                                            <div key={id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                <span className="text-[10px] font-black text-gray-400 bg-white border border-gray-200 rounded px-1.5 py-0.5 shrink-0">#{idx + 1}</span>
+                                                <p className="text-xs font-mono text-gray-500 truncate">{id}</p>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-6 text-gray-400">
+                                            <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                                            <p className="text-sm font-medium">No article details available.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Recipients section */}
+                            <div className="border border-gray-100 rounded-xl overflow-hidden">
+                                <div className="flex items-center justify-between px-4 py-3 bg-blue-50/60">
+                                    <div className="flex items-center gap-2">
+                                        <Users className="w-4 h-4 text-blue-500" />
+                                        <p className="text-[11px] font-black text-blue-600 uppercase tracking-widest">Recipients</p>
+                                    </div>
+                                    <span className="text-2xl font-black text-blue-600">{selectedBroadcast.recipient_count.toLocaleString()}</span>
+                                </div>
+                                {selectedBroadcast.recipients && selectedBroadcast.recipients.length > 0 ? (
+                                    <div className="max-h-48 overflow-y-auto divide-y divide-gray-50 bg-white">
+                                        {selectedBroadcast.recipients.map((recipient, i) => (
+                                            <div key={i} className="px-4 py-2 flex items-center justify-between hover:bg-gray-25 transition-colors">
+                                                <p className="text-xs font-medium text-gray-600 truncate mr-2">{recipient.email}</p>
+                                                <Badge className={`text-[9px] font-bold uppercase px-1.5 py-0 border-none ${recipient.status === 'sent' ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'
+                                                    }`}>
+                                                    {recipient.status}
+                                                </Badge>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="px-4 py-3 bg-gray-50 flex items-start gap-2">
+                                        <AlertCircle className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+                                        <p className="text-[11px] text-gray-400 leading-relaxed">
+                                            Individual recipient emails are not stored for older broadcasts. New broadcasts will log full recipient details.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="pt-2">
+                            <Button
+                                onClick={() => setSelectedBroadcast(null)}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black h-11 rounded-xl"
+                            >
+                                Close
+                            </Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
     );
 }
