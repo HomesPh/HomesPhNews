@@ -254,23 +254,78 @@ class AnalyticsController extends Controller
         $totalRecipients = MailingListBroadcast::sum('recipient_count');
         $totalSubscribers = SubscriptionDetail::count();
         
-        $recentBroadcasts = MailingListBroadcast::orderByDesc('sent_at')
-            ->limit(5)
-            ->get()
-            ->map(function($b) {
-                return [
-                    'id' => $b->id,
-                    'article_count' => count($b->article_ids),
-                    'recipient_count' => $b->recipient_count,
-                    'status' => $b->status,
-                    'sent_at' => $b->sent_at instanceof \Carbon\Carbon ? $b->sent_at->toDateTimeString() : $b->sent_at
-                ];
-            });
+        $broadcasts = MailingListBroadcast::with('recipients')
+            ->orderByDesc('sent_at')
+            ->limit(10)
+            ->get();
+
+        // 1. Gather all unique article IDs
+        $allArticleIds = [];
+        foreach ($broadcasts as $b) {
+            $ids = $b->article_ids;
+            if (is_array($ids)) {
+                $allArticleIds = array_merge($allArticleIds, $ids);
+            }
+        }
+        $allArticleIds = array_unique($allArticleIds);
+
+        // 2. Fetch all unique articles in one go
+        $articlesFromDb = collect();
+        if (!empty($allArticleIds)) {
+            $articlesFromDb = Article::whereIn('id', $allArticleIds)
+                ->select(['id', 'title', 'category', 'country', 'image'])
+                ->get()
+                ->keyBy('id');
+        }
+
+        // 3. Map broadcasts to final structure
+        $recentBroadcasts = $broadcasts->map(function($b) use ($articlesFromDb) {
+            $ids = is_array($b->article_ids) ? $b->article_ids : [];
+            
+            $resolvedArticles = [];
+            foreach ($ids as $id) {
+                $article = $articlesFromDb->get($id);
+                if ($article) {
+                    $resolvedArticles[] = [
+                        'id'       => $article->id,
+                        'title'    => $article->title,
+                        'category' => $article->category,
+                        'country'  => $article->country,
+                        'image'    => $article->image_url, // Uses the model's accessor automatically
+                    ];
+                } else {
+                    $resolvedArticles[] = [
+                        'id'       => $id,
+                        'title'    => null,
+                        'category' => null,
+                        'country'  => null,
+                        'image'    => null,
+                    ];
+                }
+            }
+
+            return [
+                'id'              => $b->id,
+                'article_ids'     => $ids,
+                'article_count'   => count($ids),
+                'articles'        => $resolvedArticles,
+                'recipient_count' => $b->recipient_count,
+                'recipients'      => $b->recipients->map(function($r) {
+                    return [
+                        'email'  => $r->email,
+                        'status' => $r->status
+                    ];
+                }),
+                'status'          => $b->status,
+                'type'            => $b->type,
+                'sent_at'         => $b->sent_at instanceof \Carbon\Carbon ? $b->sent_at->toDateTimeString() : $b->sent_at
+            ];
+        });
 
         return response()->json([
             'stats' => [
-                'total_broadcasts' => $totalBroadcasts,
-                'total_recipients' => (int) $totalRecipients,
+                'total_broadcasts'  => $totalBroadcasts,
+                'total_recipients'  => (int) $totalRecipients,
                 'total_subscribers' => $totalSubscribers,
             ],
             'recent_broadcasts' => $recentBroadcasts

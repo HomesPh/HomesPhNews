@@ -8,9 +8,22 @@ export interface MailingListStats {
     };
     recent_broadcasts: Array<{
         id: string;
+        article_ids: string[];
         article_count: number;
+        articles: Array<{
+            id: string;
+            title: string | null;
+            category: string | null;
+            country: string | null;
+            image: string | null;
+        }>;
         recipient_count: number;
+        recipients: Array<{
+            email: string;
+            status: string;
+        }>;
         status: string;
+        type: string | null;
         sent_at: string;
     }>;
 }
