@@ -19,6 +19,7 @@ import CustomizeTitlesModal from "@/components/features/admin/articles/Customize
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 import SendNewsletterModal from "@/components/features/admin/articles/SendNewsletterModal";
 import ArticleBreadcrumb from "@/components/features/article/ArticleBreadcrumb";
+import ShareButtons from "@/components/shared/ShareButtons";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -565,6 +566,23 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                 )}
                             </div>
                         </div>
+
+                        {article.status === 'published' && (
+                            <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-sm">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-[16px] font-semibold text-[#111827] tracking-[-0.5px]">Share Article</h3>
+                                    <ShareButtons
+                                        url={`/article/${article.slug || article.id}`}
+                                        title={article.title}
+                                        description={article.summary}
+                                        size="xs"
+                                    />
+                                </div>
+                                <p className="text-[12px] text-[#6b7280] leading-relaxed">
+                                    This article is published. You can share the public link with your network.
+                                </p>
+                            </div>
+                        )}
 
                         <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-sm">
                             <h3 className="text-[16px] font-semibold text-[#111827] mb-4 tracking-[-0.5px]">Quick Actions</h3>

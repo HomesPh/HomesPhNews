@@ -24,4 +24,12 @@ class MailingListBroadcast extends Model
         'article_ids' => 'json',
         'sent_at' => 'datetime'
     ];
+
+    /**
+     * Relationship: One broadcast has many individual recipient logs.
+     */
+    public function recipients()
+    {
+        return $this->hasMany(MailingListBroadcastRecipient::class, 'broadcast_id');
+    }
 }

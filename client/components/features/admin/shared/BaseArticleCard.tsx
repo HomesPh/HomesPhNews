@@ -4,10 +4,12 @@ import { useMemo } from 'react';
 import { Calendar, Eye, MapPin } from 'lucide-react';
 import { cn, sanitizeImageUrl, decodeHtml, calculateReadTime, stripHtml } from "@/lib/utils";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
+import ShareButtons from "@/components/shared/ShareButtons";
 
 interface BaseArticleCardProps {
     article: {
         id?: string;
+        slug?: string;
         image_url?: string;
         image?: string;           // Legacy fallback
         category?: string | null; // Allow null
@@ -100,16 +102,16 @@ export default function BaseArticleCard({
                 )}
             >
                 <div className="flex gap-4 items-center">
-            {selection && (
-                <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
-                    <input
-                        type="checkbox"
-                        checked={selection.isSelected}
-                        onChange={(e) => selection.onSelect(e.target.checked)}
-                        className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                </div>
-            )}
+                    {selection && (
+                        <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
+                            <input
+                                type="checkbox"
+                                checked={selection.isSelected}
+                                onChange={(e) => selection.onSelect(e.target.checked)}
+                                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            />
+                        </div>
+                    )}
                     {/* Article Image Container */}
                     <div className="relative w-[80px] h-[80px] flex-shrink-0">
                         <img
@@ -223,6 +225,18 @@ export default function BaseArticleCard({
                     <span className="leading-[20px]">{viewsStr}</span>
                     <span className="text-[16px]">•</span>
                     <span className="leading-[20px]">{calculateReadTime(article.content || description)}</span>
+                    {article.status === 'published' && (
+                        <>
+                            <span className="text-[16px]">•</span>
+                            <ShareButtons
+                                url={`/article/${article.slug || article.id}`}
+                                title={article.title}
+                                description={stripHtml(description)}
+                                size="xs"
+                                className="ml-1"
+                            />
+                        </>
+                    )}
                 </div>
             </div>
         </div>

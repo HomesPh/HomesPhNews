@@ -11,6 +11,7 @@ use App\Http\Resources\Articles\ArticleCollection;
 use App\Http\Resources\Articles\ArticleResource;
 use App\Models\Article;
 use App\Models\MailingListBroadcast;
+use App\Models\MailingListBroadcastRecipient;
 use App\Services\RedisArticleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -863,13 +864,22 @@ class ArticleController extends Controller
         }
 
         // 4. Log the broadcast
-        MailingListBroadcast::create([
+        $broadcast = MailingListBroadcast::create([
             'article_ids' => [$article->id],
             'recipient_count' => $count,
             'status' => 'completed',
             'type' => 'manual',
             'sent_at' => now()
         ]);
+
+        // Log individual recipients
+        foreach ($subscribers as $subscriber) {
+            MailingListBroadcastRecipient::create([
+                'broadcast_id' => $broadcast->id,
+                'email' => $subscriber->email,
+                'status' => 'sent' // Or 'queued' since it's queued?
+            ]);
+        }
 
         return response()->json([
             'message' => "Article distribution started for {$count} subscribers.",
@@ -932,13 +942,22 @@ class ArticleController extends Controller
         }
 
         // Log the broadcast
-        MailingListBroadcast::create([
+        $broadcast = MailingListBroadcast::create([
             'article_ids' => $articles->pluck('id')->toArray(),
             'recipient_count' => $count,
             'status' => 'completed',
             'type' => 'manual',
             'sent_at' => now()
         ]);
+
+        // Log individual recipients
+        foreach ($subscribers as $subscriber) {
+            MailingListBroadcastRecipient::create([
+                'broadcast_id' => $broadcast->id,
+                'email' => $subscriber->email,
+                'status' => 'sent'
+            ]);
+        }
 
         return response()->json([
             'message' => "Newsletter distribution for " . $articles->count() . " articles started for {$count} subscribers.",

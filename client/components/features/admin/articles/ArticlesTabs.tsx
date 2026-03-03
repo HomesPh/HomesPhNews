@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/api-v2";
 
-export type ArticleTab = 'all' | 'published' | 'being_processed' | 'pending_review' | 'edited' | 'deleted';
+export type ArticleTab = 'all' | 'published' | 'being_processed' | 'pending_review' | 'edited' | 'rejected' | 'deleted';
 
 interface ArticlesTabsProps {
     activeTab: ArticleTab;
@@ -25,13 +25,14 @@ export default function ArticlesTabs({ activeTab, setActiveTab, counts }: Articl
         { id: 'published' as ArticleTab, label: 'Published' },
         { id: 'pending_review' as ArticleTab, label: 'Pending Review' },
         { id: 'edited' as ArticleTab, label: 'Edited' },
+        { id: 'rejected' as ArticleTab, label: 'Rejected' },
         { id: 'being_processed' as ArticleTab, label: 'Being Processed' },
         ...(isEditor ? [] : [{ id: 'deleted' as ArticleTab, label: 'Deleted' }]),
     ];
 
     return (
         <div className="border-b border-[#e5e7eb] pt-5 px-0">
-            <div className="flex gap-8 px-5">
+            <div className="flex gap-4 px-5 overflow-x-auto no-scrollbar">
                 {tabs.map((tab, index) => {
                     const isActive = activeTab === tab.id;
                     return (
@@ -39,7 +40,7 @@ export default function ArticlesTabs({ activeTab, setActiveTab, counts }: Articl
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={cn(
-                                "flex items-center gap-[15px] px-2 pb-3 relative transition-all",
+                                "flex items-center gap-2 px-2 pb-3 relative transition-all whitespace-nowrap flex-shrink-0",
                                 isActive ? "border-b-4 border-[#C10007]" : ""
                             )}
                         >
@@ -57,6 +58,11 @@ export default function ArticlesTabs({ activeTab, setActiveTab, counts }: Articl
                             {index === 3 && (
                                 <svg className="w-[16px] h-[16px]" fill="none" viewBox="0 0 16 16">
                                     <path d="M8 1.333A6.667 6.667 0 1014.667 8 6.667 6.667 0 008 1.333zm0 12A5.333 5.333 0 1113.333 8 5.333 5.333 0 018 13.333zM8.333 4h-1v4.667h4v-1h-3V4z" fill={isActive ? '#C10007' : '#4B5563'} />
+                                </svg>
+                            )}
+                            {tab.id === 'rejected' && (
+                                <svg className="w-[16px] h-[16px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" stroke={isActive ? '#C10007' : '#4B5563'} />
                                 </svg>
                             )}
                             {tab.id === 'deleted' && (

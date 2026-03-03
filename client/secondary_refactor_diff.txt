@@ -1,0 +1,132 @@
+diff --git a/client/app/globals.css b/client/app/globals.css
+index 774b3a2..4e557b9 100644
+--- a/client/app/globals.css
++++ b/client/app/globals.css
+@@ -211,4 +211,13 @@
+ 
+ .dark .scrollbar-hover-only:hover::-webkit-scrollbar-thumb {
+   background-color: #4b5563;
++}
++
++.no-scrollbar::-webkit-scrollbar {
++  display: none;
++}
++
++.no-scrollbar {
++  -ms-overflow-style: none;
++  scrollbar-width: none;
+ }
+\ No newline at end of file
+diff --git a/client/components/features/admin/articles/ArticlesTabs.tsx b/client/components/features/admin/articles/ArticlesTabs.tsx
+index fb27fde..b66ac3d 100644
+--- a/client/components/features/admin/articles/ArticlesTabs.tsx
++++ b/client/components/features/admin/articles/ArticlesTabs.tsx
+@@ -4,7 +4,7 @@ import { useMemo } from 'react';
+ import { cn } from "@/lib/utils";
+ import { useAuth } from "@/lib/api-v2";
+ 
+-export type ArticleTab = 'all' | 'published' | 'being_processed' | 'pending_review' | 'edited' | 'deleted';
++export type ArticleTab = 'all' | 'published' | 'being_processed' | 'pending_review' | 'edited' | 'rejected' | 'deleted';
+ 
+ interface ArticlesTabsProps {
+     activeTab: ArticleTab;
+@@ -25,13 +25,14 @@ export default function ArticlesTabs({ activeTab, setActiveTab, counts }: Articl
+         { id: 'published' as ArticleTab, label: 'Published' },
+         { id: 'pending_review' as ArticleTab, label: 'Pending Review' },
+         { id: 'edited' as ArticleTab, label: 'Edited' },
++        { id: 'rejected' as ArticleTab, label: 'Rejected' },
+         { id: 'being_processed' as ArticleTab, label: 'Being Processed' },
+         ...(isEditor ? [] : [{ id: 'deleted' as ArticleTab, label: 'Deleted' }]),
+     ];
+ 
+     return (
+         <div className="border-b border-[#e5e7eb] pt-5 px-0">
+-            <div className="flex gap-8 px-5">
++            <div className="flex gap-4 px-5 overflow-x-auto no-scrollbar">
+                 {tabs.map((tab, index) => {
+                     const isActive = activeTab === tab.id;
+                     return (
+@@ -39,7 +40,7 @@ export default function ArticlesTabs({ activeTab, setActiveTab, counts }: Articl
+                             key={tab.id}
+                             onClick={() => setActiveTab(tab.id)}
+                             className={cn(
+-                                "flex items-center gap-[15px] px-2 pb-3 relative transition-all",
++                                "flex items-center gap-2 px-2 pb-3 relative transition-all whitespace-nowrap flex-shrink-0",
+                                 isActive ? "border-b-4 border-[#C10007]" : ""
+                             )}
+                         >
+@@ -59,6 +60,11 @@ export default function ArticlesTabs({ activeTab, setActiveTab, counts }: Articl
+                                     <path d="M8 1.333A6.667 6.667 0 1014.667 8 6.667 6.667 0 008 1.333zm0 12A5.333 5.333 0 1113.333 8 5.333 5.333 0 018 13.333zM8.333 4h-1v4.667h4v-1h-3V4z" fill={isActive ? '#C10007' : '#4B5563'} />
+                                 </svg>
+                             )}
++                            {tab.id === 'rejected' && (
++                                <svg className="w-[16px] h-[16px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
++                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" stroke={isActive ? '#C10007' : '#4B5563'} />
++                                </svg>
++                            )}
+                             {tab.id === 'deleted' && (
+                                 <svg className="w-[12px] h-[16px]" fill="none" viewBox="0 0 12 16">
+                                     <path d="M11.667 3.518l-1.185-1.185L6 6.815 1.518 2.333.333 3.518l4.482 4.482-4.482 4.482 1.185 1.185L6 9.185l4.482 4.482 1.185-1.185-4.482-4.482 4.482-4.482z" fill={isActive ? '#C10007' : '#4B5563'} />
+diff --git a/client/components/features/admin/shared/BaseArticleCard.tsx b/client/components/features/admin/shared/BaseArticleCard.tsx
+index c07c673..3a5ed94 100644
+--- a/client/components/features/admin/shared/BaseArticleCard.tsx
++++ b/client/components/features/admin/shared/BaseArticleCard.tsx
+@@ -4,10 +4,12 @@ import { useMemo } from 'react';
+ import { Calendar, Eye, MapPin } from 'lucide-react';
+ import { cn, sanitizeImageUrl, decodeHtml, calculateReadTime, stripHtml } from "@/lib/utils";
+ import StatusBadge from "@/components/features/admin/shared/StatusBadge";
++import ShareButtons from "@/components/shared/ShareButtons";
+ 
+ interface BaseArticleCardProps {
+     article: {
+         id?: string;
++        slug?: string;
+         image_url?: string;
+         image?: string;           // Legacy fallback
+         category?: string | null; // Allow null
+@@ -100,16 +102,16 @@ export default function BaseArticleCard({
+                 )}
+             >
+                 <div className="flex gap-4 items-center">
+-            {selection && (
+-                <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
+-                    <input
+-                        type="checkbox"
+-                        checked={selection.isSelected}
+-                        onChange={(e) => selection.onSelect(e.target.checked)}
+-                        className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+-                    />
+-                </div>
+-            )}
++                    {selection && (
++                        <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
++                            <input
++                                type="checkbox"
++                                checked={selection.isSelected}
++                                onChange={(e) => selection.onSelect(e.target.checked)}
++                                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
++                            />
++                        </div>
++                    )}
+                     {/* Article Image Container */}
+                     <div className="relative w-[80px] h-[80px] flex-shrink-0">
+                         <img
+@@ -223,6 +225,18 @@ export default function BaseArticleCard({
+                     <span className="leading-[20px]">{viewsStr}</span>
+                     <span className="text-[16px]">•</span>
+                     <span className="leading-[20px]">{calculateReadTime(article.content || description)}</span>
++                    {article.status === 'published' && (
++                        <>
++                            <span className="text-[16px]">•</span>
++                            <ShareButtons
++                                url={`/article/${article.slug || article.id}`}
++                                title={article.title}
++                                description={stripHtml(description)}
++                                size="xs"
++                                className="ml-1"
++                            />
++                        </>
++                    )}
+                 </div>
+             </div>
+         </div>
