@@ -21,7 +21,7 @@ return new class extends Migration
         Schema::create('mailing_list_group_subscriber', function (Blueprint $table) {
             $table->id();
             $table->foreignUuid('group_id')->constrained('mailing_list_groups')->onDelete('cascade');
-            $table->string('subscriber_id', 100)->collation('utf8mb4_zh_0900_as_cs'); 
+            $table->string('subscriber_id', 100); 
             if (Schema::hasTable('subscription_details')) {
                 $table->foreign('subscriber_id')->references('sub_Id')->on('subscription_details')->onDelete('cascade');
             }

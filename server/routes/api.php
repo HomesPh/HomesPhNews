@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\SiteContentController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\SystemController;
 // Other Controllers
+use App\Http\Controllers\Api\Auth\OTPController;
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\User\AdController as UserAdController;
 use App\Http\Controllers\Api\User\ArticleController as UserArticleController;
@@ -159,6 +160,10 @@ Route::prefix('v1')->group(function () {
 
         // Plan Subscriptions
         Route::post('/plans/subscribe', [PlanSubscriptionController::class, 'store']);
+
+        // OTP Routes
+        Route::post('/otp/send', [OTPController::class, 'sendOTP']);
+        Route::post('/otp/verify', [OTPController::class, 'verifyOTP']);
 
         // Subscriber Routes (any authenticated user — no admin role required)
         Route::prefix('subscriber')->group(function () {

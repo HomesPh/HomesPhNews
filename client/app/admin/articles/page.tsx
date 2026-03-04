@@ -75,6 +75,7 @@ export default function ArticlesPage() {
         being_processed: 0,
         pending: 0,
         edited: 0,
+        rejected: 0,
         deleted: 0,
     });
 
@@ -120,6 +121,7 @@ export default function ArticlesPage() {
                         being_processed: Number(status_counts.being_processed ?? 0),
                         pending: Number(status_counts.pending ?? 0),
                         edited: Number(status_counts.edited ?? 0),
+                        rejected: Number(status_counts.rejected ?? 0),
                         deleted: Number(status_counts.deleted || 0),
                     });
                 }
@@ -210,6 +212,7 @@ export default function ArticlesPage() {
                     being_processed: Number(sc.being_processed ?? 0),
                     pending: Number(sc.pending ?? 0),
                     edited: Number(sc.edited ?? 0),
+                    rejected: Number(sc.rejected ?? 0),
                     deleted: Number(sc.deleted || 0),
                 });
             }

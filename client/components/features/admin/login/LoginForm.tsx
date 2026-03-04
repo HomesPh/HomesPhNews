@@ -12,7 +12,7 @@ export default function LoginForm() {
             <CardHeader>
                 <LoginHeader
                     logo={loginData.logo}
-                    title={loginData.title}
+                    title={(loginData as any).title}
                     subtitle={loginData.subtitle}
                 />
             </CardHeader>
