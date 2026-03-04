@@ -14,8 +14,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         // Wait for Zustand to finish hydrating from localStorage
         if (!_hasHydrated) return;
 
-        // Skip check for login page
-        if (pathname === "/admin/login") {
+        // Skip check for login and register pages
+        const publicRoutes = ["/login", "/register"];
+        if (publicRoutes.includes(pathname)) {
             setIsLoading(false);
             return;
         }
@@ -52,10 +53,10 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                 } catch (e) {
                     console.error("Failed to recover legacy session", e);
                     localStorage.removeItem('auth_token'); // Clear corrupted data
-                    router.push("/admin/login");
+                    router.push("/login");
                 }
             } else {
-                router.push("/admin/login");
+                router.push("/login");
             }
         } else {
             // Role-based route protection
@@ -90,14 +91,14 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                 const isCEO = roles.includes('ceo');
                 const isEditor = roles.includes('editor');
                 if (!isCEO && !isAdmin) {
-                    router.push('/admin/login');
+                    router.push('/login');
                     return;
                 }
             } else if (pathname.startsWith('/blogger')) {
                 if (!isBlogger) {
                     if (isSubscriber) router.push('/subscriber');
                     else if (isAdmin) router.push('/admin');
-                    else router.push('/admin/login');
+                    else router.push('/login');
                     return;
                 }
             }
@@ -107,7 +108,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     }, [token, _hasHydrated, pathname, router]);
 
     // Show nothing while checking auth (or a loading spinner)
-    if (isLoading && pathname !== "/admin/login") {
+    const publicRoutes = ["/login", "/register"];
+    if (isLoading && !publicRoutes.includes(pathname)) {
         return (
             <div className="flex h-screen w-screen items-center justify-center bg-[#f9fafb]">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C10007]"></div>

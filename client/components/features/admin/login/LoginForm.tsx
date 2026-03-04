@@ -1,9 +1,10 @@
 "use client";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { loginData } from "@/app/admin/login/data";
+import { loginData } from "@/app/(auth)/login/data";
 import LoginHeader from "./LoginHeader";
 import SignInForm from "./SignInForm";
+import Link from "next/link"; // Added import for Link
 
 export default function LoginForm() {
     return (
@@ -17,8 +18,6 @@ export default function LoginForm() {
             </CardHeader>
 
             <CardContent className="space-y-6">
-
-
                 <SignInForm
                     fields={loginData.fields}
                     submitLabel={loginData.submitButtonLabel}
