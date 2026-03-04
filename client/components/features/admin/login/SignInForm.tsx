@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff } from "lucide-react";
+import { Chrome, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/lib/api-v2";
 
 interface SignInFormProps {
