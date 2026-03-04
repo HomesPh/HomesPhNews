@@ -166,7 +166,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/otp/verify', [OTPController::class, 'verifyOTP']);
 
         // Subscriber Routes (any authenticated user — no admin role required)
-        Route::prefix('subscriber')->group(function () {
+        Route::middleware('is.verified')->prefix('subscriber')->group(function () {
             Route::get('/articles', [SubscriberArticleController::class, 'index']);
             Route::get('/articles/{id}', [SubscriberArticleController::class, 'show']);
         });

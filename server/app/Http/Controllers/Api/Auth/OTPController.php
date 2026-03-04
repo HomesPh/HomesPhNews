@@ -104,7 +104,8 @@ class OTPController extends Controller
         }
 
         return new SuccessResource([
-            'message' => 'OTP verified successfully'
+            'message' => 'OTP verified successfully',
+            'user' => new \App\Http\Resources\UserResource($user->load('roles'))
         ]);
     }
 }

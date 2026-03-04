@@ -78,6 +78,11 @@ export function useRegister(): UseRegisterReturn {
         setError(response.data.message || 'Verification failed');
         throw new Error(response.data.message || 'Verification failed');
       }
+
+      // [ADD] Update user in store if returned
+      if (response.data?.user) {
+        useAuth.getState().setAuth(useAuth.getState().token || "", response.data.user);
+      }
     } catch (err: any) {
       console.error('OTP Verification error:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Verification failed';

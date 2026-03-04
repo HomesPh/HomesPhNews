@@ -21,9 +21,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'is.authenticated' => \App\Http\Middleware\CheckRole::class,
             'site.auth' => \App\Http\Middleware\VerifySiteApiKey::class,
-
-            // permissions stuff, can be used like this: ->middleware('can.perform:view_users')
             'can.perform' => \App\Http\Middleware\CheckPermission::class,
+            'is.verified' => \App\Http\Middleware\EnsureEmailVerified::class,
         ]);
 
         $middleware->api(prepend: [

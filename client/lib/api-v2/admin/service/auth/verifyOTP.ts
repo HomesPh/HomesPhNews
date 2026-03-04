@@ -8,8 +8,11 @@ export type VerifyOTPRequest = {
   otp: string;
 };
 
+import type { UserResource } from "../../../types/UserResource";
+
 export type VerifyOTPResponse = {
   message: string;
+  user?: UserResource;
 };
 
 /**

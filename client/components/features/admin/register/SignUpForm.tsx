@@ -11,22 +11,24 @@ import { useRegister } from "@/hooks/useRegister";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface SignUpFormProps {
+  initialMode?: SignUpMode;
 }
 
 type SignUpMode = 'signup-step1' | 'signup-step2';
 
-export default function SignUpForm({ }: SignUpFormProps) {
+export default function SignUpForm({ initialMode = 'signup-step1' }: SignUpFormProps) {
   const router = useRouter();
+  const user = useAuth((state) => state.user);
   const setAuth = useAuth((state) => state.setAuth);
 
-  const [mode, setMode] = useState<SignUpMode>('signup-step1');
+  const [mode, setMode] = useState<SignUpMode>(initialMode);
   const { isLoading, error, handleRegister, handleVerifyOTP } = useRegister();
 
   // Sign Up State
   const [signupData, setSignupData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
+    firstName: user?.first_name || "",
+    lastName: user?.last_name || "",
+    email: user?.email || "",
     password: "",
     confirmPassword: "",
     verificationCode: "",

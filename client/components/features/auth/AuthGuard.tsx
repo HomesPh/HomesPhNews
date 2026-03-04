@@ -15,7 +15,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         if (!_hasHydrated) return;
 
         // Skip check for login and register pages
-        const publicRoutes = ["/login", "/register"];
+        const publicRoutes = ["/login", "/register", "/verify-email"];
         if (publicRoutes.includes(pathname)) {
             setIsLoading(false);
             return;
@@ -89,7 +89,6 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                 }
             } else if (pathname.startsWith('/ceo')) {
                 const isCEO = roles.includes('ceo');
-                const isEditor = roles.includes('editor');
                 if (!isCEO && !isAdmin) {
                     router.push('/login');
                     return;
@@ -99,6 +98,17 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                     if (isSubscriber) router.push('/subscriber');
                     else if (isAdmin) router.push('/admin');
                     else router.push('/login');
+                    return;
+                }
+            } else if (pathname.startsWith('/subscriber')) {
+                if (!isSubscriber) {
+                    router.push('/login');
+                    return;
+                }
+
+                // [ADD] Verification protection for subscribers
+                if (!user?.email_verified_at) {
+                    router.push('/verify-email');
                     return;
                 }
             }
