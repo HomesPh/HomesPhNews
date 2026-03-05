@@ -43,14 +43,14 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             <span className="bg-[#1a1a1a] text-white text-xs font-black uppercase px-2 py-0.5 tracking-tighter">
                                 Featured
                             </span>
-                            <span className="bg-[#cc0000] text-white text-xs font-black uppercase px-2 py-0.5 tracking-tighter">
+                            <span className="bg-[#1428AE] text-white text-xs font-black uppercase px-2 py-0.5 tracking-tighter">
                                 {main.category}
                             </span>
                             <span className="bg-white text-black text-xs font-black uppercase px-2 py-0.5 tracking-tighter shadow-sm">
                                 {main.country || "Global"}
                             </span>
                         </div>
-                        <h2 className="text-white text-3xl md:text-4xl font-black leading-tight uppercase group-hover:underline decoration-[#cc0000] decoration-2 underline-offset-4 max-w-4xl">
+                        <h2 className="text-white text-3xl md:text-4xl font-black leading-tight uppercase group-hover:underline decoration-[#F4AA1D] decoration-2 underline-offset-4 max-w-4xl">
                             {main.title}
                         </h2>
                         <div className="flex items-center justify-between mt-4">
@@ -95,14 +95,14 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
                             <div className="flex gap-2 mb-2">
-                                <span className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-0.5 tracking-tighter">
+                                <span className="bg-[#1428AE] text-white text-[10px] font-black uppercase px-2 py-0.5 tracking-tighter">
                                     {article.category}
                                 </span>
                                 <span className="bg-white text-black text-[10px] font-black uppercase px-2 py-0.5 tracking-tighter shadow-sm">
                                     {article.country || "Global"}
                                 </span>
                             </div>
-                            <h2 className="text-white text-xl md:text-2xl font-black leading-tight uppercase group-hover:underline decoration-[#cc0000] decoration-2 underline-offset-4">
+                            <h2 className="text-white text-xl md:text-2xl font-black leading-tight uppercase group-hover:underline decoration-[#F4AA1D] decoration-2 underline-offset-4">
                                 {article.title}
                             </h2>
                             <div className="flex items-center justify-between mt-3">
@@ -149,14 +149,14 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
                         <div className="flex gap-2 mb-2">
-                            <span className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-0.5 tracking-tighter">
+                            <span className="bg-[#1428AE] text-white text-[10px] font-black uppercase px-2 py-0.5 tracking-tighter">
                                 {main.category}
                             </span>
                             <span className="bg-white text-black text-[10px] font-black uppercase px-2 py-0.5 tracking-tighter shadow-sm">
                                 {main.country || "Global"}
                             </span>
                         </div>
-                        <h2 className="text-white text-xl md:text-2xl font-black leading-tight uppercase group-hover:underline decoration-[#cc0000] decoration-2 underline-offset-4">
+                        <h2 className="text-white text-xl md:text-2xl font-black leading-tight uppercase group-hover:underline decoration-[#F4AA1D] decoration-2 underline-offset-4">
                             {main.title}
                         </h2>
                         <div className="flex items-center justify-between mt-3">
@@ -195,14 +195,14 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">
                                 <div className="flex gap-1.5 mb-1.5">
-                                    <span className="bg-[#cc0000] text-white text-[9px] font-black uppercase px-1.5 py-0.5 self-start tracking-tighter">
+                                    <span className="bg-[#1428AE] text-white text-[9px] font-black uppercase px-1.5 py-0.5 self-start tracking-tighter">
                                         {article.category}
                                     </span>
                                     <span className="bg-white text-black text-[8px] font-black uppercase px-1.5 py-0.5 self-start tracking-tighter shadow-sm">
                                         {article.country || "Global"}
                                     </span>
                                 </div>
-                                <h3 className="text-white text-sm font-black leading-tight uppercase group-hover:text-[#cc0000] transition-colors line-clamp-2">
+                                <h3 className="text-white text-sm font-black leading-tight uppercase group-hover:text-[#F4AA1D] transition-colors line-clamp-2">
                                     {article.title}
                                 </h3>
                                 <div className="flex items-center justify-between mt-2">
@@ -253,14 +253,14 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         <span className="bg-[#1a1a1a] text-white text-[10px] font-black uppercase px-2 py-0.5 tracking-tighter">
                             Featured
                         </span>
-                        <span className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-0.5 tracking-tighter">
+                        <span className="bg-[#1428AE] text-white text-[10px] font-black uppercase px-2 py-0.5 tracking-tighter">
                             {main.category}
                         </span>
                         <span className="bg-white text-black text-[10px] font-black uppercase px-2 py-0.5 tracking-tighter shadow-sm">
                             {main.country || "Global"}
                         </span>
                     </div>
-                    <h2 className="text-white text-xl md:text-2xl font-black leading-tight uppercase group-hover:underline decoration-[#cc0000] decoration-2 underline-offset-4">
+                    <h2 className="text-white text-xl md:text-2xl font-black leading-tight uppercase group-hover:underline decoration-[#F4AA1D] decoration-2 underline-offset-4">
                         {main.title}
                     </h2>
                     <div className="flex items-center justify-between mt-3">
@@ -299,14 +299,14 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">
                             <div className="flex gap-1.5 mb-1.5">
-                                <span className="bg-[#cc0000] text-white text-[9px] font-black uppercase px-1.5 py-0.5 self-start tracking-tighter">
+                                <span className="bg-[#1428AE] text-white text-[9px] font-black uppercase px-1.5 py-0.5 self-start tracking-tighter">
                                     {topSmall.category}
                                 </span>
                                 <span className="bg-white text-black text-[8px] font-black uppercase px-1.5 py-0.5 self-start tracking-tighter shadow-sm">
                                     {topSmall.country || "Global"}
                                 </span>
                             </div>
-                            <h3 className="text-white text-sm font-black leading-tight uppercase group-hover:text-[#cc0000] transition-colors line-clamp-2">
+                            <h3 className="text-white text-sm font-black leading-tight uppercase group-hover:text-[#F4AA1D] transition-colors line-clamp-2">
                                 {topSmall.title}
                             </h3>
                             <div className="flex items-center justify-between mt-2">
@@ -346,7 +346,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent flex flex-col justify-end p-4">
                                 <div className="flex gap-1 mb-1">
-                                    <span className="bg-[#cc0000] text-white text-[8px] font-black uppercase px-1 py-0.5 self-start tracking-tighter">
+                                    <span className="bg-[#1428AE] text-white text-[8px] font-black uppercase px-1 py-0.5 self-start tracking-tighter">
                                         {article.category}
                                     </span>
                                     <span className="bg-white text-black text-[8px] font-black uppercase px-1 py-0.5 self-start tracking-tighter shadow-sm">

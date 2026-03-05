@@ -33,12 +33,12 @@ export default function SitesTabs({ activeTab, setActiveTab, counts }: SitesTabs
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center gap-[15px] px-2 pb-3 relative transition-all ${isActive ? "border-b-4 border-[#C10007]" : ""
+                            className={`flex items-center gap-[15px] px-2 pb-3 relative transition-all ${isActive ? "border-b-4 border-[#F4AA1D]" : ""
                                 }`}
                         >
                             <span
                                 className={`text-[16px] tracking-[-0.5px] ${isActive
-                                    ? "text-[#C10007] font-semibold"
+                                    ? "text-[#1428AE] font-semibold"
                                     : "text-[#4b5563] font-medium"
                                     }`}
                             >
@@ -46,7 +46,7 @@ export default function SitesTabs({ activeTab, setActiveTab, counts }: SitesTabs
                             </span>
                             <span
                                 className={`inline-flex items-center justify-center min-w-[25px] h-[25px] px-2 rounded-full text-[14px] tracking-[-0.5px] transition-colors ${isActive
-                                    ? "bg-[#C10007] text-white font-semibold"
+                                    ? "bg-[#1428AE] text-white font-semibold"
                                     : "bg-[#e5e7eb] text-[#4b5563] font-medium"
                                     }`}
                             >

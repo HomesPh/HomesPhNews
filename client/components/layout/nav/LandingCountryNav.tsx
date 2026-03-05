@@ -55,13 +55,13 @@ function NavContent({ countries }: LandingCountryNavProps) {
                 key={country.id}
                 onClick={() => handleChangeCountryTab(country.id)}
                 className={`relative pb-1 shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap transition-colors ${isActive
-                  ? "text-[#c10007]"
-                  : "text-[#374151] dark:text-gray-300 hover:text-[#c10007] dark:hover:text-[#c10007]"
+                  ? "text-[#1428AE] dark:text-[#F4AA1D]"
+                  : "text-[#374151] dark:text-gray-300 hover:text-[#1428AE] dark:hover:text-[#F4AA1D]"
                   }`}
               >
                 {country.label}
                 {isActive && (
-                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#c10007]" />
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#1428AE] dark:bg-[#F4AA1D]" />
                 )}
               </button>
             );

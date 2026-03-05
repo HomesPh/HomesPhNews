@@ -18,7 +18,7 @@ export function LandingNewsBlockSkeleton({ variant = 1 }: { variant?: 1 | 2 | 3 
     if (variant === 1) {
         return (
             <div className="mb-12">
-                <div className="bg-[#cc0000] px-4 py-1 inline-block mb-8 h-6 w-40" />
+                <div className="bg-gray-200 dark:bg-gray-700 px-4 py-1 inline-block mb-8 h-6 w-40" />
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
                         <div key={i} className="flex flex-col space-y-3">
@@ -36,7 +36,7 @@ export function LandingNewsBlockSkeleton({ variant = 1 }: { variant?: 1 | 2 | 3 
     if (variant === 2) {
         return (
             <div className="mb-12">
-                <div className="bg-[#cc0000] px-4 py-1 inline-block mb-8 h-6 w-40" />
+                <div className="bg-gray-200 dark:bg-gray-700 px-4 py-1 inline-block mb-8 h-6 w-40" />
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div className="space-y-4">
                         <Skeleton className="aspect-[4/3] w-full rounded-sm" />
@@ -62,7 +62,7 @@ export function LandingNewsBlockSkeleton({ variant = 1 }: { variant?: 1 | 2 | 3 
 
     return (
         <div className="mb-12">
-            <div className="bg-[#cc0000] px-4 py-1 inline-block mb-8 h-6 w-40" />
+            <div className="bg-gray-200 dark:bg-gray-700 px-4 py-1 inline-block mb-8 h-6 w-40" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="space-y-3">
@@ -79,7 +79,7 @@ export function LandingNewsBlockSkeleton({ variant = 1 }: { variant?: 1 | 2 | 3 
 export function LatestPostsSectionSkeleton() {
     return (
         <div className="space-y-12">
-            <div className="bg-[#cc0000] px-4 py-1 inline-block mb-8 h-6 w-32" />
+            <div className="bg-gray-200 dark:bg-gray-700 px-4 py-1 inline-block mb-8 h-6 w-32" />
             <div className="space-y-10">
                 {[1, 2, 3].map((i) => (
                     <div key={i} className="flex flex-col md:flex-row gap-8">
@@ -111,7 +111,7 @@ export function DashboardSidebarSkeleton() {
 
             {/* Most Read Skeleton */}
             <div className="space-y-4">
-                <div className="bg-[#cc0000] px-4 py-1 mb-6 h-5 w-32" />
+                <div className="bg-gray-200 dark:bg-gray-700 px-4 py-1 mb-6 h-5 w-32" />
                 {[1, 2, 3, 4, 5].map((i) => (
                     <div key={i} className="flex gap-3">
                         <Skeleton className="h-16 w-16 shrink-0 rounded-md" />

@@ -133,8 +133,8 @@ export default function LandingHeader() {
                       className={cn(
                         "font-medium text-[15px] transition-colors whitespace-nowrap",
                         isLinkActive
-                          ? "text-[#c10007]"
-                          : "text-[#374151] dark:text-gray-300 hover:text-[#c10007] dark:hover:text-[#c10007]"
+                          ? "text-[#1428AE] dark:text-[#F4AA1D]"
+                          : "text-[#374151] dark:text-gray-300 hover:text-[#1428AE] dark:hover:text-[#F4AA1D]"
                       )}
                     >
                       {link.label}
@@ -155,12 +155,12 @@ export default function LandingHeader() {
                     placeholder="Search articles..."
                     value={searchQuery}
                     onChange={handleInputChange}
-                    className="w-[200px] bg-gray-50 dark:bg-[#252836] border border-gray-200 dark:border-gray-700 rounded-full py-2 pl-4 pr-10 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all dark:text-white dark:placeholder:text-gray-500"
+                    className="w-[200px] bg-gray-50 dark:bg-[#252836] border border-gray-200 dark:border-gray-700 rounded-full py-2 pl-4 pr-10 text-sm focus:outline-none focus:border-[#1428AE] focus:ring-1 focus:ring-[#1428AE] transition-all dark:text-white dark:placeholder:text-gray-500"
                     onFocus={() => setIsSearchFocused(true)}
                   />
                   <button
                     type="submit"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#1428AE]"
                   >
                     <Search size={18} />
                   </button>
@@ -178,7 +178,7 @@ export default function LandingHeader() {
 
                 <button
                   onClick={() => setIsSubscribeModalOpen(true)}
-                  className="bg-[#c10007] hover:bg-[#a10006] text-white px-6 py-2 rounded-full text-sm font-semibold transition-colors shadow-sm hover:shadow-md"
+                  className="bg-[#1428AE] hover:bg-[#000785] text-white px-6 py-2 rounded-full text-sm font-semibold transition-colors shadow-sm hover:shadow-md"
                 >
                   Subscribe
                 </button>
@@ -189,7 +189,7 @@ export default function LandingHeader() {
                 <ModeToggle />
                 <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                   <SheetTrigger asChild>
-                    <button className="lg:hidden p-2 text-[#374151] dark:text-gray-300 hover:text-[#c10007] transition-colors">
+                    <button className="lg:hidden p-2 text-[#374151] dark:text-gray-300 hover:text-[#1428AE] transition-colors">
                       <Menu size={24} />
                     </button>
                   </SheetTrigger>

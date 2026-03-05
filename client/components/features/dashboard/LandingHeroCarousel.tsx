@@ -94,7 +94,7 @@ export default function LandingHeroCarousel({ slides }: LandingHeroCarouselProps
                                 key={slide.id}
                                 onClick={() => setCurrent(idx)}
                                 className={`h-1.5 rounded-full transition-colors duration-300 w-12 ${safeCurrent === idx
-                                    ? "bg-[#cc0000]"
+                                    ? "bg-[#F4AA1D]"
                                     : "bg-white/30 hover:bg-white/50"
                                     }`}
                                 aria-label={`Go to slide ${idx + 1}`}
@@ -106,7 +106,7 @@ export default function LandingHeroCarousel({ slides }: LandingHeroCarouselProps
 
             {/* Section Title Overlay (Optional - shows what section this is: News, Blogs, etc) */}
             <div className="absolute top-4 left-4 z-20 pointer-events-none">
-                <span className="bg-[#cc0000] text-white text-[10px] font-black uppercase px-3 py-1 tracking-widest shadow-lg">
+                <span className="bg-[#1428AE] text-white text-[10px] font-black uppercase px-3 py-1 tracking-widest shadow-lg">
                     {activeSlide.label}
                 </span>
             </div>

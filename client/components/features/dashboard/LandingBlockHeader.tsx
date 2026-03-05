@@ -12,7 +12,7 @@ export default function LandingBlockHeader({ title }: LandingBlockHeaderProps) {
             <div className="bg-[#1a1a1a] px-4 py-1">
                 <h2 className="text-white text-xs font-black uppercase tracking-widest">{title}</h2>
             </div>
-            <button className="bg-[#cc0000] text-white px-3 py-1 text-[10px] font-black uppercase tracking-tighter hover:bg-black transition-colors">
+            <button className="bg-[#1428AE] text-white px-3 py-1 text-[10px] font-black uppercase tracking-tighter hover:bg-[#000785] transition-colors">
                 More Posts
             </button>
         </div>

@@ -22,7 +22,7 @@ interface MostReadTodayProps {
 export default function MostReadTodayCard({ title = "Most Read Today", items = [], className }: MostReadTodayProps) {
   return (
     <div className={cn("space-y-6", className)}>
-      <div className="bg-[#cc0000] px-4 py-1 mb-6">
+      <div className="bg-[#1428AE] px-4 py-1 mb-6">
         <h3 className="text-white text-xs font-black uppercase tracking-widest">{title}</h3>
       </div>
 
@@ -48,7 +48,7 @@ export default function MostReadTodayCard({ title = "Most Read Today", items = [
               />
             </div>
             <div className="flex flex-col justify-between py-0.5 w-full">
-              <h4 className="text-xs font-black uppercase leading-[1.3] text-gray-900 dark:text-gray-200 group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors line-clamp-3 tracking-tight">
+              <h4 className="text-xs font-black uppercase leading-[1.3] text-gray-900 dark:text-gray-200 group-hover:text-[#F4AA1D] dark:group-hover:text-[#F4AA1D] transition-colors line-clamp-3 tracking-tight">
                 {article.title}
               </h4>
               <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-1">
