@@ -59,6 +59,14 @@ class SendDailyNewsletter extends Command
         }
 
         foreach ($subscribers as $subscriber) {
+            $cacheKey = "newsletter_sent_{$subscriber->email}_" . now()->format('Y-m-d');
+
+            // Skip if newsletter has already been sent to this subscriber today
+            if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+                $this->info("Newsletter already sent to: {$subscriber->email} today, skipping.");
+                continue;
+            }
+
             // Find articles matching subscriber preferences
             $articles = Article::whereIn('category', $subscriber->category)
                 ->whereIn('country', $subscriber->country)
@@ -70,6 +78,10 @@ class SendDailyNewsletter extends Command
             if ($articles->isNotEmpty()) {
                 try {
                     Mail::to($subscriber->email)->send(new DailyNewsletterMail($subscriber, $articles));
+                    
+                    // Mark as sent for the day
+                    \Illuminate\Support\Facades\Cache::put($cacheKey, true, now()->endOfDay());
+                    
                     $this->info("Newsletter sent to: {$subscriber->email}");
                 } catch (\Exception $e) {
                     $this->error("Failed to send to {$subscriber->email}: " . $e->getMessage());
