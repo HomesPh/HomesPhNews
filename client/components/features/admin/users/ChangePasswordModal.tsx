@@ -51,7 +51,7 @@ export default function ChangePasswordModal({ user, onClose, onChangePassword }:
 
                     <div>
                         <label className="block text-[14px] font-bold text-[#111827] mb-2 tracking-[-0.5px]">
-                            New Password <span className="text-red-600">*</span>
+                            New Password <span className="text-[#1428AE]">*</span>
                         </label>
                         <input
                             type="password"
@@ -61,7 +61,7 @@ export default function ChangePasswordModal({ user, onClose, onChangePassword }:
                                 setPassword(e.target.value);
                                 setError('');
                             }}
-                            className="w-full h-[50px] px-4 border border-[#d1d5db] rounded-[8px] text-[16px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all"
+                            className="w-full h-[50px] px-4 border border-[#d1d5db] rounded-[8px] text-[16px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.5px] transition-all"
                             placeholder="Enter new password"
                         />
                     </div>
@@ -78,7 +78,7 @@ export default function ChangePasswordModal({ user, onClose, onChangePassword }:
                                 setConfirmPassword(e.target.value);
                                 setError('');
                             }}
-                            className="w-full h-[50px] px-4 border border-[#d1d5db] rounded-[8px] text-[16px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all"
+                            className="w-full h-[50px] px-4 border border-[#d1d5db] rounded-[8px] text-[16px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.5px] transition-all"
                             placeholder="Confirm new password"
                         />
                     </div>
@@ -99,7 +99,7 @@ export default function ChangePasswordModal({ user, onClose, onChangePassword }:
                         </button>
                         <button
                             type="submit"
-                            className="flex items-center gap-2 px-8 py-2 bg-[#C10007] text-white rounded-[8px] hover:bg-[#a10006] transition-all text-[14px] font-bold shadow-md shadow-red-900/10"
+                            className="flex items-center gap-2 px-8 py-2 bg-[#1428AE] text-white rounded-[8px] hover:bg-[#000785] transition-all text-[14px] font-bold shadow-md shadow-blue-900/10"
                         >
                             <Lock className="w-4 h-4" />
                             Update Password

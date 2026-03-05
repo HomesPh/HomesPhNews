@@ -144,7 +144,7 @@ export default function SiteListItem({ site, onEdit, onDelete, onToggleStatus, o
                     <button
                         onClick={() => onToggleStatus?.(site.id)}
                         className={`px-4 py-2 text-[13px] font-medium rounded-[6px] transition-colors tracking-[-0.5px] ${isActive
-                            ? 'text-[#C10007] hover:bg-red-50'
+                            ? 'text-[#1428AE] hover:bg-blue-50'
                             : 'text-[#10b981] hover:bg-green-50'
                             }`}
                     >
@@ -159,7 +159,7 @@ export default function SiteListItem({ site, onEdit, onDelete, onToggleStatus, o
                     </button>
                     <button
                         onClick={() => onDelete?.(site.id)}
-                        className="p-2.5 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2.5 hover:bg-blue-50 rounded-lg transition-colors"
                         title="Delete"
                     >
                         <Trash2 className="w-5 h-5 text-[#ef4444]" />

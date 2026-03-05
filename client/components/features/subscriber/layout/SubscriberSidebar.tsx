@@ -48,10 +48,10 @@ export default function SubscriberSidebar() {
     });
 
     const [theme, setTheme] = useState({
-        sidebarBg: "#1a1d2e",
+        sidebarBg: "#000785",
         sidebarText: "#ffffff",
-        primary: "#C10007",
-        activeText: "#ffffff"
+        primary: "#F4AA1D",
+        activeText: "#000000"
     });
 
     useEffect(() => {
@@ -71,21 +71,21 @@ export default function SubscriberSidebar() {
                     const themeObj = prefs.customization?.themeObj;
                     if (themeObj) {
                         setTheme({
-                            sidebarBg: themeObj.sidebarBg || "#1a1d2e",
+                            sidebarBg: themeObj.sidebarBg || "#000785",
                             sidebarText: themeObj.sidebarText || "#ffffff",
-                            primary: themeObj.primary || "#C10007",
-                            activeText: themeObj.activeText || "#ffffff"
+                            primary: themeObj.primary || "#F4AA1D",
+                            activeText: themeObj.activeText || "#000000"
                         });
                     } else if (prefs.customization?.theme) {
                         // Fallback for legacy simple hex theme
                         const COLOR_MAP: Record<string, string> = {
-                            red: "#C10007",
+                            red: "#1428AE",
                             blue: "#0066cc",
                             green: "#008000",
                             purple: "#6600cc",
                             orange: "#ff6600"
                         };
-                        const color = COLOR_MAP[prefs.customization.theme] || prefs.customization.theme || "#C10007";
+                        const color = COLOR_MAP[prefs.customization.theme] || prefs.customization.theme || "#F4AA1D";
                         setTheme(prev => ({ ...prev, primary: color }));
                     }
                 }

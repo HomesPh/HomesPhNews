@@ -103,7 +103,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange, maxV
                             key={page}
                             onClick={() => onPageChange(page as number)}
                             className={`flex items-center justify-center w-10 h-10 rounded-[6px] text-[14px] font-medium tracking-[-0.5px] transition-all active:scale-95 ${isActive
-                                ? 'bg-[#C10007] text-white shadow-sm'
+                                ? 'bg-[#1428AE] text-white shadow-sm'
                                 : 'bg-white text-[#4b5563] border border-[#d1d5db] hover:bg-gray-50'
                                 }`}
                         >

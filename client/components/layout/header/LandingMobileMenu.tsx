@@ -63,7 +63,7 @@ export default function LandingMobileMenu({
                                         className={cn(
                                             "flex items-center gap-3 px-4 py-3 rounded-[8px] transition-colors w-full h-auto",
                                             isActive
-                                                ? "bg-[#C10007] text-white hover:bg-[#C10007] hover:text-white"
+                                                ? "bg-[#1428AE] text-white hover:bg-[#000785] hover:text-white"
                                                 : "text-gray-600 dark:text-[#9ca3af] hover:bg-gray-100 dark:hover:bg-[#252836] hover:text-black dark:hover:text-white"
                                         )}
                                     >
@@ -94,7 +94,7 @@ export default function LandingMobileMenu({
 
                         <button
                             onClick={() => setIsSubscribeModalOpen(true)}
-                            className="w-full bg-[#C10007] text-white px-[10px] py-[12px] rounded-[6px] font-semibold text-[14px] tracking-[-0.5px] hover:bg-[#a10006] transition-colors text-center"
+                            className="w-full bg-[#1428AE] text-white px-[10px] py-[12px] rounded-[6px] font-semibold text-[14px] tracking-[-0.5px] hover:bg-[#000785] transition-colors text-center"
                         >
                             Subscribe
                         </button>
