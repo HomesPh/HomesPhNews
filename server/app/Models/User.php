@@ -28,9 +28,6 @@ class User extends Authenticatable
         'google_id',
         'avatar',
         'roles',
-        'otp',
-        'otp_expires_at',
-        'otp_verified_at'
     ];
 
     /**
@@ -40,8 +37,7 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
-        'remember_token',
-        'otp'
+        'remember_token'
     ];
 
     /**
@@ -55,8 +51,6 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'roles' => 'array',
-            'otp_expires_at' => 'datetime',
-            'otp_verified_at' => 'datetime',
         ];
     }
 
