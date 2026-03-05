@@ -25,6 +25,7 @@ from scheduler import (
     run_hourly_job, get_job_status, update_next_run,
     run_restaurant_job, get_restaurant_job_status, update_restaurant_next_run
 )
+from scheduler_control import set_scheduler, turn_off as scheduler_turn_off, turn_on as scheduler_turn_on, is_enabled as scheduler_is_enabled
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -64,6 +65,7 @@ async def lifespan(app: FastAPI):
     )
     
     scheduler.start()
+    set_scheduler(scheduler)
     
     # Update next run for News
     news_job = scheduler.get_job('hourly_job')
@@ -76,6 +78,8 @@ async def lifespan(app: FastAPI):
         update_restaurant_next_run(rest_job.next_run_time.isoformat())
     
     # Startup message
+    from scheduler_control import is_enabled as scheduler_is_enabled
+    sched_status = "ON (hourly + twice daily)" if scheduler_is_enabled() else "OFF (paused – use POST /scheduler/on to resume)"
     print("")
     print("=" * 60)
     print("🚀 HOMESPH UNIFIED ENGINE STARTED")
@@ -83,8 +87,7 @@ async def lifespan(app: FastAPI):
     print(f"📡 API:      http://localhost:8001")
     print(f"📖 Docs:     http://localhost:8001/docs")
     print("-" * 60)
-    print(f"⏰ News:       EVERY HOUR")
-    print(f"🍴 Restaurant: TWICE DAILY (06:00, 18:00)")
+    print(f"⏰ Scheduler: {sched_status}")
     print("-" * 60)
     print("Press Ctrl+C to stop")
     print("=" * 60)
@@ -174,6 +177,28 @@ async def trigger_restaurant_job_manual(background_tasks: BackgroundTasks):
         raise HTTPException(status_code=409, detail="Restaurant job already running")
     background_tasks.add_task(run_restaurant_job)
     return {"message": "Restaurant job triggered", "status": "running"}
+
+
+@app.post("/scheduler/off", tags=["Scheduler"])
+async def scheduler_off():
+    """Turn off automatic scraper schedule (hourly news + twice-daily restaurants). Manual trigger still works."""
+    if not scheduler_turn_off():
+        raise HTTPException(status_code=500, detail="Scheduler not initialized")
+    return {"message": "Automatic scraper schedule turned off. Manual 'Run scraper now' still works.", "scheduler_enabled": False}
+
+
+@app.post("/scheduler/on", tags=["Scheduler"])
+async def scheduler_on():
+    """Turn on automatic scraper schedule again."""
+    if not scheduler_turn_on():
+        raise HTTPException(status_code=500, detail="Scheduler not initialized")
+    return {"message": "Automatic scraper schedule turned on.", "scheduler_enabled": True}
+
+
+@app.get("/scheduler", tags=["Scheduler"])
+async def scheduler_status():
+    """Get whether automatic schedule is on or off."""
+    return {"scheduler_enabled": scheduler_is_enabled()}
 
 
 @app.get("/stats", tags=["System"])
