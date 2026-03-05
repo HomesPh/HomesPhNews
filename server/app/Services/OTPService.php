@@ -27,7 +27,7 @@ class OTPService
      * Sub-keys available:
      *  - verify-email
      */
-    public function generateOTP(string $email, string $subkey): int
+    public function generateOTP(string $email, string $subkey): array
     {
         $otp = rand(100000, 999999);
         $expiresAt = Carbon::now()->addMinutes(10);

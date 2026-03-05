@@ -10,6 +10,7 @@ use App\Http\Resources\Api\SuccessResource;
 use App\Jobs\SendMailJob;
 use App\Models\User;
 use App\Services\OTPService;
+use Illuminate\Support\Carbon;
 
 class OTPController extends Controller
 {
@@ -25,7 +26,7 @@ class OTPController extends Controller
      *
      * @group Authentication
      */
-    public function sendOTP(SendOTPRequest $request): SuccessResource|ErrorResource
+    public function sendEmailOTP(SendOTPRequest $request): SuccessResource|ErrorResource
     {
         $validated = $request->validated();
 
@@ -80,7 +81,7 @@ class OTPController extends Controller
      *
      * @group Authentication
      */
-    public function verifyOTP(VerifyOTPRequest $request): SuccessResource|ErrorResource
+    public function verifyEmailOTP(VerifyOTPRequest $request): SuccessResource|ErrorResource
     {
         $validated = $request->validated();
 
@@ -91,12 +92,19 @@ class OTPController extends Controller
             'verify-email'
         );
 
+        // update user email_verified_at
+        User::where('email', $validated['email'])->update([
+            'email_verified_at' => Carbon::now(),
+        ]);
+
         if (! $user) {
             return new ErrorResource([
                 'message' => 'Invalid or expired OTP',
                 'status_code' => 400,
             ]);
         }
+
+        // validate user
 
         return new SuccessResource([
             'message' => 'OTP verified successfully',
