@@ -31,6 +31,10 @@ const URL_FILTERS_CONFIG = {
         default: "" as const,
         resetValues: [""],
     },
+    city: {
+        default: "" as const,
+        resetValues: [""],
+    },
 };
 
 type CEOTab = "edited" | "published" | "rejected";
@@ -43,15 +47,15 @@ const TABS: { id: CEOTab; label: string; icon: React.ElementType; color: string 
 
 export default function CEOArticlesPage() {
     const router = useRouter();
-    const { filters, setFilter } = useUrlFilters(URL_FILTERS_CONFIG);
+    const { filters, setFilter, setFilters } = useUrlFilters(URL_FILTERS_CONFIG);
     const [searchQuery, setSearchQuery] = useState("");
     const pagination = usePagination();
 
     const [articles, setArticles] = useState<ArticleResource[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [availableFilters, setAvailableFilters] = useState<{
-        categories: string[];
-        countries: string[];
+        categories: { name: string; count: number }[];
+        countries: { name: string; count: number }[];
     }>({ categories: [], countries: [] });
 
     const [counts, setCounts] = useState({
@@ -90,6 +94,7 @@ export default function CEOArticlesPage() {
                     status: filters.status || "edited",
                     category: filters.category === "" ? undefined : filters.category,
                     country: filters.country === "" ? undefined : filters.country,
+                    city: filters.city === "" ? undefined : filters.city,
                     search: searchQuery || undefined,
                     page: pagination.currentPage,
                     per_page: 10,
@@ -295,7 +300,8 @@ export default function CEOArticlesPage() {
                     categoryFilter={filters.category}
                     setCategoryFilter={(cat) => setFilter("category", cat)}
                     countryFilter={filters.country}
-                    setCountryFilter={(country) => setFilter("country", country)}
+                    cityFilter={filters.city}
+                    setFilters={setFilters}
                     availableCategories={availableFilters.categories}
                     availableCountries={availableFilters.countries}
                 />

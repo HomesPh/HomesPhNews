@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, ChevronDown, Plus } from 'lucide-react';
 import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
 import Pagination from "@/components/features/admin/shared/Pagination";
 import UsersTabs, { UserTab } from "@/components/features/admin/users/UsersTabs";
+import UsersFilters from "@/components/features/admin/users/UsersFilters";
 import UsersTable from "@/components/features/admin/users/UsersTable";
 import UserDetailsModal from "@/components/features/admin/users/UserDetailsModal";
 import AddUserModal from "@/components/features/admin/users/AddUserModal";
@@ -14,12 +15,26 @@ import ChangePasswordModal from "@/components/features/admin/users/ChangePasswor
 import { AdminUser } from "@/app/admin/users/data";
 import usePagination from '@/hooks/usePagination';
 import { useUserManagement } from '@/hooks/useUserManagement';
+import useUrlFilters from '@/hooks/useUrlFilters';
+
+const URL_FILTERS_CONFIG = {
+    status: { default: 'all' as const, resetValues: ['all'] },
+    role: { default: '' as const, resetValues: [''] },
+    search: { default: '' as const, resetValues: [''] },
+};
 
 export default function UsersPage() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<UserTab>('all');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [roleFilter, setRoleFilter] = useState('All Roles');
+    const { filters, setFilter } = useUrlFilters(URL_FILTERS_CONFIG);
+    const [searchQuery, setSearchQuery] = useState(filters.search || '');
+
+    // Sync search query with URL
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setFilter('search', searchQuery);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery, setFilter]);
 
     // Modal states
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -43,20 +58,42 @@ export default function UsersPage() {
 
     const filteredUsers = useMemo(() => {
         return users.filter(user => {
-            const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                user.email.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesRole = roleFilter === 'All Roles' || user.role === roleFilter;
-            const matchesTab = activeTab === 'all' || user.status === activeTab;
+            const query = searchQuery.toLowerCase();
+            const matchesSearch = user.name.toLowerCase().includes(query) ||
+                user.email.toLowerCase().includes(query);
+            const matchesRole = !filters.role || user.role === filters.role;
+            const matchesTab = filters.status === 'all' || user.status === filters.status;
             return matchesSearch && matchesRole && matchesTab;
         });
-    }, [users, activeTab, searchQuery, roleFilter]);
+    }, [users, filters, searchQuery]);
 
-    const counts = useMemo(() => ({
-        all: users.length,
-        active: users.filter(u => u.status === 'active').length,
-        suspended: users.filter(u => u.status === 'suspended').length,
-        banned: users.filter(u => u.status === 'banned').length,
-    }), [users]);
+    const handleTabChange = (tab: UserTab) => {
+        setFilter('status', tab);
+        if (pagination.currentPage !== 1) pagination.handlePageChange(1);
+    };
+
+    const counts = useMemo(() => {
+        const statusCounts = {
+            all: users.length,
+            active: users.filter(u => u.status === 'active').length,
+            suspended: users.filter(u => u.status === 'suspended').length,
+            banned: users.filter(u => u.status === 'banned').length,
+        };
+
+        const roleCounts = users.reduce((acc, user) => {
+            // Respect Search and Status Tab for Role counts
+            const query = searchQuery.toLowerCase();
+            const matchesSearch = user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query);
+            const matchesTab = filters.status === 'all' || user.status === filters.status;
+
+            if (matchesSearch && matchesTab) {
+                acc[user.role] = (acc[user.role] || 0) + 1;
+            }
+            return acc;
+        }, {} as Record<string, number>);
+
+        return { ...statusCounts, roles: roleCounts };
+    }, [users]);
 
     // Handlers
     const handleSuspendUser = (user: AdminUser) => {
@@ -125,36 +162,18 @@ export default function UsersPage() {
 
             <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-visible shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
                 <UsersTabs
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
+                    activeTab={filters.status as UserTab}
+                    setActiveTab={handleTabChange}
                     counts={counts}
                 />
 
-                {/* Search and Filters */}
-                <div className="flex items-center gap-4 p-5 border-b border-[#e5e7eb]">
-                    <div className="flex-1 relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af]" />
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search users by name or email..."
-                            className="w-full h-[50px] pl-12 pr-4 border border-[#d1d5db] rounded-[8px] text-[16px] text-[#111827] placeholder:text-[#adaebc] focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all"
-                        />
-                    </div>
-                    <div className="relative min-w-[159px]">
-                        <select
-                            value={roleFilter}
-                            onChange={(e) => setRoleFilter(e.target.value)}
-                            className="w-full h-[50px] pl-3 pr-10 border border-[#d1d5db] rounded-[8px] text-[16px] text-[#111827] bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] cursor-pointer shadow-sm"
-                        >
-                            <option>All Roles</option>
-                            <option>Admin</option>
-                            <option>Blogger</option>
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
-                    </div>
-                </div>
+                <UsersFilters
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    roleFilter={filters.role}
+                    setRoleFilter={(role) => setFilter('role', role)}
+                    roleCounts={counts.roles}
+                />
 
                 <UsersTable
                     users={filteredUsers.slice((pagination.currentPage - 1) * 10, pagination.currentPage * 10)}

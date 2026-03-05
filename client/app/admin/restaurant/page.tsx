@@ -19,17 +19,19 @@ type RestaurantFilters = {
     status: RestaurantTab | 'draft';
     category: string;
     country: string;
+    city: string;
 };
 
 const URL_FILTERS_CONFIG: FiltersConfig<RestaurantFilters> = {
     status: { default: 'all', resetValues: ['all'] },
-    category: { default: 'All Category', resetValues: ['All Category'] },
-    country: { default: 'All Countries', resetValues: ['All Countries'] },
+    category: { default: '', resetValues: [''] },
+    country: { default: '', resetValues: [''] },
+    city: { default: '', resetValues: [''] },
 };
 
 export default function RestaurantPage() {
     const router = useRouter();
-    const { filters, setFilter } = useUrlFilters(URL_FILTERS_CONFIG);
+    const { filters, setFilter, setFilters } = useUrlFilters(URL_FILTERS_CONFIG);
 
     const [pageKey, setPageKey] = useState(0);
     const [searchQuery, setSearchQuery] = useState("");
@@ -48,6 +50,11 @@ export default function RestaurantPage() {
         pending: 0,
         deleted: 0
     });
+
+    const [availableFilters, setAvailableFilters] = useState<{
+        categories: { name: string; count: number }[];
+        countries: { name: string; count: number }[];
+    }>({ categories: [], countries: [] });
 
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [isMovingToDb, setIsMovingToDb] = useState(false);
@@ -122,8 +129,9 @@ export default function RestaurantPage() {
             const statusParam = filters.status === 'all' ? undefined : filters.status;
             const apiFilters = {
                 status: statusParam,
-                category: filters.category === 'All Category' ? undefined : filters.category,
-                country: filters.country === 'All Countries' ? undefined : filters.country,
+                category: filters.category === '' ? undefined : filters.category,
+                country: filters.country === '' || filters.country === 'All Countries' ? undefined : filters.country,
+                city: filters.city === '' ? undefined : filters.city,
                 search: searchQuery || undefined,
                 page: pagination.currentPage,
                 per_page: 5
@@ -134,6 +142,7 @@ export default function RestaurantPage() {
             let data: RestaurantSummary[] = [];
             let meta = { current_page: 1, last_page: 1, total: 0 };
             let status_counts = { all: 0, published: 0, being_processed: 0, pending: 0, deleted: 0 };
+            let available_filters = { categories: [], countries: [] };
 
             if (Array.isArray(response.data)) {
                 data = response.data;
@@ -161,6 +170,9 @@ export default function RestaurantPage() {
                         deleted: Number(resData.status_counts.deleted ?? 0),
                     };
                 }
+                if (resData.available_filters) {
+                    available_filters = resData.available_filters;
+                }
             }
 
             setFilteredRestaurants(data);
@@ -169,6 +181,7 @@ export default function RestaurantPage() {
                 pagination.setTotalPages(meta.last_page);
             }
             setCounts(status_counts);
+            setAvailableFilters(available_filters);
 
         } catch (error) {
             console.error("Failed to fetch restaurants:", error);
@@ -258,7 +271,10 @@ export default function RestaurantPage() {
                     categoryFilter={filters.category}
                     setCategoryFilter={(cat) => setFilter('category', cat)}
                     countryFilter={filters.country}
-                    setCountryFilter={(country) => setFilter('country', country)}
+                    cityFilter={filters.city}
+                    setFilters={setFilters}
+                    availableCategories={availableFilters.categories}
+                    availableCountries={availableFilters.countries}
                 />
 
                 <div className="flex flex-col">

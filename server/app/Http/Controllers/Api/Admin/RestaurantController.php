@@ -81,6 +81,79 @@ class RestaurantController extends Controller
             }
         }
 
+        // Prepare filters for Dynamic Counts
+        $search = $request->input('search');
+        $country = $request->input('country');
+        $city = $request->input('city');
+        $category = $request->input('category');
+ 
+        // Helper function for DB filtering
+        $applyDbFilters = function($q) use ($status, $search, $isBeingProcessed, $isPendingReview) {
+            return $q->when($status === 'published', fn($sq) => $sq->where('status', 'published'))
+                ->when($isPendingReview, fn($sq) => $sq->where('status', 'draft'))
+                ->when(!$status || $status === 'all', fn($sq) => $sq->whereIn('status', ['published', 'draft']))
+                ->when($search, fn($sq) => $sq->where('name', 'like', "%{$search}%"));
+        };
+ 
+        // Helper function for Redis filtering
+        $allRedisDataFiltered = function($currentSearch) use ($restaurantIds) {
+            $filtered = [];
+            foreach ($restaurantIds as $rid) {
+                $raw = Redis::get("{$this->prefix}restaurant:{$rid}");
+                if (!$raw) continue;
+                $r = json_decode($raw, true);
+                $dbExists = \App\Models\Restaurant::where('id', $r['id'] ?? $rid)->exists();
+                if ($dbExists) continue;
+ 
+                $matchesSearch = !$currentSearch || (isset($r['name']) && stripos($r['name'], $currentSearch) !== false);
+                if ($matchesSearch) $filtered[] = $r;
+            }
+            return $filtered;
+        };
+ 
+        // 1. Calculate Category Counts (respect search, country, city)
+        $dbCatQuery = $applyDbFilters((clone $query))
+            ->when($country, fn($q) => $q->where('country', $country))
+            ->when($city, fn($q) => $q->where('city', $city));
+        $dbCategoryCounts = $dbCatQuery->whereNotNull('cuisine_type')->groupBy('cuisine_type')->selectRaw('cuisine_type, count(*) as count')->pluck('count', 'cuisine_type')->toArray();
+        
+        $redisCategoryCounts = [];
+        if (!$status || $status === 'all' || $isBeingProcessed) {
+            $redisFiltered = collect($allRedisDataFiltered($search))
+                ->filter(fn($r) => (!$country || ($r['country'] ?? '') === $country) && (!$city || ($r['city'] ?? '') === $city));
+            $redisCategoryCounts = $redisFiltered->groupBy('cuisine_type')->map(fn($g) => $g->count())->toArray();
+        }
+ 
+        // 2. Calculate Country Counts (respect search, category, city)
+        $dbCountryQuery = $applyDbFilters((clone $query))
+            ->when($category, fn($q) => $q->where('cuisine_type', $category))
+            ->when($city, fn($q) => $q->where('city', $city));
+        $dbCountryCounts = $dbCountryQuery->whereNotNull('country')->groupBy('country')->selectRaw('country, count(*) as count')->pluck('count', 'country')->toArray();
+ 
+        $redisCountryCounts = [];
+        if (!$status || $status || $isBeingProcessed) {
+            $redisFiltered = collect($allRedisDataFiltered($search))
+                ->filter(fn($r) => (!$category || ($r['cuisine_type'] ?? '') === $category) && (!$city || ($r['city'] ?? '') === $city));
+            $redisCountryCounts = $redisFiltered->groupBy('country')->map(fn($g) => $g->count())->toArray();
+        }
+ 
+        $finalCategoryCounts = [];
+        $allCatNames = collect(array_merge(array_keys($dbCategoryCounts), array_keys($redisCategoryCounts)))->unique()->sort()->values()->toArray();
+        foreach ($allCatNames as $name) {
+            $finalCategoryCounts[] = ['name' => $name ?: 'Restaurant', 'count' => ($dbCategoryCounts[$name] ?? 0) + ($redisCategoryCounts[$name] ?? 0)];
+        }
+ 
+        $finalCountryCounts = [];
+        $allCountryNames = collect(array_merge(array_keys($dbCountryCounts), array_keys($redisCountryCounts)))->unique()->sort()->values()->toArray();
+        foreach ($allCountryNames as $name) {
+            $finalCountryCounts[] = ['name' => $name ?: 'Global', 'count' => ($dbCountryCounts[$name] ?? 0) + ($redisCountryCounts[$name] ?? 0)];
+        }
+ 
+        $availableFilters = [
+            'categories' => $finalCategoryCounts,
+            'countries' => $finalCountryCounts
+        ];
+ 
         // Being Processed tab: Redis only
         if ($isBeingProcessed) {
             $totalRedis = count(array_diff($restaurantIds, \App\Models\Restaurant::pluck('id')->toArray()));
@@ -90,6 +163,7 @@ class RestaurantController extends Controller
                 'last_page' => (int) max(1, ceil($totalRedis / $limit)),
                 'total' => $totalRedis,
                 'status_counts' => $this->getStatusCounts(),
+                'available_filters' => $availableFilters,
             ]);
         }
 
@@ -101,6 +175,7 @@ class RestaurantController extends Controller
                 'last_page' => $dbRestaurants->lastPage(),
                 'total' => $dbRestaurants->total(),
                 'status_counts' => $this->getStatusCounts(),
+                'available_filters' => $availableFilters,
             ]);
         }
 
@@ -115,6 +190,7 @@ class RestaurantController extends Controller
                 'last_page' => max(1, (int) ceil(($dbTotal + $redisTotal) / $limit)),
                 'total' => $dbTotal + $redisTotal,
                 'status_counts' => $this->getStatusCounts(),
+                'available_filters' => $availableFilters,
             ]);
         }
 
@@ -125,6 +201,7 @@ class RestaurantController extends Controller
             'last_page' => $dbRestaurants->lastPage(),
             'total' => $dbRestaurants->total(),
             'status_counts' => $this->getStatusCounts(),
+            'available_filters' => $availableFilters,
         ]);
     }
 

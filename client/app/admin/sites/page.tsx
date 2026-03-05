@@ -15,6 +15,7 @@ import { toggleSiteStatus } from "@/lib/api-v2/admin/service/sites/toggleSiteSta
 import { SiteResource } from "@/lib/api-v2/types/SiteResource";
 import useUrlFilters from '@/hooks/useUrlFilters';
 import usePagination from '@/hooks/usePagination';
+import SitesTabs, { SiteTab } from "@/components/features/admin/sites/SitesTabs";
 import { Plus, CheckCircle, XCircle, Link as LinkIcon, Users, Loader2 } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -35,7 +36,15 @@ const URL_FILTERS_CONFIG = {
 export default function SitesPage() {
     // URL-synced filters
     const { filters, setFilter } = useUrlFilters(URL_FILTERS_CONFIG);
-    const activeTab = filters.status as string;
+    const [searchQuery, setSearchQuery] = useState(filters.search || '');
+
+    // Sync search query with URL
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setFilter('search', searchQuery);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery, setFilter]);
 
     // Local state
     const [isLoading, setIsLoading] = useState(true);
@@ -52,7 +61,7 @@ export default function SitesPage() {
         setIsLoading(true);
         try {
             const response = await getAdminSites({
-                status: activeTab,
+                status: filters.status,
                 search: filters.search
             });
             const { data, counts } = response.data;
@@ -65,7 +74,7 @@ export default function SitesPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [activeTab, filters.search]);
+    }, [filters.status, filters.search]);
 
     useEffect(() => {
         fetchData();
@@ -184,51 +193,58 @@ export default function SitesPage() {
                 )}
             </div>
 
-            {/* Filters and Search */}
-            <SitesFilters
-                searchQuery={filters.search}
-                setSearchQuery={(val) => setFilter('search', val)}
-                activeTab={activeTab as any}
-                setActiveTab={(val) => setFilter('status', val)}
-                counts={counts}
-            />
+            <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-visible shadow-[0px_1px_3px_rgba(0,0,0,0.05)] mb-8">
+                <SitesTabs
+                    activeTab={filters.status as SiteTab}
+                    setActiveTab={(val) => {
+                        setFilter('status', val);
+                        pagination.handlePageChange(1);
+                    }}
+                    counts={counts}
+                />
 
-            {/* Sites List */}
-            <div className="space-y-4">
-                {isLoading ? (
-                    Array(3).fill(0).map((_, i) => (
-                        <Skeleton key={i} className="h-[100px] rounded-lg bg-white" />
-                    ))
-                ) : sitesList.length > 0 ? (
-                    sitesList.slice((pagination.currentPage - 1) * 5, pagination.currentPage * 5).map((site) => (
-                        <SiteListItem
-                            key={site.id}
-                            site={site}
-                            onToggleStatus={handleToggleStatus}
-                            onDelete={handleDeleteSite}
-                            onEdit={(site: any) => {
-                                setEditingSite(site as Site);
-                                setIsEditorOpen(true);
-                            }}
-                            onRefreshKey={async (id) => {
-                                if (confirm(`Are you sure you want to regenerate the API key for ${site.name}? The old key will stop working immediately.`)) {
-                                    try {
-                                        const updatedSiteResponse = await import('@/lib/api-v2/admin/service/sites/refreshKey').then(m => m.refreshKey(id));
-                                        setSitesList(prev => prev.map(s => s.id === id ? updatedSiteResponse.data.data : s));
-                                        alert("API Key regenerated successfully.");
-                                    } catch (error) {
-                                        console.error("Failed to refresh key:", error);
-                                        alert("Failed to regenerate API Key.");
+                <SitesFilters
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                />
+
+                {/* Sites List */}
+                <div className="divide-y divide-[#f3f4f6]">
+                    {isLoading ? (
+                        Array(3).fill(0).map((_, i) => (
+                            <Skeleton key={i} className="h-[100px] rounded-lg bg-white mx-5 my-4" />
+                        ))
+                    ) : sitesList.length > 0 ? (
+                        sitesList.slice((pagination.currentPage - 1) * 5, pagination.currentPage * 5).map((site) => (
+                            <SiteListItem
+                                key={site.id}
+                                site={site}
+                                onToggleStatus={handleToggleStatus}
+                                onDelete={handleDeleteSite}
+                                onEdit={(site: any) => {
+                                    setEditingSite(site as Site);
+                                    setIsEditorOpen(true);
+                                }}
+                                onRefreshKey={async (id) => {
+                                    if (confirm(`Are you sure you want to regenerate the API key for ${site.name}? The old key will stop working immediately.`)) {
+                                        try {
+                                            const updatedSiteResponse = await import('@/lib/api-v2/admin/service/sites/refreshKey').then(m => m.refreshKey(id));
+                                            setSitesList(prev => prev.map(s => s.id === id ? updatedSiteResponse.data.data : s));
+                                            alert("API Key regenerated successfully.");
+                                        } catch (error) {
+                                            console.error("Failed to refresh key:", error);
+                                            alert("Failed to regenerate API Key.");
+                                        }
                                     }
-                                }
-                            }}
-                        />
-                    ))
-                ) : (
-                    <div className="bg-white border border-[#e5e7eb] rounded-[12px] p-20 text-center">
-                        <p className="text-[#6b7280] text-[16px]">No partner sites found matching your criteria.</p>
-                    </div>
-                )}
+                                }}
+                            />
+                        ))
+                    ) : (
+                        <div className="bg-white p-20 text-center">
+                            <p className="text-[#6b7280] text-[16px]">No partner sites found matching your criteria.</p>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Pagination Component */}
