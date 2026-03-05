@@ -22,5 +22,5 @@ export type VerifyOTPResponse = {
  * @returns Axios response with status message
  */
 export async function verifyOTP(body: VerifyOTPRequest): Promise<AxiosResponse<VerifyOTPResponse>> {
-  return AXIOS_INSTANCE_ADMIN.post<VerifyOTPResponse>("/v1/otp/verify", body);
+  return AXIOS_INSTANCE_ADMIN.post<VerifyOTPResponse>("/v1/otp/email/verify", body);
 }

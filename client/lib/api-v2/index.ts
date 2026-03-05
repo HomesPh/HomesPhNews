@@ -17,6 +17,7 @@ export * from "./public/services/ads/getAdsByCampaign";
 export * from "./admin/service/auth/login";
 export * from "./admin/service/auth/register";
 export * from "./admin/service/auth/verifyOTP";
+export * from "./admin/service/auth/sendEmailOTP";
 export * from "./admin/service/auth/user";
 export * from "./admin/service/auth/logout";
 export * from "./admin/service/auth/updateProfile";
