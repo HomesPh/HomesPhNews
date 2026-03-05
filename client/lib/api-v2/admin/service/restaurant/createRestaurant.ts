@@ -27,6 +27,7 @@ export interface CreateRestaurantRequest {
     social_media?: string;
     tags?: string[];
     features?: string[];
+    published_sites?: string[];
 
     // Status
     status?: "published" | "pending" | "draft";

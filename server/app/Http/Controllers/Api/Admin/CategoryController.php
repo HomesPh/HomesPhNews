@@ -14,9 +14,13 @@ class CategoryController extends Controller
      */
     public function index()
     {
+<<<<<<< Updated upstream
         $categories = Category::latest()
             ->whereNotIn('name', ['restaurant', 'restaurants'])
             ->get();
+=======
+        $categories = Category::latest()->get();
+>>>>>>> Stashed changes
         return response()->json($categories);
     }
 
