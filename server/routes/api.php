@@ -232,6 +232,8 @@ Route::prefix('v1')->group(function () {
             Route::middleware('is.authenticated:admin,ceo')->group(function () {
                 // CEO can approve (publish) articles
                 Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
+                Route::post('articles/bulk-publish', [AdminArticleController::class, 'bulkPublish']);
+                Route::post('articles/bulk-reject', [AdminArticleController::class, 'bulkReject']);
             });
 
             // ═══════════════════════════════════════════════════════════════

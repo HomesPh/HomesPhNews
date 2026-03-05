@@ -421,112 +421,120 @@ class ArticleController extends Controller
 
         try {
             $validated = $request->validated();
-            $existing = Article::where('id', $id)->first();
-            $redisArticle = $this->redisService->getArticle($id);
-
-            // 1. Resolve Final Article Data
-            // Hierarchy of Truth: 1. Request Payload > 2. Existing DB > 3. Redis Source
-
-            $finalData = [
-                'status' => 'published',
-                'is_deleted' => false,
-            ];
-
-            // A. Start with Redis as fallback if available
-            if ($redisArticle) {
-                $finalData = array_merge($finalData, [
-                    'title' => $redisArticle['title'] ?? '',
-                    'original_title' => $redisArticle['title'] ?? '',
-                    'summary' => $redisArticle['summary'] ?? substr($redisArticle['content'] ?? '', 0, 500),
-                    'content' => $redisArticle['content'] ?? '',
-                    'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? '',
-                    'category' => $redisArticle['category'] ?? '',
-                    'country' => $redisArticle['country'] ?? '',
-                    'source' => $redisArticle['source'] ?? '',
-                    'original_url' => $redisArticle['original_url'] ?? '',
-                    'keywords' => $redisArticle['keywords'] ?? '',
-                    'topics' => $redisArticle['topics'] ?? [],
-                    'content_blocks' => $redisArticle['content_blocks'] ?? [],
-                    'template' => $redisArticle['template'] ?? '',
-                    'author' => $redisArticle['author'] ?? '',
-                    'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
-                ]);
-            }
-
-            // B. Layer with Existing DB data (takes priority over Redis)
-            if ($existing) {
-                $existingData = $existing->toArray();
-                // Filter out nulls/empty blocks from existing to ensure we don't 'downgrade' if Redis has better data
-                // though usually DB is more authoritative because it's editable.
-                $finalData = array_merge($finalData, $existingData);
-            }
-
-            // C. Layer with Request Payload (Decisive authority)
-            // Only include fields that were explicitly sent in the request
-            $payload = array_filter($validated, fn($v) => !is_null($v));
-            $finalData = array_merge($finalData, $payload);
-
-            // 1.5 - Force status and clear deletion flag
-            // Since this is the PUBLISH method, we must ensure these are correct
-            // regardless of what was in Redis or DB drafts.
-            $finalData['status'] = 'published';
-            $finalData['is_deleted'] = false;
-
-            // 2. Clean up and execute persistence
-            $fillableData = collect($finalData)->only((new Article())->getFillable())->toArray();
-
-            if ($existing) {
-                \Log::info("Updating existing DB record for publish: {$id}");
-                $existing->update($fillableData);
-                $article = $existing;
-            } else {
-                \Log::info("Creating new DB record for publish from Redis/Payload: {$id}");
-                if (empty($fillableData['title'])) {
-                    return response()->json(['message' => 'Article not found and no title provided for creation.'], 404);
-                }
-                $article = Article::create(array_merge(['id' => $id, 'article_id' => $id], $fillableData));
-            }
-
-            // 3. Sync Platform Connections
-            $siteNames = $validated['published_sites'] ?? [];
-            if (!empty($siteNames)) {
-                $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
-                $article->publishedSites()->sync($siteIds);
-            }
-
-            // 4. Handle Site-Specific Customizations
-            if (isset($validated['custom_titles'])) {
-                $article->update(['custom_titles' => $validated['custom_titles']]);
-            }
-
-            // 5. Sync Media Assets (ArticleImage relationship)
-            // Priority: Payload Gallery > Redis Gallery
-            $galleryImages = $validated['gallery_images'] ?? $validated['galleryImages'] ?? null;
-            if (is_array($galleryImages)) {
-                $article->images()->delete();
-                foreach ($galleryImages as $imagePath) {
-                    if (!empty($imagePath))
-                        $article->images()->create(['image_path' => $imagePath]);
-                }
-            } elseif (!$existing && $redisArticle && !empty($redisArticle['gallery_images'])) {
-                // Initial sync from Redis if record is brand new in DB
-                foreach ($redisArticle['gallery_images'] as $imagePath) {
-                    if (!empty($imagePath))
-                        $article->images()->create(['image_path' => $imagePath]);
-                }
-            }
-
-            // 6. Finalization: Remove from temporary Redis queue
-            $this->redisService->deleteArticle($id);
-            \Log::info("Article {$id} published and archived successfully.");
-
-            return (new ArticleResource($article))->response()->setStatusCode(201);
-
+            return $this->processArticlePublish($id, $validated);
         } catch (\Exception $e) {
             \Log::error("Failed to publish article {$id}: " . $e->getMessage());
             \Log::error($e->getTraceAsString());
             return response()->json(['message' => 'Failed to publish article: ' . $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Internal method to process publishing an article.
+     * Used by both individual and bulk publish endpoints.
+     */
+    private function processArticlePublish(string $id, array $validated): ArticleResource
+    {
+        $existing = Article::where('id', $id)->first();
+        $redisArticle = $this->redisService->getArticle($id);
+
+        // 1. Resolve Final Article Data
+        // Hierarchy of Truth: 1. Request Payload > 2. Existing DB > 3. Redis Source
+
+        $finalData = [
+            'status' => 'published',
+            'is_deleted' => false,
+        ];
+
+        // A. Start with Redis as fallback if available
+        if ($redisArticle) {
+            $finalData = array_merge($finalData, [
+                'title' => $redisArticle['title'] ?? '',
+                'original_title' => $redisArticle['title'] ?? '',
+                'summary' => $redisArticle['summary'] ?? substr($redisArticle['content'] ?? '', 0, 500),
+                'content' => $redisArticle['content'] ?? '',
+                'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? '',
+                'category' => $redisArticle['category'] ?? '',
+                'country' => $redisArticle['country'] ?? '',
+                'source' => $redisArticle['source'] ?? '',
+                'original_url' => $redisArticle['original_url'] ?? '',
+                'keywords' => $redisArticle['keywords'] ?? '',
+                'topics' => $redisArticle['topics'] ?? [],
+                'content_blocks' => $redisArticle['content_blocks'] ?? [],
+                'template' => $redisArticle['template'] ?? '',
+                'author' => $redisArticle['author'] ?? '',
+                'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
+            ]);
+        }
+
+        // B. Layer with Existing DB data (takes priority over Redis)
+        if ($existing) {
+            $existingData = $existing->toArray();
+            // Filter out nulls/empty blocks from existing to ensure we don't 'downgrade' if Redis has better data
+            // though usually DB is more authoritative because it's editable.
+            $finalData = array_merge($finalData, $existingData);
+        }
+
+        // C. Layer with Request Payload (Decisive authority)
+        // Only include fields that were explicitly sent in the request
+        $payload = array_filter($validated, fn($v) => !is_null($v));
+        $finalData = array_merge($finalData, $payload);
+
+        // 1.5 - Force status and clear deletion flag
+        // Since this is the PUBLISH method, we must ensure these are correct
+        // regardless of what was in Redis or DB drafts.
+        $finalData['status'] = 'published';
+        $finalData['is_deleted'] = false;
+
+        // 2. Clean up and execute persistence
+        $fillableData = collect($finalData)->only((new Article())->getFillable())->toArray();
+
+        if ($existing) {
+            \Log::info("Updating existing DB record for publish: {$id}");
+            $existing->update($fillableData);
+            $article = $existing;
+        } else {
+            \Log::info("Creating new DB record for publish from Redis/Payload: {$id}");
+            if (empty($fillableData['title'])) {
+                throw new \Exception("Article not found and no title provided for creation.");
+            }
+            $article = Article::create(array_merge(['id' => $id, 'article_id' => $id], $fillableData));
+        }
+
+        // 3. Sync Platform Connections
+        $siteNames = $validated['published_sites'] ?? [];
+        if (!empty($siteNames)) {
+            $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
+            $article->publishedSites()->sync($siteIds);
+        }
+
+        // 4. Handle Site-Specific Customizations
+        if (isset($validated['custom_titles'])) {
+            $article->update(['custom_titles' => $validated['custom_titles']]);
+        }
+
+        // 5. Sync Media Assets (ArticleImage relationship)
+        // Priority: Payload Gallery > Redis Gallery
+        $galleryImages = $validated['gallery_images'] ?? $validated['galleryImages'] ?? null;
+        if (is_array($galleryImages)) {
+            $article->images()->delete();
+            foreach ($galleryImages as $imagePath) {
+                if (!empty($imagePath))
+                    $article->images()->create(['image_path' => $imagePath]);
+            }
+        } elseif (!$existing && $redisArticle && !empty($redisArticle['gallery_images'])) {
+            // Initial sync from Redis if record is brand new in DB
+            foreach ($redisArticle['gallery_images'] as $imagePath) {
+                if (!empty($imagePath))
+                    $article->images()->create(['image_path' => $imagePath]);
+            }
+        }
+
+        // 6. Finalization: Remove from temporary Redis queue
+        $this->redisService->deleteArticle($id);
+        \Log::info("Article {$id} published and archived successfully.");
+
+        return new ArticleResource($article);
     }
 
     /**
@@ -977,5 +985,87 @@ class ArticleController extends Controller
         return response()->json([
             'data' => $subscribers
         ]);
+    }
+
+    /**
+     * Bulk publish multiple articles.
+     */
+    public function bulkPublish(Request $request): JsonResponse
+    {
+        $ids = $request->input('ids', []);
+        $publishedSites = $request->input('published_sites', []);
+
+        if (empty($ids)) {
+            return response()->json(['message' => 'No articles selected.'], 400);
+        }
+
+        if (empty($publishedSites)) {
+            return response()->json(['message' => 'No sites selected for publishing.'], 400);
+        }
+
+        $results = [
+            'success' => [],
+            'failed' => []
+        ];
+
+        foreach ($ids as $id) {
+            try {
+                $response = $this->processArticlePublish($id, ['published_sites' => $publishedSites]);
+                if ($response instanceof ArticleResource) {
+                    $results['success'][] = $id;
+                } else {
+                    $results['failed'][] = ['id' => $id, 'reason' => 'Failed to publish'];
+                }
+            } catch (\Exception $e) {
+                $results['failed'][] = ['id' => $id, 'reason' => $e->getMessage()];
+            }
+        }
+
+        return response()->json([
+            'message' => count($results['success']) . ' articles published, ' . count($results['failed']) . ' failed.',
+            'results' => $results
+        ]);
+    }
+
+    /**
+     * Bulk reject multiple articles.
+     */
+    public function bulkReject(Request $request): JsonResponse
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return response()->json(['message' => 'No articles selected.'], 400);
+        }
+
+        $count = 0;
+        foreach ($ids as $id) {
+            $article = Article::find($id);
+            if ($article) {
+                $article->update(['status' => 'rejected']);
+                $count++;
+            } else if (\Illuminate\Support\Str::isUuid($id)) {
+                $redisArticle = $this->redisService->getArticle($id);
+                if ($redisArticle) {
+                    Article::create([
+                        'id' => $id,
+                        'article_id' => $id,
+                        'title' => $redisArticle['title'] ?? 'Untitled',
+                        'summary' => $redisArticle['summary'] ?? substr($redisArticle['content'] ?? '', 0, 500),
+                        'content' => $redisArticle['content'] ?? '',
+                        'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? null,
+                        'category' => $redisArticle['category'] ?? '',
+                        'country' => $redisArticle['country'] ?? '',
+                        'source' => $redisArticle['source'] ?? 'Scraper',
+                        'status' => 'rejected',
+                        'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? 'article-' . $id),
+                    ]);
+                    $this->redisService->deleteArticle($id);
+                    $count++;
+                }
+            }
+        }
+
+        return response()->json(['message' => "{$count} articles rejected successfully."]);
     }
 }
