@@ -49,6 +49,7 @@ class Restaurant extends Model
         'is _featured',
         'views_count',
         'published_sites',
+        'content',
     ];
 
     /**

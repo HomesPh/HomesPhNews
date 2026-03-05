@@ -33,9 +33,9 @@ export default function ArticleRichTextEditor({
     const [linkUrl, setLinkUrl] = useState('');
     const [savedSelection, setSavedSelection] = useState<Range | null>(null);
 
-    // Sync external value with internal HTML only when externally changed
+    // Sync external value with internal HTML only when not focused (avoid cursor jump while typing)
     useEffect(() => {
-        if (editorRef.current) {
+        if (editorRef.current && document.activeElement !== editorRef.current) {
             const decodedValue = decodeHtml(value || '');
             if (editorRef.current.innerHTML !== decodedValue) {
                 editorRef.current.innerHTML = decodedValue;
