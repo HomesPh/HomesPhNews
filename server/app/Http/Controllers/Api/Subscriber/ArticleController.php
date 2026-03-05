@@ -49,9 +49,42 @@ class ArticleController extends Controller
                 }
             }));
 
-        // Available filter options
-        $availableCategories = (clone $query)->distinct()->whereNotNull('category')->orderBy('category')->pluck('category')->values()->toArray();
-        $availableCountries  = (clone $query)->distinct()->whereNotNull('country')->orderBy('country')->pluck('country')->values()->toArray();
+        // Base query for counts (respects search and allowedPrefs, but NOT the specific category/country filter)
+        $baseCountQuery = Article::query()
+            ->where('status', 'published')
+            ->where('is_deleted', false)
+            ->when($search, function ($q, $s) {
+                $q->where(function ($sub) use ($s) {
+                    $sub->where('title', 'LIKE', "%{$s}%")
+                        ->orWhere('summary', 'LIKE', "%{$s}%");
+                });
+            })
+            ->when($allowedCategories, fn($q, $c) => $q->whereIn('category', $c))
+            ->when($allowedCountries, fn($q, $c) => $q->where(function ($sub) use ($c) {
+                foreach ($c as $country) {
+                    $sub->orWhere('country', 'LIKE', "%{$country}%");
+                }
+            }));
+ 
+        // 1. Calculate Category Counts (respect search and country)
+        $availableCategories = (clone $baseCountQuery)
+            ->when($country, fn($q, $c) => $q->where('country', 'LIKE', "%{$c}%"))
+            ->groupBy('category')
+            ->selectRaw('category as name, count(*) as count')
+            ->orderBy('name')
+            ->get()
+            ->filter(fn($i) => !empty($i->name))
+            ->values();
+ 
+        // 2. Calculate Country Counts (respect search and category)
+        $availableCountries = (clone $baseCountQuery)
+            ->when($category, fn($q, $c) => $q->where('category', $c))
+            ->groupBy('country')
+            ->selectRaw('country as name, count(*) as count')
+            ->orderBy('name')
+            ->get()
+            ->filter(fn($i) => !empty($i->name))
+            ->values();
 
         $articles = $query
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])

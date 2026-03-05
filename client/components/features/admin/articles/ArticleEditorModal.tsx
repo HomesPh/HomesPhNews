@@ -34,8 +34,8 @@ interface ArticleEditorModalProps {
     isOpen: boolean;
     onClose: () => void;
     initialData?: any;
-    availableCategories?: string[];
-    availableCountries?: string[];
+    availableCategories?: (string | { name: string; count: number })[];
+    availableCountries?: (string | { name: string; count: number })[];
 }
 
 export default function ArticleEditorModal({

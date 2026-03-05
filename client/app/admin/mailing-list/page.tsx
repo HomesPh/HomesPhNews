@@ -9,6 +9,7 @@ import {
     ChevronRight,
     ChevronLeft,
     Search,
+    ChevronDown,
     CheckCircle2,
     Loader2,
     AlertCircle,
@@ -27,6 +28,13 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
 import {
     getAdminArticles,
@@ -47,6 +55,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+
+// Dummy city data mapped by country name
+const DUMMY_CITIES: Record<string, string[]> = {
+    'Philippines': ['Cebu City', 'Manila', 'Davao City', 'Makati', 'Quezon City', 'Taguig'],
+    'United Arab Emirates': ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman'],
+    'Australia': ['Sydney', 'Melbourne', 'Brisbane', 'Perth'],
+    'United States': ['New York', 'Los Angeles', 'Chicago', 'Houston'],
+};
 
 type Step = 'articles' | 'recipients' | 'review';
 
@@ -82,15 +98,34 @@ export default function ManualNewsletterPage() {
     const [articleSearch, setArticleSearch] = useState('');
     const [articleCategory, setArticleCategory] = useState('');
     const [articleCountry, setArticleCountry] = useState('');
+    const [articleCity, setArticleCity] = useState('');
+    const [articleCities, setArticleCities] = useState<string[]>([]);
 
     const [subscriberSearch, setSubscriberSearch] = useState('');
     const [subscriberCategory, setSubscriberCategory] = useState('');
     const [subscriberCountry, setSubscriberCountry] = useState('');
+    const [subscriberCity, setSubscriberCity] = useState('');
+    const [subscriberCities, setSubscriberCities] = useState<string[]>([]);
 
     const [availableFilters, setAvailableFilters] = useState<{
-        categories: string[];
-        countries: string[];
+        categories: { name: string; count: number }[];
+        countries: { name: string; count: number }[];
     }>({ categories: [], countries: [] });
+
+    const subscriberCounts = useMemo(() => {
+        const cats: Record<string, number> = {};
+        const countries: Record<string, number> = {};
+
+        subscribers.forEach(s => {
+            const sCats = Array.isArray(s.category) ? s.category : (s.category ? [s.category as string] : []);
+            const sCountries = Array.isArray(s.country) ? s.country : (s.country ? [s.country as string] : []);
+
+            sCats.forEach(c => cats[c] = (cats[c] || 0) + 1);
+            sCountries.forEach(c => countries[c] = (countries[c] || 0) + 1);
+        });
+
+        return { categories: cats, countries: countries };
+    }, [subscribers]);
 
     useEffect(() => {
         fetchArticles();
@@ -98,6 +133,70 @@ export default function ManualNewsletterPage() {
         fetchMailingStats();
         fetchGroups();
     }, []);
+
+    // Dynamic Counts for Articles
+    const dynamicArticleFilters = useMemo(() => {
+        const categories: Record<string, number> = {};
+        const countries: Record<string, number> = {};
+        const cities: Record<string, number> = {};
+
+        // 1. Calculate Category counts (respecting Search, Country, City)
+        articles.forEach(a => {
+            const matchesSearch = !articleSearch || a.title.toLowerCase().includes(articleSearch.toLowerCase());
+            const matchesCountry = !articleCountry || a.country === articleCountry;
+            const matchesCity = !articleCity || (a as any).city === articleCity;
+
+            if (matchesSearch && matchesCountry && matchesCity) {
+                if (a.category) categories[a.category] = (categories[a.category] || 0) + 1;
+            }
+        });
+
+        // 2. Calculate Country counts (respecting Search, Category)
+        articles.forEach(a => {
+            const matchesSearch = !articleSearch || a.title.toLowerCase().includes(articleSearch.toLowerCase());
+            const matchesCategory = !articleCategory || a.category === articleCategory;
+
+            if (matchesSearch && matchesCategory) {
+                if (a.country) countries[a.country] = (countries[a.country] || 0) + 1;
+            }
+        });
+
+        // 3. Calculate City counts (respecting Search, Category, Country)
+        articles.forEach(a => {
+            const matchesSearch = !articleSearch || a.title.toLowerCase().includes(articleSearch.toLowerCase());
+            const matchesCategory = !articleCategory || a.category === articleCategory;
+            const matchesCountry = !articleCountry || a.country === articleCountry;
+
+            if (matchesSearch && matchesCategory && matchesCountry) {
+                if ((a as any).city) cities[(a as any).city] = (cities[(a as any).city] || 0) + 1;
+            }
+        });
+
+        return {
+            categories: Object.entries(categories).map(([name, count]) => ({ name, count })).sort((a, b) => a.name.localeCompare(b.name)),
+            countries: Object.entries(countries).map(([name, count]) => ({ name, count })).sort((a, b) => a.name.localeCompare(b.name)),
+            cities: Object.entries(cities).map(([name, count]) => ({ name, count })).sort((a, b) => a.name.localeCompare(b.name)),
+        };
+    }, [articles, articleSearch, articleCategory, articleCountry, articleCity]);
+
+    useEffect(() => {
+        if (articleCountry && DUMMY_CITIES[articleCountry]) {
+            setArticleCities(DUMMY_CITIES[articleCountry]);
+        } else {
+            setArticleCities([]);
+            setArticleCity('');
+        }
+    }, [articleCountry]);
+
+    // Cascade logic for subscribers
+    useEffect(() => {
+        if (subscriberCountry && DUMMY_CITIES[subscriberCountry]) {
+            setSubscriberCities(DUMMY_CITIES[subscriberCountry]);
+        } else {
+            setSubscriberCities([]);
+            setSubscriberCity('');
+        }
+    }, [subscriberCountry]);
 
     const fetchGroups = async () => {
         setIsLoadingGroups(true);
@@ -155,9 +254,10 @@ export default function ManualNewsletterPage() {
             const matchesSearch = !articleSearch || a.title.toLowerCase().includes(articleSearch.toLowerCase());
             const matchesCategory = !articleCategory || a.category === articleCategory;
             const matchesCountry = !articleCountry || a.country === articleCountry;
-            return matchesSearch && matchesCategory && matchesCountry;
+            const matchesCity = !articleCity || (a as any).city === articleCity;
+            return matchesSearch && matchesCategory && matchesCountry && matchesCity;
         });
-    }, [articles, articleSearch, articleCategory, articleCountry]);
+    }, [articles, articleSearch, articleCategory, articleCountry, articleCity]);
 
     const filteredSubscribers = useMemo(() => {
         return subscribers.filter(s => {
@@ -170,10 +270,13 @@ export default function ManualNewsletterPage() {
             const matchesCountry = !subscriberCountry || (
                 Array.isArray(s.country) ? s.country.includes(subscriberCountry) : s.country === subscriberCountry
             );
+            const matchesCity = !subscriberCity || (
+                Array.isArray((s as any).city) ? (s as any).city.includes(subscriberCity) : (s as any).city === subscriberCity
+            );
 
-            return matchesSearch && matchesCategory && matchesCountry;
+            return matchesSearch && matchesCategory && matchesCountry && matchesCity;
         });
-    }, [subscribers, subscriberSearch, subscriberCategory, subscriberCountry]);
+    }, [subscribers, subscriberSearch, subscriberCategory, subscriberCountry, subscriberCity]);
 
     const handleToggleArticle = (article: ArticleResource) => {
         setSelectedArticles(prev => {
@@ -367,34 +470,74 @@ export default function ManualNewsletterPage() {
                                 </div>
                             </div>
 
-                            {/* Row 2: Search and Filters */}
-                            <div className="flex flex-col md:flex-row items-center gap-4">
-                                <div className="relative flex-1 w-full">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                    <Input
+                            {/* Row 2: Search and Filters (Modern Single Line) */}
+                            <div className="flex items-center gap-3 w-full">
+                                <div className="flex-1 relative group">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#9ca3af] group-focus-within:text-[#C10007] transition-colors" />
+                                    <input
+                                        type="text"
                                         placeholder="Search published articles..."
                                         value={articleSearch}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setArticleSearch(e.target.value)}
-                                        className="pl-10 rounded-lg border-gray-200 w-full"
+                                        className="w-full h-[48px] pl-12 pr-4 bg-white border border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#C10007]/10 focus:border-[#C10007] transition-all duration-200"
                                     />
                                 </div>
-                                <div className="flex gap-2 w-full md:w-auto">
-                                    <select
-                                        value={articleCategory}
-                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setArticleCategory(e.target.value)}
-                                        className="flex-1 md:w-auto h-10 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                <div className="w-[180px] flex-none">
+                                    <Select value={articleCategory || "all"} onValueChange={(val) => setArticleCategory(val === "all" ? "" : val)}>
+                                        <SelectTrigger className="w-full h-[48px] !h-[48px] px-4 bg-white border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] focus:ring-[#C10007]/10 focus:border-[#C10007] transition-all">
+                                            <SelectValue placeholder="All Categories" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Categories</SelectItem>
+                                            {dynamicArticleFilters.categories.map((c) => (
+                                                <SelectItem key={c.name} value={c.name}>
+                                                    {c.name} <span className="text-[#C10007] ml-1">({c.count})</span>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="w-[180px] flex-none">
+                                    <Select value={articleCountry || "all"} onValueChange={(val) => setArticleCountry(val === "all" ? "" : val)}>
+                                        <SelectTrigger className="w-full h-[48px] !h-[48px] px-4 bg-white border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] focus:ring-[#C10007]/10 focus:border-[#C10007] transition-all">
+                                            <SelectValue placeholder="All Countries" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Countries</SelectItem>
+                                            {dynamicArticleFilters.countries.map((c) => (
+                                                <SelectItem key={c.name} value={c.name}>
+                                                    {c.name} <span className="text-[#C10007] ml-1">({c.count})</span>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="w-[180px] flex-none">
+                                    <Select
+                                        value={articleCity || "all"}
+                                        onValueChange={(val) => setArticleCity(val === "all" ? "" : val)}
+                                        disabled={!articleCountry}
                                     >
-                                        <option value="">All Categories</option>
-                                        {availableFilters.categories.map((c: string) => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                    <select
-                                        value={articleCountry}
-                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setArticleCountry(e.target.value)}
-                                        className="flex-1 md:w-auto h-10 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        <option value="">All Countries</option>
-                                        {availableFilters.countries.map((c: string) => <option key={c} value={c}>{c}</option>)}
-                                    </select>
+                                        <SelectTrigger className={cn(
+                                            "w-full h-[48px] !h-[48px] px-4 rounded-xl text-[14px] focus:outline-none transition-all duration-200",
+                                            !articleCountry
+                                                ? "bg-gray-50 border-[#e5e7eb] text-[#9ca3af] cursor-not-allowed"
+                                                : "bg-white border-[#e5e7eb] text-[#111827] focus:ring-[#C10007]/10 focus:border-[#C10007]"
+                                        )}>
+                                            <SelectValue placeholder={articleCountry ? 'All Cities' : 'Select Country'} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">{articleCountry ? 'All Cities' : 'Select Country First'}</SelectItem>
+                                            {articleCities.map((c: string) => {
+                                                const cityCount = dynamicArticleFilters.cities.find(cf => cf.name === c)?.count || 0;
+                                                return (
+                                                    <SelectItem key={c} value={c}>
+                                                        {c} <span className="text-[#C10007] ml-1">({cityCount})</span>
+                                                    </SelectItem>
+                                                );
+                                            })}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                             </div>
                         </div>
@@ -501,36 +644,73 @@ export default function ManualNewsletterPage() {
                                 </div>
                             </div>
 
-                            {/* Row 2: Search and Filters */}
-                            <div className="flex flex-col md:flex-row items-center gap-4">
-                                <div className="relative flex-1 w-full">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                    <Input
+                            {/* Row 2: Search and Filters (Modern Single Line) */}
+                            <div className="flex items-center gap-3 w-full">
+                                <div className="flex-1 relative group">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#9ca3af] group-focus-within:text-[#C10007] transition-colors" />
+                                    <input
+                                        type="text"
                                         placeholder={recipientTab === 'individual' ? "Search by email..." : "Search groups..."}
                                         value={subscriberSearch}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSubscriberSearch(e.target.value)}
-                                        className="pl-10 rounded-lg border-gray-200 w-full"
+                                        className="w-full h-[48px] pl-12 pr-4 bg-white border border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#C10007]/10 focus:border-[#C10007] transition-all duration-200"
                                     />
                                 </div>
                                 {recipientTab === 'individual' && (
-                                    <div className="flex gap-2 w-full md:w-auto">
-                                        <select
-                                            value={subscriberCategory}
-                                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSubscriberCategory(e.target.value)}
-                                            className="flex-1 md:w-auto h-10 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        >
-                                            <option value="">Matches Category</option>
-                                            {availableFilters.categories.map((c: string) => <option key={c} value={c}>{c}</option>)}
-                                        </select>
-                                        <select
-                                            value={subscriberCountry}
-                                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSubscriberCountry(e.target.value)}
-                                            className="flex-1 md:w-auto h-10 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        >
-                                            <option value="">Matches Country</option>
-                                            {availableFilters.countries.map((c: string) => <option key={c} value={c}>{c}</option>)}
-                                        </select>
-                                    </div>
+                                    <>
+                                        <div className="w-[180px] flex-none">
+                                            <Select value={subscriberCategory || "all"} onValueChange={(val) => setSubscriberCategory(val === "all" ? "" : val)}>
+                                                <SelectTrigger className="w-full h-[48px] px-4 bg-white border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] focus:ring-[#C10007]/10 focus:border-[#C10007] transition-all">
+                                                    <SelectValue placeholder="Matches Category" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">Matches Category</SelectItem>
+                                                    {Object.entries(subscriberCounts.categories).sort().map(([name, count]) => (
+                                                        <SelectItem key={name} value={name}>
+                                                            {name} <span className="text-[#C10007] ml-1">({count})</span>
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="w-[180px] flex-none">
+                                            <Select value={subscriberCountry || "all"} onValueChange={(val) => setSubscriberCountry(val === "all" ? "" : val)}>
+                                                <SelectTrigger className="w-full h-[48px] px-4 bg-white border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] focus:ring-[#C10007]/10 focus:border-[#C10007] transition-all">
+                                                    <SelectValue placeholder="Matches Country" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">Matches Country</SelectItem>
+                                                    {Object.entries(subscriberCounts.countries).sort().map(([name, count]) => (
+                                                        <SelectItem key={name} value={name}>
+                                                            {name} <span className="text-[#C10007] ml-1">({count})</span>
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="w-[180px] flex-none">
+                                            <Select
+                                                value={subscriberCity || "all"}
+                                                onValueChange={(val) => setSubscriberCity(val === "all" ? "" : val)}
+                                                disabled={!subscriberCountry}
+                                            >
+                                                <SelectTrigger className={cn(
+                                                    "w-full h-[48px] px-4 rounded-xl text-[14px] focus:outline-none transition-all duration-200",
+                                                    !subscriberCountry
+                                                        ? "bg-gray-50 border-[#e5e7eb] text-[#9ca3af] cursor-not-allowed"
+                                                        : "bg-white border-[#e5e7eb] text-[#111827] focus:ring-[#C10007]/10 focus:border-[#C10007]"
+                                                )}>
+                                                    <SelectValue placeholder={subscriberCountry ? 'Matches City' : 'Select Country'} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">{subscriberCountry ? 'Matches City' : 'Select Country First'}</SelectItem>
+                                                    {subscriberCities.map((c: string) => (
+                                                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </>
                                 )}
                             </div>
                         </div>
