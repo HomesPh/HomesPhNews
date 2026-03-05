@@ -14,6 +14,7 @@ import usePagination from '@/hooks/usePagination';
 import useUrlFilters from '@/hooks/useUrlFilters';
 import { getAdminArticles } from "@/lib/api-v2/admin/service/article/getAdminArticles";
 import ArticlesSkeleton from "@/components/features/admin/articles/ArticlesSkeleton";
+import ScraperControlPanel from "@/components/features/admin/articles/ScraperControlPanel";
 
 // Filter configuration with defaults and reset values
 // Only 'all' should remove the status param from URL; other tab values must stay so the correct tab stays active
@@ -245,6 +246,8 @@ export default function ArticlesPage() {
                 actionIcon={Plus}
             />
 
+
+            <ScraperControlPanel />
 
             <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
                 <ArticlesTabs
