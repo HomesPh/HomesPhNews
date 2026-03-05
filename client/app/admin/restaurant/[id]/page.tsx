@@ -358,6 +358,23 @@ function RestaurantDetailContent() {
                                     <p className="text-gray-600">{restaurant.owner_info || "—"}</p>
                                 </div>
 
+                                {(restaurant as any).company && (
+                                    <div>
+                                        <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Company</h4>
+                                        <p className="text-gray-600">{(restaurant as any).company}</p>
+                                    </div>
+                                )}
+
+                                {(restaurant as any).content && (
+                                    <div>
+                                        <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">More Details</h4>
+                                        <div
+                                            className="prose prose-sm max-w-none text-gray-600 leading-relaxed"
+                                            dangerouslySetInnerHTML={{ __html: (restaurant as any).content }}
+                                        />
+                                    </div>
+                                )}
+
                                 <div>
                                     <h4 className="text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">Food Tags</h4>
                                     <div className="flex flex-wrap gap-2">
@@ -413,6 +430,16 @@ function RestaurantDetailContent() {
 
                     {/* Right Sidebar */}
                     <aside className="w-[320px] flex-shrink-0 space-y-6">
+                        {/* Scheduled Publish Info */}
+                        {(restaurant as any).scheduled_at && restaurant.status !== 'published' && (
+                            <div className="bg-amber-50 border border-amber-200 rounded-[12px] p-4">
+                                <p className="text-[12px] font-bold text-amber-700 uppercase tracking-wide mb-1">Scheduled</p>
+                                <p className="text-[13px] text-amber-800">
+                                    {new Date((restaurant as any).scheduled_at).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' })}
+                                </p>
+                            </div>
+                        )}
+
                         {/* Publish Widget */}
                         <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-sm">
                             <h3 className="text-[16px] font-semibold text-[#111827] mb-4 tracking-[-0.5px]">Publish Status</h3>

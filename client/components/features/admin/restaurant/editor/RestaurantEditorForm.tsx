@@ -1,17 +1,20 @@
 "use client";
 
 import { useRef, useState } from 'react';
-import { Upload, Loader2, Info, MapPin } from 'lucide-react';
+import { Upload, Loader2, MapPin, Star, Calendar, Clock, Globe } from 'lucide-react';
 import { Countries } from "@/app/data";
+import ArticleRichTextEditor from "@/components/features/admin/articles/editor/ArticleRichTextEditor";
 
 interface RestaurantEditorFormProps {
     data: any;
     onDataChange: (field: string, value: any) => void;
+    availableSites?: string[];
 }
 
-export default function RestaurantEditorForm({ data, onDataChange }: RestaurantEditorFormProps) {
+export default function RestaurantEditorForm({ data, onDataChange, availableSites = [] }: RestaurantEditorFormProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [isScheduled, setIsScheduled] = useState(!!data.scheduled_at);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -29,6 +32,28 @@ export default function RestaurantEditorForm({ data, onDataChange }: RestaurantE
             console.error("Failed to read image", error);
             setIsUploading(false);
         }
+    };
+
+    const handleScheduleToggle = (checked: boolean) => {
+        setIsScheduled(checked);
+        if (!checked) {
+            onDataChange('scheduled_at', null);
+        } else {
+            // Default to tomorrow at noon
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(12, 0, 0, 0);
+            const iso = tomorrow.toISOString().slice(0, 16);
+            onDataChange('scheduled_at', iso);
+        }
+    };
+
+    const toggleSite = (site: string) => {
+        const current: string[] = data.published_sites || [];
+        const updated = current.includes(site)
+            ? current.filter((s: string) => s !== site)
+            : [...current, site];
+        onDataChange('published_sites', updated);
     };
 
     return (
@@ -203,9 +228,38 @@ export default function RestaurantEditorForm({ data, onDataChange }: RestaurantE
                         placeholder="e.g. ₱500 - ₱1000 per person"
                     />
                 </div>
+                <div className="mt-4">
+                    <label className="flex items-center gap-2 text-[14px] font-bold text-[#111827] mb-2">
+                        <Star className="w-4 h-4 text-amber-500" />
+                        Rating
+                    </label>
+                    <div className="flex items-center gap-3">
+                        <input
+                            type="number"
+                            min="0"
+                            max="5"
+                            step="0.1"
+                            value={data.rating || ''}
+                            onChange={(e) => onDataChange('rating', parseFloat(e.target.value) || 0)}
+                            className="w-[120px] px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px]"
+                            placeholder="0.0"
+                        />
+                        <span className="text-[13px] text-[#6b7280]">out of 5.0</span>
+                        {(data.rating > 0) && (
+                            <div className="flex items-center gap-1">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                        key={star}
+                                        className={`w-4 h-4 ${star <= Math.round(data.rating) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'}`}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
 
-            {/* Location */}
+            {/* Location & Contact */}
             <div>
                 <h3 className="text-[16px] font-bold text-[#111827] mb-4 pb-2 border-b border-gray-100">
                     Location & Contact
@@ -278,6 +332,32 @@ export default function RestaurantEditorForm({ data, onDataChange }: RestaurantE
                             placeholder="https://..."
                         />
                     </div>
+                    <div>
+                        <label className="flex items-center gap-2 text-[14px] font-bold text-[#111827] mb-2">
+                            <Globe className="w-4 h-4 text-pink-500" />
+                            Social Media
+                        </label>
+                        <input
+                            type="text"
+                            value={data.social_media}
+                            onChange={(e) => onDataChange('social_media', e.target.value)}
+                            className="w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px]"
+                            placeholder="Facebook, Instagram URL or @handle"
+                        />
+                    </div>
+                    <div>
+                        <label className="flex items-center gap-2 text-[14px] font-bold text-[#111827] mb-2">
+                            <Clock className="w-4 h-4 text-emerald-500" />
+                            Opening Hours
+                        </label>
+                        <textarea
+                            value={data.opening_hours}
+                            onChange={(e) => onDataChange('opening_hours', e.target.value)}
+                            rows={3}
+                            className="w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px]"
+                            placeholder="e.g. Mon-Fri: 9AM-10PM, Sat-Sun: 8AM-11PM"
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -287,6 +367,48 @@ export default function RestaurantEditorForm({ data, onDataChange }: RestaurantE
                     Details & Story
                 </h3>
                 <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-[14px] font-bold text-[#111827] mb-2">Owner / Chef</label>
+                            <input
+                                type="text"
+                                value={data.owner_info}
+                                onChange={(e) => onDataChange('owner_info', e.target.value)}
+                                className="w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px]"
+                                placeholder="e.g. Juan dela Cruz"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[14px] font-bold text-[#111827] mb-2">Company</label>
+                            <input
+                                type="text"
+                                value={data.company}
+                                onChange={(e) => onDataChange('company', e.target.value)}
+                                className="w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px]"
+                                placeholder="e.g. Sofitel Philippines"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-[14px] font-bold text-[#111827] mb-2">Specialty Dish</label>
+                        <input
+                            type="text"
+                            value={data.specialty_dish}
+                            onChange={(e) => onDataChange('specialty_dish', e.target.value)}
+                            className="w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px]"
+                            placeholder="e.g. Crispy Pata"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-[14px] font-bold text-[#111827] mb-2">Menu Highlights</label>
+                        <textarea
+                            value={data.menu_highlights}
+                            onChange={(e) => onDataChange('menu_highlights', e.target.value)}
+                            rows={2}
+                            className="w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px]"
+                            placeholder="Dish A, Dish B, Dish C..."
+                        />
+                    </div>
                     <div>
                         <label className="block text-[14px] font-bold text-[#111827] mb-2">Why Filipinos Love It</label>
                         <textarea
@@ -307,30 +429,26 @@ export default function RestaurantEditorForm({ data, onDataChange }: RestaurantE
                             placeholder="History or background..."
                         />
                     </div>
-                    <div>
-                        <label className="block text-[14px] font-bold text-[#111827] mb-2">Specialty Dish</label>
-                        <input
-                            type="text"
-                            value={data.specialty_dish}
-                            onChange={(e) => onDataChange('specialty_dish', e.target.value)}
-                            className="w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px]"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-[14px] font-bold text-[#111827] mb-2">Menu Highlights</label>
-                        <textarea
-                            value={data.menu_highlights}
-                            onChange={(e) => onDataChange('menu_highlights', e.target.value)}
-                            rows={2}
-                            className="w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px]"
-                        />
-                    </div>
                 </div>
             </div>
 
-            {/* Tags */}
+            {/* More Details (Rich Text Content) */}
             <div>
-                <label className="block text-[14px] font-bold text-[#111827] mb-2">Tags / Food Topics</label>
+                <h3 className="text-[16px] font-bold text-[#111827] mb-4 pb-2 border-b border-gray-100">
+                    More Details
+                </h3>
+                <p className="text-[12px] text-[#6b7280] mb-3">Full rich-text content — like an article body.</p>
+                <ArticleRichTextEditor
+                    value={data.content || ''}
+                    onChange={(val) => onDataChange('content', val)}
+                    placeholder="Write a detailed article-style description of this restaurant..."
+                    rows={10}
+                />
+            </div>
+
+            {/* Food Tags */}
+            <div>
+                <label className="block text-[14px] font-bold text-[#111827] mb-2">Food Tags</label>
                 <input
                     type="text"
                     value={data.food_topics}
@@ -338,6 +456,65 @@ export default function RestaurantEditorForm({ data, onDataChange }: RestaurantE
                     className="w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px]"
                     placeholder="Comma separated: Seafood, Buffet, Date Night"
                 />
+                <p className="text-[12px] text-[#6b7280] mt-1">Optional — separate tags with commas</p>
+            </div>
+
+            {/* Publish Settings */}
+            <div>
+                <h3 className="text-[16px] font-bold text-[#111827] mb-4 pb-2 border-b border-gray-100">
+                    Publish Settings
+                </h3>
+                <div className="space-y-5">
+                    {/* Scheduled Publish */}
+                    <div>
+                        <label className="flex items-center gap-3 cursor-pointer mb-3">
+                            <input
+                                type="checkbox"
+                                checked={isScheduled}
+                                onChange={(e) => handleScheduleToggle(e.target.checked)}
+                                className="w-4 h-4 rounded border-gray-300 text-[#C10007] focus:ring-[#C10007]"
+                            />
+                            <span className="text-[14px] font-bold text-[#111827] flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-[#C10007]" />
+                                Schedule for later
+                            </span>
+                        </label>
+                        {isScheduled ? (
+                            <div className="ml-7">
+                                <label className="block text-[12px] font-medium text-[#6b7280] mb-1">Date & Time</label>
+                                <input
+                                    type="datetime-local"
+                                    value={data.scheduled_at || ''}
+                                    onChange={(e) => onDataChange('scheduled_at', e.target.value || null)}
+                                    className="w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[14px]"
+                                />
+                                <p className="text-[12px] text-[#6b7280] mt-1">The restaurant will be published automatically at this time.</p>
+                            </div>
+                        ) : (
+                            <p className="ml-7 text-[13px] text-[#6b7280]">Publish immediately when you click Publish.</p>
+                        )}
+                    </div>
+
+                    {/* Site Selection */}
+                    {availableSites.length > 0 && (
+                        <div>
+                            <label className="block text-[14px] font-bold text-[#111827] mb-3">Publish To</label>
+                            <div className="space-y-2">
+                                {availableSites.map((site) => (
+                                    <label key={site} className="flex items-center justify-between p-3 bg-gray-50 rounded-[8px] border border-transparent hover:border-gray-200 cursor-pointer group transition-all">
+                                        <span className="text-[13px] font-medium text-[#374151] group-hover:text-[#111827]">{site}</span>
+                                        <input
+                                            type="checkbox"
+                                            checked={(data.published_sites || []).includes(site)}
+                                            onChange={() => toggleSite(site)}
+                                            className="w-4 h-4 rounded border-gray-300 text-[#C10007] focus:ring-[#C10007]"
+                                        />
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

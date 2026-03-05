@@ -827,7 +827,7 @@ export default function ManualNewsletterPage() {
             {/* Broadcast Detail Dialog */}
             {selectedBroadcast && (
                 <Dialog open={!!selectedBroadcast} onOpenChange={(open) => { if (!open) setSelectedBroadcast(null); }}>
-                    <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto force-light">
                         <DialogHeader>
                             <DialogTitle className="text-xl font-black text-[#1e293b] uppercase tracking-tight flex items-center gap-2">
                                 <Send className="w-5 h-5 text-blue-600" />
