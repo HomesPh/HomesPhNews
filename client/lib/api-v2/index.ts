@@ -28,6 +28,8 @@ export * from "./admin/service/article/updateArticle";
 export * from "./admin/service/article/updatePendingArticle";
 export * from "./admin/service/article/updateArticleTitles";
 export * from "./admin/service/article/publishArticle";
+export * from "./admin/service/article/bulkPublishArticles";
+export * from "./admin/service/article/bulkRejectArticles";
 export * from "./admin/service/article/deleteArticle";
 export * from "./admin/service/article/sendNewsletter";
 export * from "./admin/service/article/bulkSendNewsletter";
