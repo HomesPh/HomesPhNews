@@ -15,8 +15,8 @@ interface BlockDrawerProps {
     details: BlogDetails;
     onUpdateDetails: (updates: Partial<BlogDetails>) => void;
     onAddBlock: (type: BlockType) => void;
-    availableCategories?: string[];
-    availableCountries?: string[];
+    availableCategories?: (string | { name: string; count: number })[];
+    availableCountries?: (string | { name: string; count: number })[];
     availableSites?: string[];
     isEditor?: boolean;
 }
@@ -31,8 +31,8 @@ export default function BlockDrawer({
     isEditor
 }: BlockDrawerProps) {
     const [activeTab, setActiveTab] = useState<'blocks' | 'details'>('blocks');
-    const [internalCategories, setInternalCategories] = useState<string[]>([]);
-    const [internalCountries, setInternalCountries] = useState<string[]>([]);
+    const [internalCategories, setInternalCategories] = useState<(string | { name: string; count: number })[]>([]);
+    const [internalCountries, setInternalCountries] = useState<(string | { name: string; count: number })[]>([]);
     const [showAllPlatforms, setShowAllPlatforms] = useState(false);
 
     useEffect(() => {
@@ -70,6 +70,11 @@ export default function BlockDrawer({
 
     const finalCategories = (propsCategories && propsCategories.length > 0) ? propsCategories : internalCategories;
     const finalCountries = (propsCountries && propsCountries.length > 0) ? propsCountries : internalCountries;
+
+    const getOptionData = (opt: string | { name: string; count: number }) => {
+        if (typeof opt === 'string') return { value: opt, label: opt };
+        return { value: opt.name, label: `${opt.name} (${opt.count})` };
+    };
 
     const blockGroups = [
         {
@@ -215,7 +220,10 @@ export default function BlockDrawer({
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
                                         <option value="">Select Category</option>
-                                        {finalCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                                        {finalCategories.map(c => {
+                                            const data = getOptionData(c);
+                                            return <option key={data.value} value={data.value}>{data.label}</option>;
+                                        })}
                                     </select>
                                 </div>
                                 <div>
@@ -226,7 +234,10 @@ export default function BlockDrawer({
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
                                         <option value="">Select Country</option>
-                                        {finalCountries.map(c => <option key={c} value={c}>{c}</option>)}
+                                        {finalCountries.map(c => {
+                                            const data = getOptionData(c);
+                                            return <option key={data.value} value={data.value}>{data.label}</option>;
+                                        })}
                                     </select>
                                 </div>
                             </div>

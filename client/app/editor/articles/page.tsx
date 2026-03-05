@@ -28,11 +28,15 @@ const URL_FILTERS_CONFIG = {
         default: '' as const,
         resetValues: ['']
     },
+    city: {
+        default: '' as const,
+        resetValues: ['']
+    },
 };
 
 export default function EditorArticlesPage() {
     const router = useRouter();
-    const { filters, setFilter } = useUrlFilters(URL_FILTERS_CONFIG);
+    const { filters, setFilter, setFilters } = useUrlFilters(URL_FILTERS_CONFIG);
     const [searchQuery, setSearchQuery] = useState('');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const pagination = usePagination();
@@ -40,8 +44,8 @@ export default function EditorArticlesPage() {
     const [articles, setArticles] = useState<ArticleResource[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [availableFilters, setAvailableFilters] = useState<{
-        categories: string[];
-        countries: string[];
+        categories: { name: string; count: number }[];
+        countries: { name: string; count: number }[];
     }>({
         categories: [],
         countries: [],
@@ -72,6 +76,7 @@ export default function EditorArticlesPage() {
                     status: statusMapping[filters.status] || filters.status,
                     category: filters.category === '' ? undefined : filters.category,
                     country: filters.country === '' ? undefined : filters.country,
+                    city: filters.city === '' ? undefined : filters.city,
                     search: searchQuery || undefined,
                     page: pagination.currentPage,
                     per_page: 10
@@ -139,9 +144,10 @@ export default function EditorArticlesPage() {
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
                     categoryFilter={filters.category}
-                    setCategoryFilter={(cat) => setFilter('category', cat)}
+                    setCategoryFilter={(cat: string) => setFilter('category', cat)}
                     countryFilter={filters.country}
-                    setCountryFilter={(country) => setFilter('country', country)}
+                    cityFilter={filters.city}
+                    setFilters={setFilters}
                     availableCategories={availableFilters.categories}
                     availableCountries={availableFilters.countries}
                 />

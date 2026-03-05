@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration {
     /**
      * Run the migrations.
+     * Cities table without FK to countries to avoid 1215 (type/collation/order).
+     * Application can still use Country/City relationships; add FK later if DB matches.
      */
     public function up(): void
     {
@@ -17,13 +19,9 @@ return new class extends Migration {
 
         Schema::create('cities', function (Blueprint $table) {
             $table->id('city_id');
-            $table->string('country_id', 10);
+            $table->string('country_id', 10)->index();
             $table->string('name');
             $table->boolean('is_active')->default(true);
-
-            if (Schema::hasTable('countries')) {
-                $table->foreign('country_id')->references('id')->on('countries')->onDelete('cascade');
-            }
         });
     }
 

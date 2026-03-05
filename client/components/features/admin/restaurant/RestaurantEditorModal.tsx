@@ -41,6 +41,7 @@ const EMPTY_STATE = {
     opening_hours: '',
     contact_info: '',
     is_filipino_owned: false,
+    is_featured: false,
     budget_category: '',
     social_media: '',
     website: '',
@@ -52,9 +53,10 @@ const EMPTY_STATE = {
     avg_meal_cost: '',
     brand_story: '',
     owner_info: '',
-    company: '',
     menu_highlights: '',
     food_topics: '',
+    // Client-only (not in DB)
+    company: '',
     content: '',
     published_sites: [] as string[],
     scheduled_at: null as string | null,
@@ -88,6 +90,7 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
                 opening_hours: initialData.opening_hours || '',
                 contact_info: initialData.contact_info || '',
                 is_filipino_owned: initialData.is_filipino_owned || false,
+                is_featured: initialData.is_featured ?? false,
                 budget_category: initialData.budget_category || '',
                 social_media: initialData.social_media || '',
                 website: initialData.website || '',
@@ -99,9 +102,9 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
                 avg_meal_cost: initialData.avg_meal_cost || '',
                 brand_story: initialData.brand_story || '',
                 owner_info: initialData.owner_info || '',
-                company: initialData.company || '',
                 menu_highlights: initialData.menu_highlights || '',
                 food_topics: initialData.food_topics || '',
+                company: initialData.company || '',
                 content: initialData.content || '',
                 published_sites: initialData.published_sites || initialData.sites || [],
                 scheduled_at: initialData.scheduled_at || null,
@@ -117,7 +120,7 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
         setRestaurantData(prev => ({ ...prev, [field]: value }));
     };
 
-    const isDataUrl = (str: string) => str?.startsWith('data:');
+    const isDataUrl = (str: string) => str?.startsWith('data:') || str?.startsWith('blob:');
 
     const dataUrlToFile = async (dataUrl: string, filename: string): Promise<File> => {
         const res = await fetch(dataUrl);
@@ -126,11 +129,6 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
     };
 
     const handleSave = async (isPublish: boolean = false) => {
-        if (isPublish && restaurantData.published_sites.length === 0) {
-            alert('Please select at least one site to publish to.');
-            return;
-        }
-
         setIsProcessing(true);
         try {
             let finalImage = restaurantData.image_url;
@@ -140,12 +138,14 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
                 finalImage = response.data.url;
             }
 
+            // Strip client-only fields that don't exist in the DB yet
+            const { company, scheduled_at, ...dbFields } = restaurantData;
+
             const payload: any = {
-                ...restaurantData,
+                ...dbFields,
                 image_url: finalImage || '',
                 status: isPublish ? 'published' : 'draft',
-                published_sites: isPublish ? restaurantData.published_sites : [],
-                scheduled_at: restaurantData.scheduled_at || null,
+                is_featured: restaurantData.is_featured ?? false,
             };
 
             if (mode === 'create') {
@@ -166,14 +166,6 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
             setIsProcessing(false);
             setShowPublishDialog(false);
         }
-    };
-
-    const handlePublishClick = () => {
-        if (restaurantData.published_sites.length === 0) {
-            alert('Please select at least one site to publish to in the Publish Settings section.');
-            return;
-        }
-        setShowPublishDialog(true);
     };
 
     return (
@@ -207,7 +199,7 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
                         Save as Draft
                     </button>
                     <button
-                        onClick={handlePublishClick}
+                        onClick={() => setShowPublishDialog(true)}
                         disabled={isProcessing}
                         className="flex items-center gap-2 px-6 py-2 bg-[#C10007] text-white rounded-[8px] hover:bg-[#a10006] transition-all text-[14px] font-bold tracking-[-0.5px] shadow-md shadow-red-900/10 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -232,10 +224,8 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
                     availableSites={availableSites}
                 />
                 <RestaurantEditorPreview
-                    data={{
-                        ...restaurantData,
-                        timestamp: Date.now() / 1000
-                    }}
+                    data={{ ...restaurantData, timestamp: Date.now() / 1000 }}
+                    onDataChange={handleDataChange}
                 />
             </div>
 
@@ -246,8 +236,10 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
                         <AlertDialogTitle>Ready to Publish?</AlertDialogTitle>
                         <AlertDialogDescription>
                             {restaurantData.scheduled_at
-                                ? `This restaurant will be scheduled for publish on ${new Date(restaurantData.scheduled_at).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' })} to ${restaurantData.published_sites.length} site(s).`
-                                : `This restaurant will be published immediately to ${restaurantData.published_sites.length} site(s): ${restaurantData.published_sites.join(', ')}.`
+                                ? `"${restaurantData.name || 'This restaurant'}" will be scheduled for ${new Date(restaurantData.scheduled_at).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' })}.`
+                                : restaurantData.published_sites.length > 0
+                                    ? `"${restaurantData.name || 'This restaurant'}" will be published to: ${restaurantData.published_sites.join(', ')}.`
+                                    : `"${restaurantData.name || 'This restaurant'}" will be published. Manage which sites it appears on from the detail page.`
                             }
                         </AlertDialogDescription>
                     </AlertDialogHeader>

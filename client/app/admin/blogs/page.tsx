@@ -9,18 +9,46 @@ import BlogsList from "@/components/features/admin/blogs/BlogsList";
 import { mockBlogs, AdminBlog } from "@/app/admin/users/data";
 import { Categories, Countries } from "@/app/data";
 import usePagination from '@/hooks/usePagination';
+import useUrlFilters from '@/hooks/useUrlFilters';
+import ArticlesFilters from '@/components/features/admin/articles/ArticlesFilters';
+
+const URL_FILTERS_CONFIG = {
+    category: {
+        default: '' as const,
+        resetValues: [''],
+    },
+    country: {
+        default: '' as const,
+        resetValues: [''],
+    },
+    city: {
+        default: '' as const,
+        resetValues: [''],
+    },
+    search: {
+        default: '' as const,
+        resetValues: [''],
+    },
+};
 
 function BlogsPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const authorFilter = searchParams.get('author');
 
-    const [searchQuery, setSearchQuery] = useState(authorFilter || '');
-    const [categoryFilter, setCategoryFilter] = useState('All News');
-    const [countryFilter, setCountryFilter] = useState('All Countries');
+    const { filters, setFilter, setFilters } = useUrlFilters(URL_FILTERS_CONFIG);
+    const [searchQuery, setSearchQuery] = useState(authorFilter || filters.search || '');
+
+    // Sync search query with URL
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setFilter('search', searchQuery);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery, setFilter]);
 
     useEffect(() => {
-        if (authorFilter) {
+        if (authorFilter && searchQuery !== authorFilter) {
             setSearchQuery(authorFilter);
         }
     }, [authorFilter]);
@@ -29,13 +57,20 @@ function BlogsPageContent() {
 
     const filteredBlogs = useMemo(() => {
         return mockBlogs.filter(blog => {
-            const matchesSearch = blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                blog.authorName.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesCategory = categoryFilter === 'All News' || blog.category === categoryFilter;
-            const matchesCountry = countryFilter === 'All Countries' || blog.sites.includes(countryFilter);
-            return matchesSearch && matchesCategory && matchesCountry;
+            const query = searchQuery.toLowerCase();
+            const matchesSearch = blog.title.toLowerCase().includes(query) ||
+                blog.authorName.toLowerCase().includes(query);
+
+            const matchesCategory = !filters.category || blog.category === filters.category;
+            // mockBlogs uses 'sites' array. For simulation, check if any site includes the country filter
+            const matchesCountry = !filters.country || blog.sites.some(s => s.toLowerCase().includes(filters.country.toLowerCase()));
+
+            // City filter is dummy for now, so it won't actually filter the mock data unless we simulate that too
+            const matchesCity = !filters.city || true;
+
+            return matchesSearch && matchesCategory && matchesCountry && matchesCity;
         });
-    }, [searchQuery, categoryFilter, countryFilter]);
+    }, [searchQuery, filters]);
 
     const handleViewBlog = (blogId: number) => {
         const currentPath = window.location.pathname + window.location.search;
@@ -48,6 +83,38 @@ function BlogsPageContent() {
         }
     };
 
+    const availableCategories = useMemo(() => {
+        const counts: Record<string, number> = {};
+        mockBlogs.forEach(b => {
+            // Respect Search and Country
+            const query = searchQuery.toLowerCase();
+            const matchesSearch = b.title.toLowerCase().includes(query) || b.authorName.toLowerCase().includes(query);
+            const matchesCountry = !filters.country || b.sites.some(s => s.toLowerCase().includes(filters.country.toLowerCase()));
+            if (matchesSearch && matchesCountry) {
+                counts[b.category] = (counts[b.category] || 0) + 1;
+            }
+        });
+        return Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a, b) => a.name.localeCompare(b.name));
+    }, [searchQuery, filters.country]);
+
+    const availableCountries = useMemo(() => {
+        const counts: Record<string, number> = {};
+        mockBlogs.forEach(b => {
+            // Respect Search and Category
+            const query = searchQuery.toLowerCase();
+            const matchesSearch = b.title.toLowerCase().includes(query) || b.authorName.toLowerCase().includes(query);
+            const matchesCategory = !filters.category || b.category === filters.category;
+
+            if (matchesSearch && matchesCategory) {
+                b.sites.forEach(site => {
+                    const country = Countries.find(c => site.toLowerCase().includes(c.label.toLowerCase()))?.label || 'Global';
+                    counts[country] = (counts[country] || 0) + 1;
+                });
+            }
+        });
+        return Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a, b) => a.name.localeCompare(b.name));
+    }, [searchQuery, filters.category]);
+
     return (
         <div className="p-8 bg-[#f9fafb] min-h-screen">
             <AdminPageHeader
@@ -56,39 +123,17 @@ function BlogsPageContent() {
             />
 
             <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
-                {/* Search and Filters */}
-                <div className="flex items-center gap-4 p-5 border-b border-[#e5e7eb]">
-                    <div className="flex-1 relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af]" />
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search blogs..."
-                            className="w-full h-[50px] pl-12 pr-4 border border-[#d1d5db] rounded-[8px] text-[16px] text-[#111827] placeholder:text-[#adaebc] focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all"
-                        />
-                    </div>
-                    <div className="relative min-w-[200px]">
-                        <select
-                            value={categoryFilter}
-                            onChange={(e) => setCategoryFilter(e.target.value)}
-                            className="w-full h-[50px] pl-3 pr-10 border border-[#d1d5db] rounded-[8px] text-[15px] font-medium text-[#111827] bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] cursor-pointer"
-                        >
-                            {Categories.map(cat => <option key={cat.id} value={cat.label}>{cat.label}</option>)}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
-                    </div>
-                    <div className="relative min-w-[200px]">
-                        <select
-                            value={countryFilter}
-                            onChange={(e) => setCountryFilter(e.target.value)}
-                            className="w-full h-[50px] pl-3 pr-10 border border-[#d1d5db] rounded-[8px] text-[15px] font-medium text-[#111827] bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] cursor-pointer"
-                        >
-                            {Countries.map(country => <option key={country.id} value={country.label}>{country.label}</option>)}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
-                    </div>
-                </div>
+                <ArticlesFilters
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    categoryFilter={filters.category}
+                    setCategoryFilter={(cat: string) => setFilter('category', cat)}
+                    countryFilter={filters.country}
+                    cityFilter={filters.city}
+                    setFilters={setFilters}
+                    availableCategories={availableCategories}
+                    availableCountries={availableCountries}
+                />
 
                 <BlogsList
                     blogs={filteredBlogs.slice((pagination.currentPage - 1) * 5, pagination.currentPage * 5)}

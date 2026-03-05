@@ -75,6 +75,8 @@ export interface Restaurant {
   status?: 'published' | 'draft' | 'deleted' | 'archived';
   tags?: string[];
   features?: string[];
+  /** Site names this restaurant is published to (e.g. ["FilipinoHomes", "Main News Portal"]) */
+  published_sites?: string[];
   /** True when from Redis (Being Processed), not yet in DB */
   is_redis?: boolean;
 }

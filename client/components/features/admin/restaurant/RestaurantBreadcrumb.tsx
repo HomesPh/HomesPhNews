@@ -8,8 +8,8 @@ interface RestaurantBreadcrumbProps {
 
 export default function RestaurantBreadcrumb({
     name,
-    homeHref = "/admin/restaurant",
-    homeLabel = "Restaurant",
+    homeHref = "/admin/restaurants",
+    homeLabel = "Restaurants",
 }: RestaurantBreadcrumbProps) {
     return (
         <p className="font-normal text-[16px] text-[#4b5563] tracking-[-0.5px] leading-[24px] mb-6">

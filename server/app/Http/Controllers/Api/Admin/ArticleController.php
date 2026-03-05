@@ -75,45 +75,119 @@ class ArticleController extends Controller
             ->when($validated['category'] ?? null, fn($q, $c) => $q->where('category', $c))
             ->when($validated['country'] ?? null, fn($q, $c) => $q->where('country', 'like', "%{$c}%"));
 
-        // Get filter counts before pagination (from database)
-        $availableCategories = (clone $query)->distinct()->whereNotNull('category')->pluck('category')->sort()->values()->toArray();
-        $availableCountries = (clone $query)->distinct()->whereNotNull('country')->pluck('country')->sort()->values()->toArray();
+        // Get available filter counts dynamically based on OTHER active filters
+        // Logic: 
+        // Category counts should respect Status, Search, Country, City (but NOT current Category)
+        // Country counts should respect Status, Search, Category (but NOT current Country/City)
 
-        // Always include active DB countries/categories so dropdowns show all options (e.g. on pending_review + country filter)
-        $dbActiveCategories = \App\Models\Category::where('is_active', true)->pluck('name')->toArray();
-        $dbActiveCountries = \App\Models\Country::where('is_active', true)->pluck('name')->toArray();
-        $availableCategories = collect(array_merge($availableCategories, $dbActiveCategories))
-            ->unique()
-            ->filter(fn($cat) => !in_array(strtolower($cat), ['restaurant', 'restaurants', 'all']))
-            ->sort()
-            ->values()
-            ->toArray();
-        $availableCountries = collect(array_merge($availableCountries, $dbActiveCountries))
-            ->unique()
-            ->sort()
-            ->values()
-            ->toArray();
+        // 1. Base query for Category counts (ignore current category)
+        $categoryBaseQuery = Article::query()
+            ->when($status === 'published', fn($q) => $q->where('status', 'published'))
+            ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
+            ->when($status === 'rejected', fn($q) => $q->where('status', 'rejected'))
+            ->when($status === 'edited', fn($q) => $q->where('status', 'edited'))
+            ->when(!$status || $status === 'all', function ($q) {
+                return $q->whereIn('status', ['published', 'pending review', 'edited']);
+            })
+            ->when($status === 'deleted', fn($q) => $q->where('is_deleted', true))
+            ->when($status !== 'deleted', fn($q) => $q->where('is_deleted', false))
+            ->when($validated['search'] ?? null, function ($q, $s) {
+                $q->where(function ($sub) use ($s) {
+                    $sub->where('title', 'LIKE', "%{$s}%")
+                        ->orWhere('summary', 'LIKE', "%{$s}%")
+                        ->orWhere('content', 'LIKE', "%{$s}%")
+                        ->orWhere('keywords', 'LIKE', "%{$s}%")
+                        ->orWhere('topics', 'LIKE', "%{$s}%");
+                });
+            })
+            ->when($validated['start_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '>=', $d))
+            ->when($validated['end_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '<=', $d))
+            ->when($validated['country'] ?? null, fn($q, $c) => $q->where('country', 'like', "%{$c}%")); // Ignore city for category counts if country is fixed? Actually city belongs to country.
 
-        // Also merge Redis filters when fetching 'all' or 'being_processed' (Redis = being processed)
+        $dbCategoryCounts = (clone $categoryBaseQuery)->whereNotNull('category')->groupBy('category')->selectRaw('category, count(*) as count')->pluck('count', 'category')->toArray();
+
+        // 2. Base query for Country counts (ignore current country/city)
+        $countryBaseQuery = Article::query()
+            ->when($status === 'published', fn($q) => $q->where('status', 'published'))
+            ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
+            ->when($status === 'rejected', fn($q) => $q->where('status', 'rejected'))
+            ->when($status === 'edited', fn($q) => $q->where('status', 'edited'))
+            ->when(!$status || $status === 'all', function ($q) {
+                return $q->whereIn('status', ['published', 'pending review', 'edited']);
+            })
+            ->when($status === 'deleted', fn($q) => $q->where('is_deleted', true))
+            ->when($status !== 'deleted', fn($q) => $q->where('is_deleted', false))
+            ->when($validated['search'] ?? null, function ($q, $s) {
+                $q->where(function ($sub) use ($s) {
+                    $sub->where('title', 'LIKE', "%{$s}%")
+                        ->orWhere('summary', 'LIKE', "%{$s}%")
+                        ->orWhere('content', 'LIKE', "%{$s}%")
+                        ->orWhere('keywords', 'LIKE', "%{$s}%")
+                        ->orWhere('topics', 'LIKE', "%{$s}%");
+                });
+            })
+            ->when($validated['start_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '>=', $d))
+            ->when($validated['end_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '<=', $d))
+            ->when($validated['category'] ?? null, fn($q, $c) => $q->where('category', $c));
+
+        $dbCountryCounts = (clone $countryBaseQuery)->whereNotNull('country')->groupBy('country')->selectRaw('country, count(*) as count')->pluck('count', 'country')->toArray();
+
+        // Also merge Redis counts when fetching 'all' or 'being_processed'
+        $redisCategoryCounts = [];
+        $redisCountryCounts = [];
         if (!$status || $status === 'all' || $status === 'being_processed') {
             try {
-                $redisCountries = collect($this->redisService->getCountries())->pluck('name')->toArray();
-                $redisCategories = collect($this->redisService->getCategories())->pluck('name')->toArray();
-                $availableCategories = collect(array_merge($availableCategories, $redisCategories))
-                    ->unique()
-                    ->filter(fn($cat) => !in_array(strtolower($cat), ['restaurant', 'restaurants', 'all']))
-                    ->sort()
-                    ->values()
-                    ->toArray();
-                $availableCountries = collect(array_merge($availableCountries, $redisCountries))
-                    ->unique()
-                    ->sort()
-                    ->values()
-                    ->toArray();
+                // To get counts for Redis items, we should ideally ask Redis for filtered counts
+                // For simplicity, we get all and filter in memory
+                $redisArticles = $this->redisService->filterArticles([], 1000); 
+                
+                // For Category counts, apply Redis side filtering except category
+                $redisCategoryCounts = collect($redisArticles)
+                    ->filter(function($a) use ($validated) {
+                        $match = true;
+                        if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false) $match = false;
+                        if (!empty($validated['country']) && ($a['country'] ?? '') !== $validated['country']) $match = false;
+                        return $match;
+                    })
+                    ->groupBy('category')->map(fn($group) => $group->count())->toArray();
+
+                // For Country counts, apply Redis side filtering except country
+                $redisCountryCounts = collect($redisArticles)
+                    ->filter(function($a) use ($validated) {
+                        $match = true;
+                        if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false) $match = false;
+                        if (!empty($validated['category']) && ($a['category'] ?? '') !== $validated['category']) $match = false;
+                        return $match;
+                    })
+                    ->groupBy('country')->map(fn($group) => $group->count())->toArray();
             } catch (\Exception $e) {
-                \Log::warning('Failed to get Redis filters: ' . $e->getMessage());
+                \Log::warning('Failed to get Redis counts: ' . $e->getMessage());
             }
         }
+
+        // Final merged counts (Already has sorting from usort below)
+        $finalCategoryCounts = [];
+        $allCategoryNames = collect(array_merge(array_keys($dbCategoryCounts), array_keys($redisCategoryCounts)))->unique()->toArray();
+        foreach ($allCategoryNames as $cat) {
+            if (in_array(strtolower($cat), ['restaurant', 'restaurants', 'all'])) continue;
+            $finalCategoryCounts[] = [
+                'name' => $cat,
+                'count' => ($dbCategoryCounts[$cat] ?? 0) + ($redisCategoryCounts[$cat] ?? 0)
+            ];
+        }
+
+        $finalCountryCounts = [];
+        $allCountryNames = collect(array_merge(array_keys($dbCountryCounts), array_keys($redisCountryCounts)))->unique()->toArray();
+        foreach ($allCountryNames as $country) {
+            $finalCountryCounts[] = [
+                'name' => $country,
+                'count' => ($dbCountryCounts[$country] ?? 0) + ($redisCountryCounts[$country] ?? 0)
+            ];
+        }
+
+        // Sort results
+        usort($finalCategoryCounts, fn($a, $b) => strcmp($a['name'], $b['name']));
+        usort($finalCountryCounts, fn($a, $b) => strcmp($a['name'], $b['name']));
 
         // Paginate DB results - Eager load to prevent N+1 queries
         $articles = $query
@@ -182,8 +256,8 @@ class ArticleController extends Controller
             'to' => $articles->lastItem(),
             'status_counts' => $this->getStatusCounts(),
             'available_filters' => [
-                'categories' => $availableCategories,
-                'countries' => $availableCountries,
+                'categories' => $finalCategoryCounts,
+                'countries' => $finalCountryCounts,
             ],
         ]);
     }
@@ -246,8 +320,14 @@ class ArticleController extends Controller
             'from' => $total > 0 ? $offset + 1 : null,
             'to' => $total > 0 ? min($offset + $perPage, $total) : null,
             'available_filters' => [
-                'categories' => $mergedCategories,
-                'countries' => $mergedCountries,
+                'categories' => collect($mergedCategories)->map(fn($c) => [
+                    'name' => $c,
+                    'count' => collect($articles)->where('category', $c)->count()
+                ])->values()->toArray(),
+                'countries' => collect($mergedCountries)->map(fn($c) => [
+                    'name' => $c,
+                    'count' => collect($articles)->where('country', $c)->count()
+                ])->values()->toArray(),
             ],
             'status_counts' => $statusCounts,
         ]);

@@ -36,7 +36,7 @@ function RestaurantDetailContent() {
     const params = useParams();
     const router = useRouter();
     const searchParams = useSearchParams();
-    const from = searchParams.get('from') || '/admin/restaurant';
+    const from = searchParams.get('from') || '/admin/restaurants';
     const id = params.id as string;
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -65,14 +65,16 @@ function RestaurantDetailContent() {
         getSiteNames().then(res => setAvailableSites(res.data as unknown as string[])).catch(console.error);
     }, []);
 
-    // Effect to initialize publishToSites when restaurant loads
+    // Effect to initialize publishToSites from saved published_sites, or all sites if none saved
     useEffect(() => {
         if (restaurant && availableSites.length > 0) {
-            // For simplicity, if restaurant is published, assume it's published to all or check specific field if exists
-            // Since RestaurantResource might not have published_sites yet, we default to all available or none
-            setPublishToSites(availableSites);
+            const saved = restaurant.published_sites;
+            const sites = Array.isArray(saved) && saved.length > 0
+                ? saved
+                : availableSites;
+            setPublishToSites(sites);
         }
-    }, [restaurant, availableSites.length]);
+    }, [restaurant, availableSites]);
 
     const fetchRestaurant = async () => {
         try {
@@ -97,8 +99,9 @@ function RestaurantDetailContent() {
             await publishRestaurant(id, {
                 published_sites: publishToSites
             });
-            // Update local state or refetch
-            setRestaurant(prev => prev ? { ...prev, status: 'published' } : null);
+            const response = await getAdminRestaurantById(id);
+            setRestaurant(response.data);
+            setPublishToSites(response.data.published_sites ?? publishToSites);
             router.refresh();
         } catch (error: any) {
             const message = error.response?.data?.message || 'Failed to publish restaurant';
