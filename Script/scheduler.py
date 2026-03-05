@@ -42,6 +42,7 @@ job_status: Dict = {
     "last_run": None,
     "next_run": None,
     "is_running": False,
+    "cancel_requested": False,
     "last_results": [],
     "total_runs": 0,
     "total_success": 0,
@@ -63,6 +64,11 @@ restaurant_job_status: Dict = {
 def get_job_status() -> Dict:
     """Get current news job status."""
     return job_status
+
+
+def request_job_cancel() -> None:
+    """Request the running news job to stop after the current batch."""
+    job_status["cancel_requested"] = True
 
 
 def get_restaurant_job_status() -> Dict:
@@ -604,8 +610,9 @@ async def run_hourly_job():
         print("⚠️ Previous job still running, skipping...")
         return
     
-    # Mark as running
+    # Mark as running and clear any previous cancel request
     job_status["is_running"] = True
+    job_status["cancel_requested"] = False
     job_status["last_run"] = datetime.now().isoformat()
     
     # Header
@@ -633,14 +640,26 @@ async def run_hourly_job():
     print(f"🔍 Dedup: {dedup_stats['urls_tracked']} URLs | {dedup_stats['titles_tracked']} titles tracked")
     print("-" * 70)
     
-    # Process countries in parallel using ThreadPoolExecutor
+    # Process countries in batches so we can check cancel_requested between batches
+    BATCH_SIZE = 5
+    results = []
     loop = asyncio.get_event_loop()
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = [
-            loop.run_in_executor(executor, process_single_country, country)
-            for country in countries
-        ]
-        results = await asyncio.gather(*futures)
+        for i in range(0, len(countries), BATCH_SIZE):
+            if job_status.get("cancel_requested"):
+                print("\n🛑 Cancel requested. Stopping after current batch...")
+                break
+            batch = countries[i : i + BATCH_SIZE]
+            futures = [
+                loop.run_in_executor(executor, process_single_country, country)
+                for country in batch
+            ]
+            batch_results = await asyncio.gather(*futures)
+            results.extend(batch_results)
+    
+    cancelled = job_status.get("cancel_requested", False)
+    if cancelled:
+        print(f"⏹️ Job stopped by user. Processed {len(results)}/{len(countries)} countries.")
     
     # Calculate stats
     success_count = sum(1 for r in results if r["status"] == "success")
@@ -656,15 +675,18 @@ async def run_hourly_job():
     job_status["total_skipped"] += total_skipped
     job_status["last_results"] = results
     job_status["is_running"] = False
+    job_status["cancel_requested"] = False
     
     # Summary
     print("\n" + "=" * 70)
-    print("📊 JOB SUMMARY")
+    print("📊 JOB SUMMARY" + (" (CANCELLED)" if cancelled else ""))
     print("=" * 70)
-    print(f"✅ Success:    {success_count}/{len(countries)}")
+    print(f"✅ Success:    {success_count}/{len(results)}" + (f" (of {len(countries)} planned)" if cancelled else ""))
     print(f"❌ Errors:     {error_count}")
     print(f"🔄 Duplicates: {duplicate_count} countries had no new articles")
     print(f"⏳ Stale/None: {no_fresh_count} countries had no fresh news")
+    if cancelled:
+        print(f"🛑 Cancelled:  {len(countries) - len(results)} countries not processed")
     print(f"⏭️ Skipped:    {total_skipped} duplicate articles")
     print(f"🧹 Purged:     {purged_count} old articles")
     print("-" * 70)

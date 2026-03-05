@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
-import { Plus, Trash } from 'lucide-react';
+import { Plus, Trash, Play, Square, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import ArticlesTabs, { ArticleTab } from "@/components/features/admin/articles/ArticlesTabs";
 import ArticlesFilters from "@/components/features/admin/articles/ArticlesFilters";
 import ArticleListItem from "@/components/features/admin/articles/ArticleListItem";
@@ -14,6 +14,8 @@ import usePagination from '@/hooks/usePagination';
 import useUrlFilters from '@/hooks/useUrlFilters';
 import { getAdminArticles } from "@/lib/api-v2/admin/service/article/getAdminArticles";
 import ArticlesSkeleton from "@/components/features/admin/articles/ArticlesSkeleton";
+import { triggerScraper, stopScraper, setSchedulerOff, setSchedulerOn, getScraperStatus } from "@/lib/api-v2/admin/service/scraperRun";
+import type { TriggerScraperResponse, ScraperResultItem } from "@/lib/api-v2/admin/service/scraperRun";
 
 // Filter configuration with defaults and reset values
 // Only 'all' should remove the status param from URL; other tab values must stay so the correct tab stays active
@@ -84,6 +86,71 @@ export default function ArticlesPage() {
     const [isMovingToDb, setIsMovingToDb] = useState(false);
     const [moveResult, setMoveResult] = useState<{ inserted: number; failed: number } | null>(null);
     const selectAllRef = useRef<HTMLInputElement>(null);
+
+    // Scraper control (manual run + status)
+    const [isScraperLoading, setIsScraperLoading] = useState(false);
+    const [lastCrawlResult, setLastCrawlResult] = useState<TriggerScraperResponse | null>(null);
+    const [scraperError, setScraperError] = useState<string | null>(null);
+    const [articlesRefreshKey, setArticlesRefreshKey] = useState(0);
+    const [schedulerEnabled, setSchedulerEnabled] = useState<boolean | null>(null);
+    const [schedulerToggling, setSchedulerToggling] = useState(false);
+
+    const runScraperNow = useCallback(async () => {
+        setScraperError(null);
+        setLastCrawlResult(null);
+        setIsScraperLoading(true);
+        try {
+            const result = await triggerScraper();
+            setLastCrawlResult(result);
+            setArticlesRefreshKey((k) => k + 1); // Refetch articles so new crawl shows up
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Failed to run scraper.";
+            setScraperError(message);
+        } finally {
+            setIsScraperLoading(false);
+        }
+    }, []);
+
+    const requestStopScraper = useCallback(async () => {
+        try {
+            await stopScraper();
+            // Loading will clear when the server returns (job stops after current batch)
+        } catch (err) {
+            console.error("Failed to request stop:", err);
+        }
+    }, []);
+
+    // Fetch scheduler on/off status on mount
+    useEffect(() => {
+        getScraperStatus()
+            .then((s) => setSchedulerEnabled(s.scheduler_enabled ?? true))
+            .catch(() => setSchedulerEnabled(null));
+    }, []);
+
+    const turnOffSchedule = useCallback(async () => {
+        setSchedulerToggling(true);
+        try {
+            await setSchedulerOff();
+            setSchedulerEnabled(false);
+        } catch (err) {
+            console.error("Failed to turn off schedule:", err);
+        } finally {
+            setSchedulerToggling(false);
+        }
+    }, []);
+
+    const turnOnSchedule = useCallback(async () => {
+        setSchedulerToggling(true);
+        try {
+            await setSchedulerOn();
+            setSchedulerEnabled(true);
+        } catch (err) {
+            console.error("Failed to turn on schedule:", err);
+        } finally {
+            setSchedulerToggling(false);
+        }
+    }, []);
+
     useEffect(() => {
         const fetchArticles = async () => {
             setIsLoading(true);
@@ -147,7 +214,7 @@ export default function ArticlesPage() {
         }, 300); // Debounce search
 
         return () => clearTimeout(timer);
-    }, [filters, searchQuery, pagination.currentPage]);
+    }, [filters, searchQuery, pagination.currentPage, articlesRefreshKey]);
 
     // Clear selection when switching away from Being Processed
     useEffect(() => {
@@ -224,6 +291,14 @@ export default function ArticlesPage() {
         }
     };
 
+    const crawlSummary = lastCrawlResult?.results?.length
+        ? lastCrawlResult.results
+            .filter((r: ScraperResultItem) => r.status === "success" && (r.count != null || r.country))
+            .slice(0, 8)
+            .map((r: ScraperResultItem) => (r.country && r.category ? `${r.country}/${r.category}: ${r.count ?? 0}` : r.message ?? ""))
+            .filter(Boolean)
+        : [];
+
     return (
         <div className="p-8 bg-[#f9fafb] min-h-screen">
             <AdminPageHeader
@@ -234,8 +309,99 @@ export default function ArticlesPage() {
                 actionIcon={Plus}
             />
 
+            {/* Scraper control: Schedule on/off + Run now + loading + last crawl result */}
+            <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-xl border border-[#e5e7eb] bg-white shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
+                <div className="flex flex-col gap-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[14px] font-semibold text-[#111827]">News Scraper</span>
+                        {schedulerEnabled !== null && (
+                            <span className="text-[13px] text-[#6b7280]">
+                                (Automatic: {schedulerEnabled ? "On" : "Off"})
+                            </span>
+                        )}
+                        {isScraperLoading && (
+                            <span className="inline-flex items-center gap-1.5 text-amber-600 text-[13px]">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Running… crawl may take several minutes
+                            </span>
+                        )}
+                    </div>
+                    {scraperError && (
+                        <p className="text-red-600 text-[13px] flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            {scraperError}
+                        </p>
+                    )}
+                    {!isScraperLoading && lastCrawlResult && (
+                        <div className="text-[13px] text-[#374151]">
+                            <p className="flex items-center gap-1.5 text-green-700">
+                                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                                {lastCrawlResult.message}
+                            </p>
+                            {crawlSummary.length > 0 && (
+                                <p className="mt-1 text-[#6b7280] truncate" title={crawlSummary.join(", ")}>
+                                    {crawlSummary.join(" · ")}
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
+                <div className="shrink-0 flex items-center gap-2 flex-wrap">
+                    {schedulerEnabled !== null && (
+                        schedulerEnabled ? (
+                            <button
+                                type="button"
+                                onClick={turnOffSchedule}
+                                disabled={schedulerToggling}
+                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#e5e7eb] bg-gray-50 text-[13px] font-medium text-[#374151] hover:bg-gray-100 disabled:opacity-60 transition-colors"
+                            >
+                                {schedulerToggling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                                Turn off schedule
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={turnOnSchedule}
+                                disabled={schedulerToggling}
+                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-green-200 bg-green-50 text-[13px] font-medium text-green-700 hover:bg-green-100 disabled:opacity-60 transition-colors"
+                            >
+                                {schedulerToggling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                                Turn on schedule
+                            </button>
+                        )
+                    )}
+                    {isScraperLoading ? (
+                        <button
+                            type="button"
+                            onClick={requestStopScraper}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-amber-500 text-amber-700 bg-amber-50 text-[14px] font-semibold hover:bg-amber-100 transition-colors"
+                        >
+                            <Square className="w-4 h-4" />
+                            Stop scraper
+                        </button>
+                    ) : null}
+                    <button
+                        type="button"
+                        onClick={runScraperNow}
+                        disabled={isScraperLoading}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#C10007] text-white text-[14px] font-semibold hover:bg-[#A00006] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                    >
+                        {isScraperLoading ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Running…
+                            </>
+                        ) : (
+                            <>
+                                <Play className="w-4 h-4" />
+                                Run scraper now
+                            </>
+                        )}
+                    </button>
+                </div>
+            </div>
 
-            <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
+            <div className="mt-6 bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
                 <ArticlesTabs
                     activeTab={filters.status as ArticleTab}
                     setActiveTab={(tab) => setFilter('status', tab)}

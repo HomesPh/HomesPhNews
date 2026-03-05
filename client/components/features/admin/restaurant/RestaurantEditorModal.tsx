@@ -1,12 +1,22 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { X, ArrowLeft, Save, Send } from 'lucide-react';
+import { X, ArrowLeft, Save, Send, Loader2 } from 'lucide-react';
 import { createRestaurant } from "@/lib/api-v2/admin/service/restaurant/createRestaurant";
 import { updateRestaurant } from "@/lib/api-v2/admin/service/restaurant/updateRestaurant";
-import { uploadArticleImage } from "@/lib/api-v2";
+import { uploadArticleImage, getSiteNames } from "@/lib/api-v2";
 import RestaurantEditorForm from "./editor/RestaurantEditorForm";
 import RestaurantEditorPreview from "@/components/features/admin/restaurant/editor/RestaurantEditorPreview";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface RestaurantEditorModalProps {
     mode: 'create' | 'edit';
@@ -15,39 +25,50 @@ interface RestaurantEditorModalProps {
     initialData?: any;
 }
 
-export default function RestaurantEditorModal({ mode, isOpen, onClose, initialData }: RestaurantEditorModalProps) {
-    const [restaurantData, setRestaurantData] = useState({
-        name: '',
-        description: '',
-        image_url: null as string | null,
-        category: 'Restaurant',
-        rating: 0,
-        location: '',
-        country: 'Philippines',
-        cuisine_type: '',
-        price_range: '',
-        address: '',
-        google_maps_url: '',
-        specialty_dish: '',
-        opening_hours: '',
-        contact_info: '',
-        is_filipino_owned: false,
-        budget_category: '',
-        social_media: '',
-        website: '',
-        tags: [] as string[],
-        features: [] as string[],
+const EMPTY_STATE = {
+    name: '',
+    description: '',
+    image_url: null as string | null,
+    category: 'Restaurant',
+    rating: 0,
+    location: '',
+    country: 'Philippines',
+    cuisine_type: '',
+    price_range: '',
+    address: '',
+    google_maps_url: '',
+    specialty_dish: '',
+    opening_hours: '',
+    contact_info: '',
+    is_filipino_owned: false,
+    budget_category: '',
+    social_media: '',
+    website: '',
+    tags: [] as string[],
+    features: [] as string[],
+    why_filipinos_love_it: '',
+    original_url: '',
+    clickbait_hook: '',
+    avg_meal_cost: '',
+    brand_story: '',
+    owner_info: '',
+    company: '',
+    menu_highlights: '',
+    food_topics: '',
+    content: '',
+    published_sites: [] as string[],
+    scheduled_at: null as string | null,
+};
 
-        // Extra fields specifically for the article-like layout if needed
-        why_filipinos_love_it: '',
-        original_url: '',
-        clickbait_hook: '',
-        avg_meal_cost: '',
-        brand_story: '',
-        owner_info: '',
-        menu_highlights: '',
-        food_topics: ''
-    });
+export default function RestaurantEditorModal({ mode, isOpen, onClose, initialData }: RestaurantEditorModalProps) {
+    const [restaurantData, setRestaurantData] = useState({ ...EMPTY_STATE });
+    const [availableSites, setAvailableSites] = useState<string[]>([]);
+    const [showPublishDialog, setShowPublishDialog] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    useEffect(() => {
+        getSiteNames().then(res => setAvailableSites(res.data as unknown as string[])).catch(console.error);
+    }, []);
 
     useEffect(() => {
         if (isOpen && initialData) {
@@ -72,49 +93,21 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
                 website: initialData.website || '',
                 tags: initialData.tags || [],
                 features: initialData.features || [],
-
                 why_filipinos_love_it: initialData.why_filipinos_love_it || '',
                 original_url: initialData.original_url || '',
                 clickbait_hook: initialData.clickbait_hook || '',
                 avg_meal_cost: initialData.avg_meal_cost || '',
                 brand_story: initialData.brand_story || '',
                 owner_info: initialData.owner_info || '',
+                company: initialData.company || '',
                 menu_highlights: initialData.menu_highlights || '',
-                food_topics: initialData.food_topics || ''
+                food_topics: initialData.food_topics || '',
+                content: initialData.content || '',
+                published_sites: initialData.published_sites || initialData.sites || [],
+                scheduled_at: initialData.scheduled_at || null,
             });
         } else if (isOpen) {
-            // Reset for create mode
-            setRestaurantData({
-                name: '',
-                description: '',
-                image_url: null,
-                category: 'Restaurant',
-                rating: 0,
-                location: '',
-                country: 'Philippines',
-                cuisine_type: '',
-                price_range: '',
-                address: '',
-                google_maps_url: '',
-                specialty_dish: '',
-                opening_hours: '',
-                contact_info: '',
-                is_filipino_owned: false,
-                budget_category: '',
-                social_media: '',
-                website: '',
-                tags: [],
-                features: [],
-
-                why_filipinos_love_it: '',
-                original_url: '',
-                clickbait_hook: '',
-                avg_meal_cost: '',
-                brand_story: '',
-                owner_info: '',
-                menu_highlights: '',
-                food_topics: ''
-            });
+            setRestaurantData({ ...EMPTY_STATE });
         }
     }, [isOpen, initialData]);
 
@@ -124,21 +117,22 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
         setRestaurantData(prev => ({ ...prev, [field]: value }));
     };
 
-    // Helper: Convert base64 data URL to File object
+    const isDataUrl = (str: string) => str?.startsWith('data:');
+
     const dataUrlToFile = async (dataUrl: string, filename: string): Promise<File> => {
         const res = await fetch(dataUrl);
         const blob = await res.blob();
         return new File([blob], filename, { type: blob.type });
     };
 
-    // Helper: Check if string is a base64 data URL
-    const isDataUrl = (str: string) => str?.startsWith('data:');
-
     const handleSave = async (isPublish: boolean = false) => {
-        try {
-            console.log('Uploading image to S3...');
+        if (isPublish && restaurantData.published_sites.length === 0) {
+            alert('Please select at least one site to publish to.');
+            return;
+        }
 
-            // Upload main image if it's a data URL
+        setIsProcessing(true);
+        try {
             let finalImage = restaurantData.image_url;
             if (isDataUrl(finalImage || '')) {
                 const file = await dataUrlToFile(finalImage!, `res-image-${Date.now()}.jpg`);
@@ -146,21 +140,20 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
                 finalImage = response.data.url;
             }
 
-            const payload = {
+            const payload: any = {
                 ...restaurantData,
                 image_url: finalImage || '',
-                status: isPublish ? 'published' : 'draft'
+                status: isPublish ? 'published' : 'draft',
+                published_sites: isPublish ? restaurantData.published_sites : [],
+                scheduled_at: restaurantData.scheduled_at || null,
             };
 
-            // Remove unused fields from payload if necessary, but API should handle extras or we should strictly type it
-            // For now passing everything as the interface allows optional fields
-
             if (mode === 'create') {
-                await createRestaurant(payload as any);
-                alert(`Restaurant ${isPublish ? 'published' : 'created'} successfully!`);
-            } else if (mode === 'edit') {
-                await updateRestaurant(initialData.id, payload as any);
-                alert(`Restaurant updated successfully!`);
+                await createRestaurant(payload);
+                alert(`Restaurant ${isPublish ? 'published' : 'saved as draft'} successfully!`);
+            } else {
+                await updateRestaurant(initialData.id, payload);
+                alert(`Restaurant ${isPublish ? 'published' : 'updated'} successfully!`);
             }
 
             onClose();
@@ -169,7 +162,18 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
             console.error("Failed to save restaurant", error);
             const msg = error.response?.data?.message || "Failed to save changes.";
             alert(`Error: ${msg}`);
+        } finally {
+            setIsProcessing(false);
+            setShowPublishDialog(false);
         }
+    };
+
+    const handlePublishClick = () => {
+        if (restaurantData.published_sites.length === 0) {
+            alert('Please select at least one site to publish to in the Publish Settings section.');
+            return;
+        }
+        setShowPublishDialog(true);
     };
 
     return (
@@ -196,17 +200,19 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => handleSave(false)}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-[#d1d5db] text-[#374151] rounded-[8px] hover:bg-gray-50 transition-all text-[14px] font-bold tracking-[-0.5px] shadow-sm"
+                        disabled={isProcessing}
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-[#d1d5db] text-[#374151] rounded-[8px] hover:bg-gray-50 transition-all text-[14px] font-bold tracking-[-0.5px] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <Save className="w-4 h-4" />
-                        Save as Pending Review
+                        {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        Save as Draft
                     </button>
                     <button
-                        onClick={() => handleSave(true)}
-                        className="flex items-center gap-2 px-6 py-2 bg-[#C10007] text-white rounded-[8px] hover:bg-[#a10006] transition-all text-[14px] font-bold tracking-[-0.5px] shadow-md shadow-red-900/10"
+                        onClick={handlePublishClick}
+                        disabled={isProcessing}
+                        className="flex items-center gap-2 px-6 py-2 bg-[#C10007] text-white rounded-[8px] hover:bg-[#a10006] transition-all text-[14px] font-bold tracking-[-0.5px] shadow-md shadow-red-900/10 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <Send className="w-4 h-4" />
-                        {mode === 'create' ? 'Publish Now' : 'Update & Publish'}
+                        {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                        {mode === 'create' ? 'Publish' : 'Update & Publish'}
                     </button>
                     <div className="w-px h-8 bg-gray-200 mx-2" />
                     <button
@@ -220,20 +226,46 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
 
             {/* Main Dual Panel Body */}
             <div className="flex-1 flex overflow-hidden">
-                {/* Form Side */}
                 <RestaurantEditorForm
                     data={restaurantData}
                     onDataChange={handleDataChange}
+                    availableSites={availableSites}
                 />
-
-                {/* Preview Side */}
                 <RestaurantEditorPreview
                     data={{
                         ...restaurantData,
-                        timestamp: Date.now() / 1000 // Convert to timestamp for preview if needed
+                        timestamp: Date.now() / 1000
                     }}
                 />
             </div>
+
+            {/* Publish Confirmation Dialog */}
+            <AlertDialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
+                <AlertDialogContent className="z-[200]">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Ready to Publish?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {restaurantData.scheduled_at
+                                ? `This restaurant will be scheduled for publish on ${new Date(restaurantData.scheduled_at).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' })} to ${restaurantData.published_sites.length} site(s).`
+                                : `This restaurant will be published immediately to ${restaurantData.published_sites.length} site(s): ${restaurantData.published_sites.join(', ')}.`
+                            }
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleSave(true);
+                            }}
+                            disabled={isProcessing}
+                            className="bg-[#C10007] hover:bg-[#a10006]"
+                        >
+                            {isProcessing ? 'Publishing...' : 'Confirm Publish'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

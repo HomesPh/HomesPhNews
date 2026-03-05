@@ -460,14 +460,31 @@ async def trigger_sports_job():
     }
 
 
+@router.post("/trigger/cancel", tags=["Admin"])
+async def cancel_job():
+    """
+    Request the running news scraper job to stop.
+    The job will stop after finishing the current batch of countries (up to 5).
+    """
+    from scheduler import get_job_status, request_job_cancel
+    status = get_job_status()
+    if not status["is_running"]:
+        return {"message": "No job is currently running.", "cancelled": False}
+    request_job_cancel()
+    return {"message": "Cancel requested. The scraper will stop after the current batch.", "cancelled": True}
+
+
 @router.get("/status", tags=["Admin"])
 async def get_status():
     """Get current job status and statistics."""
     from scheduler import get_job_status
+    from scheduler_control import is_enabled as scheduler_is_enabled
     status = get_job_status()
     
     return {
         "is_running": status["is_running"],
+        "cancel_requested": status.get("cancel_requested", False),
+        "scheduler_enabled": scheduler_is_enabled(),
         "total_runs": status["total_runs"],
         "total_success": status["total_success"],
         "total_errors": status["total_errors"],
