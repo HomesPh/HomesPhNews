@@ -1,310 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Daily News Digest - Homes.ph News</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f3f4f6;
-            margin: 0;
-            padding: 0;
-            -webkit-font-smoothing: antialiased;
-        }
-
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 20px 0; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .header { background-color: #dbe2e8; padding: 25px 20px; text-align: center; }
+        .logo-text { font-size: 32px; font-weight: 800; color: #1e3a8a !important; text-decoration: none; display: inline-block; }
+        .logo-dot-ph { font-weight: 500; }
+        .color-bar { width: 100%; height: 12px; }
+        .content { padding: 30px 30px; color: #111827; }
+        .top-article { margin-bottom: 30px; }
+        .top-article-img { width: 100%; height: 250px; object-fit: cover; border-radius: 12px; margin-bottom: 15px; display: block; }
+        .top-article-title { font-size: 22px; font-weight: 800; color: #1e3a8a; margin-bottom: 10px; text-decoration: none; display: block; line-height: 1.3; }
+        .top-article-summary { font-size: 14px; color: #4b5563; line-height: 1.6; margin-bottom: 10px; }
+        .article-date { font-size: 12px; color: #9ca3af; }
+        .list-article { margin-bottom: 20px; }
+        .list-article-table { width: 100%; border-collapse: collapse; }
+        .list-article-img { width: 160px; height: 100px; object-fit: cover; border-radius: 8px; display: block; }
+        .list-article-title { font-size: 16px; font-weight: 800; color: #1e3a8a; margin-bottom: 5px; text-decoration: none; display: block; line-height: 1.3; }
+        .list-article-summary { font-size: 12px; color: #4b5563; line-height: 1.5; margin-bottom: 5px; }
+        .bottom-links { text-align: center; padding: 25px 20px 35px; font-size: 13px; font-weight: 600; color: #1e3a8a; line-height: 2.2; }
+        .bottom-links a { color: #1e3a8a; text-decoration: none; }
+        .bottom-links .divider { color: #1e3a8a; margin: 0 10px; }
+        .footer-table { width: 100%; border-collapse: collapse; }
+        .footer-left { background-color: #1e3a8a; padding: 8px 15px; color: #ffffff; font-size: 11px; }
+        .footer-right { background-color: #eab308; padding: 8px 15px; text-align: right; vertical-align: middle; }
+        .social-icon { display: inline-block; margin-left: 12px; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 14px; }
+        .btn { display: inline-block; background-color: #1e3a8a; color: #ffffff !important; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 800; text-decoration: none; text-align: center; margin-top: 20px; }
         @media only screen and (max-width: 600px) {
-            .article-title { font-size: 20px !important; }
-            .article-summary { font-size: 13px !important; }
-            .greeting { font-size: 22px !important; }
-            .message { font-size: 13px !important; }
-            .section-title { font-size: 13px !important; }
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            overflow: hidden;
-            border-top: 5px solid #C10007;
-        }
-
-        .header {
-            background-color: #111827;
-            padding: 24px 20px;
-            text-align: center;
-        }
-
-        .logo-wrapper {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-        }
-
-        .logo-img {
-            max-height: 24px;
-            width: auto;
-            margin-right: 12px;
-        }
-
-        .logo-text {
-            font-size: 24px;
-            font-weight: 800;
-            color: #ffffff !important;
-            letter-spacing: -0.04em;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .logo-dot-ph {
-            font-weight: 500;
-        }
-
-        .sub-header {
-            background-color: #1f2937;
-            padding: 12px;
-            text-align: center;
-            color: #ffffff;
-            font-size: 10px;
-            font-weight: 900;
-            letter-spacing: 0.3em;
-            text-transform: uppercase;
-        }
-
-        .content {
-            padding: 40px 25px;
-            color: #111827;
-        }
-
-        .greeting {
-            font-size: 28px;
-            font-weight: 900;
-            color: #111827;
-            margin-bottom: 12px;
-            letter-spacing: -0.03em;
-            text-align: left;
-        }
-
-        .message {
-            font-size: 14px;
-            color: #64748b;
-            margin-bottom: 20px;
-            line-height: 1.6;
-            text-align: left;
-        }
-
-        .tags-container {
-            margin-bottom: 35px;
-            text-align: left;
-            line-height: 2.4;
-        }
-
-        .tag {
-            display: inline-block;
-            padding: 6px 16px;
-            background-color: #f8fafc;
-            color: #475569;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 800;
-            margin-right: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.02em;
-        }
-
-        .connector {
-            font-size: 14px;
-            color: #64748b;
-            margin: 0 8px;
-            vertical-align: middle;
-        }
-
-        .section-title-wrapper {
-            border-left: 4px solid #C10007;
-            padding-left: 14px;
-            margin: 40px 0 25px 0;
-            text-align: left;
-        }
-
-        .section-title {
-            font-size: 14px;
-            font-weight: 800;
-            color: #111827;
-            text-transform: none;
-        }
-
-        .article-card {
-            display: block;
-            text-decoration: none;
-            color: inherit;
-            margin-bottom: 30px;
-            background-color: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 16px;
-            padding: 24px;
-            text-align: left;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
-        .article-image-wrapper {
-            width: 100%;
-            height: 250px;
-            overflow: hidden;
-            border-radius: 12px;
-            background-color: #f3f4f6;
-            margin-bottom: 20px;
-        }
-
-        .article-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .article-category {
-            font-size: 11px;
-            font-weight: 900;
-            color: #C10007;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            letter-spacing: 0.05em;
-        }
-
-        .article-title {
-            font-size: 24px;
-            font-weight: 900;
-            color: #111827;
-            margin-bottom: 12px;
-            line-height: 1.2;
-            letter-spacing: -0.04em;
-        }
-
-        .article-summary {
-            font-size: 14px;
-            color: #4b5563;
-            margin-bottom: 24px;
-            line-height: 1.6;
-        }
-
-        .btn {
-            display: inline-block;
-            background-color: #374151;
-            color: #ffffff !important;
-            padding: 12px 28px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 800;
-            text-decoration: none;
-            text-align: center;
-        }
-
-        .preferences-box {
-            background-color: #ffffff;
-            border: 1px solid #f3f4f6;
-            border-radius: 16px;
-            padding: 30px;
-            margin-top: 40px;
-            text-align: left;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-
-        .preferences-title {
-            font-weight: 800;
-            color: #111827;
-            font-size: 15px;
-            margin-bottom: 8px;
-        }
-
-        .preferences-text {
-            font-size: 14px;
-            color: #64748b;
-            margin-bottom: 25px;
-            line-height: 1.5;
-        }
-
-        .btn-preferences {
-            background-color: #374151;
-            color: #ffffff !important;
-            padding: 12px 28px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 800;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .footer {
-            background-color: #111827;
-            padding: 60px 40px;
-            color: #94a3b8;
-            text-align: center;
-        }
-
-        .footer-logo {
-            margin-bottom: 30px;
-        }
-
-        .logo-wrapper-footer {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            opacity: 0.6;
-        }
-
-        .footer-text {
-            font-size: 12px;
-            color: #64748b;
-            margin-bottom: 30px;
-            line-height: 1.6;
-        }
-
-        .footer-links a {
-            color: #94a3b8;
-            text-decoration: none;
-            margin: 0 10px;
-            font-size: 12px;
-            font-weight: 600;
+            .list-article-table td { display: block; width: 100% !important; padding-left: 0 !important; }
+            .list-article-img { width: 100%; height: 180px; margin-bottom: 12px; }
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <div class="header">
-            <div class="logo-wrapper">
-                <span class="logo-text">Homes<span class="logo-dot-ph">.ph</span> News</span>
+        <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; height: 12px;">
+            <tr>
+                <td width="64%" style="background-color: #16297a;"></td>
+                <td width="36%" style="background-color: #8c6b1c;"></td>
+            </tr>
+        </table>
+        <div class="header" style="background-color: #bdc5cc; padding: 25px 20px;">
+            <a href="https://news.homes.ph" style="text-decoration: none;">
+                <span class="logo-text" style="color: #16297a !important; font-size: 36px; font-weight: 900; font-family: 'Inter', sans-serif;">Homes<span class="logo-dot-ph" style="font-weight: 500;">.ph</span> News</span>
+            </a>
+        </div>
+        <table class="color-bar" cellpadding="0" cellspacing="0" border="0" style="width: 100%; height: 12px;">
+            <tr>
+                <td width="33%" style="background-color: #d19619;"></td>
+                <td width="67%" style="background-color: #16297a;"></td>
+            </tr>
+        </table>
+
+        <div class="content" style="padding-bottom: 10px;">
+            <div style="font-size: 18px; font-weight: 700; color: #1e3a8a; margin-bottom: 8px;">{{ $greeting }} {{ $greetingEmoji ?? '' }}</div>
+            <div style="font-size: 14px; color: #4b5563;">
+                Here is your personalized news digest from <strong>Homes.ph News</strong>.
             </div>
         </div>
-        <div class="sub-header">Daily News Digest</div>
 
-        <div class="content">
-            <h1 class="greeting">{{ $greeting }} {{ $greetingEmoji }}</h1>
-            <div class="message">
-                Here is your personalized news digest from <strong>Homes.ph News</strong>, tailored to your interests in 
-                @foreach($subscriber->category as $cat)
-                    <span class="tag">{{ $cat }}</span>
-                @endforeach
-                
-                @if(count($subscriber->category) > 0 && count($subscriber->country) > 0)
-                    <span class="connector">and</span>
-                @endif
-                
-                @foreach($subscriber->country as $country)
-                    <span class="tag">{{ $country }}</span>
-                @endforeach.
-            </div>
-
-            <div class="section-title-wrapper">
-                <h2 class="section-title">Top Stories for You</h2>
-            </div>
-
-            @foreach($articles as $article)
+        <div class="content" style="padding-top: 0;">
+            @foreach($articles as $index => $article)
                 @php
                     $imageUrl = null;
                     if ($article->image) {
@@ -315,60 +77,81 @@
                         }
 
                         if ($imageUrl && !str_starts_with($imageUrl, 'http')) {
-                            $imageUrl = 'https://homestv.ph/storage/' . $imageUrl;
+                            $imageUrl = str_replace('homestv.ph', 'news.homes.ph', 'https://news.homes.ph/storage/' . $imageUrl);
                         }
                     }
                 @endphp
 
-                <div class="article-card">
-                    <a href="{{ $clientUrl }}/article?id={{ $article->id }}">
-                        <div class="article-image-wrapper">
-                            @if($imageUrl)
-                                <img src="{{ $imageUrl }}" alt="{{ $article->title }}" class="article-image">
+                @if($index === 0)
+                    <div class="top-article">
+                        @if($imageUrl)
+                            <a href="{{ $clientUrl }}/article?id={{ $article->id }}">
+                                <img src="{{ $imageUrl }}" alt="{{ $article->title }}" class="top-article-img">
+                            </a>
+                        @endif
+                        <a href="{{ $clientUrl }}/article?id={{ $article->id }}" class="top-article-title">{{ $article->title }}</a>
+                        <div class="top-article-summary">{{ Str::limit(strip_tags($article->summary), 160) }}</div>
+                        <div class="article-date">
+                            @if(isset($article->created_at))
+                                {{ \Carbon\Carbon::parse($article->created_at)->format('F j, Y') }}
+                            @else
+                                {{ date('F j, Y') }}
                             @endif
                         </div>
-                    </a>
-                    <div class="article-category">
-                        @if($article->category) {{ $article->category }} @endif
-                        @if($article->category && $article->country) | @endif
-                        @if($article->country) {{ $article->country }} @endif
                     </div>
-                    <a href="{{ $clientUrl }}/article?id={{ $article->id }}" style="text-decoration: none;">
-                        <div class="article-title">{{ $article->title }}</div>
-                    </a>
-                    <div class="article-summary">{{ Str::limit(strip_tags($article->summary), 160) }}</div>
-                    <a href="{{ $clientUrl }}/article?id={{ $article->id }}" class="btn">Read Full Story</a>
-                </div>
+                @else
+                    <div class="list-article">
+                        <table class="list-article-table" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                @if($imageUrl)
+                                <td width="160" valign="top">
+                                    <a href="{{ $clientUrl }}/article?id={{ $article->id }}">
+                                        <img src="{{ $imageUrl }}" alt="{{ $article->title }}" class="list-article-img">
+                                    </a>
+                                </td>
+                                @endif
+                                <td valign="top" style="padding-left: {{ $imageUrl ? '20px' : '0' }};">
+                                    <a href="{{ $clientUrl }}/article?id={{ $article->id }}" class="list-article-title">{{ $article->title }}</a>
+                                    <div class="list-article-summary">{{ Str::limit(strip_tags($article->summary), 120) }}</div>
+                                    <div class="article-date">
+                                        @if(isset($article->created_at))
+                                            {{ \Carbon\Carbon::parse($article->created_at)->format('F j, Y') }}
+                                        @else
+                                            {{ date('F j, Y') }}
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                @endif
             @endforeach
+        </div>
 
-            <div class="preferences-box">
-                <div class="preferences-title">Manage your experience</div>
-                <div class="preferences-text">
-                    Want to change the topics or locations you follow? You can update your preferences anytime.
-                </div>
-                <a href="{{ $clientUrl }}/subscribe/edit?id={{ $subscriber->sub_Id }}" class="btn-preferences">
-                    Edit your Preferences
-                </a>
+        <div class="bottom-links">
+            <div>
+                <a href="https://news.homes.ph">News.Homes.ph</a> <span class="divider">|</span>
+                <a href="https://news.homes.ph/privacy-policy">Privacy Policy</a> <span class="divider">|</span>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="{{ isset($subscriber) ? $clientUrl . '/subscribe/edit?id=' . $subscriber->sub_Id : '#' }}">Unsubscribe from this email</a> <span class="divider">|</span>
+                <a href="{{ isset($subscriber) ? $clientUrl . '/subscribe/edit?id=' . $subscriber->sub_Id : '#' }}">Manage preferences</a>
             </div>
         </div>
 
-        <div class="footer">
-            <div class="footer-logo">
-                <div class="logo-wrapper-footer">
-                    <span class="logo-text" style="font-size: 20px;">Homes<span class="logo-dot-ph">.ph</span> News</span>
-                </div>
-            </div>
-            <div class="footer-text">
-                This email was sent to you because you subscribed to <strong>Homes.ph News Daily News</strong>.<br>
-                We value your privacy and only send content based on your selected interests.<br>
-                &copy; {{ date('Y') }} Homes.ph News. All rights reserved.
-            </div>
-            <div class="footer-links">
-                <a href="https://news.homes.ph/privacy-policy">Privacy Policy</a>
-                <a href="https://news.homes.ph/terms-and-policy">Terms & Policy</a>
-                <a href="{{ $clientUrl }}/subscribe/edit?id={{ $subscriber->sub_Id }}">Unsubscribe</a>
-            </div>
-        </div>
+        <table class="footer-table" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+                <td class="footer-left">
+                    &copy; {{ date('Y') }} Homes.ph News. All rights reserved.
+                </td>
+                <td class="footer-right">
+                    <a href="#" class="social-icon">f</a>
+                    <a href="#" class="social-icon">in</a>
+                    <a href="#" class="social-icon">ig</a>
+                    <a href="#" class="social-icon">X</a>
+                </td>
+            </tr>
+        </table>
     </div>
 </body>
 
