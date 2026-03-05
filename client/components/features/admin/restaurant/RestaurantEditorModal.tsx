@@ -55,7 +55,7 @@ const EMPTY_STATE = {
     owner_info: '',
     menu_highlights: '',
     food_topics: '',
-    // Client-only fields (not in DB yet — stripped before sending to server)
+    // Client-only (not in DB)
     company: '',
     content: '',
     published_sites: [] as string[],
@@ -139,7 +139,7 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
             }
 
             // Strip client-only fields that don't exist in the DB yet
-            const { company, content, scheduled_at, ...dbFields } = restaurantData;
+            const { company, scheduled_at, ...dbFields } = restaurantData;
 
             const payload: any = {
                 ...dbFields,

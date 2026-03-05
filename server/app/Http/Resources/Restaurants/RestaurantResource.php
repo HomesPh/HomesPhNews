@@ -59,6 +59,7 @@ class RestaurantResource extends JsonResource
             'is_featured'         => (bool)($res->is_featured ?? false),
             'views_count'         => (int)($res->views_count ?? 0),
             'published_sites'     => is_array($res->published_sites ?? null) ? $res->published_sites : [],
+            'content'             => (string)($res->content ?? ''),
             'created_at'          => (string)($res->created_at ?? ''),
         ];
     }
