@@ -13,16 +13,28 @@ return new class extends Migration {
      */
     public function up(): void
     {
+        // Drop the FK on articles that references cities.city_id (MySQL 8 enforces type compat on CREATE)
+        if (Schema::hasTable('articles')) {
+            try {
+                Schema::table('articles', function (Blueprint $table) {
+                    $table->dropForeign('articles_ibfk_1');
+                });
+            } catch (\Throwable $e) {
+                // FK may not exist — ignore
+            }
+        }
+
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Schema::dropIfExists('cities');
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         Schema::create('cities', function (Blueprint $table) {
-            $table->id('city_id');
+            $table->unsignedInteger('city_id')->autoIncrement()->primary();
             $table->string('country_id', 10)->index();
             $table->string('name');
             $table->boolean('is_active')->default(true);
         });
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
 
     /**
