@@ -90,7 +90,7 @@ export default function AdminSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-none">
-      <div className="flex flex-col h-full bg-[#1a1d2e] text-white">
+      <div className="flex flex-col h-full bg-[#000785] text-white">
         <SidebarHeader className="px-4 py-6 border-b border-[rgba(255,255,255,0.1)]">
           {!isCollapsed ? (
             <div className="flex items-center gap-3 px-2">
@@ -127,8 +127,8 @@ export default function AdminSidebar() {
                     className={cn(
                       "flex items-center gap-3 px-4 py-3 rounded-[8px] transition-colors w-full h-auto",
                       isActive
-                        ? "bg-[#C10007] text-white hover:bg-[#C10007] hover:text-white"
-                        : "text-[#9ca3af] hover:bg-[#252836] hover:text-white",
+                        ? "bg-[#F4AA1D] text-black hover:bg-[#F4AA1D] hover:text-black"
+                        : "text-white hover:bg-[rgba(255,255,255,0.1)] hover:text-white",
                       isCollapsed ? "justify-center" : ""
                     )}
                     tooltip={isCollapsed ? item.title : undefined}
@@ -161,7 +161,7 @@ export default function AdminSidebar() {
               window.location.href = '/admin/login';
             }}
             className={cn(
-              "flex items-center gap-3 px-4 py-3 text-[#9ca3af] hover:bg-[#252836] hover:text-white rounded-[8px] transition-colors w-full",
+              "flex items-center gap-3 px-4 py-3 text-white hover:bg-[rgba(255,255,255,0.1)] hover:text-white rounded-[8px] transition-colors w-full",
               isCollapsed ? "justify-center" : ""
             )}
             title={isCollapsed ? "Logout" : undefined}

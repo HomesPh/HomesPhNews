@@ -19,7 +19,7 @@ export default function ProgressTracker({
     value,
     max,
     suffix = "articles",
-    color = "bg-[#C10007]",
+    color = "bg-[#1428AE]",
 }: ProgressTrackerProps) {
     const [width, setWidth] = useState(0);
     const targetPercentage = Math.min(Math.max((value / max) * 100, 0), 100);
@@ -36,7 +36,7 @@ export default function ProgressTracker({
         <div className="group">
             {/* Label and Value */}
             <div className="flex items-center justify-between mb-2">
-                <span className="text-[14px] font-medium text-[#111827] tracking-[-0.5px] group-hover:text-[#C10007] transition-colors">
+                <span className="text-[14px] font-medium text-[#111827] tracking-[-0.5px] group-hover:text-[#1428AE] transition-colors">
                     {label}
                 </span>
                 <span className="text-[14px] font-semibold text-[#6b7280] tracking-[-0.5px]">

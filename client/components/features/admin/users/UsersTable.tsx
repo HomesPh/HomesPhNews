@@ -212,7 +212,7 @@ export default function UsersTable({
                                                         onBan(user);
                                                         setOpenMenuId(null);
                                                     }}
-                                                    className="w-full flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-gray-700 hover:bg-red-50 hover:text-red-700 rounded-md transition-colors"
+                                                    className="w-full flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-gray-700 hover:bg-blue-50 hover:text-[#1428AE] rounded-md transition-colors"
                                                 >
                                                     <ShieldAlert className="w-4 h-4 text-red-600" />
                                                     Ban User
@@ -239,7 +239,7 @@ export default function UsersTable({
                                                     onDelete(user);
                                                     setOpenMenuId(null);
                                                 }}
-                                                className="w-full flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                                className="w-full flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-[#1428AE] hover:bg-blue-50 rounded-md transition-colors"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                                 Delete User

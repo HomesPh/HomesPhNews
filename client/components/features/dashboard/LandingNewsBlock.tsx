@@ -39,7 +39,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 />
                                 {/* Tags at bottom left of image */}
                                 <div className="absolute bottom-2 left-2 flex gap-2 z-10 transition-opacity group-hover:opacity-100 items-center">
-                                    <div className="flex items-center justify-center bg-[#cc0000] text-white text-[9px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg leading-none">
+                                    <div className="flex items-center justify-center bg-[#1428AE] text-white text-[9px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg leading-none">
                                         {article.category}
                                     </div>
                                     <div className="flex items-center justify-center bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[9px] font-black uppercase px-2 py-1 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors leading-none">
@@ -56,7 +56,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                     />
                                 </div>
                             </div>
-                            <h3 className="text-sm font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors line-clamp-2 mb-2">
+                            <h3 className="text-sm font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#F4AA1D] dark:group-hover:text-[#F4AA1D] transition-colors line-clamp-2 mb-2">
                                 {article.title}
                             </h3>
                             <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-auto">
@@ -96,7 +96,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                             />
                             {/* Tags at bottom left of image */}
                             <div className="absolute bottom-3 left-3 flex gap-2 z-10 items-center">
-                                <div className="flex items-center justify-center bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg leading-none">
+                                <div className="flex items-center justify-center bg-[#1428AE] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg leading-none">
                                     {main.category}
                                 </div>
                                 <div className="flex items-center justify-center bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors leading-none">
@@ -113,7 +113,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 />
                             </div>
                         </div>
-                        <h3 className="text-xl font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors mb-3">
+                        <h3 className="text-xl font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#F4AA1D] dark:group-hover:text-[#F4AA1D] transition-colors mb-3">
                             {main.title}
                         </h3>
                         <p className="text-gray-500 dark:text-gray-400 text-xs font-medium leading-relaxed line-clamp-2 mb-4">
@@ -156,7 +156,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                     </div>
                                 </div>
                                 <div className="flex flex-col justify-between py-1 w-full">
-                                    <h4 className="text-sm font-black uppercase leading-[1.3] text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors line-clamp-3">
+                                    <h4 className="text-sm font-black uppercase leading-[1.3] text-gray-900 dark:text-white group-hover:text-[#F4AA1D] dark:group-hover:text-[#F4AA1D] transition-colors line-clamp-3">
                                         {article.title}
                                     </h4>
                                     <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-auto">
@@ -197,7 +197,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                             />
                             {/* Tags at bottom left of image */}
                             <div className="absolute bottom-2 left-2 flex gap-2 z-10 items-center">
-                                <div className="flex items-center justify-center bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg leading-none">
+                                <div className="flex items-center justify-center bg-[#1428AE] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg leading-none">
                                     {article.category}
                                 </div>
                                 <div className="flex items-center justify-center bg-white dark:bg-[#111827] text-[#1a1a1a] dark:text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors leading-none">
@@ -214,7 +214,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 />
                             </div>
                         </div>
-                        <h3 className="text-base font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors mb-2">
+                        <h3 className="text-base font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#F4AA1D] dark:group-hover:text-[#F4AA1D] transition-colors mb-2">
                             {article.title}
                         </h3>
                         <div className="flex items-center space-x-3 text-[9px] font-bold text-gray-400 uppercase tracking-tighter mt-auto">

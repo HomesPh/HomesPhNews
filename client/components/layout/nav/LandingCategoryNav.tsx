@@ -80,7 +80,7 @@ function NavContent({ categories }: LandingCategoryNavProps) {
                 onClick={() => handleCategoryClick(category.id, category.label)}
                 className={`shrink-0 font-medium text-[14px] tracking-[-0.5px] whitespace-nowrap transition-colors flex items-center gap-1 ${isActive
                   ? "bg-[#030213] dark:bg-white text-white dark:text-[#030213] px-[10px] py-[5px] rounded-[6px]"
-                  : "text-[#374151] dark:text-gray-300 hover:text-[#c10007] dark:hover:text-[#c10007] px-0 py-px"
+                  : "text-[#374151] dark:text-gray-300 hover:text-[#1428AE] dark:hover:text-[#F4AA1D] px-0 py-px"
                   }`}
               >
                 {category.label}

@@ -30,7 +30,7 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
                 <input
                     ref={ref}
                     className={cn(
-                        "w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all",
+                        "w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.5px] transition-all",
                         error && "border-[#ef4444] focus:ring-[#ef4444]",
                         className
                     )}
@@ -59,7 +59,7 @@ export const FormTextarea = React.forwardRef<HTMLTextAreaElement, FormTextareaPr
                     ref={ref}
                     rows={rows}
                     className={cn(
-                        "w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all resize-none",
+                        "w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.5px] transition-all resize-none",
                         error && "border-[#ef4444] focus:ring-[#ef4444]",
                         className
                     )}
@@ -87,7 +87,7 @@ export const FormSelect = React.forwardRef<HTMLSelectElement, FormSelectProps>(
                 <select
                     ref={ref}
                     className={cn(
-                        "w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px] text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all cursor-pointer",
+                        "w-full px-4 py-3 border border-[#d1d5db] rounded-[6px] text-[15px] text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.5px] transition-all cursor-pointer",
                         error && "border-[#ef4444] focus:ring-[#ef4444]",
                         className
                     )}
@@ -118,12 +118,12 @@ export const FormCheckbox = React.forwardRef<HTMLInputElement, FormCheckboxProps
                     ref={ref}
                     type="checkbox"
                     className={cn(
-                        "w-5 h-5 border-[#d1d5db] rounded text-[#C10007] focus:ring-[#C10007] focus:ring-offset-0 transition-all cursor-pointer",
+                        "w-5 h-5 border-[#d1d5db] rounded text-[#1428AE] focus:ring-[#1428AE] focus:ring-offset-0 transition-all cursor-pointer",
                         className
                     )}
                     {...props}
                 />
-                <span className="text-[14px] text-[#111827] group-hover:text-[#C10007] transition-colors tracking-[-0.5px]">
+                <span className="text-[14px] text-[#111827] group-hover:text-[#1428AE] transition-colors tracking-[-0.5px]">
                     {label}
                 </span>
             </label>
@@ -186,7 +186,7 @@ export const FormMultiSelect = ({
 
             <div
                 className={cn(
-                    "w-full px-3 py-2 min-h-[46px] border border-[#d1d5db] rounded-[6px] bg-white text-[15px] text-[#111827] focus-within:ring-2 focus-within:ring-[#C10007] focus-within:border-transparent tracking-[-0.5px] transition-all cursor-pointer flex flex-wrap gap-2 items-center",
+                    "w-full px-3 py-2 min-h-[46px] border border-[#d1d5db] rounded-[6px] bg-white text-[15px] text-[#111827] focus-within:ring-2 focus-within:ring-[#1428AE] focus-within:border-transparent tracking-[-0.5px] transition-all cursor-pointer flex flex-wrap gap-2 items-center",
                     error && "border-[#ef4444] focus-within:ring-[#ef4444]"
                 )}
                 onClick={() => setIsOpen(!isOpen)}
@@ -227,7 +227,7 @@ export const FormMultiSelect = ({
                                 type="checkbox"
                                 checked={value.includes(option.value)}
                                 readOnly
-                                className="w-4 h-4 text-[#C10007] rounded border-gray-300 focus:ring-[#C10007]"
+                                className="w-4 h-4 text-[#1428AE] rounded border-gray-300 focus:ring-[#1428AE]"
                             />
                             {option.label}
                         </div>

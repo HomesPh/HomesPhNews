@@ -37,7 +37,7 @@ export default function CEOSidebar() {
 
     return (
         <Sidebar collapsible="icon" className="border-none">
-            <div className="flex flex-col h-full bg-[#1a1d2e] text-white">
+            <div className="flex flex-col h-full bg-[#000785] text-white">
                 <SidebarHeader className="px-4 py-6 border-b border-[rgba(255,255,255,0.1)]">
                     {!isCollapsed ? (
                         <div className="flex flex-col gap-1 px-2">
@@ -70,7 +70,7 @@ export default function CEOSidebar() {
                                         className={cn(
                                             "flex items-center gap-3 px-4 py-3 rounded-[8px] transition-colors w-full h-auto",
                                             isActive
-                                                ? "bg-[#C10007] text-white hover:bg-[#C10007] hover:text-white"
+                                                ? "bg-[#F4AA1D] text-black hover:bg-[#F4AA1D] hover:text-black"
                                                 : "text-[#9ca3af] hover:bg-[#252836] hover:text-white",
                                             isCollapsed ? "justify-center" : ""
                                         )}

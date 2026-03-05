@@ -42,14 +42,14 @@ export default function AddUserModal({ onClose, onAdd }: AddUserModalProps) {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-[14px] font-bold text-[#111827] mb-2 tracking-[-0.5px]">
-                                First Name <span className="text-red-600">*</span>
+                                First Name <span className="text-[#1428AE]">*</span>
                             </label>
                             <input
                                 type="text"
                                 required
                                 value={formData.firstName}
                                 onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                                className="w-full h-[50px] px-4 border border-[#d1d5db] rounded-[8px] text-[16px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all"
+                                className="w-full h-[50px] px-4 border border-[#d1d5db] rounded-[8px] text-[16px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.5px] transition-all"
                                 placeholder="e.g. Juan"
                             />
                         </div>
@@ -62,7 +62,7 @@ export default function AddUserModal({ onClose, onAdd }: AddUserModalProps) {
                                 required
                                 value={formData.lastName}
                                 onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                                className="w-full h-[50px] px-4 border border-[#d1d5db] rounded-[8px] text-[16px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all"
+                                className="w-full h-[50px] px-4 border border-[#d1d5db] rounded-[8px] text-[16px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.5px] transition-all"
                                 placeholder="e.g. Dela Cruz"
                             />
                         </div>
@@ -116,7 +116,7 @@ export default function AddUserModal({ onClose, onAdd }: AddUserModalProps) {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="flex items-center gap-2 px-8 py-2 bg-[#C10007] text-white rounded-[8px] hover:bg-[#a10006] transition-all text-[14px] font-bold shadow-md shadow-red-900/10 disabled:opacity-70"
+                            className="flex items-center gap-2 px-8 py-2 bg-[#1428AE] text-white rounded-[8px] hover:bg-[#000785] transition-all text-[14px] font-bold shadow-md shadow-blue-900/10 disabled:opacity-70"
                         >
                             {isLoading ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />

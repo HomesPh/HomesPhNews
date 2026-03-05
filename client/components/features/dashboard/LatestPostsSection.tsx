@@ -24,7 +24,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
 
     return (
         <div className="space-y-12">
-            <div className="bg-[#cc0000] px-4 py-1 inline-block mb-8">
+            <div className="bg-[#1428AE] px-4 py-1 inline-block mb-8">
                 <h2 className="text-white text-xs font-black uppercase tracking-widest">
                     {title || "Latest Posts"}
                 </h2>
@@ -48,7 +48,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                             />
                             {/* Tags at bottom left of image */}
                             <div className="absolute bottom-3 left-3 flex gap-2 z-10 transition-opacity group-hover:opacity-100 items-center">
-                                <span className="flex items-center justify-center bg-[#cc0000] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg leading-none" suppressHydrationWarning>
+                                <span className="flex items-center justify-center bg-[#1428AE] text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter shadow-lg leading-none" suppressHydrationWarning>
                                     {article.category}
                                 </span>
                                 <span className="flex items-center justify-center bg-white dark:bg-[#111827] text-black dark:text-white text-[10px] font-black uppercase px-2 py-1 tracking-tighter border border-gray-100 dark:border-gray-800 shadow-lg transition-colors leading-none" suppressHydrationWarning>
@@ -66,7 +66,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                             </div>
                         </div>
                         <div className="flex flex-col">
-                            <h3 className="text-xl md:text-2xl font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#cc0000] dark:group-hover:text-[#cc0000] transition-colors mb-4">
+                            <h3 className="text-xl md:text-2xl font-black uppercase leading-tight text-gray-900 dark:text-white group-hover:text-[#F4AA1D] dark:group-hover:text-[#F4AA1D] transition-colors mb-4">
                                 {article.title}
                             </h3>
                             <p className="text-gray-500 dark:text-gray-400 text-sm font-medium leading-relaxed line-clamp-3 mb-6">
@@ -96,7 +96,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                 <div className="pt-4 text-left">
                     <Link
                         href={viewAllHref}
-                        className="bg-[#cc0000] text-white px-10 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-black dark:hover:bg-red-700 transition-all transform hover:-translate-y-1 shadow-xl shadow-red-500/10 inline-block"
+                        className="bg-[#1428AE] text-white px-10 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-[#000785] transition-all transform hover:-translate-y-1 shadow-xl shadow-blue-500/10 inline-block"
                     >
                         More Posts
                     </Link>
@@ -105,7 +105,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                 <div className="pt-4 text-left">
                     <button
                         onClick={handleLoadMore}
-                        className="bg-[#cc0000] text-white px-10 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-black dark:hover:bg-red-700 transition-all transform hover:-translate-y-1 shadow-xl shadow-red-500/10"
+                        className="bg-[#1428AE] text-white px-10 py-4 text-xs font-black uppercase tracking-[0.2em] hover:bg-[#000785] transition-all transform hover:-translate-y-1 shadow-xl shadow-blue-500/10"
                     >
                         Load More Posts
                     </button>

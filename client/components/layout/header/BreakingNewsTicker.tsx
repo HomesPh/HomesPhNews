@@ -35,8 +35,8 @@ export default function BreakingNewsTicker({ items }: BreakingNewsTickerProps) {
     const duplicatedItems = [...items, ...items, ...items, ...items];
 
     return (
-        <div className="bg-[#c10007] h-[48px] relative shrink-0 w-full overflow-hidden flex items-center">
-            <div className="bg-[#c10007] z-10 px-4 md:px-[110px] h-full flex items-center shrink-0">
+        <div className="bg-[#000785] h-[48px] relative shrink-0 w-full overflow-hidden flex items-center">
+            <div className="bg-[#000785] z-10 px-4 md:px-[110px] h-full flex items-center shrink-0">
                 <p className="font-semibold text-[16px] text-white tracking-[-0.5px] whitespace-nowrap">
                     BREAKING NEWS
                 </p>

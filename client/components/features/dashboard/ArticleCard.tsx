@@ -93,8 +93,8 @@ export default function ArticleCard({
       {/* Content */}
       <div className="flex flex-1 flex-col gap-3 justify-center">
 
-        {/* Title - Making it red by default to match screenshot */}
-        <h3 className="line-clamp-2 text-[20px] font-bold leading-[1.4] text-[#c10007] tracking-[-0.5px] transition-colors group-hover:text-[#9a0005]">
+        {/* Title - Blue to match new brand color */}
+        <h3 className="line-clamp-2 text-[20px] font-bold leading-[1.4] text-[#1428AE] tracking-[-0.5px] transition-colors group-hover:text-[#F4AA1D]">
           {title}
         </h3>
 

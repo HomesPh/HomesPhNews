@@ -46,7 +46,7 @@ export default function EditUserModal({ user, onClose, onSave }: EditUserModalPr
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
                     <div>
                         <label className="block text-[14px] font-bold text-[#111827] mb-2 tracking-[-0.5px]">
-                            Full Name <span className="text-red-600">*</span>
+                            Full Name <span className="text-[#1428AE]">*</span>
                         </label>
                         <input
                             type="text"
@@ -101,7 +101,7 @@ export default function EditUserModal({ user, onClose, onSave }: EditUserModalPr
                         </button>
                         <button
                             type="submit"
-                            className="flex items-center gap-2 px-8 py-2 bg-[#C10007] text-white rounded-[8px] hover:bg-[#a10006] transition-all text-[14px] font-bold shadow-md shadow-red-900/10"
+                            className="flex items-center gap-2 px-8 py-2 bg-[#1428AE] text-white rounded-[8px] hover:bg-[#000785] transition-all text-[14px] font-bold shadow-md shadow-blue-900/10"
                         >
                             <Save className="w-4 h-4" />
                             Save Changes

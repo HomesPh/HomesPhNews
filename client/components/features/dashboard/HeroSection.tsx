@@ -68,7 +68,7 @@ export default function HeroSection({
           {/* Tags */}
           <div className="flex flex-wrap items-center gap-2 md:gap-3">
             {isFeatured && (
-              <Badge className="bg-[#c10007] text-white px-3 py-1 rounded-[4px] text-[12px] font-bold tracking-tight border-none hover:bg-[#a00006]">
+              <Badge className="bg-[#1428AE] text-white px-3 py-1 rounded-[4px] text-[12px] font-bold tracking-tight border-none hover:bg-[#000785]">
                 FEATURED
               </Badge>
             )}
@@ -81,7 +81,7 @@ export default function HeroSection({
               </Badge>
             )}
             <div className="flex items-center gap-2 ml-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#c10007]" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#F4AA1D]" />
               <span className="text-[14px] font-medium text-[#d1d5db] tracking-tight" suppressHydrationWarning>
                 {timeAgo}
               </span>
@@ -118,7 +118,7 @@ export default function HeroSection({
           {/* Button */}
           <div>
             <Button
-              className="bg-[#dc2626] text-white px-[27px] py-[14px] h-auto rounded-[8px] text-[16px] font-semibold tracking-[-0.5px] hover:bg-[#b91c1c] transition-colors"
+              className="bg-[#1428AE] text-white px-[27px] py-[14px] h-auto rounded-[8px] text-[16px] font-semibold tracking-[-0.5px] hover:bg-[#000785] transition-colors"
               onClick={(e) => {
                 e.preventDefault();
                 onReadMore?.();
