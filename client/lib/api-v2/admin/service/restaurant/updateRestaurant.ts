@@ -30,6 +30,8 @@ export interface UpdateRestaurantRequest {
 
     // Status
     status?: "published" | "pending" | "draft";
+    /** Site names to publish to (persisted in DB) */
+    published_sites?: string[];
 }
 
 export interface UpdateRestaurantResponse {

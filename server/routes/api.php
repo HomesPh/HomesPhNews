@@ -14,8 +14,6 @@ use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Api\Admin\MailingListGroupController;
 use App\Http\Controllers\Api\Admin\SiteController;
-use App\Http\Controllers\Api\Admin\CategoryController;
-use App\Http\Controllers\Api\Admin\CountryController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Auth\SocialAuthController;
 use App\Http\Controllers\Api\PlanSubscriptionController;
@@ -73,12 +71,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/scheduler/run', function () {
         // ⚠️ Security Note: In production, you should protect this route!
         // Example: if (request('key') !== env('CRON_KEY')) abort(403);
-
         \Illuminate\Support\Facades\Artisan::call('schedule:run');
-
-    // Plan Subscriptions
-    Route::post('/plans/subscribe', [PlanSubscriptionController::class, 'store']);
-});
+        return response()->json(['message' => 'Schedule executed']);
+    });
 
 // ═══════════════════════════════════════════════════════════════
 // PUBLIC USER ROUTES (Mixed Database and Redis)
@@ -126,7 +121,6 @@ Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
         Route::patch('sites/{id}/refresh-key', [SiteController::class, 'refreshKey']);
         Route::apiResource('sites', SiteController::class);
         Route::apiResource('articles', AdminArticleController::class);
-        Route::apiResource('ads', AdminAdController::class);
         Route::apiResource('campaigns', AdminCampaignController::class);
         Route::apiResource('categories', CategoryController::class);
         Route::apiResource('countries', CountryController::class);
@@ -143,10 +137,10 @@ Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
         // ═══════════════════════════════════════════════════════════════
         // RESTAURANT ROUTES (Redis-based & Database Persistence)
         // ═══════════════════════════════════════════════════════════════
-        Route::get('restaurants/stats', [RestaurantController::class, 'stats'])->name('restaurants.stats');
-        Route::get('restaurants/country/{country}', [RestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
-        Route::post('restaurants/{id}/publish', [RestaurantController::class, 'publish'])->name('restaurants.publish');
-        Route::apiResource('restaurants', RestaurantController::class);
+        Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
+        Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
+        Route::post('restaurants/{id}/publish', [AdminRestaurantController::class, 'publish'])->name('restaurants.publish');
+        Route::apiResource('restaurants', AdminRestaurantController::class);
 
         // Upload Routes
         Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');

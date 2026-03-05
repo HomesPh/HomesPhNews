@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Restaurants\RestaurantResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
 
@@ -135,7 +136,7 @@ class RestaurantController extends Controller
         // 1. Check Database
         $restaurant = \App\Models\Restaurant::find($id);
         if ($restaurant) {
-            return response()->json($restaurant);
+            return new RestaurantResource($restaurant);
         }
 
         // 2. Check Redis
@@ -157,7 +158,9 @@ class RestaurantController extends Controller
         $data = $request->all();
         $data['id'] = $data['id'] ?? (string) \Illuminate\Support\Str::uuid();
         $data['status'] = $data['status'] ?? 'published';
-        
+        $data['is_featured'] = $request->boolean('is_featured', false);
+        $data['is _featured'] = $request->boolean('is_featured', false);
+
         $restaurant = \App\Models\Restaurant::create($data);
         
         return response()->json([
@@ -173,6 +176,10 @@ class RestaurantController extends Controller
     {
         $restaurant = \App\Models\Restaurant::find($id);
         $data = $request->all();
+        if ($request->has('is_featured')) {
+            $data['is_featured'] = $request->boolean('is_featured');
+            $data['is _featured'] = $request->boolean('is_featured');
+        }
 
         if ($restaurant) {
             $restaurant->update($data);
@@ -247,12 +254,13 @@ class RestaurantController extends Controller
                 'opening_hours' => $r['opening_hours'] ?? '',
                 'original_url' => $r['original_url'] ?? '',
                 'clickbait_hook' => $r['clickbait_hook'] ?? '',
+                'is_featured' => $r['is_featured'] ?? false,
+                'is _featured' => $r['is_featured'] ?? false,
                 'status' => 'published',
                 'timestamp' => $r['timestamp'] ?? time(),
                 'tags' => $r['tags'] ?? [],
                 'features' => $r['features'] ?? [],
-                'is_featured' => $r['is_featured'] ?? false,
-                'is _featured' => $r['is _featured'] ?? false,
+                'published_sites' => $payload['published_sites'] ?? $r['published_sites'] ?? [],
             ]);
 
             Redis::del("{$this->prefix}restaurant:{$id}");
@@ -260,6 +268,9 @@ class RestaurantController extends Controller
 
         } else {
             $payload['status'] = 'published';
+            if ($request->has('published_sites')) {
+                $payload['published_sites'] = $request->input('published_sites', []);
+            }
             $restaurant->update($payload);
         }
 
