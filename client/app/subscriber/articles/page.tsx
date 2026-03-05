@@ -26,6 +26,10 @@ const URL_FILTERS_CONFIG = {
         default: '' as const,
         resetValues: ['']
     },
+    city: {
+        default: '' as const,
+        resetValues: ['']
+    },
 };
 
 type SiteStatus = 'all' | 'on-site' | 'not-on-site';
@@ -36,15 +40,15 @@ type SiteStatus = 'all' | 'on-site' | 'not-on-site';
  */
 export default function SubscriberArticlesPage() {
     const router = useRouter();
-    const { filters, setFilter } = useUrlFilters(URL_FILTERS_CONFIG);
+    const { filters, setFilter, setFilters } = useUrlFilters(URL_FILTERS_CONFIG);
     const [searchQuery, setSearchQuery] = useState('');
     const pagination = usePagination();
     const [articles, setArticles] = useState<ArticleResource[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [totalCount, setTotalCount] = useState(0);
     const [availableFilters, setAvailableFilters] = useState<{
-        categories: string[];
-        countries: string[];
+        categories: { name: string; count: number }[];
+        countries: { name: string; count: number }[];
     }>({ categories: [], countries: [] });
 
     // Subscriber's chosen preferences from onboarding
@@ -62,10 +66,10 @@ export default function SubscriberArticlesPage() {
     // Filtered to only show subscriber-chosen options
     const filteredFilters = {
         categories: subscriberPrefs?.categories?.length
-            ? availableFilters.categories.filter(c => subscriberPrefs.categories.includes(c))
+            ? availableFilters.categories.filter(c => subscriberPrefs.categories.includes(c.name))
             : availableFilters.categories,
         countries: subscriberPrefs?.countries?.length
-            ? availableFilters.countries.filter(c => subscriberPrefs.countries.includes(c))
+            ? availableFilters.countries.filter(c => subscriberPrefs.countries.includes(c.name))
             : availableFilters.countries,
     };
 
@@ -103,12 +107,13 @@ export default function SubscriberArticlesPage() {
                 current_page: number;
                 last_page: number;
                 total: number;
-                available_filters?: { categories: string[]; countries: string[] };
+                available_filters?: { categories: { name: string; count: number }[]; countries: { name: string; count: number }[] };
             }>('/v1/subscriber/articles', {
                 params: {
                     status: 'published',
                     category: filters.category === '' ? undefined : filters.category,
                     country: filters.country === '' ? undefined : filters.country,
+                    city: filters.city === '' ? undefined : filters.city,
                     allowed_categories: subscriberPrefs?.categories,
                     allowed_countries: subscriberPrefs?.countries,
                     search: searchQuery || undefined,
@@ -213,9 +218,10 @@ export default function SubscriberArticlesPage() {
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
                     categoryFilter={filters.category}
-                    setCategoryFilter={(cat) => setFilter('category', cat)}
+                    setCategoryFilter={(cat: string) => setFilter('category', cat)}
                     countryFilter={filters.country}
-                    setCountryFilter={(country) => setFilter('country', country)}
+                    cityFilter={filters.city}
+                    setFilters={setFilters}
                     availableCategories={filteredFilters.categories}
                     availableCountries={filteredFilters.countries}
                 />

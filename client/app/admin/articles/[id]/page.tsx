@@ -70,8 +70,8 @@ function ArticleDetailsContent() {
     const [isNewsletterModalOpen, setIsNewsletterModalOpen] = useState(false);
 
     const [availableFilters, setAvailableFilters] = useState<{
-        categories: string[];
-        countries: string[];
+        categories: { name: string; count: number }[];
+        countries: { name: string; count: number }[];
     }>({
         categories: [],
         countries: [],

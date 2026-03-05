@@ -37,7 +37,7 @@ export default function CreateEventPage() {
     // Filters
     const [categoryFilter, setCategoryFilter] = useState("");
     const [countryFilter, setCountryFilter] = useState("");
-    const [availableFilters, setAvailableFilters] = useState<{ categories: string[], countries: string[] }>({ categories: [], countries: [] });
+    const [availableFilters, setAvailableFilters] = useState<{ categories: { name: string, count: number }[], countries: { name: string, count: number }[] }>({ categories: [], countries: [] });
 
     // Success Modal State
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -208,7 +208,7 @@ export default function CreateEventPage() {
                                     <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                                     <Input
                                         placeholder="Search pending articles..."
-                                        className="pl-9"
+                                        className="pl-9 h-10"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                     />
@@ -223,7 +223,9 @@ export default function CreateEventPage() {
                                 >
                                     <option value="">All Categories</option>
                                     {availableFilters.categories.map(cat => (
-                                        <option key={cat} value={cat}>{cat}</option>
+                                        <option key={cat.name} value={cat.name}>
+                                            {cat.name} <span className="text-[#C10007]">({cat.count})</span>
+                                        </option>
                                     ))}
                                 </select>
 
@@ -234,7 +236,9 @@ export default function CreateEventPage() {
                                 >
                                     <option value="">All Countries</option>
                                     {availableFilters.countries.map(c => (
-                                        <option key={c} value={c}>{c}</option>
+                                        <option key={c.name} value={c.name}>
+                                            {c.name} <span className="text-[#C10007]">({c.count})</span>
+                                        </option>
                                     ))}
                                 </select>
                             </div>
