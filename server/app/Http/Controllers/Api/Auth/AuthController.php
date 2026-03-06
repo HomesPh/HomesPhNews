@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\UserResource;
+use App\Jobs\SendMailJob;
 use App\Models\User;
 use App\Services\OTPService;
-use App\Jobs\SendMailJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -20,6 +20,7 @@ class AuthController extends Controller
     {
         $this->otpService = $otpService;
     }
+
     /**
      * Authenticate user and return token.
      */
@@ -47,10 +48,10 @@ class AuthController extends Controller
 
     /**
      * Register a new user
-     * 
+     *
      * Creates a new subscriber account and automatically sends a verification OTP
      * to the user's email address.
-     * 
+     *
      * @group Authentication
      */
     public function register(Request $request): JsonResponse
@@ -81,20 +82,17 @@ class AuthController extends Controller
             $user->roles()->attach($subscriberRole);
         }
 
-        // Generate and send OTP
-        $otpData = $this->otpService->generateOTP();
-        $user->update([
-            'otp' => $otpData['otp'],
-            'otp_expires_at' => $otpData['otp_expires_at']
-        ]);
+        // generate otp
+        $otpData = $this->otpService->generateOTP($user->email, 'verify-email');
 
+        // send email
         SendMailJob::dispatch(
             $user->name,
             $user->email,
             $otpData['otp']
         );
 
-        // Create a token for the user
+        // create token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -149,7 +147,7 @@ class AuthController extends Controller
 
         $user->first_name = $validated['first_name'];
         $user->last_name = $validated['last_name'];
-        $user->name = $validated['first_name'] . ' ' . $validated['last_name'];
+        $user->name = $validated['first_name'].' '.$validated['last_name'];
 
         if (isset($validated['avatar']) && str_starts_with($validated['avatar'], 'data:image')) {
             // Handle base64 avatar upload
@@ -157,14 +155,14 @@ class AuthController extends Controller
                 $imageData = $validated['avatar'];
                 $format = strpos($imageData, 'data:image/png') !== false ? 'png' : 'jpg';
                 $imageData = str_replace(['data:image/png;base64,', 'data:image/jpeg;base64,', ' '], ['', '', '+'], $imageData);
-                $imageName = \Illuminate\Support\Str::uuid() . '.' . $format;
-                
-                $path = 'homestv/avatars/' . $imageName;
+                $imageName = \Illuminate\Support\Str::uuid().'.'.$format;
+
+                $path = 'homestv/avatars/'.$imageName;
                 \Illuminate\Support\Facades\Storage::disk('s3')->put($path, base64_decode($imageData), 'public');
-                
+
                 $user->avatar = \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
             } catch (\Exception $e) {
-                \Log::error('Avatar upload failed: ' . $e->getMessage());
+                \Log::error('Avatar upload failed: '.$e->getMessage());
             }
         }
 
@@ -185,12 +183,12 @@ class AuthController extends Controller
             'new_password' => 'required|string|min:8|confirmed',
         ]);
 
-        if (!Hash::check($validated['current_password'], $user->password)) {
+        if (! Hash::check($validated['current_password'], $user->password)) {
             return response()->json([
                 'message' => 'The provided password does not match your current password.',
                 'errors' => [
-                    'current_password' => ['The provided password does not match your current password.']
-                ]
+                    'current_password' => ['The provided password does not match your current password.'],
+                ],
             ], 422);
         }
 
@@ -198,7 +196,7 @@ class AuthController extends Controller
         $user->save();
 
         return response()->json([
-            'message' => 'Password changed successfully.'
+            'message' => 'Password changed successfully.',
         ]);
     }
 }

@@ -14,13 +14,8 @@ class CategoryController extends Controller
      */
     public function index()
     {
-<<<<<<< Updated upstream
-        $categories = Category::latest()
-            ->whereNotIn('name', ['restaurant', 'restaurants'])
-            ->get();
-=======
         $categories = Category::latest()->get();
->>>>>>> Stashed changes
+
         return response()->json($categories);
     }
 
@@ -40,7 +35,7 @@ class CategoryController extends Controller
 
         return response()->json([
             'message' => 'Category created successfully',
-            'data' => $category
+            'data' => $category,
         ], 201);
     }
 
@@ -58,7 +53,7 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category)
     {
         $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:255|unique:categories,name,' . $category->id,
+            'name' => 'sometimes|required|string|max:255|unique:categories,name,'.$category->id,
             'is_active' => 'boolean',
         ]);
 
@@ -70,7 +65,7 @@ class CategoryController extends Controller
 
         return response()->json([
             'message' => 'Category updated successfully',
-            'data' => $category
+            'data' => $category,
         ]);
     }
 
@@ -82,7 +77,7 @@ class CategoryController extends Controller
         $category->delete();
 
         return response()->json([
-            'message' => 'Category deleted successfully'
+            'message' => 'Category deleted successfully',
         ]);
     }
 }

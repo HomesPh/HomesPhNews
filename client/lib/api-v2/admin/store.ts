@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { login } from "./service/auth/login";
 import { logout } from "./service/auth/logout";
+import { getUser } from "./service/auth/user";
 import type { UserResource } from "../types/UserResource";
 
 interface AuthState {
@@ -15,6 +16,7 @@ interface AuthState {
 interface AuthActions {
   login: (credentials: { email: string; password: string }) => Promise<{ token: string, user: UserResource }>;
   logout: () => Promise<void>;
+  checkAuth: () => Promise<UserResource | null>;
   setHasHydrated: (state: boolean) => void;
   setAuth: (token: string, user: UserResource) => void;
   updateUser: (updates: Partial<UserResource>) => void;
@@ -79,6 +81,38 @@ export const useAuth = create<AuthStore>()(
             token: null,
             user: null,
           });
+        }
+      },
+
+      checkAuth: async () => {
+        try {
+          const response = await getUser();
+          const user = response.data.data;
+
+          if (typeof window !== 'undefined') {
+            const names = user.name.split(' ');
+            localStorage.setItem('user_info', JSON.stringify({
+              firstName: names[0],
+              lastName: names.slice(1).join(' '),
+              email: user.email,
+              roles: user.roles,
+              avatar: user.avatar
+            }));
+          }
+
+          set({ user });
+          return user;
+        } catch (error) {
+          console.error("Auth check failed:", error);
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('user_info');
+            localStorage.removeItem('auth_token');
+          }
+          set({
+            token: null,
+            user: null,
+          });
+          return null;
         }
       },
 

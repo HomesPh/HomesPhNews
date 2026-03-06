@@ -1,23 +1,11 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import AdminSidebar from "@/components/features/admin/layout/AdminSidebar";
 import AdminHeader from "@/components/features/admin/layout/AdminHeader";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AuthGuard from "@/components/features/auth/AuthGuard";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isLoginPage = pathname === "/admin/login";
-
-  if (isLoginPage) {
-    return (
-      <div className="force-light min-h-screen bg-[#f9fafb]">
-        {children}
-      </div>
-    );
-  }
-
   return (
     <AuthGuard>
       <div className="force-light min-h-screen flex flex-col">

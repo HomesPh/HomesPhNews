@@ -101,7 +101,7 @@ export default function CEOSidebar() {
                     <button
                         onClick={async () => {
                             await logout();
-                            window.location.href = "/admin/login";
+                            window.location.href = "/login";
                         }}
                         className={cn(
                             "flex items-center gap-3 px-4 py-3 text-[#9ca3af] hover:bg-[#252836] hover:text-white rounded-[8px] transition-colors w-full",

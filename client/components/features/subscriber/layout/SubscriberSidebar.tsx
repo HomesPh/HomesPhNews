@@ -164,7 +164,7 @@ export default function SubscriberSidebar() {
                     <button
                         onClick={async () => {
                             await logout();
-                            window.location.href = '/admin/login';
+                            window.location.href = '/login';
                         }}
                         className={cn(
                             "flex items-center gap-3 px-4 py-3 rounded-[8px] transition-colors w-full",

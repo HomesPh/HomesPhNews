@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Services\OTPService;
 use App\Http\Requests\Auth\SendOTPRequest;
 use App\Http\Requests\Auth\VerifyOTPRequest;
-use App\Models\User;
-use App\Jobs\SendMailJob;
-use App\Http\Resources\Api\SuccessResource;
 use App\Http\Resources\Api\ErrorResource;
+use App\Http\Resources\Api\SuccessResource;
+use App\Jobs\SendMailJob;
+use App\Models\User;
+use App\Services\OTPService;
+use Illuminate\Support\Carbon;
 
 class OTPController extends Controller
 {
@@ -23,88 +23,92 @@ class OTPController extends Controller
 
     /**
      * Send OTP to User Email
-     * 
-     * Generates a 6-digit OTP and sends it to the user's email address.
-     * The OTP expires after 10 minutes.
-     * 
+     *
      * @group Authentication
      */
-    public function sendOTP(SendOTPRequest $request): SuccessResource|ErrorResource
+    public function sendEmailOTP(SendOTPRequest $request): SuccessResource|ErrorResource
     {
         $validated = $request->validated();
 
+        // get user
         $user = User::where('email', $validated['email'])->first();
 
-        if (!$user) {
+        // if user doesn't exist
+        if (! $user) {
             return new ErrorResource([
                 'message' => 'User not found.',
                 'error_code' => 'USER_NOT_FOUND',
-                'status_code' => 404
+                'status_code' => 404,
             ]);
         }
 
-        // Generate OTP using service
-        $otpData = $this->otpService->generateOTP();
+        // generate otp
+        $otp = $this->otpService->generateOTP($user->email, 'verify-email');
 
         try {
             // Send OTP via Email
             SendMailJob::dispatch(
                 $user->name,
                 $user->email,
-                $otpData['otp']
+                $otp
             );
-
 
             // Update user with OTP data
             $user->update([
-                'otp' => $otpData['otp'],
-                'otp_expires_at' => $otpData['otp_expires_at']
+                'otp' => $otp,
             ]);
-
 
             return new SuccessResource([
                 'message' => 'OTP sent successfully to your email',
                 'data' => [
                     'expires_in' => 10,
-                    'email' => $user->email
-                ]
+                    'email' => $user->email,
+                ],
             ]);
         } catch (\Exception $e) {
             return new ErrorResource([
                 'message' => 'Failed to send OTP. Please try again.',
                 'error_code' => 'EMAIL_SEND_FAILED',
-                'status_code' => 500
+                'status_code' => 500,
             ]);
         }
     }
 
     /**
      * Verify OTP and Email
-     * 
-     * Verifies the provided OTP for the user's email. If valid, marks the email
-     * as verified and clears the OTP data.
-     * 
+     *
+     * Endpoint for verifying OTPs.
+     *
      * @group Authentication
      */
-    public function verifyOTP(VerifyOTPRequest $request): SuccessResource|ErrorResource
+    public function verifyEmailOTP(VerifyOTPRequest $request): SuccessResource|ErrorResource
     {
         $validated = $request->validated();
 
-         // Use email verification method for OTP verification
-        $user = $this->otpService->verifyOTPAndVerifyEmail(
-              $validated['email'], 
-              $validated['otp']
-          );
+        // verify email with otp
+        $user = $this->otpService->verifyOTP(
+            $validated['email'],
+            $validated['otp'],
+            'verify-email'
+        );
 
-        if (!$user) {
+        // update user email_verified_at
+        User::where('email', $validated['email'])->update([
+            'email_verified_at' => Carbon::now(),
+        ]);
+
+        if (! $user) {
             return new ErrorResource([
                 'message' => 'Invalid or expired OTP',
-                'status_code' => 400
+                'status_code' => 400,
             ]);
         }
 
+        // validate user
+
         return new SuccessResource([
-            'message' => 'OTP verified successfully'
+            'message' => 'OTP verified successfully',
+            'user' => new \App\Http\Resources\UserResource($user->load('roles')),
         ]);
     }
 }

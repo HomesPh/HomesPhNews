@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Api\Admin\AdUnitController as AdminAdUnitController;
 use App\Http\Controllers\Api\Admin\AdMetricController as AdminAdMetricController;
+use App\Http\Controllers\Api\Admin\AdUnitController as AdminAdUnitController;
 use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\ArticleController as AdminArticleController;
 // Admin Controllers
@@ -11,27 +11,24 @@ use App\Http\Controllers\Api\Admin\CategoryController;
 use App\Http\Controllers\Api\Admin\CityController;
 use App\Http\Controllers\Api\Admin\CountryController;
 use App\Http\Controllers\Api\Admin\DashboardController;
-use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Api\Admin\MailingListGroupController;
+use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Api\Admin\SiteController;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Auth\OTPController;
 use App\Http\Controllers\Api\Auth\SocialAuthController;
 use App\Http\Controllers\Api\PlanSubscriptionController;
-use App\Http\Controllers\Api\Subscriber\ArticleController as SubscriberArticleController;
-
 // User Controllers
 use App\Http\Controllers\Api\SiteContentController;
+use App\Http\Controllers\Api\Subscriber\ArticleController as SubscriberArticleController;
 use App\Http\Controllers\Api\SubscriptionController;
-use App\Http\Controllers\Api\SystemController;
 // Other Controllers
-use App\Http\Controllers\Api\Auth\OTPController;
+use App\Http\Controllers\Api\SystemController;
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\User\AdController as UserAdController;
 use App\Http\Controllers\Api\User\ArticleController as UserArticleController;
 use App\Http\Controllers\Api\User\RestaurantController as UserRestaurantController;
-use App\Http\Controllers\v2\ArticleController as ArticleControllerV2;
 // v2 Controllers
-use App\Http\Controllers\v2\AuthController as AuthControllerV2;
 use App\Http\Controllers\v2\RoleController as RoleControllerV2;
 use App\Http\Controllers\v2\UserController as UserControllerV2;
 use Illuminate\Support\Facades\Route;
@@ -192,7 +189,6 @@ Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
     // Ad metrics
     Route::post('/ads/metrics', [AdminAdMetricController::class, 'store']);
 
-
     // Restaurants
     Route::group(['prefix' => 'restaurants', 'as' => 'restaurants.'], function () {
         Route::get('/', [UserRestaurantController::class, 'index'])->name('index');
@@ -228,11 +224,11 @@ Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
         Route::post('/plans/subscribe', [PlanSubscriptionController::class, 'store']);
 
         // OTP Routes
-        Route::post('/otp/send', [OTPController::class, 'sendOTP']);
-        Route::post('/otp/verify', [OTPController::class, 'verifyOTP']);
+        Route::post('/otp/email/send', [OTPController::class, 'sendEmailOTP']);
+        Route::post('/otp/email/verify', [OTPController::class, 'verifyEmailOTP']);
 
         // Subscriber Routes (any authenticated user — no admin role required)
-        Route::prefix('subscriber')->group(function () {
+        Route::middleware('is.verified')->prefix('subscriber')->group(function () {
             Route::get('/articles', [SubscriberArticleController::class, 'index']);
             Route::get('/articles/{id}', [SubscriberArticleController::class, 'show']);
         });
@@ -255,7 +251,7 @@ Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
             // ═══════════════════════════════════════════════════════════════
             // SHARED ROUTES (Admin, CEO & Editor)
             // ═══════════════════════════════════════════════════════════════
-    
+
             // Mailing list functionality
             Route::get('/analytics/mailing-list', [AnalyticsController::class, 'mailingListStats']);
             Route::apiResource('mailing-list-groups', MailingListGroupController::class);

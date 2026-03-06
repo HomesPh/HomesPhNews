@@ -4,83 +4,68 @@ namespace App\Services;
 
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Redis;
 
 /**
  * Service class for handling One-Time Password (OTP) operations.
- *
- * This service provides methods for generating, verifying, and clearing OTPs
- * stored on the User model.
  */
 class OTPService
 {
     /**
-     * Generate a new 6-digit OTP and its expiration time.
-     *
-     * @return array{otp: int, otp_expires_at: \Illuminate\Support\Carbon}
+     * Helper method to generate a consistent redis key.
+     * Sub-keys available:
+     *  - verify-email
      */
-    public function generateOTP(): array
+    private function getRedisKey(string $subkey, string $email): string
     {
+        return 'otp:'.$subkey.':'.$email;
+    }
+
+    /**
+     * Generate a new 6-digit OTP and its expiration time.
+     * Store in Redis for 10 mins.
+     * Sub-keys available:
+     *  - verify-email
+     */
+    public function generateOTP(string $email, string $subkey): array
+    {
+        $otp = rand(100000, 999999);
+        $expiresAt = Carbon::now()->addMinutes(10);
+
+        // add to redis
+        Redis::set($this->getRedisKey($subkey, $email), $otp);
+        // set expiration
+        Redis::expireAt(
+            $this->getRedisKey($subkey, $email),
+            $expiresAt->getTimestamp()
+        );
+
         return [
-            'otp' => rand(100000, 999999),
-            'otp_expires_at' => Carbon::now()->addMinutes(10)
+            'otp' => $otp,
+            'expires_at' => $expiresAt,
         ];
     }
 
     /**
-     * Verify the provided OTP for a given email address.
-     *
-     * Checks if a user exists with the matching email and OTP,
-     * and ensures the OTP has not yet expired.
-     *
-     * @param string $email The user's email address
-     * @param string $otp The OTP to verify
-     * @return User|null The user if verified, null otherwise
+     * Verify if OTP exists in redis and matches.
      */
-    public function verifyOTP(string $email, string $otp): ?User
+    public function verifyOTP(string $email, string $otp, string $subkey): ?User
     {
-        return User::where('email', $email)
-            ->where('otp', $otp)
-            ->where('otp_expires_at', '>', Carbon::now())
-            ->first();
-    }
+        $key = $this->getRedisKey($subkey, $email);
+        $storedOtp = Redis::get($key); // does this otp exists?
 
-    /**
-     * Verify the OTP and simultaneously mark the user's email as verified.
-     *
-     * If verification is successful, it clears the OTP data from the user
-     * and sets the email_verified_at timestamp.
-     *
-     * @param string $email The user's email address
-     * @param string $otp The OTP to verify
-     * @return User|null The user if verified and updated, null otherwise
-     */
-    public function verifyOTPandVerifyEmail(string $email, string $otp): ?User
-    {
-        $user = $this->verifyOTP($email, $otp);
+        // check if otp exists and matches
+        if ($storedOtp && $storedOtp == $otp) {
+            $user = User::where('email', $email)->first();
 
-        if ($user) {
-            $user->update([
-                'otp' => null,
-                'otp_expires_at' => null,
-                'email_verified_at' => Carbon::now(),
-                'otp_verified_at' => Carbon::now()
-            ]);
+            if ($user) {
+                // Optional: Delete the OTP after successful registration.
+                Redis::del($key);
+
+                return $user;
+            }
         }
 
-        return $user;
-    }
-
-    /**
-     * Clear the OTP and its expiration from the specified user.
-     *
-     * @param User $user The user instance to clear OTP for
-     * @return void
-     */
-    public function clearOTP(User $user): void
-    {
-        $user->update([
-            'otp' => null,
-            'otp_expires_at' => null,
-        ]);
+        return null;
     }
 }
