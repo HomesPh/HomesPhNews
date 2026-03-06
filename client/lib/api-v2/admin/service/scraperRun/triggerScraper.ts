@@ -73,3 +73,25 @@ export async function setSchedulerOn(): Promise<SchedulerToggleResponse> {
     const response = await axios.post<SchedulerToggleResponse>(`${SCRAPER_API_URL}/scheduler/on`, {}, { timeout: 10000 });
     return response.data;
 }
+
+/**
+ * Trigger a targeted scrape for specific countries and categories.
+ * Runs synchronously and returns results when done.
+ */
+export async function triggerTargetedScraper(
+    countries: string[],
+    categories: string[]
+): Promise<TriggerScraperResponse> {
+    const response = await axios.post<TriggerScraperResponse>(
+        `${SCRAPER_API_URL}/trigger/targeted`,
+        { countries, categories },
+        {
+            timeout: 30 * 60 * 1000, // 30 minutes
+            validateStatus: (status) => status === 200 || status === 409,
+        }
+    );
+    if (response.status === 409) {
+        throw new Error("A scraper job is already running. Please wait for it to complete.");
+    }
+    return response.data;
+}

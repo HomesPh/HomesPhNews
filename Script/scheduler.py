@@ -705,8 +705,55 @@ async def run_hourly_job():
     # Send Discord notification
     if results and success_count > 0:
         send_discord_notification(results)
-    
+
     return results
+
+
+async def run_targeted_job(countries: list, categories: list) -> dict:
+    """
+    Manually triggered targeted job:
+    - Runs process_single_country() for each country×category pair in parallel.
+    - Does NOT affect global job_status (one-off manual run).
+    - Returns same structure as TriggerScraperResponse.
+    """
+    start_time = time.time()
+    pairs = [(country, category) for country in countries for category in categories]
+
+    print(f"\n🎯 TARGETED SCRAPE: {len(countries)} countries × {len(categories)} categories = {len(pairs)} combinations")
+
+    results = []
+    loop = asyncio.get_event_loop()
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = [
+            loop.run_in_executor(executor, process_single_country, country, category)
+            for country, category in pairs
+        ]
+        results = list(await asyncio.gather(*futures))
+
+    success_count = sum(1 for r in results if r["status"] == "success")
+    error_count = sum(1 for r in results if r["status"] == "error")
+    duration = round(time.time() - start_time, 2)
+
+    print(f"✅ Targeted scrape done: {success_count}/{len(pairs)} success in {duration}s")
+
+    return {
+        "status": "completed",
+        "message": f"Targeted scrape finished: {success_count} articles scraped",
+        "duration_seconds": duration,
+        "success_count": success_count,
+        "error_count": error_count,
+        "results": [
+            {
+                "country": r.get("country"),
+                "category": r.get("category"),
+                "status": r["status"],
+                "count": 1 if r["status"] == "success" else 0,
+                "message": r.get("title") or r.get("error") or r["status"],
+            }
+            for r in results
+        ],
+        "timestamp": datetime.now().isoformat(),
+    }
 
 
 async def run_restaurant_job():
