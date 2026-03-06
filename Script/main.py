@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
+from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -23,7 +24,8 @@ from config import COUNTRIES
 from routes import router as article_router
 from scheduler import (
     run_hourly_job, get_job_status, update_next_run,
-    run_restaurant_job, get_restaurant_job_status, update_restaurant_next_run
+    run_restaurant_job, get_restaurant_job_status, update_restaurant_next_run,
+    run_targeted_job, request_job_cancel
 )
 from scheduler_control import set_scheduler, turn_off as scheduler_turn_off, turn_on as scheduler_turn_on, is_enabled as scheduler_is_enabled
 
@@ -177,6 +179,35 @@ async def trigger_restaurant_job_manual(background_tasks: BackgroundTasks):
         raise HTTPException(status_code=409, detail="Restaurant job already running")
     background_tasks.add_task(run_restaurant_job)
     return {"message": "Restaurant job triggered", "status": "running"}
+
+
+class TargetedTriggerRequest(BaseModel):
+    countries: list[str]
+    categories: list[str]
+
+
+@app.post("/trigger/cancel", tags=["Scheduler"])
+async def cancel_news_job():
+    """Request the running news job to stop after the current batch."""
+    status = get_job_status()
+    if not status["is_running"]:
+        raise HTTPException(status_code=409, detail="No job is currently running")
+    request_job_cancel()
+    return {"message": "Cancel requested. Job will stop after current batch.", "cancelled": True}
+
+
+@app.post("/trigger/targeted", tags=["Scheduler"])
+async def trigger_targeted_job(req: TargetedTriggerRequest):
+    """Manually trigger a targeted scrape for specific countries and categories."""
+    if not req.countries:
+        raise HTTPException(status_code=400, detail="At least one country is required")
+    if not req.categories:
+        raise HTTPException(status_code=400, detail="At least one category is required")
+    status = get_job_status()
+    if status["is_running"]:
+        raise HTTPException(status_code=409, detail="A scraper job is already running")
+    result = await run_targeted_job(req.countries, req.categories)
+    return result
 
 
 @app.post("/scheduler/off", tags=["Scheduler"])
