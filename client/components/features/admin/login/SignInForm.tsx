@@ -118,7 +118,7 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
             <div className="space-y-6">
                 <form onSubmit={handleSignIn} className="space-y-4">
                     {userInfo && (
-                        <div className="p-4 bg-red-50 border border-red-100 rounded-lg mb-4 animate-in fade-in slide-in-from-top-2 flex items-center gap-3">
+                        <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg mb-4 animate-in fade-in slide-in-from-top-2 flex items-center gap-3">
                             {userInfo.avatar && (
                                 <img
                                     src={userInfo.avatar}
@@ -127,10 +127,10 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
                                 />
                             )}
                             <div>
-                                <p className="text-sm text-red-800">
+                                <p className="text-sm text-blue-800">
                                     Welcome back, <span className="font-bold">{userInfo.first_name} {userInfo.last_name}</span>!
                                 </p>
-                                <p className="text-[12px] text-red-600">Please enter your password to continue.</p>
+                                <p className="text-[12px] text-blue-600">Please enter your password to continue.</p>
                             </div>
                         </div>
                     )}
@@ -142,7 +142,7 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
                             id="email"
                             type={fields.email.type}
                             placeholder={fields.email.placeholder}
-                            className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg"
+                            className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#1428AE] rounded-lg"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
@@ -158,7 +158,7 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
                                 id="password"
                                 type={showSignInPassword ? "text" : "password"}
                                 placeholder={fields.password.placeholder}
-                                className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg pr-10"
+                                className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#1428AE] rounded-lg pr-10"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -179,7 +179,7 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
 
                     <Button
                         type="submit"
-                        className="w-full h-12 bg-[#bf0000] hover:bg-[#a60000] text-white font-semibold text-base rounded-lg transition-colors mt-2"
+                        className="w-full h-12 bg-[#1428AE] hover:bg-[#000785] text-white font-semibold text-base rounded-lg transition-colors mt-2"
                         disabled={isLoading}
                     >
                         {isLoading ? "Signing in..." : submitLabel}
@@ -212,7 +212,7 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
                         Don't have an account?{" "}
                         <Link
                             href="/register"
-                            className="font-semibold text-[#bf0000] hover:underline"
+                            className="font-semibold text-[#1428AE] hover:underline"
                         >
                             Sign up
                         </Link>

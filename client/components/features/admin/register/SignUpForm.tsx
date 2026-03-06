@@ -116,7 +116,7 @@ export default function SignUpForm({ initialMode = 'signup-step1' }: SignUpFormP
                   id="firstName"
                   type="text"
                   placeholder="Your first name"
-                  className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg"
+                  className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#1428AE] rounded-lg"
                   value={signupData.firstName}
                   onChange={(e) => setSignupData({ ...signupData, firstName: e.target.value })}
                   required
@@ -131,7 +131,7 @@ export default function SignUpForm({ initialMode = 'signup-step1' }: SignUpFormP
                   id="lastName"
                   type="text"
                   placeholder="Your last name"
-                  className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg"
+                  className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#1428AE] rounded-lg"
                   value={signupData.lastName}
                   onChange={(e) => setSignupData({ ...signupData, lastName: e.target.value })}
                   required
@@ -147,7 +147,7 @@ export default function SignUpForm({ initialMode = 'signup-step1' }: SignUpFormP
                 id="signup-email"
                 type="email"
                 placeholder="Your email address"
-                className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg"
+                className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#1428AE] rounded-lg"
                 value={signupData.email}
                 onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
                 required
@@ -165,7 +165,7 @@ export default function SignUpForm({ initialMode = 'signup-step1' }: SignUpFormP
                     id="signup-password"
                     type={showPassword ? "text" : "password"}
                     placeholder=""
-                    className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg pr-10"
+                    className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#1428AE] rounded-lg pr-10"
                     value={signupData.password}
                     onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
                     required
@@ -194,7 +194,7 @@ export default function SignUpForm({ initialMode = 'signup-step1' }: SignUpFormP
                     id="confirm-password"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder=""
-                    className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#bf0000] rounded-lg pr-10"
+                    className="h-11 bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#1428AE] rounded-lg pr-10"
                     value={signupData.confirmPassword}
                     onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
                     required
@@ -225,7 +225,7 @@ export default function SignUpForm({ initialMode = 'signup-step1' }: SignUpFormP
 
             <Button
               type="submit"
-              className="w-full h-12 bg-[#bf0000] hover:bg-[#a60000] text-white font-semibold text-base rounded-lg transition-colors mt-2"
+              className="w-full h-12 bg-[#1428AE] hover:bg-[#000785] text-white font-semibold text-base rounded-lg transition-colors mt-2"
             >
               Continue
             </Button>
@@ -257,7 +257,7 @@ export default function SignUpForm({ initialMode = 'signup-step1' }: SignUpFormP
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="font-semibold text-[#bf0000] hover:underline"
+                className="font-semibold text-[#1428AE] hover:underline"
               >
                 Log in
               </Link>
@@ -288,7 +288,7 @@ export default function SignUpForm({ initialMode = 'signup-step1' }: SignUpFormP
                     id={`otp-${index}`}
                     type="text"
                     maxLength={1}
-                    className="w-12 h-14 text-center text-2xl font-bold bg-gray-50 border border-gray-200 rounded-lg focus:border-[#bf0000] focus:ring-2 focus:ring-[#bf0000] outline-none transition-all"
+                    className="w-12 h-14 text-center text-2xl font-bold bg-gray-50 border border-gray-200 rounded-lg focus:border-[#1428AE] focus:ring-2 focus:ring-[#1428AE] outline-none transition-all"
                     value={signupData.verificationCode[index] || ""}
                     onChange={(e) => {
                       const value = e.target.value;
@@ -346,7 +346,7 @@ export default function SignUpForm({ initialMode = 'signup-step1' }: SignUpFormP
             {/* Continue Button */}
             <Button
               type="submit"
-              className="w-full h-12 bg-[#bf0000] hover:bg-[#a60000] text-white font-semibold text-base rounded-lg transition-colors"
+              className="w-full h-12 bg-[#1428AE] hover:bg-[#000785] text-white font-semibold text-base rounded-lg transition-colors"
               disabled={isLoading}
             >
               {isLoading ? "Creating Account..." : "Verify & Create Account"}
@@ -357,7 +357,7 @@ export default function SignUpForm({ initialMode = 'signup-step1' }: SignUpFormP
               <button
                 type="button"
                 onClick={() => alert("Code resent!")}
-                className="text-sm text-[#bf0000] hover:underline font-medium"
+                className="text-sm text-[#1428AE] hover:underline font-medium"
               >
                 Resend Code
               </button>
