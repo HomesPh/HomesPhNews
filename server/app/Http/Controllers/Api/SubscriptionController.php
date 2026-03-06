@@ -200,6 +200,9 @@ class SubscriptionController extends Controller
                 $logoPath = $request->file('logo')->store('subscription-logos', 'public');
             }
 
+            // Determine source site from middleware or request
+            $sourceSite = $request->attributes->get('site')->site_name ?? $request->input('source_site');
+
             // Save new subscription to database
             $subscription = SubscriptionDetail::create([
                 'email' => $request->email,
@@ -208,6 +211,7 @@ class SubscriptionController extends Controller
                 'country' => $request->countries,
                 'features' => $request->features,
                 'time' => $request->time,
+                'source_site' => $sourceSite,
             ]);
 
             // Store in cache for algorithm purpose only
