@@ -53,7 +53,7 @@ export default function AdminPageHeader({
                 {actionLabel && onAction && (
                     <Button
                         onClick={onAction}
-                        className="flex items-center gap-[10px] px-5 py-3 bg-[#C10007] text-white rounded-[6px] hover:bg-[#a10006] transition-colors h-[50px]"
+                        className="flex items-center gap-[10px] px-5 py-3 bg-[#1428AE] text-white rounded-[6px] hover:bg-[#000785] transition-colors h-[50px]"
                     >
                         <ActionIcon className="w-[18px] h-[18px]" />
                         <span className="text-[16px] font-medium tracking-[-0.5px]">{actionLabel}</span>

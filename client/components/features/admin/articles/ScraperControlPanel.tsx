@@ -96,11 +96,10 @@ export default function ScraperControlPanel() {
                         onClick={handleToggleScheduler}
                         disabled={isTogglingScheduler || status === null}
                         title={schedulerOn ? 'Turn off auto-schedule' : 'Turn on auto-schedule'}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                            schedulerOn
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${schedulerOn
                                 ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
                                 : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
-                        }`}
+                            }`}
                     >
                         {isTogglingScheduler
                             ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -130,7 +129,7 @@ export default function ScraperControlPanel() {
                             type="button"
                             onClick={handleRun}
                             disabled={isRunning}
-                            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-semibold bg-[#C10007] text-white hover:bg-[#a10006] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-semibold bg-[#1428AE] text-white hover:bg-[#000785] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isRunning
                                 ? <Loader2 className="w-3.5 h-3.5 animate-spin" />

@@ -299,7 +299,7 @@ export default function ArticleEditorForm({
                     {/* Drawer Toggle Button */}
                     <button
                         onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-                        className={`absolute top-4 z-30 p-2 bg-white border border-gray-200 shadow-md rounded-r-xl transition-all duration-300 flex items-center justify-center hover:text-[#C10007] ${isDrawerOpen ? 'left-[360px]' : 'left-0'}`}
+                        className={`absolute top-4 z-30 p-2 bg-white border border-gray-200 shadow-md rounded-r-xl transition-all duration-300 flex items-center justify-center hover:text-[#1428AE] ${isDrawerOpen ? 'left-[360px]' : 'left-0'}`}
                         title={isDrawerOpen ? "Close Library" : "Open Library"}
                     >
                         {isDrawerOpen ? (

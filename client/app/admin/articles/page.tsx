@@ -277,7 +277,7 @@ export default function ArticlesPage() {
                                 ref={selectAllRef}
                                 checked={selectedIds.size > 0 && selectedIds.size === filteredArticles.filter((a) => a.id).length}
                                 onChange={(e) => handleSelectAll(e.target.checked)}
-                                className="w-4 h-4 rounded border-gray-300 text-[#C10007] focus:ring-[#C10007]"
+                                className="w-4 h-4 rounded border-gray-300 text-[#1428AE] focus:ring-[#1428AE]"
                             />
                             <span className="text-[14px] font-medium text-[#374151]">Select all on this page</span>
                         </label>
@@ -292,7 +292,7 @@ export default function ArticlesPage() {
                                 type="button"
                                 onClick={handleMoveToDb}
                                 disabled={selectedIds.size === 0 || isMovingToDb}
-                                className="px-4 py-2 rounded-lg bg-[#C10007] text-white text-[14px] font-semibold hover:bg-[#a00006] disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-4 py-2 rounded-lg bg-[#1428AE] text-white text-[14px] font-semibold hover:bg-[#000785] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isMovingToDb ? 'Moving…' : `Move to DB (${selectedIds.size})`}
                             </button>

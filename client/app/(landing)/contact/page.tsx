@@ -59,7 +59,7 @@ export default function ContactPage() {
 
             {/* Contact Information Cards */}
             <section className="py-20 bg-background relative">
-                <div className="absolute inset-0 bg-gradient-to-b from-red-50/50 to-transparent dark:from-red-950/10" />
+                <div className="absolute inset-0 bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-950/10" />
 
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
@@ -137,24 +137,24 @@ export default function ContactPage() {
                             <form className="space-y-6">
                                 <div>
                                     <label htmlFor="name" className="block mb-2 text-sm font-semibold">
-                                        Full Name <span className="text-red-600">*</span>
+                                        Full Name <span className="text-blue-600">*</span>
                                     </label>
                                     <Input
                                         id="name"
                                         placeholder="John Doe"
-                                        className="w-full focus:ring-2 focus:ring-[#cc0000]"
+                                        className="w-full focus:ring-2 focus:ring-[#1428AE]"
                                     />
                                 </div>
 
                                 <div>
                                     <label htmlFor="email" className="block mb-2 text-sm font-semibold">
-                                        Email Address <span className="text-red-600">*</span>
+                                        Email Address <span className="text-blue-600">*</span>
                                     </label>
                                     <Input
                                         id="email"
                                         type="email"
                                         placeholder="john.doe@example.com"
-                                        className="w-full focus:ring-2 focus:ring-[#cc0000]"
+                                        className="w-full focus:ring-2 focus:ring-[#1428AE]"
                                     />
                                 </div>
 
@@ -165,25 +165,25 @@ export default function ContactPage() {
                                     <Input
                                         id="subject"
                                         placeholder="How can we help you?"
-                                        className="w-full focus:ring-2 focus:ring-[#cc0000]"
+                                        className="w-full focus:ring-2 focus:ring-[#1428AE]"
                                     />
                                 </div>
 
                                 <div>
                                     <label htmlFor="message" className="block mb-2 text-sm font-semibold">
-                                        Message <span className="text-red-600">*</span>
+                                        Message <span className="text-blue-600">*</span>
                                     </label>
                                     <Textarea
                                         id="message"
                                         placeholder="Tell us more about your inquiry..."
                                         rows={6}
-                                        className="w-full resize-none focus:ring-2 focus:ring-[#cc0000]"
+                                        className="w-full resize-none focus:ring-2 focus:ring-[#1428AE]"
                                     />
                                 </div>
 
                                 <Button
                                     type="button"
-                                    className="w-full bg-[#cc0000] hover:bg-[#a10006] text-white"
+                                    className="w-full bg-[#1428AE] hover:bg-[#000785] text-white"
                                     size="lg"
                                     disabled
                                 >
@@ -205,7 +205,7 @@ export default function ContactPage() {
                             transition={{ duration: 0.8 }}
                             className="space-y-8"
                         >
-                            <div className="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl p-8">
+                            <div className="bg-gradient-to-br from-blue-50 to-orange-50 dark:from-blue-950/20 dark:to-orange-950/20 border border-blue-100 dark:border-blue-900/30 rounded-2xl p-8">
                                 <h3 className="text-xl font-bold mb-4">Why Contact Us?</h3>
                                 <ul className="space-y-4">
                                     {[
@@ -216,7 +216,7 @@ export default function ContactPage() {
                                         "Request advertising information",
                                     ].map((item, index) => (
                                         <li key={index} className="flex items-start gap-3">
-                                            <div className="w-6 h-6 bg-[#cc0000] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                            <div className="w-6 h-6 bg-[#1428AE] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                                                 <svg
                                                     className="w-4 h-4 text-white"
                                                     fill="none"
@@ -270,7 +270,7 @@ export default function ContactPage() {
                         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                             <Button
                                 size="lg"
-                                className="bg-[#cc0000] hover:bg-[#a10006] text-white"
+                                className="bg-[#1428AE] hover:bg-[#000785] text-white"
                                 onClick={() => window.location.href = 'mailto:support@homestv.com'}
                             >
                                 <Mail className="w-4 h-4 mr-2" />

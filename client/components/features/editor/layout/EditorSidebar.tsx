@@ -61,7 +61,7 @@ export default function EditorSidebar() {
                                             "flex items-center gap-3 px-4 py-3 rounded-[8px] transition-colors w-full h-auto",
                                             isActive
                                                 ? "bg-[#F4AA1D] text-black hover:bg-[#F4AA1D] hover:text-black"
-                                                : "text-[#9ca3af] hover:bg-[#252836] hover:text-white",
+                                                : "text-white hover:bg-[rgba(255,255,255,0.1)] hover:text-white",
                                             isCollapsed ? "justify-center" : ""
                                         )}
                                         tooltip={isCollapsed ? item.title : undefined}
@@ -86,7 +86,7 @@ export default function EditorSidebar() {
                             window.location.href = '/admin/login';
                         }}
                         className={cn(
-                            "flex items-center gap-3 px-4 py-3 text-[#9ca3af] hover:bg-[#252836] hover:text-white rounded-[8px] transition-colors w-full",
+                            "flex items-center gap-3 px-4 py-3 text-white hover:bg-[rgba(255,255,255,0.1)] hover:text-white rounded-[8px] transition-colors w-full",
                             isCollapsed ? "justify-center" : ""
                         )}
                         title={isCollapsed ? "Logout" : undefined}

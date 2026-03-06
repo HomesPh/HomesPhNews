@@ -21,6 +21,35 @@ interface BlockDrawerProps {
     isEditor?: boolean;
 }
 
+function TagsInput({ tags, onChange }: { tags: string[], onChange: (tags: string[]) => void }) {
+    const [inputValue, setInputValue] = useState(tags.join(", "));
+
+    useEffect(() => {
+        setInputValue(tags.join(", "));
+    }, [tags]);
+
+    const handleBlur = () => {
+        const newTags = inputValue.split(',').map(t => t.trim()).filter(Boolean);
+        onChange(newTags);
+        // Standardize the display once they leave the field
+        setInputValue(newTags.join(", "));
+    };
+
+    return (
+        <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onBlur={handleBlur}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter') handleBlur();
+            }}
+            placeholder="e.g. Technology, AI, Startup"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none transition-all font-inter text-gray-800"
+        />
+    );
+}
+
 export default function BlockDrawer({
     details,
     onUpdateDetails,
@@ -125,7 +154,7 @@ export default function BlockDrawer({
                     onClick={() => setActiveTab('blocks')}
                     className={cn(
                         "flex-1 py-3 text-xs font-black transition-all rounded-xl uppercase tracking-widest",
-                        activeTab === 'blocks' ? "bg-white text-[#C10007] shadow-sm ring-1 ring-gray-100" : "text-gray-400 hover:text-gray-600"
+                        activeTab === 'blocks' ? "bg-white text-[#1428AE] shadow-sm ring-1 ring-gray-100" : "text-gray-400 hover:text-gray-600"
                     )}
                 >
                     Library
@@ -134,7 +163,7 @@ export default function BlockDrawer({
                     onClick={() => setActiveTab('details')}
                     className={cn(
                         "flex-1 py-3 text-xs font-black transition-all rounded-xl uppercase tracking-widest",
-                        activeTab === 'details' ? "bg-white text-[#C10007] shadow-sm ring-1 ring-gray-100" : "text-gray-400 hover:text-gray-600"
+                        activeTab === 'details' ? "bg-white text-[#1428AE] shadow-sm ring-1 ring-gray-100" : "text-gray-400 hover:text-gray-600"
                     )}
                 >
                     Settings
@@ -147,7 +176,7 @@ export default function BlockDrawer({
                         {blockGroups.map((group) => (
                             <div key={group.title}>
                                 <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-4 flex items-center gap-2">
-                                    <div className="w-1 h-1 rounded-full bg-[#C10007]" />
+                                    <div className="w-1 h-1 rounded-full bg-[#1428AE]" />
                                     {group.title}
                                 </h3>
                                 <div className="grid grid-cols-2 gap-3">
@@ -155,10 +184,10 @@ export default function BlockDrawer({
                                         <button
                                             key={block.type}
                                             onClick={() => onAddBlock(block.type)}
-                                            className="flex flex-col items-center justify-center p-4 bg-white border border-gray-100 rounded-2xl hover:bg-[#fff5f5] hover:border-[#ffd6d6] transition-all group shadow-sm hover:shadow-md"
+                                            className="flex flex-col items-center justify-center p-4 bg-white border border-gray-100 rounded-2xl hover:bg-blue-50 hover:border-blue-200 transition-all group shadow-sm hover:shadow-md"
                                         >
                                             <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center mb-3 group-hover:bg-white transition-colors">
-                                                <block.icon className="w-5 h-5 text-gray-400 group-hover:text-[#C10007] transition-colors" />
+                                                <block.icon className="w-5 h-5 text-gray-400 group-hover:text-[#1428AE] transition-colors" />
                                             </div>
                                             <span className="text-[11px] font-bold text-gray-700 text-center">{block.name}</span>
                                         </button>
@@ -171,7 +200,7 @@ export default function BlockDrawer({
                     <div className="p-6 space-y-6">
                         <section>
                             <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-6 flex items-center gap-2">
-                                <div className="w-1 h-1 rounded-full bg-[#C10007]" />
+                                <div className="w-1 h-1 rounded-full bg-[#1428AE]" />
                                 Meta Details
                             </h3>
                             <div className="space-y-4">
@@ -182,7 +211,7 @@ export default function BlockDrawer({
                                         value={details.title}
                                         onChange={(e) => onUpdateDetails({ title: e.target.value })}
                                         placeholder="Enter title"
-                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#C10007]/20 transition-all font-inter text-gray-800"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#1428AE]/20 transition-all font-inter text-gray-800"
                                     />
                                 </div>
                                 <div>
@@ -191,7 +220,7 @@ export default function BlockDrawer({
                                         value={details.summary}
                                         onChange={(e) => onUpdateDetails({ summary: e.target.value })}
                                         rows={3}
-                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#C10007]/20 transition-all text-gray-600 leading-relaxed"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#1428AE]/20 transition-all text-gray-600 leading-relaxed"
                                     />
                                 </div>
                                 <div>
@@ -203,12 +232,19 @@ export default function BlockDrawer({
                                         className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none transition-all font-mono text-gray-400"
                                     />
                                 </div>
+                                <div>
+                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Topics (comma separated)</label>
+                                    <TagsInput
+                                        tags={details.tags}
+                                        onChange={(tags) => onUpdateDetails({ tags })}
+                                    />
+                                </div>
                             </div>
                         </section>
 
                         <section className="pt-6 border-t border-gray-100">
                             <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-6 flex items-center gap-2">
-                                <div className="w-1 h-1 rounded-full bg-[#C10007]" />
+                                <div className="w-1 h-1 rounded-full bg-[#1428AE]" />
                                 Publishing Config
                             </h3>
                             <div className="grid grid-cols-2 gap-4 mb-4">
@@ -249,36 +285,38 @@ export default function BlockDrawer({
                                     value={details.author}
                                     onChange={(e) => onUpdateDetails({ author: e.target.value })}
                                     placeholder="HOMESPH NEWS"
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#C10007]/20 transition-all font-inter"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#1428AE]/20 transition-all font-inter"
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Publish Date</label>
-                                    <input
-                                        type="date"
-                                        value={details.publishDate}
-                                        onChange={(e) => onUpdateDetails({ publishDate: e.target.value })}
-                                        className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold text-gray-700"
-                                    />
+                            {!isEditor && (
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Publish Date</label>
+                                        <input
+                                            type="date"
+                                            value={details.publishDate}
+                                            onChange={(e) => onUpdateDetails({ publishDate: e.target.value })}
+                                            className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold text-gray-700"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Publish Time</label>
+                                        <input
+                                            type="time"
+                                            value={details.publishTime}
+                                            onChange={(e) => onUpdateDetails({ publishTime: e.target.value })}
+                                            className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold text-gray-700"
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Publish Time</label>
-                                    <input
-                                        type="time"
-                                        value={details.publishTime}
-                                        onChange={(e) => onUpdateDetails({ publishTime: e.target.value })}
-                                        className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold text-gray-700"
-                                    />
-                                </div>
-                            </div>
+                            )}
                         </section>
 
                         {!isEditor && (
                             <section className="pt-6 border-t border-gray-100">
                                 <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-6 flex items-center gap-2">
-                                    <div className="w-1 h-1 rounded-full bg-[#C10007]" />
+                                    <div className="w-1 h-1 rounded-full bg-[#1428AE]" />
                                     Target Platforms
                                 </h3>
                                 <div className="grid grid-cols-1 gap-2">
@@ -295,7 +333,7 @@ export default function BlockDrawer({
                                                         : details.platforms.filter(p => p !== platform);
                                                     onUpdateDetails({ platforms: newPlatforms });
                                                 }}
-                                                className="w-4 h-4 rounded border-gray-300 text-[#C10007] focus:ring-[#C10007] disabled:opacity-50"
+                                                className="w-4 h-4 rounded border-gray-300 text-[#F4AA1D] focus:ring-[#F4AA1D] disabled:opacity-50"
                                             />
                                         </label>
                                     ))}
@@ -304,7 +342,7 @@ export default function BlockDrawer({
                                 {sortedPlatforms.length > 5 && (
                                     <button
                                         onClick={() => setShowAllPlatforms(!showAllPlatforms)}
-                                        className="w-full mt-3 py-2 flex items-center justify-center gap-2 text-[11px] font-black text-[#C10007] bg-[#C10007]/5 rounded-xl hover:bg-[#C10007]/10 transition-all uppercase tracking-widest"
+                                        className="w-full mt-3 py-2 flex items-center justify-center gap-2 text-[11px] font-black text-[#1428AE] bg-[#1428AE]/5 rounded-xl hover:bg-[#1428AE]/10 transition-all uppercase tracking-widest"
                                     >
                                         {showAllPlatforms ? (
                                             <>

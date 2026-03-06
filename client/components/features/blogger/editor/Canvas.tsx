@@ -16,6 +16,24 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
     </svg>
 );
 
+const FacebookIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    </svg>
+);
+
+const LinkedinIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+    </svg>
+);
+
+const ShareIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z" />
+    </svg>
+);
+
 interface AutoResizeTextareaProps {
     value: string;
     onChange: (val: string) => void;
@@ -136,7 +154,7 @@ export default function Canvas({
             className={cn(
                 "w-full bg-white min-h-[1200px] shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-sm pt-[60px] pb-[150px] flex flex-col relative transition-all duration-300 pointer-events-auto h-fit",
                 getContainerWidth(),
-                isActualMobile ? "px-[24px]" : isActualTablet ? "px-[40px]" : "px-[80px]"
+                isActualMobile ? "px-[24px]" : isActualTablet ? "px-[40px]" : "px-[24px] sm:px-[40px] md:px-[80px]"
             )}
             onClick={(e) => {
                 // Ensure clicks on the canvas (empty area) clear selection
@@ -160,7 +178,7 @@ export default function Canvas({
             <AutoResizeTextarea
                 className={cn(
                     "font-bold text-[#111827] tracking-tight leading-[1.1] mb-6",
-                    isActualMobile ? "text-[32px]" : "text-[42px] md:text-[48px]"
+                    isActualMobile ? "text-[32px]" : "text-[32px] sm:text-[42px] md:text-[48px]"
                 )}
                 value={details.title}
                 onChange={(val) => onUpdateDetails({ title: val })}
@@ -171,7 +189,7 @@ export default function Canvas({
             <AutoResizeTextarea
                 className={cn(
                     "font-normal text-[#4b5563] tracking-[-0.5px] leading-[1.2] mb-10",
-                    isActualMobile ? "text-[18px]" : "text-[20px]"
+                    isActualMobile ? "text-[18px]" : "text-[18px] sm:text-[20px]"
                 )}
                 value={details.summary}
                 onChange={(val) => onUpdateDetails({ summary: val })}
@@ -180,8 +198,8 @@ export default function Canvas({
 
             {/* 4. High-Fidelity Meta Bar - Matching Production Style (Border Top & Bottom) */}
             <div className={cn(
-                "flex justify-between border-y border-[#e5e7eb] py-[20px] gap-4",
-                isActualMobile ? "flex-col items-start" : "flex-row items-center"
+                "flex border-y border-[#e5e7eb] py-[20px] gap-4",
+                isActualMobile ? "flex-col items-start" : "flex-col lg:flex-row items-start lg:items-center justify-between"
             )}>
                 <div className="flex flex-wrap items-center gap-y-2 gap-x-[20px] md:gap-x-[34px]">
                     <div className="font-semibold text-[14px] text-[#6b7280] tracking-[-0.5px] leading-[20px]">
@@ -204,9 +222,9 @@ export default function Canvas({
                 {/* Social Share Group - Matching Production Colors */}
                 <div className="flex items-center gap-4">
                     <button className="size-[18px] text-[#25D366] hover:opacity-80 transition-opacity"><WhatsAppIcon className="w-full h-full" /></button>
-                    <button className="size-[18px] text-[#155DFC] hover:opacity-80 transition-opacity"><Facebook className="w-full h-full" /></button>
-                    <button className="size-[18px] text-[#1447E6] hover:opacity-80 transition-opacity"><Linkedin className="w-full h-full" /></button>
-                    <button className="size-[18px] text-[#4A5565] hover:opacity-80 transition-opacity"><Share2 className="w-full h-full" /></button>
+                    <button className="size-[18px] text-[#1877F2] hover:opacity-80 transition-opacity"><FacebookIcon className="w-full h-full" /></button>
+                    <button className="size-[18px] text-[#0077B5] hover:opacity-80 transition-opacity"><LinkedinIcon className="w-full h-full" /></button>
+                    <button className="size-[18px] text-[#4A5565] hover:opacity-80 transition-opacity"><ShareIcon className="w-full h-full" /></button>
                 </div>
             </div>
 
@@ -219,7 +237,7 @@ export default function Canvas({
                             <div className="h-[1px] w-full bg-gray-100" />
                             <button
                                 onClick={() => onAddBlockAt(index, 'text')}
-                                className="absolute w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-[#C10007] hover:border-[#C10007] cursor-pointer shadow-sm transition-all hover:scale-110"
+                                className="absolute w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-[#1428AE] hover:border-[#1428AE] cursor-pointer shadow-sm transition-all hover:scale-110"
                                 title="Add text block here"
                             >
                                 <span className="text-lg font-light leading-none">+</span>
@@ -246,7 +264,7 @@ export default function Canvas({
                                     e.stopPropagation();
                                     onAddBlockAt(index + 1, 'text');
                                 }}
-                                className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-[#C10007] hover:border-[#C10007] cursor-pointer shadow-sm transition-all hover:scale-110 z-30"
+                                className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:text-[#1428AE] hover:border-[#1428AE] cursor-pointer shadow-sm transition-all hover:scale-110 z-30"
                                 title="Add text block below"
                             >
                                 <span className="text-lg font-light leading-none">+</span>

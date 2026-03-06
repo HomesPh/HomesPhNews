@@ -16,6 +16,24 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
     </svg>
 );
 
+const FacebookIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    </svg>
+);
+
+const LinkedinIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+    </svg>
+);
+
+const ShareIcon = ({ className }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z" />
+    </svg>
+);
+
 interface BlogPreviewModalProps {
     blocks: Block[];
     details: BlogDetails;
@@ -84,9 +102,9 @@ export default function BlogPreviewModal({ blocks, details, onClose }: BlogPrevi
                     {/* Social Share Group - Hidden on Mobile Preview if space restricted, but matching desktop */}
                     <div className="flex items-center gap-4">
                         <WhatsAppIcon className="size-[18px] text-[#25D366]" />
-                        <Facebook className="size-[18px] text-[#155DFC]" />
-                        <Linkedin className="size-[18px] text-[#1447E6]" />
-                        <Share2 className="size-[18px] text-[#4A5565]" />
+                        <FacebookIcon className="size-[18px] text-[#1877F2]" />
+                        <LinkedinIcon className="size-[18px] text-[#0077B5]" />
+                        <ShareIcon className="size-[18px] text-[#4A5565]" />
                     </div>
                 </div>
 
@@ -209,8 +227,8 @@ export default function BlogPreviewModal({ blocks, details, onClose }: BlogPrevi
             {/* Preview Header */}
             <div className="h-[72px] bg-white border-b border-gray-100 px-8 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#C10007]/5 flex items-center justify-center">
-                        <Maximize className="w-5 h-5 text-[#C10007]" />
+                    <div className="w-10 h-10 rounded-xl bg-[#1428AE]/5 flex items-center justify-center">
+                        <Maximize className="w-5 h-5 text-[#1428AE]" />
                     </div>
                     <div>
                         <h2 className="text-sm font-black text-gray-900 uppercase tracking-widest">Live Preview</h2>
@@ -222,19 +240,19 @@ export default function BlogPreviewModal({ blocks, details, onClose }: BlogPrevi
                 <div className="flex items-center gap-2 p-1.5 bg-gray-50 rounded-2xl border border-gray-100">
                     <button
                         onClick={() => setViewMode('desktop')}
-                        className={cn("p-2 rounded-xl transition-all", viewMode === 'desktop' ? "bg-white text-[#C10007] shadow-sm" : "text-gray-400 hover:text-gray-600")}
+                        className={cn("p-2 rounded-xl transition-all", viewMode === 'desktop' ? "bg-white text-[#1428AE] shadow-sm" : "text-gray-400 hover:text-gray-600")}
                     >
                         <Monitor className="w-4 h-4" />
                     </button>
                     <button
                         onClick={() => setViewMode('tablet')}
-                        className={cn("p-2 rounded-xl transition-all", viewMode === 'tablet' ? "bg-white text-[#C10007] shadow-sm" : "text-gray-400 hover:text-gray-600")}
+                        className={cn("p-2 rounded-xl transition-all", viewMode === 'tablet' ? "bg-white text-[#1428AE] shadow-sm" : "text-gray-400 hover:text-gray-600")}
                     >
                         <Tablet className="w-4 h-4" />
                     </button>
                     <button
                         onClick={() => setViewMode('mobile')}
-                        className={cn("p-2 rounded-xl transition-all", viewMode === 'mobile' ? "bg-white text-[#C10007] shadow-sm" : "text-gray-400 hover:text-gray-600")}
+                        className={cn("p-2 rounded-xl transition-all", viewMode === 'mobile' ? "bg-white text-[#1428AE] shadow-sm" : "text-gray-400 hover:text-gray-600")}
                     >
                         <Smartphone className="w-4 h-4" />
                     </button>

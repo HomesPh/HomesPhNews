@@ -293,7 +293,7 @@ export default function ArticleRichTextEditor({
                         </Button>
                         <Button
                             onClick={applyLink}
-                            className="flex-1 sm:flex-none bg-[#C10007] hover:bg-[#a10006] text-white"
+                            className="flex-1 sm:flex-none bg-[#1428AE] hover:bg-[#000785] text-white"
                         >
                             Insert Link
                         </Button>
