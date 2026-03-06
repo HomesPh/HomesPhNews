@@ -55,7 +55,7 @@ export default function ContentPerformanceTable({
                                             {item.type === 'Restaurant' && <Utensils className="w-5 h-5" />}
                                         </div>
                                         <div>
-                                            <p className="text-[14px] font-extrabold text-[#111827] group-hover:text-[#C10007] transition-colors tracking-[-0.5px] line-clamp-1 max-w-[300px]">{item.title}</p>
+                                            <p className="text-[14px] font-extrabold text-[#111827] group-hover:text-[#1428AE] transition-colors tracking-[-0.5px] line-clamp-1 max-w-[300px]">{item.title}</p>
                                             <p className="text-[11px] font-bold text-[#9ca3af] uppercase tracking-tighter">{item.type}</p>
                                         </div>
                                     </div>

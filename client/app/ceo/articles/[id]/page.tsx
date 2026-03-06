@@ -151,7 +151,7 @@ function CEOArticleDetailContent() {
                 <h2 className="text-2xl font-bold mb-4">Article Not Found</h2>
                 <button
                     onClick={() => router.push("/ceo/articles")}
-                    className="text-[#C10007] hover:underline"
+                    className="text-[#1428AE] hover:underline"
                 >
                     Back to Articles
                 </button>
@@ -393,9 +393,9 @@ function CEOArticleDetailContent() {
                                                     type="checkbox"
                                                     checked={publishToSites.includes(site)}
                                                     onChange={() => toggleSite(site)}
-                                                    className="w-4 h-4 rounded border-[#d1d5db] text-[#C10007] focus:ring-[#C10007]"
+                                                    className="w-4 h-4 rounded border-[#d1d5db] text-[#1428AE] focus:ring-[#1428AE]"
                                                 />
-                                                <span className="text-[13px] text-[#374151] group-hover:text-[#C10007] transition-colors">
+                                                <span className="text-[13px] text-[#374151] group-hover:text-[#1428AE] transition-colors">
                                                     {site}
                                                 </span>
                                             </label>
@@ -406,7 +406,7 @@ function CEOArticleDetailContent() {
                                         <button
                                             onClick={() => setShowApproveDialog(true)}
                                             disabled={isApproving}
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#3b82f6] text-white rounded-[8px] text-[14px] font-semibold hover:bg-[#2563eb] transition-all active:scale-95 shadow-sm disabled:opacity-50"
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#1428AE] text-white rounded-[8px] text-[14px] font-semibold hover:bg-[#000785] transition-all active:scale-95 shadow-sm disabled:opacity-50"
                                         >
                                             {isApproving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                                             Approve & Publish

@@ -40,8 +40,8 @@ export default function ReaderRetentionChart({ data }: ReaderRetentionChartProps
                     <AreaChart data={data}>
                         <defs>
                             <linearGradient id="colorRetention" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#C10007" stopOpacity={0.1} />
-                                <stop offset="95%" stopColor="#C10007" stopOpacity={0} />
+                                <stop offset="5%" stopColor="#1428AE" stopOpacity={0.1} />
+                                <stop offset="95%" stopColor="#1428AE" stopOpacity={0} />
                             </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -73,11 +73,11 @@ export default function ReaderRetentionChart({ data }: ReaderRetentionChartProps
                         <Area
                             type="monotone"
                             dataKey="percentage"
-                            stroke="#C10007"
+                            stroke="#1428AE"
                             strokeWidth={3}
                             fillOpacity={1}
                             fill="url(#colorRetention)"
-                            activeDot={{ r: 6, strokeWidth: 0, fill: '#C10007' }}
+                            activeDot={{ r: 6, strokeWidth: 0, fill: '#1428AE' }}
                         />
                     </AreaChart>
                 </ResponsiveContainer>

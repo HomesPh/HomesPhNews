@@ -66,7 +66,7 @@ export default function BloggerDashboardPage() {
     const distributionSites = data?.stats.total_distribution.map(d => ({
         name: d.distributed_in,
         count: d.published_count,
-        color: "#C10007"
+        color: "#1428AE"
     })) ?? [];
 
     return (
@@ -101,7 +101,7 @@ export default function BloggerDashboardPage() {
                         <h2 className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">Recent Blogs</h2>
                         <Link
                             href="/blogger/blogs"
-                            className="text-[14px] font-semibold text-[#C10007] hover:text-[#a10006] tracking-[-0.5px]"
+                            className="text-[14px] font-semibold text-[#1428AE] hover:text-[#000785] tracking-[-0.5px]"
                         >
                             View All →
                         </Link>

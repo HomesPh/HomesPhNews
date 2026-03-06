@@ -224,7 +224,7 @@ export default function CreateEventPage() {
                                     <option value="">All Categories</option>
                                     {availableFilters.categories.map(cat => (
                                         <option key={cat.name} value={cat.name}>
-                                            {cat.name} <span className="text-[#C10007]">({cat.count})</span>
+                                            {cat.name} <span className="text-[#1428AE]">({cat.count})</span>
                                         </option>
                                     ))}
                                 </select>
@@ -237,7 +237,7 @@ export default function CreateEventPage() {
                                     <option value="">All Countries</option>
                                     {availableFilters.countries.map(c => (
                                         <option key={c.name} value={c.name}>
-                                            {c.name} <span className="text-[#C10007]">({c.count})</span>
+                                            {c.name} <span className="text-[#1428AE]">({c.count})</span>
                                         </option>
                                     ))}
                                 </select>

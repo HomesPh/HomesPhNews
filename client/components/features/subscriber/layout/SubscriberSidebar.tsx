@@ -111,13 +111,8 @@ export default function SubscriberSidebar() {
                             <img
                                 src={branding.logo}
                                 alt={branding.name}
-                                className="w-10 h-10 object-contain"
+                                className="h-12 w-auto object-contain"
                             />
-                            <div className="flex flex-col">
-                                <h1 className="text-[20px] font-bold leading-[1.4] tracking-[-0.5px] truncate max-w-[150px]" style={{ color: theme.sidebarText }}>
-                                    {branding.name}
-                                </h1>
-                            </div>
                         </div>
                     ) : (
                         <div className="flex justify-center">
@@ -141,10 +136,11 @@ export default function SubscriberSidebar() {
                                         asChild
                                         className={cn(
                                             "flex items-center gap-3 px-4 py-3 rounded-[8px] transition-colors w-full h-auto",
-                                            !isActive && "hover:bg-white/10",
+                                            isActive
+                                                ? "bg-[#F4AA1D] text-black hover:bg-[#F4AA1D] hover:text-black"
+                                                : "text-white hover:bg-[rgba(255,255,255,0.1)] hover:text-white",
                                             isCollapsed ? "justify-center" : ""
                                         )}
-                                        style={isActive ? { backgroundColor: theme.primary, color: theme.activeText } : { color: theme.sidebarText }}
                                         tooltip={isCollapsed ? item.title : undefined}
                                     >
                                         <Link href={item.href} className={cn("flex items-center w-full", isCollapsed ? "justify-center" : "")}>

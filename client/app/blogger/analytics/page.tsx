@@ -64,7 +64,7 @@ export default function BloggerAnalyticsPage() {
                         <button
                             onClick={() => setViewMode('overview')}
                             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${viewMode === 'overview'
-                                ? 'bg-white text-[#C10007] shadow-sm'
+                                ? 'bg-white text-[#1428AE] shadow-sm'
                                 : 'text-gray-500 hover:text-gray-900'
                                 }`}
                         >
@@ -74,7 +74,7 @@ export default function BloggerAnalyticsPage() {
                         <button
                             onClick={() => setViewMode('individual')}
                             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${viewMode === 'individual'
-                                ? 'bg-white text-[#C10007] shadow-sm'
+                                ? 'bg-white text-[#1428AE] shadow-sm'
                                 : 'text-gray-500 hover:text-gray-900'
                                 }`}
                         >
@@ -89,7 +89,7 @@ export default function BloggerAnalyticsPage() {
                             <select
                                 value={dateRange}
                                 onChange={(e) => setDateRange(e.target.value)}
-                                className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.3px] cursor-pointer"
+                                className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.3px] cursor-pointer"
                             >
                                 <option>Last 7 Days</option>
                                 <option>Last 30 Days</option>
@@ -105,7 +105,7 @@ export default function BloggerAnalyticsPage() {
                             <select
                                 value={exportFormat}
                                 onChange={(e) => setExportFormat(e.target.value)}
-                                className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.3px] cursor-pointer w-[100px]"
+                                className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.3px] cursor-pointer w-[100px]"
                             >
                                 <option>CSV</option>
                                 <option>PDF</option>
@@ -115,7 +115,7 @@ export default function BloggerAnalyticsPage() {
                         <button
                             onClick={handleExport}
                             disabled={isLoading}
-                            className="flex items-center gap-2 px-5 h-[50px] bg-[#C10007] text-white rounded-[6px] hover:bg-[#a10006] transition-colors disabled:opacity-50"
+                            className="flex items-center gap-2 px-5 h-[50px] bg-[#1428AE] text-white rounded-[6px] hover:bg-[#000785] transition-colors disabled:opacity-50"
                         >
                             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                             <span className="hidden md:inline text-[14px] font-medium tracking-[-0.3px]">Export Report</span>

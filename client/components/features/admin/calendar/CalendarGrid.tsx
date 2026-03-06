@@ -118,7 +118,7 @@ export default function CalendarGrid({
                                     <p className="text-[11px] font-semibold text-[#6b7280] tracking-[-0.5px] uppercase mb-1">
                                         {dayNamesShort[idx]}
                                     </p>
-                                    <p className={`text-[24px] font-bold tracking-[-0.5px] ${isToday ? 'text-[#C10007]' : 'text-[#111827]'}`}>
+                                    <p className={`text-[24px] font-bold tracking-[-0.5px] ${isToday ? 'text-[#1428AE]' : 'text-[#111827]'}`}>
                                         {date.getDate()}
                                     </p>
                                 </div>
@@ -202,7 +202,7 @@ export default function CalendarGrid({
                                 {/* Date Number */}
                                 <div className="mb-2">
                                     {isToday ? (
-                                        <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#C10007] text-white">
+                                        <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#1428AE] text-white">
                                             <p className="text-[14px] font-semibold tracking-[-0.5px]">
                                                 {day.date.getDate()}
                                             </p>
@@ -266,7 +266,7 @@ export default function CalendarGrid({
                         <div key={monthIdx} className="bg-white rounded-[8px] border border-[#e5e7eb] overflow-hidden shadow-sm">
                             {/* Red Header Bar */}
                             <div
-                                className="bg-[#C10007] px-4 py-[11px] flex items-center justify-between cursor-pointer hover:bg-[#a10006] transition-colors"
+                                className="bg-[#1428AE] px-4 py-[11px] flex items-center justify-between cursor-pointer hover:bg-[#000785] transition-colors"
                                 onClick={() => onMonthClick(selectedYear, monthIdx)}
                             >
                                 <p className="text-[16px] font-bold text-white tracking-[-0.5px] leading-[24px]">
@@ -307,10 +307,10 @@ export default function CalendarGrid({
                                             <div
                                                 key={idx}
                                                 onClick={() => onDateClick(new Date(selectedYear, monthIdx, day))}
-                                                className={`aspect-square rounded-[4px] flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors ${isTodayCell ? 'bg-[#fca5a5]' : ''
+                                                className={`aspect-square rounded-full flex items-center justify-center cursor-pointer transition-colors ${isTodayCell ? 'bg-[#1428AE] hover:bg-[#000785]' : 'hover:bg-gray-100'
                                                     }`}
                                             >
-                                                <p className={`text-[11px] font-medium tracking-[-0.5px] leading-[11px] ${isTodayCell ? 'text-[#7f1d1d]' : hasEvents ? 'text-[#374151]' : 'text-[#6b7280]'
+                                                <p className={`text-[11px] font-medium tracking-[-0.5px] leading-[11px] ${isTodayCell ? 'text-white' : hasEvents ? 'text-[#374151]' : 'text-[#6b7280]'
                                                     }`}>
                                                     {day}
                                                 </p>
