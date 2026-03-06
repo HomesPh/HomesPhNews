@@ -49,7 +49,7 @@ export default function LinkModal({ isOpen, onClose, onSave, initialUrl = "" }: 
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
                             placeholder="https://example.com"
-                            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent transition-all"
+                            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent transition-all"
                             autoFocus
                         />
                     </div>
@@ -66,7 +66,7 @@ export default function LinkModal({ isOpen, onClose, onSave, initialUrl = "" }: 
                                 onSave(url);
                                 onClose();
                             }}
-                            className="px-6 py-2 text-sm font-bold text-white bg-[#C10007] hover:bg-[#a00006] rounded-lg shadow-sm shadow-red-100 transition-all"
+                            className="px-6 py-2 text-sm font-bold text-white bg-[#1428AE] hover:bg-[#000785] rounded-lg shadow-sm shadow-blue-100 transition-all"
                         >
                             Save Link
                         </button>

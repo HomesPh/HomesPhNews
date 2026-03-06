@@ -64,7 +64,7 @@ export default function EditorHeader({
                     className={cn(
                         "px-4 py-2 text-sm font-semibold transition-all rounded-lg",
                         primarySave
-                            ? "text-white bg-[#C10007] hover:bg-[#a00006] shadow-sm shadow-[#C10007]/20"
+                            ? "text-white bg-[#1428AE] hover:bg-[#000785] shadow-sm shadow-[#1428AE]/20"
                             : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                     )}
                 >
@@ -75,7 +75,7 @@ export default function EditorHeader({
                         <div className="h-6 w-[1px] bg-gray-200"></div>
                         <button
                             onClick={onPublish}
-                            className="px-5 py-2 text-sm font-semibold text-white bg-[#C10007] hover:bg-[#a00006] rounded-lg shadow-sm shadow-[#C10007]/20 transition-all flex items-center gap-2"
+                            className="px-5 py-2 text-sm font-semibold text-white bg-[#1428AE] hover:bg-[#000785] rounded-lg shadow-sm shadow-[#1428AE]/20 transition-all flex items-center gap-2"
                         >
                             Publish
                         </button>

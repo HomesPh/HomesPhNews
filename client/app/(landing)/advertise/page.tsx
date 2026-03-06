@@ -33,7 +33,7 @@ const adPackages = [
         features: ["Native Articles", "Newsletter Features"],
         popular: true,
         icon: Megaphone,
-        color: "from-red-500 to-red-600",
+        color: "from-[#F4AA1D] to-[#d99619]",
     },
     {
         name: "Custom Partnerships",
@@ -82,7 +82,7 @@ export default function AdvertisePage() {
                             <div className="flex flex-col sm:flex-row gap-4 pt-4">
                                 <Button
                                     size="lg"
-                                    className="bg-[#cc0000] hover:bg-[#A10006] text-white"
+                                    className="bg-[#1428AE] hover:bg-[#000785] text-white"
                                     onClick={() => window.location.href = '/contact'}
                                 >
                                     Contact Sales
@@ -200,13 +200,13 @@ export default function AdvertisePage() {
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
                                 whileHover={{ y: -8 }}
                                 className={`bg-card border-2 rounded-2xl p-8 space-y-6 transition-all relative ${pkg.popular
-                                    ? "border-[#cc0000] shadow-2xl scale-105"
+                                    ? "border-[#1428AE] shadow-2xl scale-105"
                                     : "border-border shadow-lg hover:shadow-xl"
                                     }`}
                             >
                                 {pkg.popular && (
                                     <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                                        <span className="bg-[#cc0000] text-white px-6 py-1.5 rounded-full text-sm font-bold shadow-lg">
+                                        <span className="bg-[#1428AE] text-white px-6 py-1.5 rounded-full text-sm font-bold shadow-lg">
                                             MOST POPULAR
                                         </span>
                                     </div>
@@ -224,7 +224,7 @@ export default function AdvertisePage() {
                                 <div className="space-y-3 pt-4">
                                     {pkg.features.map((feature, idx) => (
                                         <div key={idx} className="flex items-center gap-3">
-                                            <div className="w-6 h-6 bg-[#cc0000] rounded-full flex items-center justify-center flex-shrink-0">
+                                            <div className="w-6 h-6 bg-[#1428AE] rounded-full flex items-center justify-center flex-shrink-0">
                                                 <Check className="w-4 h-4 text-white" />
                                             </div>
                                             <span className="text-sm font-medium">{feature}</span>
@@ -234,7 +234,7 @@ export default function AdvertisePage() {
 
                                 <Button
                                     className={`w-full ${pkg.popular
-                                        ? "bg-[#cc0000] hover:bg-[#A10006]"
+                                        ? "bg-[#1428AE] hover:bg-[#000785]"
                                         : "bg-foreground hover:bg-foreground/90"
                                         } text-white`}
                                     size="lg"
@@ -274,7 +274,7 @@ export default function AdvertisePage() {
                             transition={{ duration: 0.8 }}
                             className="space-y-6"
                         >
-                            <div className="inline-flex items-center gap-2 bg-red-50 dark:bg-red-950/30 text-[#cc0000] px-4 py-2 rounded-full">
+                            <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950/30 text-[#1428AE] px-4 py-2 rounded-full">
                                 <Target className="w-4 h-4" />
                                 <span className="text-sm font-semibold">Partnership Benefits</span>
                             </div>
@@ -298,7 +298,7 @@ export default function AdvertisePage() {
                                         transition={{ duration: 0.5, delay: index * 0.1 }}
                                         className="flex items-start gap-3"
                                     >
-                                        <div className="w-6 h-6 bg-[#cc0000] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <div className="w-6 h-6 bg-[#1428AE] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                                             <Check className="w-4 h-4 text-white" />
                                         </div>
                                         <span className="text-muted-foreground">{benefit}</span>
@@ -334,7 +334,7 @@ export default function AdvertisePage() {
                         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                             <Button
                                 size="lg"
-                                className="bg-[#cc0000] hover:bg-[#a10006] text-white"
+                                className="bg-[#1428AE] hover:bg-[#000785] text-white"
                                 onClick={() => window.location.href = '/contact'}
                             >
                                 Contact Sales Team

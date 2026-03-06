@@ -128,7 +128,7 @@ export default function ProfileSettings({
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-2 px-4 py-2 text-[14px] text-[#C10007] border border-[#C10007] rounded-[6px] hover:bg-[#fef2f2] transition-colors tracking-[-0.5px] font-medium"
+                        className="flex items-center gap-2 px-4 py-2 text-[14px] text-[#1428AE] border border-[#1428AE] rounded-[6px] hover:bg-[#eff6ff] transition-colors tracking-[-0.5px] font-medium"
                     >
                         <Upload className="w-4 h-4" />
                         Upload Photo
@@ -167,7 +167,7 @@ export default function ProfileSettings({
                 <button
                     onClick={handleSaveProfile}
                     disabled={isLoading}
-                    className="flex items-center gap-2 px-8 py-2.5 bg-[#C10007] text-white rounded-[8px] hover:bg-[#a10006] transition-colors text-[14px] font-medium tracking-[-0.5px] shadow-lg shadow-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto justify-center"
+                    className="flex items-center gap-2 px-8 py-2.5 bg-[#1428AE] text-white rounded-[8px] hover:bg-[#000785] transition-colors text-[14px] font-medium tracking-[-0.5px] shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto justify-center"
                 >
                     {isLoading ? "Saving..." : (
                         <>

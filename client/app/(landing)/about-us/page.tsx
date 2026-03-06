@@ -136,7 +136,7 @@ export default function AboutUsPage() {
                             className="space-y-6"
                         >
                             <div className="inline-block">
-                                <span className="bg-[#cc0000] text-white px-4 py-2 rounded-full text-sm font-semibold">
+                                <span className="bg-[#1428AE] text-white px-4 py-2 rounded-full text-sm font-semibold">
                                     About Us
                                 </span>
                             </div>
@@ -153,7 +153,7 @@ export default function AboutUsPage() {
 
             {/* Stats Section */}
             <section className="py-20 bg-background relative">
-                <div className="absolute inset-0 bg-gradient-to-b from-red-50/50 to-transparent dark:from-red-950/10" />
+                <div className="absolute inset-0 bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-950/10" />
 
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -193,7 +193,7 @@ export default function AboutUsPage() {
                             transition={{ duration: 0.8 }}
                             className="space-y-6"
                         >
-                            <div className="inline-flex items-center gap-2 bg-red-50 dark:bg-red-950/30 text-[#cc0000] px-4 py-2 rounded-full">
+                            <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950/30 text-[#1428AE] px-4 py-2 rounded-full">
                                 <Target className="w-4 h-4" />
                                 <span className="text-sm font-semibold">Our Mission</span>
                             </div>
@@ -222,7 +222,7 @@ export default function AboutUsPage() {
                                     className="object-cover"
                                 />
                             </div>
-                            <div className="absolute -bottom-6 -left-6 bg-[#cc0000] text-white p-6 rounded-2xl shadow-xl max-w-xs">
+                            <div className="absolute -bottom-6 -left-6 bg-[#1428AE] text-white p-6 rounded-2xl shadow-xl max-w-xs">
                                 <p className="font-semibold text-lg">Connecting the World</p>
                                 <p className="text-sm opacity-90 mt-2">
                                     Bridging local insights with global perspectives
@@ -255,7 +255,7 @@ export default function AboutUsPage() {
                                 icon: Target,
                                 title: "Accuracy",
                                 description: "We prioritize truth and precision in every story we publish, ensuring our readers receive reliable information they can trust.",
-                                color: "from-red-500 to-red-600",
+                                color: "from-[#F4AA1D] to-[#d99619]",
                             },
                             {
                                 icon: Award,
@@ -300,7 +300,7 @@ export default function AboutUsPage() {
                         transition={{ duration: 0.6 }}
                         className="text-center mb-16"
                     >
-                        <div className="inline-flex items-center gap-2 bg-red-50 dark:bg-red-950/30 text-[#cc0000] px-4 py-2 rounded-full mb-4">
+                        <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950/30 text-[#1428AE] px-4 py-2 rounded-full mb-4">
                             <Users className="w-4 h-4" />
                             <span className="text-sm font-semibold">Our Team</span>
                         </div>
@@ -332,7 +332,7 @@ export default function AboutUsPage() {
                                             </div>
                                             <div>
                                                 <h3 className="text-xl font-bold mb-1">{member.name}</h3>
-                                                <p className="text-sm text-[#cc0000] font-semibold mb-3">
+                                                <p className="text-sm text-[#1428AE] font-semibold mb-3">
                                                     {member.role}
                                                 </p>
                                                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -376,7 +376,7 @@ export default function AboutUsPage() {
                         <div className="flex justify-center pt-8">
                             <a
                                 href="/"
-                                className="bg-[#cc0000] hover:bg-[#a10006] text-white font-semibold py-3 px-8 rounded-full transition-colors shadow-lg flex items-center gap-2"
+                                className="bg-[#1428AE] hover:bg-[#000785] text-white font-semibold py-3 px-8 rounded-full transition-colors shadow-lg flex items-center gap-2"
                             >
                                 Start Exploring
                                 <ArrowRight className="w-5 h-5" />

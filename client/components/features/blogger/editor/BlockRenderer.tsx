@@ -100,7 +100,7 @@ const DraggableImage = ({
             ref={containerRef}
             className={cn(
                 "bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 group/img relative overflow-hidden shadow-inner",
-                isRepositioning && "ring-2 ring-[#C10007] ring-offset-2 cursor-move",
+                isRepositioning && "ring-2 ring-[#1428AE] ring-offset-2 cursor-move",
                 !src && "min-h-[200px]", // Force min-height for placeholder
                 className
             )}
@@ -122,7 +122,7 @@ const DraggableImage = ({
             ) : (
                 <label className="text-center cursor-pointer w-full h-full flex flex-col items-center justify-center p-4 hover:bg-gray-100 transition-colors">
                     <ImageIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                    <span className="text-xs font-bold text-[#C10007] bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-100 block whitespace-nowrap">
+                    <span className="text-xs font-bold text-[#1428AE] bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-100 block whitespace-nowrap">
                         {placeholderLabel}
                     </span>
                     <input type="file" className="hidden" accept="image/*" onChange={onUpload} />
@@ -159,7 +159,7 @@ const DraggableImage = ({
                 <div className="absolute top-2 right-2 z-20">
                     <button
                         onClick={(e) => { e.stopPropagation(); setIsRepositioning(false); }}
-                        className="bg-[#C10007] text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1 hover:bg-[#a00006] transition-colors"
+                        className="bg-[#1428AE] text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1 hover:bg-[#000785] transition-colors"
                     >
                         <Check className="w-3.5 h-3.5" /> Done
                     </button>
@@ -300,7 +300,7 @@ export default function BlockRenderer({
 
             return (
                 <ListWrapper className={listClass}>
-                    <li className={settings.listType ? 'marker:text-[#C10007]' : ''}>
+                    <li className={settings.listType ? 'marker:text-[#1428AE]' : ''}>
                         <RichTextEditor
                             content={block.content.text}
                             onChange={(val) => onUpdate(block.id, { text: val })}
@@ -415,7 +415,7 @@ export default function BlockRenderer({
                                     onClick={() => {
                                         onUpdate(block.id, { images: [...images, ""] });
                                     }}
-                                    className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:text-[#C10007] hover:border-[#C10007] transition-all bg-gray-50/50 hover:bg-white"
+                                    className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:text-[#1428AE] hover:border-[#1428AE] transition-all bg-gray-50/50 hover:bg-white"
                                 >
                                     <Plus className="w-8 h-8 mb-2" />
                                     <span className="text-xs font-bold uppercase tracking-wider">Add Image</span>
@@ -479,7 +479,7 @@ export default function BlockRenderer({
                         ))}
                         <button
                             onClick={() => onUpdate(block.id, { images: [...dynImgs, ""] })}
-                            className="w-full py-6 border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-[#C10007] hover:bg-white hover:border-[#ffd6d6] transition-all"
+                            className="w-full py-6 border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-[#1428AE] hover:bg-white hover:border-blue-200 transition-all"
                         >
                             <Plus className="w-6 h-6 mb-1" />
                             <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">Add Image to Stack</span>
@@ -500,7 +500,7 @@ export default function BlockRenderer({
             }}
             className={cn(
                 "group relative bg-transparent rounded-xl transition-all duration-200 mb-2",
-                isActive ? "ring-2 ring-[#C10007] ring-offset-8 z-10" : "hover:bg-gray-50/50",
+                isActive ? "ring-2 ring-[#1428AE] ring-offset-8 z-10" : "hover:bg-gray-50/50",
                 isDragging && "opacity-20 scale-95"
             )}
         >
@@ -511,7 +511,7 @@ export default function BlockRenderer({
             )}>
                 <div className="p-1 px-1.5 bg-white rounded-lg shadow-sm border border-gray-100 flex flex-col gap-0.5">
                     <button
-                        className="p-1.5 hover:bg-gray-50 rounded-md text-gray-400 hover:text-[#C10007] cursor-grab active:cursor-grabbing"
+                        className="p-1.5 hover:bg-gray-50 rounded-md text-gray-400 hover:text-[#1428AE] cursor-grab active:cursor-grabbing"
                         title="Drag to reorder"
                     >
                         <GripVertical className="w-3.5 h-3.5" />

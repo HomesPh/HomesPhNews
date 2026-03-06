@@ -67,7 +67,7 @@ export default function FAQsPage() {
     return (
         <div className="min-h-screen bg-background">
             {/* Hero Section */}
-            <section className="py-20 bg-gradient-to-b from-red-50/50 to-transparent dark:from-red-950/10">
+            <section className="py-20 bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-950/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -113,14 +113,14 @@ export default function FAQsPage() {
                                 className="group cursor-pointer"
                                 onClick={() => setSelectedFaq(index)} // Simple scrolling or linking logic could be added here
                             >
-                                <div className="bg-card border border-border rounded-xl p-6 h-full transition-all hover:shadow-lg hover:border-[#cc0000]/30">
+                                <div className="bg-card border border-border rounded-xl p-6 h-full transition-all hover:shadow-lg hover:border-[#1428AE]/30">
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="w-12 h-12 bg-blue-100 dark:bg-blue-950/30 rounded-xl flex items-center justify-center">
                                             <category.icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                                         </div>
-                                        <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-[#cc0000] transition-colors" />
+                                        <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-[#1428AE] transition-colors" />
                                     </div>
-                                    <h3 className="font-semibold text-base mb-2 group-hover:text-[#cc0000] transition-colors">
+                                    <h3 className="font-semibold text-base mb-2 group-hover:text-[#1428AE] transition-colors">
                                         {category.title}
                                     </h3>
                                     <p className="text-sm text-muted-foreground leading-relaxed">

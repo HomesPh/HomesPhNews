@@ -95,7 +95,7 @@ function FooterContent() {
                 href={getHref("country", "Global")}
                 scroll={true}
                 onClick={handleScrollTop}
-                className="font-normal text-[13px] text-[#c10007] hover:text-white cursor-pointer transition-colors"
+                className="font-normal text-[13px] text-[#1428AE] hover:text-white cursor-pointer transition-colors"
               >
                 View All
               </Link>
@@ -126,7 +126,7 @@ function FooterContent() {
                 href={getHref("category", "All")}
                 scroll={true}
                 onClick={handleScrollTop}
-                className="font-normal text-[13px] text-[#c10007] hover:text-white cursor-pointer transition-colors"
+                className="font-normal text-[13px] text-[#1428AE] hover:text-white cursor-pointer transition-colors"
               >
                 View All
               </Link>
@@ -171,21 +171,21 @@ function FooterContent() {
           <div className="flex flex-col gap-3">
             <a href="https://wa.me/" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"
               className="flex items-center gap-2 group">
-              <span className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#c10007] transition-colors group-hover:bg-[#c10007]">
+              <span className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#1428AE] transition-colors group-hover:bg-[#1428AE]">
                 <WhatsAppIcon className="w-4 h-4 text-[#030213] group-hover:text-white transition-colors" />
               </span>
               <span className="text-[13px] text-[#9ca3af] group-hover:text-white transition-colors">WhatsApp</span>
             </a>
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook"
               className="flex items-center gap-2 group">
-              <span className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#c10007] transition-colors group-hover:bg-[#c10007]">
+              <span className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#1428AE] transition-colors group-hover:bg-[#1428AE]">
                 <Facebook className="w-4 h-4 text-[#030213] group-hover:text-white transition-colors" fill="currentColor" strokeWidth={0} />
               </span>
               <span className="text-[13px] text-[#9ca3af] group-hover:text-white transition-colors">Facebook</span>
             </a>
             <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"
               className="flex items-center gap-2 group">
-              <span className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#c10007] transition-colors group-hover:bg-[#c10007]">
+              <span className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-[#1428AE] transition-colors group-hover:bg-[#1428AE]">
                 <Linkedin className="w-4 h-4 text-[#030213] group-hover:text-white transition-colors" fill="currentColor" strokeWidth={0} />
               </span>
               <span className="text-[13px] text-[#9ca3af] group-hover:text-white transition-colors">LinkedIn</span>

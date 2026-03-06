@@ -58,7 +58,7 @@ export default function ArticleDistribution({ sites, totalArticles, className }:
                 <Dialog open={isOpen} onOpenChange={setIsOpen}>
                     <DialogTrigger asChild>
                         <button
-                            className="text-[14px] font-semibold text-[#C10007] hover:text-[#a10006] tracking-[-0.5px]"
+                            className="text-[14px] font-semibold text-[#1428AE] hover:text-[#000785] tracking-[-0.5px]"
                         >
                             {hasMore ? `View All ${sites.length} Distributions` : 'View Detailed Distribution'}
                         </button>
@@ -81,7 +81,7 @@ export default function ArticleDistribution({ sites, totalArticles, className }:
                                                         {site.totalViews.toLocaleString()} total views
                                                     </span>
                                                 )}
-                                                <span className="text-[11px] text-[#C10007] font-bold tracking-[-0.5px]">
+                                                <span className="text-[11px] text-[#1428AE] font-bold tracking-[-0.5px]">
                                                     {site.count} articles
                                                 </span>
                                             </div>
@@ -90,7 +90,7 @@ export default function ArticleDistribution({ sites, totalArticles, className }:
                                             label=""
                                             value={site.count}
                                             max={totalArticles}
-                                            color={index < 3 ? "bg-[#C10007]" : "bg-gray-300"}
+                                            color={index < 3 ? "bg-[#1428AE]" : "bg-gray-300"}
                                         />
                                     </div>
                                 ))}
@@ -118,7 +118,7 @@ export default function ArticleDistribution({ sites, totalArticles, className }:
                                             />
                                             <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={20}>
                                                 {sortedSites.map((_, index) => (
-                                                    <Cell key={`cell-${index}`} fill={index < 3 ? '#C10007' : '#9ca3af'} />
+                                                    <Cell key={`cell-${index}`} fill={index < 3 ? '#1428AE' : '#9ca3af'} />
                                                 ))}
                                             </Bar>
                                         </BarChart>

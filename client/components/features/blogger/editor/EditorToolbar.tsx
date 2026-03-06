@@ -49,7 +49,7 @@ export default function EditorToolbar({
 
     const colors = [
         "#000000", "#4B5563", "#9CA3AF", "#FFFFFF",
-        "#C10007", "#B91C1C", "#F87171",
+        "#1428AE", "#B91C1C", "#F87171",
         "#1D4ED8", "#3B82F6",
         "#047857", "#10B981",
         "#D97706", "#F59E0B"
@@ -137,7 +137,7 @@ export default function EditorToolbar({
                             onClick={() => onViewModeChange(mode.id as any)}
                             className={cn(
                                 "p-2 rounded-lg transition-all",
-                                viewMode === mode.id ? "bg-white shadow-sm text-[#C10007]" : "text-gray-400 hover:text-gray-600"
+                                viewMode === mode.id ? "bg-white shadow-sm text-[#1428AE]" : "text-gray-400 hover:text-gray-600"
                             )}
                         >
                             <mode.icon className="w-4 h-4" />
@@ -168,7 +168,7 @@ export default function EditorToolbar({
                                         handleFormat('fontFamily', font);
                                         setShowFontFamily(false);
                                     }}
-                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700 hover:text-[#C10007]"
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700 hover:text-[#1428AE]"
                                     style={{ fontFamily: font }}
                                 >
                                     {font}
@@ -185,7 +185,7 @@ export default function EditorToolbar({
                                 const val = parseInt((currentFontSize || settings.fontSize || '18').replace('px', '')) - 1;
                                 updateFontSize(val + 'px');
                             }}
-                            className="p-1.5 hover:text-[#C10007] transition-colors"
+                            className="p-1.5 hover:text-[#1428AE] transition-colors"
                         >
                             <Minus className="w-3 h-3" />
                         </button>
@@ -200,7 +200,7 @@ export default function EditorToolbar({
                                 const val = parseInt((currentFontSize || settings.fontSize || '18').replace('px', '')) + 1;
                                 updateFontSize(val + 'px');
                             }}
-                            className="p-1.5 hover:text-[#C10007] transition-colors"
+                            className="p-1.5 hover:text-[#1428AE] transition-colors"
                         >
                             <Plus className="w-3 h-3" />
                         </button>
@@ -211,19 +211,19 @@ export default function EditorToolbar({
                 <div className="flex items-center gap-1 p-1 bg-gray-50 rounded-xl border border-gray-100 relative">
                     <button
                         onClick={() => handleFormat('bold')}
-                        className={cn("p-2 rounded-lg transition-all", isBold ? "bg-white shadow-sm text-[#C10007]" : "text-gray-500 hover:text-gray-900")}
+                        className={cn("p-2 rounded-lg transition-all", isBold ? "bg-white shadow-sm text-[#1428AE]" : "text-gray-500 hover:text-gray-900")}
                     >
                         <Bold className="w-4 h-4" />
                     </button>
                     <button
                         onClick={() => handleFormat('italic')}
-                        className={cn("p-2 rounded-lg transition-all", isItalic ? "bg-white shadow-sm text-[#C10007]" : "text-gray-500 hover:text-gray-900")}
+                        className={cn("p-2 rounded-lg transition-all", isItalic ? "bg-white shadow-sm text-[#1428AE]" : "text-gray-500 hover:text-gray-900")}
                     >
                         <Italic className="w-4 h-4" />
                     </button>
                     <button
                         onClick={() => handleFormat('underline')}
-                        className={cn("p-2 rounded-lg transition-all", isUnderline ? "bg-white shadow-sm text-[#C10007]" : "text-gray-500 hover:text-gray-900")}
+                        className={cn("p-2 rounded-lg transition-all", isUnderline ? "bg-white shadow-sm text-[#1428AE]" : "text-gray-500 hover:text-gray-900")}
                     >
                         <Underline className="w-4 h-4" />
                     </button>
@@ -232,7 +232,7 @@ export default function EditorToolbar({
                     <div className="relative">
                         <button
                             onClick={() => setShowColorPicker(!showColorPicker)}
-                            className={cn("p-2 rounded-lg transition-all flex items-center gap-1", !!currentColor ? "bg-white shadow-sm text-[#C10007]" : "text-gray-500 hover:text-gray-900")}
+                            className={cn("p-2 rounded-lg transition-all flex items-center gap-1", !!currentColor ? "bg-white shadow-sm text-[#1428AE]" : "text-gray-500 hover:text-gray-900")}
                         >
                             <Palette className="w-4 h-4" />
                             {currentColor && (
@@ -258,7 +258,7 @@ export default function EditorToolbar({
                                         handleFormat('color', undefined);
                                         setShowColorPicker(false);
                                     }}
-                                    className="col-span-4 text-xs font-bold text-gray-500 hover:text-[#C10007] mt-2 text-center"
+                                    className="col-span-4 text-xs font-bold text-gray-500 hover:text-[#1428AE] mt-2 text-center"
                                 >
                                     Reset Color
                                 </button>
@@ -269,7 +269,7 @@ export default function EditorToolbar({
                     <div className="w-[1px] h-4 bg-gray-200 mx-1" />
                     <button
                         onClick={() => setIsLinkModalOpen(true)}
-                        className={cn("p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-500 hover:text-gray-900", activeEditor?.isActive('link') && "bg-white shadow-sm text-[#C10007]")}
+                        className={cn("p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-500 hover:text-gray-900", activeEditor?.isActive('link') && "bg-white shadow-sm text-[#1428AE]")}
                     >
                         <Link2 className="w-4 h-4" />
                     </button>
@@ -288,7 +288,7 @@ export default function EditorToolbar({
                             onClick={() => handleFormat('align', align.id)}
                             className={cn(
                                 "p-2 rounded-lg transition-all",
-                                currentTextAlign === align.id ? "bg-white shadow-sm text-[#C10007]" : "text-gray-500 hover:text-gray-900"
+                                currentTextAlign === align.id ? "bg-white shadow-sm text-[#1428AE]" : "text-gray-500 hover:text-gray-900"
                             )}
                         >
                             <align.icon className="w-4 h-4" />
@@ -300,13 +300,13 @@ export default function EditorToolbar({
                 <div className="flex items-center gap-1 p-1 bg-gray-50 rounded-xl border border-gray-100">
                     <button
                         onClick={() => handleFormat('bullet')}
-                        className={cn("p-2 rounded-lg transition-all", isBulletList ? "bg-white shadow-sm text-[#C10007]" : "text-gray-500 hover:text-gray-900")}
+                        className={cn("p-2 rounded-lg transition-all", isBulletList ? "bg-white shadow-sm text-[#1428AE]" : "text-gray-500 hover:text-gray-900")}
                     >
                         <List className="w-4 h-4" />
                     </button>
                     <button
                         onClick={() => handleFormat('number')}
-                        className={cn("p-2 rounded-lg transition-all", isOrderedList ? "bg-white shadow-sm text-[#C10007]" : "text-gray-500 hover:text-gray-900")}
+                        className={cn("p-2 rounded-lg transition-all", isOrderedList ? "bg-white shadow-sm text-[#1428AE]" : "text-gray-500 hover:text-gray-900")}
                     >
                         <ListOrdered className="w-4 h-4" />
                     </button>
@@ -318,14 +318,14 @@ export default function EditorToolbar({
                 <div className="flex items-center gap-2 p-1 bg-gray-50 rounded-xl border border-gray-100 px-3 py-1.5">
                     <button
                         onClick={() => onZoomChange(Math.max(50, zoom - 10))}
-                        className="text-gray-400 hover:text-[#C10007] transition-colors"
+                        className="text-gray-400 hover:text-[#1428AE] transition-colors"
                     >
                         <Minus className="w-3.5 h-3.5" />
                     </button>
                     <span className="text-xs font-bold text-gray-700 min-w-[32px] text-center">{zoom}%</span>
                     <button
                         onClick={() => onZoomChange(Math.min(200, zoom + 10))}
-                        className="text-gray-400 hover:text-[#C10007] transition-colors"
+                        className="text-gray-400 hover:text-[#1428AE] transition-colors"
                     >
                         <Plus className="w-3.5 h-3.5" />
                     </button>

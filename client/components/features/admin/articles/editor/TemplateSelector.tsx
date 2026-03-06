@@ -112,7 +112,7 @@ export default function TemplateSelector({ selectedTemplate, onSelect }: Templat
                     className={cn(
                         "group bg-white rounded-[12px] overflow-hidden border-2 transition-all text-left flex flex-col",
                         selectedTemplate === template.id
-                            ? "border-[#C10007] shadow-lg"
+                            ? "border-[#1428AE] shadow-lg"
                             : "border-[#e5e7eb] hover:border-[#3b82f6] hover:shadow-md"
                     )}
                 >
@@ -122,7 +122,7 @@ export default function TemplateSelector({ selectedTemplate, onSelect }: Templat
                                 {template.title}
                             </h3>
                             {selectedTemplate === template.id && (
-                                <div className="w-5 h-5 rounded-full bg-[#C10007] flex items-center justify-center">
+                                <div className="w-5 h-5 rounded-full bg-[#1428AE] flex items-center justify-center">
                                     <Check className="w-3 h-3 text-white" />
                                 </div>
                             )}
