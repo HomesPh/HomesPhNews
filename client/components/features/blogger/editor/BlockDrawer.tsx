@@ -283,9 +283,10 @@ export default function BlockDrawer({
                                 <input
                                     type="text"
                                     value={details.author}
-                                    onChange={(e) => onUpdateDetails({ author: e.target.value })}
+                                    onChange={(e) => !isEditor && onUpdateDetails({ author: e.target.value })}
+                                    disabled={isEditor}
                                     placeholder="HOMESPH NEWS"
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#1428AE]/20 transition-all font-inter"
+                                    className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#1428AE]/20 transition-all font-inter ${isEditor ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
                                 />
                             </div>
 
