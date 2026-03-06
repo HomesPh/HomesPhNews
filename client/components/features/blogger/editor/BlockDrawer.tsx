@@ -102,7 +102,7 @@ export default function BlockDrawer({
 
     const getOptionData = (opt: string | { name: string; count: number }) => {
         if (typeof opt === 'string') return { value: opt, label: opt };
-        return { value: opt.name, label: `${opt.name} (${opt.count})` };
+        return { value: opt.name, label: opt.name };
     };
 
     const blockGroups = [

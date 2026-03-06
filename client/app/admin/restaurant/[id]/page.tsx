@@ -164,7 +164,7 @@ function RestaurantDetailContent() {
     if (!restaurant) return (
         <div className="p-20 text-center">
             <h2 className="text-2xl font-bold mb-4">Restaurant Not Found</h2>
-            <button onClick={() => router.push('/admin/restaurants')} className="text-[#C10007] hover:underline">
+            <button onClick={() => router.push('/admin/restaurants')} className="text-[#1428AE] hover:underline">
                 Back to Restaurants
             </button>
         </div>
@@ -271,7 +271,7 @@ function RestaurantDetailContent() {
                                 <div className="space-y-6 border-t border-gray-100 pt-8">
                                     <div>
                                         <h4 className="flex items-center gap-2 font-bold text-gray-900 mb-2">
-                                            <Heart className="w-4 h-4 text-[#C10007]" /> Why Filipinos Love It
+                                            <Heart className="w-4 h-4 text-[#1428AE]" /> Why Filipinos Love It
                                         </h4>
                                         <p className="text-gray-600">{restaurant.why_filipinos_love_it || "—"}</p>
                                     </div>
@@ -453,9 +453,9 @@ function RestaurantDetailContent() {
                                             type="checkbox"
                                             checked={publishToSites.includes(site)}
                                             onChange={() => toggleSite(site)}
-                                            className="w-4 h-4 rounded border-[#d1d5db] text-[#C10007] focus:ring-[#C10007] focus:ring-offset-0 cursor-pointer"
+                                            className="w-4 h-4 rounded border-[#d1d5db] text-[#1428AE] focus:ring-[#1428AE] focus:ring-offset-0 cursor-pointer"
                                         />
-                                        <span className="text-[14px] text-[#374151] group-hover:text-[#C10007] transition-colors tracking-[-0.5px]">{site}</span>
+                                        <span className="text-[14px] text-[#374151] group-hover:text-[#1428AE] transition-colors tracking-[-0.5px]">{site}</span>
                                     </label>
                                 ))}
                             </div>

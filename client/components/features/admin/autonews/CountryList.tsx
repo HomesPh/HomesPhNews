@@ -116,7 +116,7 @@ export default function CountryList() {
                 <h2 className="text-lg font-semibold text-[#111827]">Active News Regions</h2>
                 <button
                     onClick={handleCreate}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#C10007] text-white rounded-lg hover:bg-[#A00006] transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#1428AE] text-white rounded-lg hover:bg-[#000785] transition-colors"
                 >
                     <Plus className="w-4 h-4" />
                     <span>Add Region</span>
@@ -129,113 +129,119 @@ export default function CountryList() {
                         <Skeleton key={i} className="h-[200px] rounded-xl bg-white" />
                     ))
                 ) : countries.length > 0 ? (
-                    countries.map((country) => {
-                        const scrapeResult = scrapeResults[country.id];
-                        const isScraping = scrapingId === country.id;
-                        const isToggling = togglingId === country.id;
-
-                        return (
-                            <div key={country.id} className="bg-white rounded-xl border border-[#e5e7eb] overflow-hidden hover:shadow-lg transition-shadow">
-                                <div className="p-6">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-gray-50 flex items-center justify-center rounded-full border border-gray-100 text-xl font-bold text-[#C10007]">
-                                                {country.id}
-                                            </div>
-                                            <div>
-                                                <h3 className="text-lg font-bold text-[#111827]">{country.name}</h3>
-                                                <button
-                                                    onClick={() => handleToggleActive(country)}
-                                                    disabled={isToggling}
-                                                    className={`flex items-center gap-1.5 mt-1 px-2 py-0.5 rounded-full border text-[11px] font-bold uppercase transition-colors disabled:opacity-60 ${
-                                                        country.is_active
-                                                            ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
-                                                            : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
-                                                    }`}
-                                                >
-                                                    {isToggling ? (
-                                                        <Loader2 className="w-3 h-3 animate-spin" />
-                                                    ) : country.is_active ? (
-                                                        <CheckCircle2 className="w-3 h-3" />
-                                                    ) : (
-                                                        <XCircle className="w-3 h-3" />
-                                                    )}
-                                                    {country.is_active ? 'Active' : 'Paused'}
-                                                </button>
+                    countries.map((country) => (
+                        <div key={country.id} className="bg-white rounded-xl border border-[#e5e7eb] overflow-hidden hover:shadow-lg transition-shadow">
+                            <div className="p-6">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-gray-50 flex items-center justify-center rounded-full border border-gray-100 text-xl font-bold text-[#1428AE]">
+                                            {country.id}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-[#111827]">{country.name}</h3>
+                                            <div className="flex items-center gap-1.5 mt-1">
+                                                {country.is_active ? (
+                                                    <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                                                ) : (
+                                                    <XCircle className="w-3.5 h-3.5 text-gray-400" />
+                                                )}
+                                                <span className={`text-[11px] font-bold uppercase ${country.is_active ? 'text-green-600' : 'text-gray-400'}`}>
+                                                    {country.is_active ? 'Active Scraper' : 'Paused'}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-3 gap-2 py-4 border-y border-gray-50 mb-4">
-                                        <div className="text-center">
-                                            <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">GL</p>
-                                            <p className="font-mono text-sm text-[#374151]">{country.gl}</p>
-                                        </div>
-                                        <div className="text-center border-x border-gray-50">
-                                            <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">HL</p>
-                                            <p className="font-mono text-sm text-[#374151]">{country.h1}</p>
-                                        </div>
-                                        <div className="text-center">
-                                            <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">CEID</p>
-                                            <p className="font-mono text-xs text-[#374151]">{country.ceid}</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Scrape result inline */}
-                                    {isScraping && (
-                                        <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-[12px] text-amber-700">
-                                            <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
-                                            Scraping {country.name}...
-                                        </div>
-                                    )}
-                                    {!isScraping && scrapeResult && typeof scrapeResult === 'object' && (
-                                        <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg text-[12px] text-emerald-700">
-                                            <CheckCircle className="w-3.5 h-3.5 shrink-0" />
-                                            {scrapeResult.success_count > 0
-                                                ? `✓ ${scrapeResult.success_count} article scraped in ${Math.round(scrapeResult.duration_seconds)}s`
-                                                : `No new articles (${scrapeResult.error_count} errors)`}
-                                        </div>
-                                    )}
-                                    {!isScraping && scrapeResult && typeof scrapeResult === 'string' && scrapeResult && (
-                                        <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-[12px] text-red-600">
-                                            <XCircle className="w-3.5 h-3.5 shrink-0" />
-                                            {scrapeResult}
-                                        </div>
-                                    )}
-
-                                    <div className="flex justify-between items-center gap-2">
+                                    <div className="flex gap-2">
                                         <button
-                                            onClick={() => handleScrape(country)}
-                                            disabled={isScraping || scrapingId !== null}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-[#C10007] text-white rounded-lg hover:bg-[#A00006] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            onClick={() => handleToggleActive(country)}
+                                            disabled={togglingId === country.id}
+                                            className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold uppercase border transition-colors disabled:opacity-60 ${country.is_active
+                                                    ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
+                                                    : 'bg-gray-100 border-gray-200 text-gray-600 hover:bg-gray-200'
+                                                }`}
                                         >
-                                            {isScraping
-                                                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                                : <Play className="w-3.5 h-3.5 fill-white" />
-                                            }
-                                            <span>{isScraping ? 'Scraping...' : 'Scrape'}</span>
+                                            {togglingId === country.id ? (
+                                                <Loader2 className="w-3 h-3 animate-spin" />
+                                            ) : country.is_active ? (
+                                                <CheckCircle2 className="w-3 h-3" />
+                                            ) : (
+                                                <XCircle className="w-3 h-3" />
+                                            )}
+                                            {country.is_active ? 'Active' : 'Hidden'}
                                         </button>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => handleEdit(country)}
-                                                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-[#3b82f6] hover:bg-blue-50 rounded-lg transition-colors"
-                                            >
-                                                <Edit className="w-4 h-4" />
-                                                <span>Edit</span>
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(country.id)}
-                                                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-[#ef4444] hover:bg-red-50 rounded-lg transition-colors"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                                <span>Delete</span>
-                                            </button>
-                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-2 py-4 border-y border-gray-50 mb-4">
+                                    <div className="text-center">
+                                        <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">GL</p>
+                                        <p className="font-mono text-sm text-[#374151]">{country.gl}</p>
+                                    </div>
+                                    <div className="text-center border-x border-gray-50">
+                                        <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">HL</p>
+                                        <p className="font-mono text-sm text-[#374151]">{country.h1}</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-[10px] uppercase font-bold text-gray-400 mb-1">CEID</p>
+                                        <p className="font-mono text-xs text-[#374151]">{country.ceid}</p>
+                                    </div>
+                                </div>
+
+                                {/* Scrape result inline */}
+                                {scrapingId === country.id && (
+                                    <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-[12px] text-amber-700">
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+                                        Scraping {country.name}...
+                                    </div>
+                                )}
+                                {scrapingId !== country.id && scrapeResults[country.id] && typeof scrapeResults[country.id] === 'object' && (
+                                    <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg text-[12px] text-emerald-700">
+                                        <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+                                        {(scrapeResults[country.id] as TriggerScraperResponse).success_count > 0
+                                            ? `✓ ${(scrapeResults[country.id] as TriggerScraperResponse).success_count} article scraped in ${Math.round((scrapeResults[country.id] as TriggerScraperResponse).duration_seconds)}s`
+                                            : `No new articles (${(scrapeResults[country.id] as TriggerScraperResponse).error_count} errors)`}
+                                    </div>
+                                )}
+                                {scrapingId !== country.id && scrapeResults[country.id] && typeof scrapeResults[country.id] === 'string' && (
+                                    <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-[12px] text-red-600">
+                                        <XCircle className="w-3.5 h-3.5 shrink-0" />
+                                        {scrapeResults[country.id] as string}
+                                    </div>
+                                )}
+
+                                <div className="flex justify-between items-center gap-2">
+                                    <button
+                                        onClick={() => handleScrape(country)}
+                                        disabled={scrapingId === country.id || scrapingId !== null}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-[#1428AE] text-white rounded-lg hover:bg-[#000785] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {scrapingId === country.id
+                                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            : <Play className="w-3.5 h-3.5 fill-white" />
+                                        }
+                                        <span>{scrapingId === country.id ? 'Scraping...' : 'Scrape'}</span>
+                                    </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleEdit(country)}
+                                            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-[#3b82f6] hover:bg-blue-50 rounded-lg transition-colors"
+                                        >
+                                            <Edit className="w-4 h-4" />
+                                            <span>Edit</span>
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(country.id)}
+                                            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-[#ef4444] hover:bg-red-50 rounded-lg transition-colors"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            <span>Delete</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        );
-                    })
+                        </div>
+                    ))
                 ) : (
                     <div className="col-span-full py-20 text-center bg-white rounded-xl border border-[#e5e7eb]">
                         <p className="text-gray-500">No regions configured yet.</p>

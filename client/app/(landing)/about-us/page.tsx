@@ -25,35 +25,35 @@ const teamMembers = [
         initials: "JM",
         name: "Jomari Marson",
         role: "Team Leader & Full Stack Developer",
-        description: "Building scalable solutions and driving technical innovation for HomesTV.",
+        description: "Building scalable solutions and driving technical innovation for Homes.ph News.",
         image: "/images/Marson.png",
     },
     {
         initials: "FK",
         name: "Froillan Kim Edem",
         role: "Full Stack Developer",
-        description: "Building scalable solutions and driving technical innovation for HomesTV.",
+        description: "Building scalable solutions and driving technical innovation for Homes.ph News.",
         image: "/images/Edem.png",
     },
     {
         initials: "AP",
         name: "Angela Postrero",
         role: "Full Stack Developer",
-        description: "Building scalable solutions and driving technical innovation for HomesTV.",
+        description: "Building scalable solutions and driving technical innovation for Homes.ph News.",
         image: "/images/Angela.png",
     },
     {
         initials: "ME",
         name: "Mark Jess Anthony Enfermo",
         role: "Full Stack Developer",
-        description: "Building scalable solutions and driving technical innovation for HomesTV.",
+        description: "Building scalable solutions and driving technical innovation for Homes.ph News.",
         image: "/images/Mark Jess.png",
     },
     {
         initials: "RP",
         name: "Ranidel Padoga",
         role: "Full Stack Developer",
-        description: "Building scalable solutions and driving technical innovation for HomesTV.",
+        description: "Building scalable solutions and driving technical innovation for Homes.ph News.",
         image: "/images/Padoga.jpg",
     },
 ];
@@ -144,7 +144,7 @@ export default function AboutUsPage() {
                                 Empowering Global Perspectives
                             </h1>
                             <p className="text-xl text-gray-200 leading-relaxed">
-                                HomesTV connects you with stories that matter. We function as a bridge between local insights and the global stage, bringing you the most relevant and impactful news from around the world.
+                                Homes.ph News connects you with stories that matter. We function as a bridge between local insights and the global stage, bringing you the most relevant and impactful news from around the world.
                             </p>
                         </motion.div>
                     </div>
@@ -200,7 +200,7 @@ export default function AboutUsPage() {
                             <h2 className="text-3xl md:text-4xl font-bold">Delivering News That Matters</h2>
                             <div className="space-y-4 text-lg text-muted-foreground">
                                 <p>
-                                    At HomesTV, our mission is to provide accurate, timely, and engaging news content that empowers our readers to make informed decisions. Whether you are tracking market trends, planning your next trip, or staying updated on political shifts, we are your reliable source for comprehensive coverage.
+                                    At Homes.ph News, our mission is to provide accurate, timely, and engaging news content that empowers our readers to make informed decisions. Whether you are tracking market trends, planning your next trip, or staying updated on political shifts, we are your reliable source for comprehensive coverage.
                                 </p>
                                 <p>
                                     We believe in the power of information to transform lives and communities. Our dedicated team works around the clock to bring you stories that not only inform but inspire action and foster understanding across borders and cultures.

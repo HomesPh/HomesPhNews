@@ -512,15 +512,20 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                 <div className="space-y-3 mb-6">
                                     {availableSites.map((site) => (
                                         <label key={site} className="flex items-center gap-3 cursor-pointer group">
-                                            <input
-                                                type="checkbox"
-                                                checked={publishToSites.includes(site)}
-                                                onChange={() => toggleSite(site)}
-                                                disabled={isEditor && site !== "Main News Portal"}
-                                                className="w-4 h-4 rounded border-[#d1d5db] text-[#F4AA1D] focus:ring-[#F4AA1D] focus:ring-offset-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                                            />
+                                            <div
+                                                onClick={() => !(isEditor && site !== "Main News Portal") && toggleSite(site)}
+                                                className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${publishToSites.includes(site)
+                                                        ? 'bg-[#111827] border-[#111827]'
+                                                        : 'bg-white border-[#d1d5db]'
+                                                    } ${isEditor && site !== "Main News Portal" ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                            >
+                                                {publishToSites.includes(site) && (
+                                                    <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 10" fill="none">
+                                                        <path d="M1.5 5L4 7.5L8.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                )}
+                                            </div>
                                             <span className={`text-[14px] ${isEditor && site !== "Main News Portal" ? 'text-gray-400' : 'text-[#374151] group-hover:text-[#1428AE]'} transition-colors tracking-[-0.5px]`}>{site}</span>
-
                                         </label>
                                     ))}
                                 </div>

@@ -86,9 +86,11 @@ export default function UsersTable({
                             <td className="px-5 py-4">
                                 <span className={cn(
                                     "inline-flex items-center px-3 py-1 rounded-[4px] text-[13px] font-medium tracking-[-0.5px]",
-                                    user.role === 'Admin'
-                                        ? 'bg-purple-100 text-purple-700'
-                                        : 'bg-blue-100 text-blue-700'
+                                    user.role === 'Admin' ? 'bg-purple-100 text-purple-700' :
+                                        user.role === 'CEO' ? 'bg-indigo-100 text-indigo-700' :
+                                            user.role === 'Editor' ? 'bg-cyan-100 text-cyan-700' :
+                                                user.role === 'Subscriber' ? 'bg-gray-100 text-gray-600' :
+                                                    'bg-blue-100 text-blue-700'
                                 )}>
                                     {user.role}
                                 </span>
