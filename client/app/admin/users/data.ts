@@ -2,7 +2,7 @@ export interface AdminUser {
     id: string;
     name: string;
     email: string;
-    role: 'Admin' | 'Blogger';
+    role: 'Admin' | 'CEO' | 'Editor' | 'Blogger' | 'Subscriber';
     status: 'active' | 'suspended' | 'banned';
     joinedDate: string;
     blogsPublished: number;

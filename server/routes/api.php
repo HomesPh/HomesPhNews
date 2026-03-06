@@ -50,6 +50,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('site.auth')->prefix('external')->group(function () {
     Route::get('/articles', [SiteContentController::class, 'getArticles']);
     Route::get('/restaurants', [SiteContentController::class, 'getRestaurants']);
+    Route::post('/subscribe', [SubscriptionController::class, 'store']);
 });
 
 Route::prefix('v1')->group(function () {

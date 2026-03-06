@@ -159,7 +159,7 @@ class ArticleResource extends JsonResource
             'sites' => array_map('strval', $sites),
             'topics' => array_map('strval', is_array($topics) ? $topics : []),
             'galleryImages' => array_map('strval', $images),
-            'keywords' => (string)$get('keywords', ''),
+            'keywords' => is_array($get('keywords')) ? implode(', ', $get('keywords')) : (string)$get('keywords', ''),
             'source' => (string)$get('source', ''),
             'original_url' => (string)$get('original_url', ''),
             'is_deleted' => $isDeleted,
