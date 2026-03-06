@@ -14,7 +14,7 @@ export default function EditUserModal({ user, onClose, onSave }: EditUserModalPr
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        role: 'Blogger' as 'Admin' | 'Blogger',
+        role: 'Blogger' as 'Admin' | 'Blogger' | 'CEO' | 'Editor' | 'Subscriber',
     });
 
     useEffect(() => {

@@ -58,5 +58,15 @@ class Country extends Model
      *
      * @var bool
      */
+    /**
+     * Indicates if the model should be timestamped.
+     *
+     * @var bool
+     */
     public $timestamps = false;
+
+    public function provinces()
+    {
+        return $this->hasMany(Province::class, 'country_id', 'id');
+    }
 }
