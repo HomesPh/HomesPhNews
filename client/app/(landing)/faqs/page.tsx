@@ -23,12 +23,12 @@ const faqCategories = [
     },
     {
         icon: HelpCircle,
-        title: "How can I advertise on HomesTV?",
+        title: "How can I advertise on Homes.ph News?",
         description: "Explore advertising packages and partnership opportunities with us.",
     },
     {
         icon: Mail,
-        title: "How do I contact the HomesTV team?",
+        title: "How do I contact the Homes.ph News team?",
         description: "Multiple ways to reach our support team for personalized assistance.",
     },
     {
@@ -52,12 +52,12 @@ const detailedFaqs = [
         answer: "The footer is organized into logical sections for easy navigation. You can quickly access Company information, Support resources, and Legal documents. If you're using our mobile app, the footer automatically condenses to show only the most relevant links based on your browsing history.",
     },
     {
-        question: "How can I advertise on HomesTV?",
-        answer: "We offer various advertising opportunities including display ads, sponsored content, and custom partnerships. Visit our Advertise page to learn more about our packages and reach. You can also contact our sales team directly at sales@homestv.com to discuss tailored solutions for your brand.",
+        question: "How can I advertise on Homes.ph News?",
+        answer: "We offer various advertising opportunities including display ads, sponsored content, and custom partnerships. Visit our Advertise page to learn more about our packages and reach. You can also contact our sales team directly at sales@homesphnews.com to discuss tailored solutions for your brand.",
     },
     {
-        question: "How do I contact the HomesTV team?",
-        answer: "There are several ways to reach us: Email us at info@homestv.com for general inquiries or support@homestv.com for technical assistance. You can also call us at +1 (555) 123-4567 during business hours (Mon-Fri, 9am-6pm EST), or visit our Contact page to submit a message through our online form.",
+        question: "How do I contact the Homes.ph News team?",
+        answer: "There are several ways to reach us: Email us at info@homesphnews.com for general inquiries or support@homesphnews.com for technical assistance. You can also call us at +1 (555) 123-4567 during business hours (Mon-Fri, 9am-6pm EST), or visit our Contact page to submit a message through our online form.",
     },
 ];
 
@@ -79,7 +79,7 @@ export default function FAQsPage() {
                             <HelpCircle className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                         </div>
                         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
-                            Welcome to HomesTV Help!
+                            Welcome to Homes.ph News Help!
                         </h1>
                         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                             Get help for your projects, services, account management and so much more.
@@ -161,7 +161,7 @@ export default function FAQsPage() {
                                 <Mail className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                             </div>
                             <h3 className="font-semibold mb-2">Email Support</h3>
-                            <p className="text-sm text-muted-foreground">support@homestv.com</p>
+                            <p className="text-sm text-muted-foreground">support@homesphnews.com</p>
                         </motion.div>
 
                         <motion.div

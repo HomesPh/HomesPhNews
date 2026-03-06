@@ -68,8 +68,8 @@ export default function ContactPage() {
                                 icon: Mail,
                                 title: "Email Us",
                                 details: [
-                                    { label: "General Inquiries", value: "info@homestv.com" },
-                                    { label: "Support", value: "support@homestv.com" },
+                                    { label: "General Inquiries", value: "info@homesphnews.com" },
+                                    { label: "Support", value: "support@homesphnews.com" },
                                 ],
                                 color: "from-blue-500 to-blue-600",
                             },
@@ -271,7 +271,7 @@ export default function ContactPage() {
                             <Button
                                 size="lg"
                                 className="bg-[#1428AE] hover:bg-[#000785] text-white"
-                                onClick={() => window.location.href = 'mailto:support@homestv.com'}
+                                onClick={() => window.location.href = 'mailto:support@homesphnews.com'}
                             >
                                 <Mail className="w-4 h-4 mr-2" />
                                 Email Support

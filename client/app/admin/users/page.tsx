@@ -16,6 +16,7 @@ import { AdminUser } from "@/app/admin/users/data";
 import usePagination from '@/hooks/usePagination';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import useUrlFilters from '@/hooks/useUrlFilters';
+import { Skeleton } from "@/components/ui/skeleton";
 
 const URL_FILTERS_CONFIG = {
     status: { default: 'all' as const, resetValues: ['all'] },
@@ -45,6 +46,7 @@ export default function UsersPage() {
     // Use the custom hook for user state management
     const {
         users,
+        isLoading,
         addUser,
         updateUser,
         deleteUser,
@@ -93,7 +95,7 @@ export default function UsersPage() {
         }, {} as Record<string, number>);
 
         return { ...statusCounts, roles: roleCounts };
-    }, [users]);
+    }, [users, searchQuery, filters]);
 
     // Handlers
     const handleSuspendUser = (user: AdminUser) => {
@@ -175,18 +177,26 @@ export default function UsersPage() {
                     roleCounts={counts.roles}
                 />
 
-                <UsersTable
-                    users={filteredUsers.slice((pagination.currentPage - 1) * 10, pagination.currentPage * 10)}
-                    onViewDetails={setSelectedUserForView}
-                    onSuspend={handleSuspendUser}
-                    onUnsuspend={handleUnsuspendUser}
-                    onBan={handleBanUser}
-                    onUnban={handleUnbanUser}
-                    onViewBlogs={handleViewBlogs}
-                    onEdit={setSelectedUserForEdit}
-                    onDelete={handleDeleteUser}
-                    onChangePassword={setSelectedUserForPassword}
-                />
+                {isLoading ? (
+                    <div className="p-6 space-y-3">
+                        {Array(8).fill(0).map((_, i) => (
+                            <Skeleton key={i} className="h-[72px] rounded-lg bg-gray-50" />
+                        ))}
+                    </div>
+                ) : (
+                    <UsersTable
+                        users={filteredUsers.slice((pagination.currentPage - 1) * 10, pagination.currentPage * 10)}
+                        onViewDetails={setSelectedUserForView}
+                        onSuspend={handleSuspendUser}
+                        onUnsuspend={handleUnsuspendUser}
+                        onBan={handleBanUser}
+                        onUnban={handleUnbanUser}
+                        onViewBlogs={handleViewBlogs}
+                        onEdit={setSelectedUserForEdit}
+                        onDelete={handleDeleteUser}
+                        onChangePassword={setSelectedUserForPassword}
+                    />
+                )}
             </div>
 
             <div className="mt-8">

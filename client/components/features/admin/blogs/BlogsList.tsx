@@ -34,7 +34,7 @@ export default function BlogsList({ blogs, onView, onDelete }: BlogsListProps) {
                     <div className="flex-1 flex flex-col justify-between py-1 cursor-pointer" onClick={() => onView(blog.id)}>
                         <div>
                             <div className="flex items-center gap-3 mb-3">
-                                <span className="px-3 py-1 bg-[#fff5f5] border border-[#ffebeb] rounded-[6px] text-[12px] font-bold text-[#C10007] tracking-[-0.5px] uppercase">
+                                <span className="px-3 py-1 bg-[#eef1ff] border border-[#c7cff7] rounded-[6px] text-[12px] font-bold text-[#1428AE] tracking-[-0.5px] uppercase">
                                     {blog.category}
                                 </span>
                                 <span className="text-[#e5e7eb]">|</span>
@@ -43,7 +43,7 @@ export default function BlogsList({ blogs, onView, onDelete }: BlogsListProps) {
                                 </span>
                             </div>
 
-                            <h3 className="text-[20px] font-bold text-[#111827] leading-[1.3] tracking-[-0.5px] mb-2 group-hover:text-[#C10007] transition-colors">
+                            <h3 className="text-[20px] font-bold text-[#111827] leading-[1.3] tracking-[-0.5px] mb-2 group-hover:text-[#1428AE] transition-colors">
                                 {blog.title}
                             </h3>
 
