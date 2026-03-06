@@ -1048,8 +1048,8 @@ export default function ManualNewsletterPage() {
                                     Articles Sent ({selectedBroadcast.article_count})
                                 </p>
                                 <div className="space-y-2 max-h-72 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-                                    {(selectedBroadcast.articles ?? []).length > 0 ? (
-                                        (selectedBroadcast.articles ?? []).map((article, idx) => (
+                                    {Object.values(selectedBroadcast.articles || {}).length > 0 ? (
+                                        Object.values(selectedBroadcast.articles || {}).map((article, idx) => (
                                             <div key={article.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-100 transition-colors">
                                                 {/* Thumbnail */}
                                                 <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-200 shrink-0">
@@ -1086,10 +1086,10 @@ export default function ManualNewsletterPage() {
                                                 </div>
                                             </div>
                                         ))
-                                    ) : (selectedBroadcast.article_ids ?? []).length > 0 ? (
+                                    ) : Object.values(selectedBroadcast.article_ids || {}).length > 0 ? (
                                         // Fallback for cases where 'articles' detail array is missing but IDs exist
-                                        selectedBroadcast.article_ids.map((id, idx) => (
-                                            <div key={id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                        Object.values(selectedBroadcast.article_ids || {}).map((id, idx) => (
+                                            <div key={id as string} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
                                                 <span className="text-[10px] font-black text-gray-400 bg-white border border-gray-200 rounded px-1.5 py-0.5 shrink-0">#{idx + 1}</span>
                                                 <p className="text-xs font-mono text-gray-500 truncate">{id}</p>
                                             </div>
@@ -1098,6 +1098,9 @@ export default function ManualNewsletterPage() {
                                         <div className="text-center py-6 text-gray-400">
                                             <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
                                             <p className="text-sm font-medium">No article details available.</p>
+                                            <pre className="text-xs text-left overflow-auto mt-4 p-4 bg-gray-100 rounded text-gray-800">
+                                                {JSON.stringify(selectedBroadcast, null, 2)}
+                                            </pre>
                                         </div>
                                     )}
                                 </div>

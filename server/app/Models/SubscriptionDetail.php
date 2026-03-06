@@ -28,6 +28,8 @@ class SubscriptionDetail extends Model
         'features',
         'time',
         'frequency',
+        'company_name',
+        'source_site',
     ];
 
     /**
