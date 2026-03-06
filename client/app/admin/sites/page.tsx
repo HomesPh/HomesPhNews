@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
 import StatCard from "@/components/features/admin/shared/StatCard";
 import SitesFilters from "@/components/features/admin/sites/SitesFilters";
@@ -16,7 +17,7 @@ import { SiteResource } from "@/lib/api-v2/types/SiteResource";
 import useUrlFilters from '@/hooks/useUrlFilters';
 import usePagination from '@/hooks/usePagination';
 import SitesTabs, { SiteTab } from "@/components/features/admin/sites/SitesTabs";
-import { Plus, CheckCircle, XCircle, Link as LinkIcon, Users, Loader2 } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, Link as LinkIcon, Users, Loader2, Code } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Alias SiteResource as Site for compatibility with component code if fields match
@@ -151,7 +152,14 @@ export default function SitesPage() {
                     setIsEditorOpen(true);
                 }}
                 actionIcon={Plus}
-            />
+            >
+                <Link href="/admin/sites/integration">
+                    <button className="flex items-center gap-2 px-4 py-2 bg-white border border-[#e5e7eb] rounded-xl text-[14px] font-semibold text-[#374151] hover:bg-gray-50 transition-colors shadow-sm h-[50px]">
+                        <Code className="w-4 h-4" />
+                        Widget Integration
+                    </button>
+                </Link>
+            </AdminPageHeader>
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -267,4 +275,3 @@ export default function SitesPage() {
         </div>
     );
 }
-
