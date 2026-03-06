@@ -184,7 +184,7 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
                                 value={formData.logoUrl}
                                 onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
                                 placeholder="https://example.com/logo.jpg"
-                                className="w-full px-4 py-3 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px]"
+                                className="w-full px-4 py-3 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#1428AE]/20 focus:border-[#1428AE] tracking-[-0.5px]"
                             />
                         </div>
                     </div>
@@ -200,7 +200,7 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
                     </button>
                     <button
                         onClick={handleSave}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[#3b82f6] text-white rounded-[8px] hover:bg-[#2563eb] transition-colors text-[14px] font-medium tracking-[-0.5px]"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-[#1428AE] text-white rounded-[8px] hover:bg-[#000785] transition-colors text-[14px] font-medium tracking-[-0.5px]"
                     >
                         {mode === 'create' ? 'Add Partner Site' : 'Save Changes'}
                     </button>

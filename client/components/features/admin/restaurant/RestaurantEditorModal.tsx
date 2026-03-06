@@ -201,7 +201,7 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
                     <button
                         onClick={() => setShowPublishDialog(true)}
                         disabled={isProcessing}
-                        className="flex items-center gap-2 px-6 py-2 bg-[#C10007] text-white rounded-[8px] hover:bg-[#a10006] transition-all text-[14px] font-bold tracking-[-0.5px] shadow-md shadow-red-900/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 px-6 py-2 bg-[#1428AE] text-white rounded-[8px] hover:bg-[#000785] transition-all text-[14px] font-bold tracking-[-0.5px] shadow-md shadow-[#1428AE]/10 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                         {mode === 'create' ? 'Publish' : 'Update & Publish'}
@@ -251,7 +251,7 @@ export default function RestaurantEditorModal({ mode, isOpen, onClose, initialDa
                                 handleSave(true);
                             }}
                             disabled={isProcessing}
-                            className="bg-[#C10007] hover:bg-[#a10006]"
+                            className="bg-[#1428AE] hover:bg-[#000785]"
                         >
                             {isProcessing ? 'Publishing...' : 'Confirm Publish'}
                         </AlertDialogAction>

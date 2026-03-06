@@ -24,7 +24,7 @@ function BlogDetailsContent() {
                 <h2 className="text-2xl font-bold mb-4">Blog Not Found</h2>
                 <button
                     onClick={() => router.push('/admin/blogs')}
-                    className="text-[#C10007] hover:underline"
+                    className="text-[#1428AE] hover:underline"
                 >
                     Back to Blog Management
                 </button>

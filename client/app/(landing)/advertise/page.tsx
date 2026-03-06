@@ -77,7 +77,7 @@ export default function AdvertisePage() {
                                 Amplify Your Brand's Message
                             </h1>
                             <p className="text-xl leading-relaxed opacity-95">
-                                Reach a global audience engaged in Technology, Business, Politics, and more. Partner with HomesTV to connect with decision-makers and industry professionals.
+                                Reach a global audience engaged in Technology, Business, Politics, and more. Partner with Homes.ph News to connect with decision-makers and industry professionals.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 pt-4">
                                 <Button
@@ -114,7 +114,7 @@ export default function AdvertisePage() {
                         transition={{ duration: 0.6 }}
                         className="text-center mb-16"
                     >
-                        <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose HomesTV?</h2>
+                        <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Homes.ph News?</h2>
                         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                             Partner with a platform that delivers quality content to an engaged, global audience
                         </p>
@@ -280,7 +280,7 @@ export default function AdvertisePage() {
                             </div>
                             <h2 className="text-3xl md:text-4xl font-bold">Partner with Excellence</h2>
                             <p className="text-lg text-muted-foreground">
-                                When you advertise with HomesTV, you're not just buying ad space—you're partnering with a team committed to your success.
+                                When you advertise with Homes.ph News, you're not just buying ad space—you're partnering with a team committed to your success.
                             </p>
                             <ul className="space-y-4">
                                 {[
@@ -329,7 +329,7 @@ export default function AdvertisePage() {
                             Ready to Grow Your Brand?
                         </h2>
                         <p className="text-xl leading-relaxed opacity-95 max-w-2xl mx-auto">
-                            Contact our sales team today to discuss your advertising needs and discover how HomesTV can help you reach your target audience effectively.
+                            Contact our sales team today to discuss your advertising needs and discover how Homes.ph News can help you reach your target audience effectively.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                             <Button

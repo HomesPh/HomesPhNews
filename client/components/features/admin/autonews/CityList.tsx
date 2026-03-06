@@ -72,7 +72,7 @@ export default function CityList() {
                 <h2 className="text-lg font-semibold text-[#111827]">Managed Cities</h2>
                 <button
                     onClick={handleCreate}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#C10007] text-white rounded-lg hover:bg-[#A00006] transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#1428AE] text-white rounded-lg hover:bg-[#000785] transition-colors"
                 >
                     <Plus className="w-4 h-4" />
                     <span>Add City</span>
@@ -90,7 +90,7 @@ export default function CityList() {
                             <div className="p-6">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-gray-50 flex items-center justify-center rounded-full border border-gray-100 text-[#C10007]">
+                                        <div className="w-12 h-12 bg-gray-50 flex items-center justify-center rounded-full border border-gray-100 text-[#1428AE]">
                                             <MapPin className="w-6 h-6" />
                                         </div>
                                         <div>

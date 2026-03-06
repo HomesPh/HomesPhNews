@@ -212,7 +212,7 @@ export default function RestaurantEditorForm({ data, onDataChange, availableSite
                                 type="checkbox"
                                 checked={data.is_filipino_owned}
                                 onChange={(e) => onDataChange('is_filipino_owned', e.target.checked)}
-                                className="w-5 h-5 rounded border-gray-300 text-[#C10007] focus:ring-[#C10007]"
+                                className="w-5 h-5 rounded border-gray-300 text-[#1428AE] focus:ring-[#1428AE]"
                             />
                             <span className="text-[14px] font-bold text-[#111827]">Filipino Owned? 🇵🇭</span>
                         </label>
@@ -472,10 +472,10 @@ export default function RestaurantEditorForm({ data, onDataChange, availableSite
                                 type="checkbox"
                                 checked={isScheduled}
                                 onChange={(e) => handleScheduleToggle(e.target.checked)}
-                                className="w-4 h-4 rounded border-gray-300 text-[#C10007] focus:ring-[#C10007]"
+                                className="w-4 h-4 rounded border-gray-300 text-[#1428AE] focus:ring-[#1428AE]"
                             />
                             <span className="text-[14px] font-bold text-[#111827] flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-[#C10007]" />
+                                <Calendar className="w-4 h-4 text-[#1428AE]" />
                                 Schedule for later
                             </span>
                         </label>
@@ -507,7 +507,7 @@ export default function RestaurantEditorForm({ data, onDataChange, availableSite
                                             type="checkbox"
                                             checked={(data.published_sites || []).includes(site)}
                                             onChange={() => toggleSite(site)}
-                                            className="w-4 h-4 rounded border-gray-300 text-[#C10007] focus:ring-[#C10007]"
+                                            className="w-4 h-4 rounded border-gray-300 text-[#1428AE] focus:ring-[#1428AE]"
                                         />
                                     </label>
                                 ))}

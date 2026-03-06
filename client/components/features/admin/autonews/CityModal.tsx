@@ -71,7 +71,7 @@ export function CityModal({ isOpen, onClose, onSuccess, initialData, countries }
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0">
                     <div className="flex items-center gap-2">
-                        <Building2 className="w-5 h-5 text-[#C10007]" />
+                        <Building2 className="w-5 h-5 text-[#1428AE]" />
                         <h2 className="text-xl font-bold text-gray-900 tracking-tight">
                             {initialData ? `Edit City: ${initialData.name}` : 'Add New City'}
                         </h2>
@@ -122,7 +122,7 @@ export function CityModal({ isOpen, onClose, onSuccess, initialData, countries }
                         <button
                             type="submit"
                             disabled={isSaving}
-                            className="flex items-center gap-2 px-6 py-2 bg-[#C10007] text-white rounded-lg hover:bg-[#A00006] transition-colors text-sm font-bold shadow-lg shadow-red-100 disabled:opacity-50"
+                            className="flex items-center gap-2 px-6 py-2 bg-[#1428AE] text-white rounded-lg hover:bg-[#000785] transition-colors text-sm font-bold shadow-lg shadow-[#1428AE]/10 disabled:opacity-50"
                         >
                             {isSaving ? (
                                 <>

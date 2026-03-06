@@ -17,9 +17,10 @@ class UserController extends Controller
     /**
      * (v2) Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('roles')->latest()->paginate(10);
+        $perPage = min((int) $request->query('per_page', 10), 100);
+        $users = User::with('roles')->latest()->paginate($perPage);
         return UserResource::collection($users);
     }
 

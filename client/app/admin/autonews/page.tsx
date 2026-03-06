@@ -30,21 +30,21 @@ export default function AutoNewsPage() {
                         <TabsList className="bg-white border border-[#e5e7eb] p-1 h-auto">
                             <TabsTrigger
                                 value="countries"
-                                className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-[#C10007] data-[state=active]:text-white"
+                                className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-[#1428AE] data-[state=active]:text-white"
                             >
                                 <Globe className="w-4 h-4" />
                                 <span>Countries</span>
                             </TabsTrigger>
                             <TabsTrigger
                                 value="cities"
-                                className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-[#C10007] data-[state=active]:text-white"
+                                className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-[#1428AE] data-[state=active]:text-white"
                             >
                                 <Building2 className="w-4 h-4" />
                                 <span>Cities</span>
                             </TabsTrigger>
                             <TabsTrigger
                                 value="categories"
-                                className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-[#C10007] data-[state=active]:text-white"
+                                className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-[#1428AE] data-[state=active]:text-white"
                             >
                                 <Tag className="w-4 h-4" />
                                 <span>Categories</span>

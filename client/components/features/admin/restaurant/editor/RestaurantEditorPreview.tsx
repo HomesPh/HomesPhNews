@@ -77,7 +77,7 @@ export default function RestaurantEditorPreview({ data, onDataChange }: Restaura
                             {/* Badges */}
                             <div className="flex items-center gap-2 mb-3 flex-wrap">
                                 {(data.cuisine_type) && (
-                                    <span className="px-3 py-1 bg-[#C10007] text-white rounded-full text-xs font-bold uppercase tracking-wider">
+                                    <span className="px-3 py-1 bg-[#1428AE] text-white rounded-full text-xs font-bold uppercase tracking-wider">
                                         {data.cuisine_type}
                                     </span>
                                 )}
@@ -125,7 +125,7 @@ export default function RestaurantEditorPreview({ data, onDataChange }: Restaura
 
                         {/* Clickbait Hook */}
                         {data.clickbait_hook && (
-                            <div className="bg-gradient-to-r from-[#C10007] to-[#ff4444] rounded-2xl p-5 mb-6 text-white shadow-md">
+                            <div className="bg-gradient-to-r from-[#1428AE] to-[#000785] rounded-2xl p-5 mb-6 text-white shadow-md">
                                 <p className="text-lg font-black text-center">{data.clickbait_hook}</p>
                             </div>
                         )}
@@ -134,7 +134,7 @@ export default function RestaurantEditorPreview({ data, onDataChange }: Restaura
                         {(data.price_range || data.rating > 0 || data.cuisine_type || data.budget_category) && (
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                                 <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                                    <DollarSign className="w-4 h-4 text-[#C10007] mb-1" />
+                                    <DollarSign className="w-4 h-4 text-[#1428AE] mb-1" />
                                     <p className="text-[10px] text-gray-400 uppercase font-bold">Price</p>
                                     <p className="text-base font-black text-gray-900">{data.price_range || '—'}</p>
                                     {data.avg_meal_cost && <p className="text-[10px] text-gray-400 mt-0.5">{data.avg_meal_cost}</p>}
@@ -169,7 +169,7 @@ export default function RestaurantEditorPreview({ data, onDataChange }: Restaura
                         {data.why_filipinos_love_it && (
                             <div className="bg-blue-50 rounded-2xl p-5 mb-6 border border-blue-100">
                                 <h3 className="text-base font-black text-gray-900 mb-2 flex items-center gap-2">
-                                    <Heart className="w-4 h-4 text-[#C10007]" />
+                                    <Heart className="w-4 h-4 text-[#1428AE]" />
                                     Why Filipinos Love It
                                 </h3>
                                 <p className="text-gray-700 text-[13px]">{data.why_filipinos_love_it}</p>
@@ -204,7 +204,7 @@ export default function RestaurantEditorPreview({ data, onDataChange }: Restaura
                                 {data.specialty_dish && (
                                     <div>
                                         <h3 className="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
-                                            <ChefHat className="w-4 h-4 text-[#C10007]" />
+                                            <ChefHat className="w-4 h-4 text-[#1428AE]" />
                                             Specialty
                                         </h3>
                                         <p className="text-gray-600 text-[13px]">{data.specialty_dish}</p>
