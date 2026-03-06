@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Edit, Trash2, Tag, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Tag, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { getCategories, createCategory, updateCategory, deleteCategory, ApiError } from '@/lib/api-v2';
 import type { CategoryResource } from '@/lib/api-v2';
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,6 +13,7 @@ export default function CategoryList() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<CategoryResource | null>(null);
     const [formErrors, setFormErrors] = useState<Record<string, string[]> | null>(null);
+    const [togglingId, setTogglingId] = useState<number | null>(null);
 
     const fetchCategories = useCallback(async () => {
         setIsLoading(true);
@@ -74,6 +75,20 @@ export default function CategoryList() {
         }
     };
 
+    const handleToggleActive = async (category: CategoryResource) => {
+        setTogglingId(category.id);
+        try {
+            await updateCategory(category.id, { is_active: !category.is_active });
+            setCategories(prev =>
+                prev.map(c => c.id === category.id ? { ...c, is_active: !c.is_active } : c)
+            );
+        } catch (error) {
+            console.error("Failed to toggle category:", error);
+        } finally {
+            setTogglingId(null);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-[#e5e7eb]">
@@ -93,39 +108,57 @@ export default function CategoryList() {
                         <Skeleton key={i} className="h-[120px] rounded-xl bg-white" />
                     ))
                 ) : categories.length > 0 ? (
-                    categories.map((category) => (
-                        <div key={category.id} className="bg-white p-5 rounded-xl border border-[#e5e7eb] hover:shadow-md transition-shadow">
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-gray-100 rounded-lg">
-                                        <Tag className="w-5 h-5 text-[#C10007]" />
+                    categories.map((category) => {
+                        const isToggling = togglingId === category.id;
+                        return (
+                            <div key={category.id} className="bg-white p-5 rounded-xl border border-[#e5e7eb] hover:shadow-md transition-shadow">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-gray-100 rounded-lg">
+                                            <Tag className="w-5 h-5 text-[#C10007]" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-[#111827]">{category.name}</h3>
+                                            <p className="text-xs text-[#6b7280]">slug: {category.slug}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-[#111827]">{category.name}</h3>
-                                        <p className="text-xs text-[#6b7280]">slug: {category.slug}</p>
-                                    </div>
+                                    <button
+                                        onClick={() => handleToggleActive(category)}
+                                        disabled={isToggling}
+                                        className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold uppercase border transition-colors disabled:opacity-60 ${
+                                            category.is_active
+                                                ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
+                                                : 'bg-gray-100 border-gray-200 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        {isToggling ? (
+                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                        ) : category.is_active ? (
+                                            <CheckCircle2 className="w-3 h-3" />
+                                        ) : (
+                                            <XCircle className="w-3 h-3" />
+                                        )}
+                                        {category.is_active ? 'Active' : 'Hidden'}
+                                    </button>
                                 </div>
-                                <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${category.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                                    {category.is_active ? 'Active' : 'Hidden'}
-                                </div>
-                            </div>
 
-                            <div className="flex justify-end gap-2 border-t pt-4 border-gray-50">
-                                <button
-                                    onClick={() => handleEdit(category)}
-                                    className="p-2 hover:bg-gray-100 rounded-lg text-[#3b82f6]"
-                                >
-                                    <Edit className="w-4 h-4" />
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(category.id)}
-                                    className="p-2 hover:bg-red-50 rounded-lg text-[#ef4444]"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
+                                <div className="flex justify-end gap-2 border-t pt-4 border-gray-50">
+                                    <button
+                                        onClick={() => handleEdit(category)}
+                                        className="p-2 hover:bg-gray-100 rounded-lg text-[#3b82f6]"
+                                    >
+                                        <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(category.id)}
+                                        className="p-2 hover:bg-red-50 rounded-lg text-[#ef4444]"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    ))
+                        );
+                    })
                 ) : (
                     <div className="col-span-full py-20 text-center bg-white rounded-xl border border-[#e5e7eb]">
                         <p className="text-gray-500">No categories found. Start by adding one!</p>
@@ -143,4 +176,3 @@ export default function CategoryList() {
         </div>
     );
 }
-

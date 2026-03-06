@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bot, Globe, Tag, Plus, Building2 } from "lucide-react";
+import { Globe, Tag, Building2, Zap } from "lucide-react";
 import CategoryList from "@/components/features/admin/autonews/CategoryList";
 import CountryList from "@/components/features/admin/autonews/CountryList";
 import CityList from "@/components/features/admin/autonews/CityList";
+import ManualScrapePanel from "@/components/features/admin/autonews/ManualScrapePanel";
+import ScraperControlPanel from "@/components/features/admin/articles/ScraperControlPanel";
 
 export default function AutoNewsPage() {
     const [activeTab, setActiveTab] = useState("countries");
@@ -18,7 +20,11 @@ export default function AutoNewsPage() {
                 description="Manage countries, cities, and categories for the automated news scraper"
             />
 
-            <div className="mt-8">
+            <div className="mt-6">
+                <ScraperControlPanel />
+            </div>
+
+            <div className="mt-4">
                 <Tabs defaultValue="countries" className="w-full" onValueChange={setActiveTab}>
                     <div className="flex items-center justify-between mb-6">
                         <TabsList className="bg-white border border-[#e5e7eb] p-1 h-auto">
@@ -43,6 +49,13 @@ export default function AutoNewsPage() {
                                 <Tag className="w-4 h-4" />
                                 <span>Categories</span>
                             </TabsTrigger>
+                            <TabsTrigger
+                                value="manual-scrape"
+                                className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-[#C10007] data-[state=active]:text-white"
+                            >
+                                <Zap className="w-4 h-4" />
+                                <span>Manual Scrape</span>
+                            </TabsTrigger>
                         </TabsList>
                     </div>
 
@@ -56,6 +69,10 @@ export default function AutoNewsPage() {
 
                     <TabsContent value="categories" className="mt-0 border-none p-0 outline-none">
                         <CategoryList />
+                    </TabsContent>
+
+                    <TabsContent value="manual-scrape" className="mt-0 border-none p-0 outline-none">
+                        <ManualScrapePanel />
                     </TabsContent>
                 </Tabs>
             </div>
