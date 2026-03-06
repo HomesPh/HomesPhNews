@@ -24,7 +24,7 @@ export default function TopArticlesList({ articles }: TopArticlesListProps) {
                             className="w-full md:w-32 h-20 object-cover rounded-lg group-hover:opacity-90 transition-opacity"
                         />
                         <div className="flex-1">
-                            <h4 className="font-semibold text-[#111827] mb-2 group-hover:text-[#C10007] transition-colors line-clamp-1">{article.title}</h4>
+                            <h4 className="font-semibold text-[#111827] mb-2 group-hover:text-[#1428AE] transition-colors line-clamp-1">{article.title}</h4>
                             <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-4">
                                 <span className="px-2 py-0.5 bg-green-50 text-green-600 rounded-full font-medium border border-green-100">{article.status}</span>
                                 <span className='hidden md:inline'>•</span>

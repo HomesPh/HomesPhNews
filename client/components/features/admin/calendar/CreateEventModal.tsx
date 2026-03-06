@@ -119,7 +119,7 @@ export default function CreateEventModal({ onClose, onCreateEvent, onEditEvent, 
                                 value={formData.eventTitle}
                                 onChange={(e) => setFormData({ ...formData, eventTitle: e.target.value })}
                                 placeholder="Enter event title"
-                                className="w-full h-12 px-4 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all"
+                                className="w-full h-12 px-4 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.5px] transition-all"
                             />
                         </div>
 
@@ -135,7 +135,7 @@ export default function CreateEventModal({ onClose, onCreateEvent, onEditEvent, 
                                         type="date"
                                         value={formData.date}
                                         onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                        className="w-full h-12 px-4 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all"
+                                        className="w-full h-12 px-4 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.5px] transition-all"
                                     />
                                 </div>
                             </div>
@@ -148,7 +148,7 @@ export default function CreateEventModal({ onClose, onCreateEvent, onEditEvent, 
                                         type="time"
                                         value={formData.time}
                                         onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                                        className="w-full h-12 px-4 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all"
+                                        className="w-full h-12 px-4 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.5px] transition-all"
                                     />
                                 </div>
                             </div>
@@ -164,7 +164,7 @@ export default function CreateEventModal({ onClose, onCreateEvent, onEditEvent, 
                                 value={formData.location}
                                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                                 placeholder="Enter event location"
-                                className="w-full h-12 px-4 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all"
+                                className="w-full h-12 px-4 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.5px] transition-all"
                             />
                         </div>
 
@@ -178,7 +178,7 @@ export default function CreateEventModal({ onClose, onCreateEvent, onEditEvent, 
                                 onChange={(e) => setFormData({ ...formData, details: e.target.value })}
                                 placeholder="Enter event details"
                                 rows={3}
-                                className="w-full px-4 py-3 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] resize-none transition-all"
+                                className="w-full px-4 py-3 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.5px] resize-none transition-all"
                             />
                         </div>
 
@@ -192,7 +192,7 @@ export default function CreateEventModal({ onClose, onCreateEvent, onEditEvent, 
                                     <select
                                         value={formData.category}
                                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                        className="w-full h-12 px-4 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all cursor-pointer"
+                                        className="w-full h-12 px-4 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.5px] transition-all cursor-pointer"
                                     >
                                         <option>Business</option>
                                         <option>Conference</option>
@@ -214,7 +214,7 @@ export default function CreateEventModal({ onClose, onCreateEvent, onEditEvent, 
                                     <select
                                         value={formData.country}
                                         onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                                        className="w-full h-12 px-4 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.5px] transition-all cursor-pointer"
+                                        className="w-full h-12 px-4 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.5px] transition-all cursor-pointer"
                                     >
                                         <option>Philippines</option>
                                         <option>UAE</option>
@@ -247,7 +247,7 @@ export default function CreateEventModal({ onClose, onCreateEvent, onEditEvent, 
                                             width: formData.selectedColorIndex === index ? '34px' : '29px',
                                             height: formData.selectedColorIndex === index ? '34px' : '29px',
                                             backgroundColor: option.bg,
-                                            border: formData.selectedColorIndex === index ? '2px solid #C10007' : '1px solid #d1d5db',
+                                            border: formData.selectedColorIndex === index ? '2px solid #1428AE' : '1px solid #d1d5db',
                                         }}
                                         title={option.name}
                                     />
@@ -267,7 +267,7 @@ export default function CreateEventModal({ onClose, onCreateEvent, onEditEvent, 
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="bg-[#C10007] hover:bg-[#a10006] text-white px-7 py-2.5 rounded-[8px] transition-all text-[14px] font-bold tracking-[-0.5px]"
+                        className="bg-[#1428AE] hover:bg-[#000785] text-white px-7 py-2.5 rounded-[8px] transition-all text-[14px] font-bold tracking-[-0.5px]"
                     >
                         {isEditMode ? 'Update Event' : 'Create Event'}
                     </button>

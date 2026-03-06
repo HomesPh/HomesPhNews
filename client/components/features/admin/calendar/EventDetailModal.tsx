@@ -158,7 +158,7 @@ export default function EventDetailModal({ event, onClose, onEdit, onDelete }: E
                         {!event.isPublicHoliday && onEdit && (
                             <button
                                 onClick={handleEdit}
-                                className="flex items-center gap-2 px-6 py-2.5 bg-[#C10007] text-white rounded-[8px] hover:bg-[#a10006] transition-colors text-[14px] font-medium tracking-[-0.5px]"
+                                className="flex items-center gap-2 px-6 py-2.5 bg-[#1428AE] text-white rounded-[8px] hover:bg-[#000785] transition-colors text-[14px] font-medium tracking-[-0.5px]"
                             >
                                 <Edit2 className="w-4 h-4" />
                                 Edit Event

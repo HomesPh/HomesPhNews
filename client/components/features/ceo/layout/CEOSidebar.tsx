@@ -40,11 +40,11 @@ export default function CEOSidebar() {
             <div className="flex flex-col h-full bg-[#000785] text-white">
                 <SidebarHeader className="px-4 py-6 border-b border-[rgba(255,255,255,0.1)]">
                     {!isCollapsed ? (
-                        <div className="flex flex-col gap-1 px-2">
+                        <div className="flex items-center gap-3 px-2">
                             <img
                                 src="/images/HomesLogoW.png"
                                 alt="Homes.ph News"
-                                className="h-10 w-auto object-contain"
+                                className="h-12 w-auto object-contain"
                             />
                         </div>
                     ) : (
@@ -71,7 +71,7 @@ export default function CEOSidebar() {
                                             "flex items-center gap-3 px-4 py-3 rounded-[8px] transition-colors w-full h-auto",
                                             isActive
                                                 ? "bg-[#F4AA1D] text-black hover:bg-[#F4AA1D] hover:text-black"
-                                                : "text-[#9ca3af] hover:bg-[#252836] hover:text-white",
+                                                : "text-white hover:bg-[rgba(255,255,255,0.1)] hover:text-white",
                                             isCollapsed ? "justify-center" : ""
                                         )}
                                         tooltip={isCollapsed ? item.title : undefined}
@@ -104,7 +104,7 @@ export default function CEOSidebar() {
                             window.location.href = "/login";
                         }}
                         className={cn(
-                            "flex items-center gap-3 px-4 py-3 text-[#9ca3af] hover:bg-[#252836] hover:text-white rounded-[8px] transition-colors w-full",
+                            "flex items-center gap-3 px-4 py-3 text-white hover:bg-[rgba(255,255,255,0.1)] hover:text-white rounded-[8px] transition-colors w-full",
                             isCollapsed ? "justify-center" : ""
                         )}
                         title={isCollapsed ? "Logout" : undefined}

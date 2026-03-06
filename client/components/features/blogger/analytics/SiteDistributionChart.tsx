@@ -21,7 +21,7 @@ export default function SiteDistributionChart({ data }: SiteDistributionProps) {
                             <div>
                                 <div className="font-semibold text-gray-900 mb-1">{site.site}</div>
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-lg font-bold text-[#C10007]">{site.articles}</span>
+                                    <span className="text-lg font-bold text-[#1428AE]">{site.articles}</span>
                                     <span className="text-xs text-gray-500">blogs</span>
                                 </div>
                             </div>
@@ -33,7 +33,7 @@ export default function SiteDistributionChart({ data }: SiteDistributionProps) {
                         <div className="flex items-center gap-3">
                             <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
                                 <div
-                                    className="bg-[#C10007] h-2 rounded-full transition-all duration-500 ease-out"
+                                    className="bg-[#1428AE] h-2 rounded-full transition-all duration-500 ease-out"
                                     style={{ width: `${site.percentage}%` }}
                                 />
                             </div>

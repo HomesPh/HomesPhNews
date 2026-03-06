@@ -49,7 +49,7 @@ export default function ReferralSourcesTable({ data }: ReferralSourcesTableProps
                                         <div className="flex items-center gap-2">
                                             <div className="flex-1 max-w-[100px] bg-gray-200 rounded-full h-2">
                                                 <div
-                                                    className="bg-[#C10007] h-2 rounded-full"
+                                                    className="bg-[#1428AE] h-2 rounded-full"
                                                     style={{ width: `${Number(source.percentage)}%` }}
                                                 />
                                             </div>

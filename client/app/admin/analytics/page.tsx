@@ -273,7 +273,7 @@ export default function AnalyticsPage() {
                         <select
                             value={dateRange}
                             onChange={(e) => setDateRange(e.target.value)}
-                            className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.3px] cursor-pointer"
+                            className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.3px] cursor-pointer"
                         >
                             <option>Last 7 Days</option>
                             <option>Last 30 Days</option>
@@ -289,7 +289,7 @@ export default function AnalyticsPage() {
                         <select
                             value={exportFormat}
                             onChange={(e) => setExportFormat(e.target.value)}
-                            className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.3px] cursor-pointer w-[100px]"
+                            className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.3px] cursor-pointer w-[100px]"
                         >
                             <option>CSV</option>
                             <option>PDF</option>
@@ -299,7 +299,7 @@ export default function AnalyticsPage() {
                     <button
                         onClick={handleExportData}
                         disabled={isLoading}
-                        className="flex items-center gap-2 px-5 h-[50px] bg-[#C10007] text-white rounded-[6px] hover:bg-[#a10006] transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2 px-5 h-[50px] bg-[#1428AE] text-white rounded-[6px] hover:bg-[#000785] transition-colors disabled:opacity-50"
                     >
                         {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                         <span className="hidden md:inline text-[14px] font-medium tracking-[-0.3px]">Export</span>
@@ -319,7 +319,7 @@ export default function AnalyticsPage() {
                                 setCategory('All'); // Reset category on tab switch
                             }}
                             className={`px-4 py-2 text-[14px] font-bold rounded-md transition-all ${activeTab === type
-                                ? 'bg-white text-[#C10007] shadow-sm'
+                                ? 'bg-white text-[#1428AE] shadow-sm'
                                 : 'text-[#6b7280] hover:text-[#111827]'
                                 }`}
                         >
@@ -335,7 +335,7 @@ export default function AnalyticsPage() {
                         <select
                             value={category}
                             onChange={(e) => setCategory(e.target.value)}
-                            className="appearance-none px-4 pr-10 h-[42px] border border-[#d1d5db] rounded-[8px] text-[13px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.3px] cursor-pointer min-w-[140px]"
+                            className="appearance-none px-4 pr-10 h-[42px] border border-[#d1d5db] rounded-[8px] text-[13px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.3px] cursor-pointer min-w-[140px]"
                         >
                             <option value="All">All Categories</option>
                             {currentCategories.filter(c => c.id !== 'All').map((cat) => (
@@ -350,7 +350,7 @@ export default function AnalyticsPage() {
                         <select
                             value={country}
                             onChange={(e) => setCountry(e.target.value)}
-                            className="appearance-none px-4 pr-10 h-[42px] border border-[#d1d5db] rounded-[8px] text-[13px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.3px] cursor-pointer min-w-[140px]"
+                            className="appearance-none px-4 pr-10 h-[42px] border border-[#d1d5db] rounded-[8px] text-[13px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.3px] cursor-pointer min-w-[140px]"
                         >
                             <option value="All">All Countries</option>
                             {Countries.map((c) => (
@@ -385,7 +385,7 @@ export default function AnalyticsPage() {
                         key={int}
                         onClick={() => setInterval(int)}
                         className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${interval === int
-                            ? 'bg-[#C10007] text-white'
+                            ? 'bg-[#1428AE] text-white'
                             : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                             }`}
                     >
@@ -487,7 +487,7 @@ export default function AnalyticsPage() {
                                     <select
                                         value={restaurantFilter}
                                         onChange={(e) => setRestaurantFilter(e.target.value)}
-                                        className="appearance-none pl-3 pr-8 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent cursor-pointer"
+                                        className="appearance-none pl-3 pr-8 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent cursor-pointer"
                                     >
                                         <option value="Listings">Restaurant Listings</option>
                                         <option value="Related Articles">Related Articles</option>

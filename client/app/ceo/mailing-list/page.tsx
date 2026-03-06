@@ -437,7 +437,7 @@ export default function ManualNewsletterPage() {
                             <div className="flex flex-col items-center flex-1">
                                 <div className={cn(
                                     "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300",
-                                    isActive ? "bg-blue-600 text-white shadow-lg shadow-blue-100" :
+                                    isActive ? "bg-[#1428AE] text-white shadow-lg shadow-blue-100" :
                                         isCompleted ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400"
                                 )}>
                                     {isCompleted ? <Check className="w-5 h-5" /> : <StepIcon className="w-5 h-5" />}
@@ -445,7 +445,7 @@ export default function ManualNewsletterPage() {
                                 <div className="mt-2 text-center">
                                     <p className={cn(
                                         "text-[13px] font-bold tracking-tight",
-                                        isActive ? "text-blue-600" : "text-gray-500"
+                                        isActive ? "text-[#1428AE]" : "text-gray-500"
                                     )}>{step.label}</p>
                                     <p className="text-[11px] text-gray-400 font-medium">{step.desc}</p>
                                 </div>
@@ -476,25 +476,25 @@ export default function ManualNewsletterPage() {
                             {/* Row 2: Search and Filters (Modern Single Line) */}
                             <div className="flex items-center gap-3 w-full">
                                 <div className="flex-1 relative group">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#9ca3af] group-focus-within:text-[#C10007] transition-colors" />
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#9ca3af] group-focus-within:text-[#1428AE] transition-colors" />
                                     <input
                                         type="text"
                                         placeholder="Search published articles..."
                                         value={articleSearch}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setArticleSearch(e.target.value)}
-                                        className="w-full h-[48px] pl-12 pr-4 bg-white border border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#C10007]/10 focus:border-[#C10007] transition-all duration-200"
+                                        className="w-full h-[48px] pl-12 pr-4 bg-white border border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all duration-200"
                                     />
                                 </div>
                                 <div className="w-[180px] flex-none">
                                     <Select value={articleCategory || "all"} onValueChange={(val) => setArticleCategory(val === "all" ? "" : val)}>
-                                        <SelectTrigger className="w-full h-[48px] !h-[48px] px-4 bg-white border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] focus:ring-[#C10007]/10 focus:border-[#C10007] transition-all">
+                                        <SelectTrigger className="w-full h-[48px] !h-[48px] px-4 bg-white border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all">
                                             <SelectValue placeholder="All Categories" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="all">All Categories</SelectItem>
                                             {dynamicArticleFilters.categories.map((c) => (
                                                 <SelectItem key={c.name} value={c.name}>
-                                                    {c.name} <span className="text-[#C10007] ml-1">({c.count})</span>
+                                                    {c.name} <span className="text-[#1428AE] ml-1">({c.count})</span>
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -502,14 +502,14 @@ export default function ManualNewsletterPage() {
                                 </div>
                                 <div className="w-[180px] flex-none">
                                     <Select value={articleCountry || "all"} onValueChange={(val) => setArticleCountry(val === "all" ? "" : val)}>
-                                        <SelectTrigger className="w-full h-[48px] !h-[48px] px-4 bg-white border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] focus:ring-[#C10007]/10 focus:border-[#C10007] transition-all">
+                                        <SelectTrigger className="w-full h-[48px] !h-[48px] px-4 bg-white border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all">
                                             <SelectValue placeholder="All Countries" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="all">All Countries</SelectItem>
                                             {dynamicArticleFilters.countries.map((c) => (
                                                 <SelectItem key={c.name} value={c.name}>
-                                                    {c.name} <span className="text-[#C10007] ml-1">({c.count})</span>
+                                                    {c.name} <span className="text-[#1428AE] ml-1">({c.count})</span>
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -525,7 +525,7 @@ export default function ManualNewsletterPage() {
                                             "w-full h-[48px] !h-[48px] px-4 rounded-xl text-[14px] focus:outline-none transition-all duration-200",
                                             !articleCountry
                                                 ? "bg-gray-50 border-[#e5e7eb] text-[#9ca3af] cursor-not-allowed"
-                                                : "bg-white border-[#e5e7eb] text-[#111827] focus:ring-[#C10007]/10 focus:border-[#C10007]"
+                                                : "bg-white border-[#e5e7eb] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE]"
                                         )}>
                                             <SelectValue placeholder={articleCountry ? 'All Cities' : 'Select Country'} />
                                         </SelectTrigger>
@@ -535,7 +535,7 @@ export default function ManualNewsletterPage() {
                                                 const cityCount = dynamicArticleFilters.cities.find(cf => cf.name === c)?.count || 0;
                                                 return (
                                                     <SelectItem key={c} value={c}>
-                                                        {c} <span className="text-[#C10007] ml-1">({cityCount})</span>
+                                                        {c} <span className="text-[#1428AE] ml-1">({cityCount})</span>
                                                     </SelectItem>
                                                 );
                                             })}
@@ -547,13 +547,13 @@ export default function ManualNewsletterPage() {
 
                         {/* Navigation Actions (Moved Up) */}
                         <div className="p-4 sm:p-6 border-b border-gray-100 bg-white flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <p className="text-sm font-bold text-blue-600 uppercase tracking-tight text-center sm:text-left">
+                            <p className="text-sm font-bold text-[#1428AE] uppercase tracking-tight text-center sm:text-left">
                                 {selectedArticles.length} articles selected
                             </p>
                             <Button
                                 onClick={() => setCurrentStep('recipients')}
                                 disabled={selectedArticles.length === 0}
-                                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 px-8 rounded-full shadow-lg shadow-blue-100 transition-all active:scale-95"
+                                className="w-full sm:w-auto bg-[#1428AE] hover:bg-[#000785] text-white font-bold h-11 px-8 rounded-full shadow-lg shadow-blue-100 transition-all active:scale-95"
                             >
                                 NEXT: SELECT RECIPIENTS <ChevronRight className="ml-2 w-4 h-4" />
                             </Button>
@@ -561,7 +561,7 @@ export default function ManualNewsletterPage() {
                         <div className="flex-1 overflow-y-auto max-h-[600px] p-6">
                             {isLoadingArticles ? (
                                 <div className="h-64 flex items-center justify-center flex-col gap-3">
-                                    <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
+                                    <Loader2 className="w-10 h-10 animate-spin text-[#1428AE]" />
                                     <span className="text-sm font-medium text-gray-400">Fetching published articles...</span>
                                 </div>
                             ) : filteredArticles.length > 0 ? (
@@ -574,11 +574,11 @@ export default function ManualNewsletterPage() {
                                                 onClick={() => handleToggleArticle(article)}
                                                 className={cn(
                                                     "group relative p-4 rounded-xl border-2 transition-all cursor-pointer hover:shadow-md",
-                                                    isSelected ? "border-blue-500 bg-blue-50/30" : "border-gray-100 bg-white hover:border-blue-200"
+                                                    isSelected ? "border-blue-500 bg-[rgba(20,40,174,0.05)]/30" : "border-gray-100 bg-white hover:border-blue-200"
                                                 )}
                                             >
                                                 {isSelected && (
-                                                    <div className="absolute top-3 right-3 bg-blue-500 text-white rounded-full p-0.5">
+                                                    <div className="absolute top-3 right-3 bg-[rgba(20,40,174,0.05)]0 text-white rounded-full p-0.5">
                                                         <Check className="w-3.5 h-3.5" />
                                                     </div>
                                                 )}
@@ -627,7 +627,7 @@ export default function ManualNewsletterPage() {
                                         }}
                                         className={cn(
                                             "flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all",
-                                            recipientTab === 'individual' ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"
+                                            recipientTab === 'individual' ? "bg-white text-[#1428AE] shadow-sm" : "text-gray-400"
                                         )}
                                     >
                                         INDIVIDUALS
@@ -639,7 +639,7 @@ export default function ManualNewsletterPage() {
                                         }}
                                         className={cn(
                                             "flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-xs font-bold transition-all",
-                                            recipientTab === 'groups' ? "bg-white text-blue-600 shadow-sm" : "text-gray-400"
+                                            recipientTab === 'groups' ? "bg-white text-[#1428AE] shadow-sm" : "text-gray-400"
                                         )}
                                     >
                                         GROUPS
@@ -650,20 +650,20 @@ export default function ManualNewsletterPage() {
                             {/* Row 2: Search and Filters (Modern Single Line) */}
                             <div className="flex items-center gap-3 w-full">
                                 <div className="flex-1 relative group">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#9ca3af] group-focus-within:text-[#C10007] transition-colors" />
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#9ca3af] text-[#1428AE] transition-colors" />
                                     <input
                                         type="text"
                                         placeholder={recipientTab === 'individual' ? "Search by email..." : "Search groups..."}
                                         value={subscriberSearch}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSubscriberSearch(e.target.value)}
-                                        className="w-full h-[48px] pl-12 pr-4 bg-white border border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#C10007]/10 focus:border-[#C10007] transition-all duration-200"
+                                        className="w-full h-[48px] pl-12 pr-4 bg-white border border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all duration-200"
                                     />
                                 </div>
                                 {recipientTab === 'individual' && (
                                     <>
                                         <div className="w-[180px] flex-none">
                                             <Select value={subscriberCategory || "all"} onValueChange={(val) => setSubscriberCategory(val === "all" ? "" : val)}>
-                                                <SelectTrigger className="w-full h-[48px] px-4 bg-white border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] focus:ring-[#C10007]/10 focus:border-[#C10007] transition-all">
+                                                <SelectTrigger className="w-full h-[48px] px-4 bg-white border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all">
                                                     <SelectValue placeholder="Matches Category" />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -678,7 +678,7 @@ export default function ManualNewsletterPage() {
                                         </div>
                                         <div className="w-[180px] flex-none">
                                             <Select value={subscriberCountry || "all"} onValueChange={(val) => setSubscriberCountry(val === "all" ? "" : val)}>
-                                                <SelectTrigger className="w-full h-[48px] px-4 bg-white border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] focus:ring-[#C10007]/10 focus:border-[#C10007] transition-all">
+                                                <SelectTrigger className="w-full h-[48px] px-4 bg-white border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all">
                                                     <SelectValue placeholder="Matches Country" />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -701,7 +701,7 @@ export default function ManualNewsletterPage() {
                                                     "w-full h-[48px] px-4 rounded-xl text-[14px] focus:outline-none transition-all duration-200",
                                                     !subscriberCountry
                                                         ? "bg-gray-50 border-[#e5e7eb] text-[#9ca3af] cursor-not-allowed"
-                                                        : "bg-white border-[#e5e7eb] text-[#111827] focus:ring-[#C10007]/10 focus:border-[#C10007]"
+                                                        : "bg-white border-[#e5e7eb] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE]"
                                                 )}>
                                                     <SelectValue placeholder={subscriberCountry ? 'Matches City' : 'Select Country'} />
                                                 </SelectTrigger>
@@ -729,7 +729,7 @@ export default function ManualNewsletterPage() {
                                     {selectedSubscriberIds.length > 0 && (
                                         <Dialog open={isCreateGroupOpen} onOpenChange={setIsCreateGroupOpen}>
                                             <DialogTrigger asChild>
-                                                <Button variant="outline" className="w-full sm:w-auto h-11 px-6 font-bold border-blue-200 text-blue-600 rounded-full hover:bg-blue-50 transition-all">
+                                                <Button variant="outline" className="w-full sm:w-auto h-11 px-6 font-bold border-blue-200 text-[#1428AE] rounded-full hover:bg-[rgba(20,40,174,0.05)] transition-all">
                                                     <FolderPlus className="w-4 h-4 mr-2" /> SAVE AS GROUP
                                                 </Button>
                                             </DialogTrigger>
@@ -758,14 +758,14 @@ export default function ManualNewsletterPage() {
                                                     </div>
                                                     <div className="p-4 bg-gray-50 rounded-2xl flex items-center justify-between">
                                                         <span className="text-[11px] font-black text-gray-400 uppercase leading-none">Members Selected</span>
-                                                        <span className="text-lg font-black text-blue-600 leading-none">{selectedSubscriberIds.length}</span>
+                                                        <span className="text-lg font-black text-[#1428AE] leading-none">{selectedSubscriberIds.length}</span>
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-3">
                                                     <Button variant="ghost" onClick={() => setIsCreateGroupOpen(false)} className="flex-1 font-bold text-gray-400 h-12">CANCEL</Button>
                                                     <Button
                                                         onClick={handleCreateGroup}
-                                                        className="flex-[2] bg-blue-600 hover:bg-blue-700 text-white font-black h-12 rounded-xl shadow-lg shadow-blue-100"
+                                                        className="flex-[2] bg-[#1428AE] hover:bg-[#000785] text-white font-black h-12 rounded-xl shadow-lg shadow-blue-100"
                                                     >
                                                         CREATE GROUP
                                                     </Button>
@@ -773,12 +773,12 @@ export default function ManualNewsletterPage() {
                                             </DialogContent>
                                         </Dialog>
                                     )}
-                                    <p className="text-sm font-bold text-blue-600 uppercase tracking-tight text-center">
+                                    <p className="text-sm font-bold text-[#1428AE] uppercase tracking-tight text-center">
                                         {selectedSubscriberIds.length > 0 ? `${selectedSubscriberIds.length} recipients selected` : "Sending to matching preferences"}
                                     </p>
                                     <Button
                                         onClick={() => setCurrentStep('review')}
-                                        className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 px-8 rounded-full shadow-lg transition-all active:scale-95"
+                                        className="w-full sm:w-auto bg-[#1428AE] hover:bg-[#000785] text-white font-bold h-11 px-8 rounded-full shadow-lg transition-all active:scale-95"
                                     >
                                         NEXT: REVIEW & SEND <ChevronRight className="ml-2 w-4 h-4" />
                                     </Button>
@@ -790,7 +790,7 @@ export default function ManualNewsletterPage() {
                                 <>
                                     {isLoadingSubscribers ? (
                                         <div className="h-64 flex items-center justify-center flex-col gap-3">
-                                            <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
+                                            <Loader2 className="w-10 h-10 animate-spin text-[#1428AE]" />
                                             <span className="text-sm font-medium text-gray-400">Loading subscribers...</span>
                                         </div>
                                     ) : filteredSubscribers.length > 0 ? (
@@ -802,7 +802,7 @@ export default function ManualNewsletterPage() {
                                                         onClick={() => handleToggleSubscriber(sub.sub_Id)}
                                                         className={cn(
                                                             "flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors cursor-pointer",
-                                                            selectedSubscriberIds.includes(sub.sub_Id) && "bg-blue-50/50"
+                                                            selectedSubscriberIds.includes(sub.sub_Id) && "bg-[rgba(20,40,174,0.05)]/50"
                                                         )}
                                                     >
                                                         <Checkbox checked={selectedSubscriberIds.includes(sub.sub_Id)} className="shrink-0" />
@@ -814,7 +814,7 @@ export default function ManualNewsletterPage() {
                                                                 ))}
                                                             </div>
                                                         </div>
-                                                        <div className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded tracking-widest uppercase shrink-0">
+                                                        <div className="text-[10px] font-black text-[#1428AE] bg-[rgba(20,40,174,0.05)] px-2 py-1 rounded tracking-widest uppercase shrink-0">
                                                             {Array.isArray(sub.country) ? sub.country[0] : sub.country}
                                                         </div>
                                                     </div>
@@ -832,7 +832,7 @@ export default function ManualNewsletterPage() {
                                 <>
                                     {isLoadingGroups ? (
                                         <div className="h-64 flex items-center justify-center flex-col gap-3">
-                                            <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
+                                            <Loader2 className="w-10 h-10 animate-spin text-[#1428AE]" />
                                             <span className="text-sm font-medium text-gray-400">Loading groups...</span>
                                         </div>
                                     ) : (
@@ -841,10 +841,10 @@ export default function ManualNewsletterPage() {
                                                 <div
                                                     key={group.id}
                                                     onClick={() => handleSelectGroup(group)}
-                                                    className="p-5 border-2 border-gray-100 rounded-2xl hover:border-blue-500 hover:bg-blue-50/30 transition-all cursor-pointer group"
+                                                    className="p-5 border-2 border-gray-100 rounded-2xl border-[#1428AE] hover:bg-[rgba(20,40,174,0.05)]/30 transition-all cursor-pointer group"
                                                 >
                                                     <div className="flex items-start justify-between">
-                                                        <div className="bg-blue-100 p-2.5 rounded-xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                                        <div className="bg-blue-100 p-2.5 rounded-xl text-[#1428AE] group-hover:bg-[#1428AE] group-hover:text-white transition-colors">
                                                             <Users2 className="w-5 h-5" />
                                                         </div>
                                                         <Button
@@ -862,13 +862,13 @@ export default function ManualNewsletterPage() {
                                                     </div>
                                                     <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between text-[11px] font-black uppercase tracking-tight text-gray-400">
                                                         <span>{group.subscribers_count} MEMBERS</span>
-                                                        <span className="text-blue-600">Select Group →</span>
+                                                        <span className="text-[#1428AE]">Select Group →</span>
                                                     </div>
                                                 </div>
                                             ))}
                                             <button
                                                 onClick={() => setRecipientTab('individual')}
-                                                className="p-5 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:border-blue-500 hover:text-blue-500 transition-all gap-2 min-h-[160px]"
+                                                className="p-5 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 border-[#1428AE] hover:text-[#1428AE] transition-all gap-2 min-h-[160px]"
                                             >
                                                 <Plus className="w-6 h-6" />
                                                 <span className="text-sm font-bold">New Group from Selection</span>
@@ -884,8 +884,8 @@ export default function ManualNewsletterPage() {
                 {/* Step 3: Review */}
                 {currentStep === 'review' && (
                     <div className="p-10 flex flex-col items-center max-w-2xl mx-auto w-full text-center">
-                        <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center mb-8">
-                            <Send className="w-10 h-10 text-blue-600" />
+                        <div className="w-20 h-20 rounded-full bg-[rgba(20,40,174,0.05)] flex items-center justify-center mb-8">
+                            <Send className="w-10 h-10 text-[#1428AE]" />
                         </div>
                         <h2 className="text-3xl font-black text-[#1e293b] mb-2 tracking-tight uppercase">Ready to Broadcast?</h2>
                         <p className="text-gray-500 mb-10 leading-relaxed font-medium">
@@ -898,14 +898,14 @@ export default function ManualNewsletterPage() {
                                     <FileText className="w-5 h-5 text-gray-400" />
                                     <span className="text-sm font-bold text-gray-600">Selected Articles</span>
                                 </div>
-                                <span className="text-lg font-black text-blue-600">{selectedArticles.length}</span>
+                                <span className="text-lg font-black text-[#1428AE]">{selectedArticles.length}</span>
                             </div>
                             <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-white shadow-sm">
                                 <div className="flex items-center gap-3">
                                     <Users className="w-5 h-5 text-gray-400" />
                                     <span className="text-sm font-bold text-gray-600">Target Recipients</span>
                                 </div>
-                                <span className="text-lg font-black text-blue-600">
+                                <span className="text-lg font-black text-[#1428AE]">
                                     {selectedSubscriberIds.length > 0 ? selectedSubscriberIds.length : "Algorithm Choice"}
                                 </span>
                             </div>
@@ -922,7 +922,7 @@ export default function ManualNewsletterPage() {
                             <Button
                                 onClick={handleSend}
                                 disabled={isSending}
-                                className="w-full sm:flex-[2] h-12 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl shadow-xl shadow-blue-100 transition-all active:scale-95 flex items-center justify-center gap-2 order-1 sm:order-2"
+                                className="w-full sm:flex-[2] h-12 bg-[#1428AE] hover:bg-[#000785] text-white font-black rounded-xl shadow-xl shadow-blue-100 transition-all active:scale-95 flex items-center justify-center gap-2 order-1 sm:order-2"
                             >
                                 {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                                 {isSending ? "DISPATCHING..." : "DISPATCH NOW"}
@@ -975,7 +975,7 @@ export default function ManualNewsletterPage() {
                                         <td className="px-6 py-4 text-sm font-medium text-gray-600">
                                             {log.article_count} {log.article_count === 1 ? 'Article' : 'Articles'}
                                         </td>
-                                        <td className="px-6 py-4 text-sm font-black text-blue-600">
+                                        <td className="px-6 py-4 text-sm font-black text-[#1428AE]">
                                             {log.recipient_count.toLocaleString()}
                                         </td>
                                         <td className="px-6 py-4">
@@ -988,7 +988,7 @@ export default function ManualNewsletterPage() {
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => setSelectedBroadcast(log)}
-                                                className="h-8 px-3 text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-bold text-xs gap-1.5 rounded-lg"
+                                                className="h-8 px-3 text-[#1428AE] hover:text-blue-700 hover:bg-[rgba(20,40,174,0.05)] font-bold text-xs gap-1.5 rounded-lg"
                                             >
                                                 <Eye className="w-3.5 h-3.5" /> View
                                             </Button>
@@ -1013,7 +1013,7 @@ export default function ManualNewsletterPage() {
                     <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto force-light">
                         <DialogHeader>
                             <DialogTitle className="text-xl font-black text-[#1e293b] uppercase tracking-tight flex items-center gap-2">
-                                <Send className="w-5 h-5 text-blue-600" />
+                                <Send className="w-5 h-5 text-[#1428AE]" />
                                 Broadcast Details
                             </DialogTitle>
                         </DialogHeader>
@@ -1036,9 +1036,9 @@ export default function ManualNewsletterPage() {
                                         {selectedBroadcast.status}
                                     </Badge>
                                 </div>
-                                <div className="bg-blue-50 rounded-xl p-3 col-span-1">
+                                <div className="bg-[rgba(20,40,174,0.05)] rounded-xl p-3 col-span-1">
                                     <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Total Articles</p>
-                                    <p className="text-2xl font-black text-blue-600">{selectedBroadcast.article_count}</p>
+                                    <p className="text-2xl font-black text-[#1428AE]">{selectedBroadcast.article_count}</p>
                                 </div>
                             </div>
 
@@ -1070,7 +1070,7 @@ export default function ManualNewsletterPage() {
                                                     <div className="flex items-center gap-1.5 mb-1">
                                                         <span className="text-[9px] font-black text-gray-400 bg-white border border-gray-200 rounded px-1.5 py-0.5 shrink-0">#{idx + 1}</span>
                                                         {article.category && (
-                                                            <Badge variant="secondary" className="bg-blue-50 text-blue-600 border-none text-[9px] font-bold uppercase px-1.5 py-0">
+                                                            <Badge variant="secondary" className="bg-[rgba(20,40,174,0.05)] text-[#1428AE] border-none text-[9px] font-bold uppercase px-1.5 py-0">
                                                                 {article.category}
                                                             </Badge>
                                                         )}
@@ -1108,12 +1108,12 @@ export default function ManualNewsletterPage() {
 
                             {/* Recipients section */}
                             <div className="border border-gray-100 rounded-xl overflow-hidden">
-                                <div className="flex items-center justify-between px-4 py-3 bg-blue-50/60">
+                                <div className="flex items-center justify-between px-4 py-3 bg-[rgba(20,40,174,0.05)]/60">
                                     <div className="flex items-center gap-2">
-                                        <Users className="w-4 h-4 text-blue-500" />
-                                        <p className="text-[11px] font-black text-blue-600 uppercase tracking-widest">Recipients</p>
+                                        <Users className="w-4 h-4 text-[#1428AE]" />
+                                        <p className="text-[11px] font-black text-[#1428AE] uppercase tracking-widest">Recipients</p>
                                     </div>
-                                    <span className="text-2xl font-black text-blue-600">{selectedBroadcast.recipient_count.toLocaleString()}</span>
+                                    <span className="text-2xl font-black text-[#1428AE]">{selectedBroadcast.recipient_count.toLocaleString()}</span>
                                 </div>
                                 {selectedBroadcast.recipients && selectedBroadcast.recipients.length > 0 ? (
                                     <div className="max-h-48 overflow-y-auto divide-y divide-gray-50 bg-white">
@@ -1141,7 +1141,7 @@ export default function ManualNewsletterPage() {
                         <div className="pt-2">
                             <Button
                                 onClick={() => setSelectedBroadcast(null)}
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black h-11 rounded-xl"
+                                className="w-full bg-[#1428AE] hover:bg-[#000785] text-white font-black h-11 rounded-xl"
                             >
                                 Close
                             </Button>
