@@ -10,7 +10,7 @@ COPY composer.json composer.lock ./
 RUN composer install --no-interaction --optimize-autoloader --no-dev --ignore-platform-reqs --no-scripts
 
 # Stage 2: Production Runtime
-FROM dunglas/frankenphp:1.1-php8.4-alpine
+FROM dunglas/frankenphp:1-php8.4-alpine
 
 # Set working directory
 WORKDIR /app
