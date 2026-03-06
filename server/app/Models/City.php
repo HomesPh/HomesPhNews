@@ -31,6 +31,7 @@ class City extends Model
      */
     protected $fillable = [
         'country_id',
+        'province_id',
         'name',
         'is_active',
     ];
@@ -57,5 +58,13 @@ class City extends Model
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class, 'country_id', 'id');
+    }
+
+    /**
+     * Get the province that owns the city.
+     */
+    public function province(): BelongsTo
+    {
+        return $this->belongsTo(Province::class, 'province_id', 'id');
     }
 }
