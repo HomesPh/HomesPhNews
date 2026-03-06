@@ -233,11 +233,12 @@ export default function BlockDrawer({
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Topics (comma separated)</label>
+                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Topics</label>
                                     <TagsInput
                                         tags={details.tags}
                                         onChange={(tags) => onUpdateDetails({ tags })}
                                     />
+                                    <p className="text-[10px] text-gray-400 mt-1.5 italic">Note: Separate each topic with a comma</p>
                                 </div>
                             </div>
                         </section>
