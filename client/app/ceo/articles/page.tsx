@@ -229,7 +229,7 @@ export default function CEOArticlesPage() {
             <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="bg-white rounded-xl border border-blue-100 p-5 shadow-sm flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
-                        <Clock className="w-5 h-5 text-blue-600" />
+                        <Clock className="w-5 h-5 text-[#1428AE]" />
                     </div>
                     <div>
                         <p className="text-[12px] text-[#6b7280] font-medium tracking-[-0.5px]">Pending Approval</p>
@@ -269,12 +269,12 @@ export default function CEOArticlesPage() {
                                         setFilter("status", tab.id);
                                         pagination.handlePageChange(1);
                                     }}
-                                    className={`flex items-center gap-[15px] px-2 pb-3 relative transition-all ${isActive ? "border-b-4 border-[#C10007]" : ""
+                                    className={`flex items-center gap-[15px] px-2 pb-3 relative transition-all ${isActive ? "border-b-4 border-[#F4AA1D]" : ""
                                         }`}
                                 >
                                     <span
                                         className={`text-[16px] tracking-[-0.5px] ${isActive
-                                            ? "text-[#C10007] font-semibold"
+                                            ? "text-[#1428AE] font-semibold"
                                             : "text-[#4b5563] font-medium"
                                             }`}
                                     >
@@ -282,7 +282,7 @@ export default function CEOArticlesPage() {
                                     </span>
                                     <span
                                         className={`inline-flex items-center justify-center min-w-[25px] h-[25px] px-2 rounded-full text-[14px] tracking-[-0.5px] transition-colors ${isActive
-                                            ? "bg-[#C10007] text-white font-semibold"
+                                            ? "bg-[#1428AE] text-white font-semibold"
                                             : "bg-[#e5e7eb] text-[#4b5563] font-medium"
                                             }`}
                                     >

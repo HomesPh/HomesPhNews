@@ -5,6 +5,7 @@ import { LayoutDashboard, BookOpen, BarChart3, Settings, LogOut, Bell } from "lu
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/api-v2";
 
 const SidebarItems = [
     {
@@ -39,29 +40,27 @@ export default function BloggerSidebar() {
     const { state } = useSidebar();
     const isCollapsed = state === "collapsed";
 
-    const handleLogout = () => {
-        // For now, just a simple redirect or console log since auth is bypassed
-        console.log("Logout triggered");
-        window.location.href = "/";
+    const { logout } = useAuth();
+
+    const handleLogout = async () => {
+        await logout();
+        window.location.href = "/login";
     };
 
     return (
         <Sidebar collapsible="icon" className="border-none">
-            <div className="flex flex-col h-full bg-[#1a1d2e] text-white">
+            <div className="flex flex-col h-full bg-[#000785] text-white">
                 <SidebarHeader className="px-4 py-6 border-b border-[rgba(255,255,255,0.1)]">
                     {!isCollapsed ? (
                         <div className="flex items-center gap-3 px-2">
                             <img
                                 src="/images/HomesLogoW.png"
                                 alt="Homes.ph News"
-                                className="w-10 h-10 object-contain"
+                                className="h-12 w-auto object-contain"
                             />
-                            <div className="flex flex-col">
-                                <h1 className="text-[20px] font-bold text-white leading-[1.4] tracking-[-0.5px]">Blogger Portal</h1>
-                            </div>
                         </div>
                     ) : (
-                        <div className="flex items-center justify-center px-2">
+                        <div className="flex justify-center">
                             <img
                                 src="/images/HLogo.png"
                                 alt="Homes.ph News"
@@ -83,8 +82,8 @@ export default function BloggerSidebar() {
                                         className={cn(
                                             "flex items-center gap-3 px-4 py-3 rounded-[8px] transition-colors w-full h-auto",
                                             isActive
-                                                ? "bg-[#C10007] text-white hover:bg-[#C10007] hover:text-white"
-                                                : "text-[#9ca3af] hover:bg-[#252836] hover:text-white",
+                                                ? "bg-[#F4AA1D] text-black hover:bg-[#F4AA1D] hover:text-black"
+                                                : "text-white hover:bg-[rgba(255,255,255,0.1)] hover:text-white",
                                             isCollapsed ? "justify-center" : ""
                                         )}
                                         tooltip={isCollapsed ? item.title : undefined}
@@ -106,7 +105,7 @@ export default function BloggerSidebar() {
                     <button
                         onClick={handleLogout}
                         className={cn(
-                            "flex items-center gap-3 px-4 py-3 text-[#9ca3af] hover:bg-[#252836] hover:text-white rounded-[8px] transition-colors w-full",
+                            "flex items-center gap-3 px-4 py-3 text-white hover:bg-[rgba(255,255,255,0.1)] hover:text-white rounded-[8px] transition-colors w-full",
                             isCollapsed ? "justify-center" : ""
                         )}
                         title={isCollapsed ? "Logout" : undefined}

@@ -42,7 +42,7 @@ export default function BloggerIndividualAnalytics({ data, onBack }: BloggerIndi
                     <select
                         value={selectedArticleId}
                         onChange={(e) => setSelectedArticleId(Number(e.target.value))}
-                        className="w-full appearance-none pl-4 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent cursor-pointer text-ellipsis overflow-hidden"
+                        className="w-full appearance-none pl-4 pr-10 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent cursor-pointer text-ellipsis overflow-hidden"
                     >
                         {data.topArticles.map(article => (
                             <option key={article.id} value={article.id}>
@@ -164,7 +164,7 @@ export default function BloggerIndividualAnalytics({ data, onBack }: BloggerIndi
                                 <span className="text-sm font-bold text-gray-900">{selectedArticle.bounceRate}%</span>
                             </div>
                             <div className="w-full bg-gray-100 rounded-full h-2.5">
-                                <div className="bg-red-500 h-2.5 rounded-full" style={{ width: `${selectedArticle.bounceRate}%` }}></div>
+                                <div className="bg-orange-500 h-2.5 rounded-full" style={{ width: `${selectedArticle.bounceRate}%` }}></div>
                             </div>
                             <p className="text-xs text-gray-500 mt-1">Percentage of people who left without interaction.</p>
                         </div>

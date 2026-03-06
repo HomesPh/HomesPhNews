@@ -86,7 +86,7 @@ export default function SubscriptionPage() {
 
     const handleDownloadInvoice = (inv: typeof MOCK_BILLING[0]) => {
         const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>${inv.id}</title>
-<style>body{font-family:Arial,sans-serif;max-width:600px;margin:40px auto;color:#111827}h1{color:#C10007}
+<style>body{font-family:Arial,sans-serif;max-width:600px;margin:40px auto;color:#111827}h1{color:#1428AE}
 table{width:100%;border-collapse:collapse;margin-top:24px}th{text-align:left;padding:10px;background:#f9fafb;border:1px solid #e5e7eb;font-size:13px;color:#6b7280}
 td{padding:12px 10px;border-bottom:1px solid #f3f4f6;font-size:14px}.total{font-weight:bold;font-size:16px}
 .footer{margin-top:40px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:12px;color:#9ca3af}
@@ -217,7 +217,7 @@ s{color:#9ca3af}</style></head><body>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div>
                             <div className="flex items-center gap-2 mb-2">
-                                <Globe className="w-4 h-4 text-[#C10007]" />
+                                <Globe className="w-4 h-4 text-[#1428AE]" />
                                 <span className="text-[14px] font-semibold text-[#111827]">Countries ({prefs.countries.length})</span>
                             </div>
                             {prefs.countries.length > 0 ? (
@@ -234,13 +234,13 @@ s{color:#9ca3af}</style></head><body>
                         </div>
                         <div>
                             <div className="flex items-center gap-2 mb-2">
-                                <Layers className="w-4 h-4 text-[#C10007]" />
+                                <Layers className="w-4 h-4 text-[#1428AE]" />
                                 <span className="text-[14px] font-semibold text-[#111827]">Categories ({prefs.categories.length})</span>
                             </div>
                             {prefs.categories.length > 0 ? (
                                 <div className="flex flex-wrap gap-1.5">
                                     {prefs.categories.map(c => (
-                                        <span key={c} className="px-2.5 py-1 bg-[#fef2f2] border border-[#fecaca] text-[#C10007] text-[12px] font-semibold rounded-full">
+                                        <span key={c} className="px-2.5 py-1 bg-blue-50 border border-blue-200 text-[#1428AE] text-[12px] font-semibold rounded-full">
                                             {getCategoryLabel(c)}
                                         </span>
                                     ))}
@@ -280,7 +280,7 @@ s{color:#9ca3af}</style></head><body>
                                     <td className="px-6 py-4 text-right">
                                         <button
                                             onClick={() => handleDownloadInvoice(inv)}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-[#C10007] border border-[#fecaca] rounded-[6px] hover:bg-red-50 transition-colors ml-auto"
+                                            className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-[#1428AE] border border-blue-200 rounded-[6px] hover:bg-blue-50 transition-colors ml-auto"
                                         >
                                             <Download className="w-3.5 h-3.5" />Download
                                         </button>

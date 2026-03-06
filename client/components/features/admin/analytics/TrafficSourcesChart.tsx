@@ -41,7 +41,7 @@ export default function TrafficSourcesChart({ data }: TrafficSourcesChartProps) 
                         />
                         <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
                             {data.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#C10007' : '#1F2937'} />
+                                <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#1428AE' : '#1F2937'} />
                             ))}
                         </Bar>
                     </BarChart>
