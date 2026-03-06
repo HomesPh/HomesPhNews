@@ -291,28 +291,28 @@ export default function BlockDrawer({
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Publish Date</label>
-                                    <input
-                                        type="date"
-                                        value={details.publishDate}
-                                        onChange={(e) => !isEditor && onUpdateDetails({ publishDate: e.target.value })}
-                                        disabled={isEditor}
-                                        className={`w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold text-gray-700 ${isEditor ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
-                                    />
+                            {!isEditor && (
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Publish Date</label>
+                                        <input
+                                            type="date"
+                                            value={details.publishDate}
+                                            onChange={(e) => onUpdateDetails({ publishDate: e.target.value })}
+                                            className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold text-gray-700"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Publish Time</label>
+                                        <input
+                                            type="time"
+                                            value={details.publishTime}
+                                            onChange={(e) => onUpdateDetails({ publishTime: e.target.value })}
+                                            className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold text-gray-700"
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Publish Time</label>
-                                    <input
-                                        type="time"
-                                        value={details.publishTime}
-                                        onChange={(e) => !isEditor && onUpdateDetails({ publishTime: e.target.value })}
-                                        disabled={isEditor}
-                                        className={`w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold text-gray-700 ${isEditor ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
-                                    />
-                                </div>
-                            </div>
+                            )}
                         </section>
 
                         {!isEditor && (
