@@ -134,7 +134,7 @@ export default function SubscriberAnalyticsPage() {
                         <select
                             value={dateRange}
                             onChange={(e) => setDateRange(e.target.value)}
-                            className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent tracking-[-0.3px] cursor-pointer"
+                            className="appearance-none px-4 pr-10 h-[50px] border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-black bg-white focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent tracking-[-0.3px] cursor-pointer"
                         >
                             <option>Last 7 Days</option>
                             <option>Last 30 Days</option>

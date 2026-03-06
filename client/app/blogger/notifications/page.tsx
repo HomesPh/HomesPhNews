@@ -59,7 +59,7 @@ export default function BloggerNotificationsPage() {
                         </div>
                         <div className="flex-1">
                             <div className="flex items-center justify-between mb-1">
-                                <h3 className="font-bold text-gray-900 group-hover:text-[#C10007] transition-colors">{item.title}</h3>
+                                <h3 className="font-bold text-gray-900 group-hover:text-[#1428AE] transition-colors">{item.title}</h3>
                                 <span className="text-xs text-gray-400 font-medium">{item.time}</span>
                             </div>
                             <p className="text-sm text-gray-500 leading-relaxed">{item.message}</p>

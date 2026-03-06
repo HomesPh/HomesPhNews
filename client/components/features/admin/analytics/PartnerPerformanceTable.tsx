@@ -44,11 +44,11 @@ export default function PartnerPerformanceTable({ data }: PartnerPerformanceTabl
                             <tr key={index} className="group hover:bg-[#f9fafb]/80 transition-all duration-200">
                                 <td className="px-8 py-6">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-[#f3f4f6] flex items-center justify-center text-[#9ca3af] group-hover:bg-white group-hover:text-[#C10007] group-hover:shadow-sm border border-transparent group-hover:border-[#f3f4f6] transition-all">
+                                        <div className="w-10 h-10 rounded-xl bg-[#f3f4f6] flex items-center justify-center text-[#9ca3af] group-hover:bg-white group-hover:text-[#1428AE] group-hover:shadow-sm border border-transparent group-hover:border-[#f3f4f6] transition-all">
                                             <LayersIcon className="w-5 h-5" />
                                         </div>
                                         <div>
-                                            <p className="text-[14px] font-extrabold text-[#111827] group-hover:text-[#C10007] transition-colors tracking-[-0.5px]">{site.site}</p>
+                                            <p className="text-[14px] font-extrabold text-[#111827] group-hover:text-[#1428AE] transition-colors tracking-[-0.5px]">{site.site}</p>
                                             <p className="text-[11px] font-bold text-[#9ca3af] uppercase tracking-tighter">Verified Partner</p>
                                         </div>
                                     </div>
@@ -74,7 +74,7 @@ export default function PartnerPerformanceTable({ data }: PartnerPerformanceTabl
                                     </div>
                                 </td>
                                 <td className="px-8 py-6 text-right">
-                                    <button className="p-2.5 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-[#C10007] hover:border-[#C10007] hover:bg-red-50 transition-all shadow-sm">
+                                    <button className="p-2.5 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-[#1428AE] hover:border-[#1428AE] hover:bg-blue-50 transition-all shadow-sm">
                                         <ExternalLink className="w-4 h-4" />
                                     </button>
                                 </td>

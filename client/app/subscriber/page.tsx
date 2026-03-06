@@ -72,7 +72,7 @@ export default function SubscriberDashboard() {
     const distributionSites = data?.stats.total_distribution.map(d => ({
         name: d.distributed_in,
         count: d.published_count,
-        color: "#C10007"
+        color: "#1428AE"
     })) ?? [];
 
     return (
@@ -104,7 +104,7 @@ export default function SubscriberDashboard() {
                         <h2 className="text-[18px] font-bold text-[#111827] tracking-[-0.5px]">Recent Published Articles</h2>
                         <Link
                             href="/subscriber/articles?status=published"
-                            className="text-[14px] font-semibold text-[#C10007] hover:text-[#a10006] tracking-[-0.5px]"
+                            className="text-[14px] font-semibold text-[#1428AE] hover:text-[#000785] tracking-[-0.5px]"
                         >
                             View All →
                         </Link>

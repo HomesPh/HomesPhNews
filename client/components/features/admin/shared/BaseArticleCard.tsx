@@ -137,7 +137,7 @@ export default function BaseArticleCard({
 
                         {/* Article Title */}
                         <div className="flex items-center gap-3 mb-1">
-                            <h3 className="text-[15px] font-bold text-[#111827] leading-[22px] tracking-[-0.5px] line-clamp-1 group-hover:text-[#C10007] transition-colors">
+                            <h3 className="text-[15px] font-bold text-[#111827] leading-[22px] tracking-[-0.5px] line-clamp-1 group-hover:text-[#1428AE] transition-colors">
                                 {article.title}
                             </h3>
                         </div>

@@ -9,11 +9,19 @@ import { FormInput } from "@/components/features/admin/shared/FormFields";
 // Theme Presets for easy customization
 const THEME_PRESETS = [
     {
+        id: "brand",
+        label: "Brand Blue",
+        sidebarBg: "#000785",
+        sidebarText: "#ffffff",
+        primary: "#1428AE",
+        activeText: "#ffffff"
+    },
+    {
         id: "midnight",
         label: "Midnight",
         sidebarBg: "#1a1d2e",
         sidebarText: "#ffffff",
-        primary: "#C10007",
+        primary: "#1428AE",
         activeText: "#ffffff"
     },
     {
@@ -21,7 +29,7 @@ const THEME_PRESETS = [
         label: "Light",
         sidebarBg: "#ffffff",
         sidebarText: "#1f2937",
-        primary: "#C10007",
+        primary: "#1428AE",
         activeText: "#ffffff"
     },
     {
@@ -73,7 +81,7 @@ export default function SettingsPage() {
     const [customColors, setCustomColors] = useState({
         sidebarBg: "#1a1d2e",
         sidebarText: "#ffffff",
-        primary: "#C10007"
+        primary: "#1428AE"
     });
     const [isCustomTheme, setIsCustomTheme] = useState(false);
 
@@ -288,7 +296,7 @@ export default function SettingsPage() {
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
-                                className="flex items-center gap-2 px-4 py-2 text-[14px] text-[#C10007] border border-[#C10007] rounded-[6px] hover:bg-[#fef2f2] transition-colors tracking-[-0.5px] font-medium"
+                                className="flex items-center gap-2 px-4 py-2 text-[14px] text-[#1428AE] border border-[#1428AE] rounded-[6px] hover:bg-blue-50 transition-colors tracking-[-0.5px] font-medium"
                             >
                                 <Upload className="w-4 h-4" />
                                 Upload Photo
@@ -368,7 +376,7 @@ export default function SettingsPage() {
                                         placeholder="https://yoursite.com"
                                         value={siteInfo.siteUrl}
                                         onChange={(e) => setSiteInfo({ ...siteInfo, siteUrl: e.target.value })}
-                                        className="w-full pl-9 pr-3 py-2.5 text-[14px] border border-[#e5e7eb] rounded-[8px] focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent"
+                                        className="w-full pl-9 pr-3 py-2.5 text-[14px] border border-[#e5e7eb] rounded-[8px] focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent"
                                     />
                                 </div>
                             </div>
@@ -393,7 +401,7 @@ export default function SettingsPage() {
                                         />
                                         <label
                                             htmlFor="logo-upload"
-                                            className="cursor-pointer flex items-center gap-2 px-4 py-2 text-[14px] text-[#C10007] border border-[#C10007] rounded-[6px] hover:bg-[#fef2f2] transition-colors tracking-[-0.5px] font-medium w-fit"
+                                            className="cursor-pointer flex items-center gap-2 px-4 py-2 text-[14px] text-[#1428AE] border border-[#1428AE] rounded-[6px] hover:bg-blue-50 transition-colors tracking-[-0.5px] font-medium w-fit"
                                         >
                                             <Upload className="w-4 h-4" />
                                             Upload Logo
@@ -436,7 +444,7 @@ export default function SettingsPage() {
                                         key={preset.id}
                                         onClick={() => applyTheme(preset)}
                                         className={`relative group p-3 rounded-xl border-2 transition-all hover:scale-105 flex flex-col items-center gap-2 ${currentTheme.id === preset.id
-                                            ? 'border-[#C10007] bg-gray-50'
+                                            ? 'border-[#1428AE] bg-gray-50'
                                             : 'border-transparent hover:border-gray-200 bg-gray-50/50'
                                             }`}
                                     >
@@ -446,11 +454,11 @@ export default function SettingsPage() {
                                                 <div className="absolute top-1 left-1 w-6 h-2 rounded-sm" style={{ backgroundColor: preset.primary }}></div>
                                             </div>
                                         </div>
-                                        <span className={`font-medium text-xs ${currentTheme.id === preset.id ? 'text-[#C10007]' : 'text-gray-600'}`}>
+                                        <span className={`font-medium text-xs ${currentTheme.id === preset.id ? 'text-[#1428AE]' : 'text-gray-600'}`}>
                                             {preset.label}
                                         </span>
                                         {currentTheme.id === preset.id && (
-                                            <div className="absolute top-2 right-2 text-[#C10007]">
+                                            <div className="absolute top-2 right-2 text-[#1428AE]">
                                                 <CheckCircle2 className="w-4 h-4" />
                                             </div>
                                         )}
@@ -465,7 +473,7 @@ export default function SettingsPage() {
                                 <input
                                     type="checkbox"
                                     id="custom-mode"
-                                    className="rounded border-gray-300 text-[#C10007] focus:ring-[#C10007]"
+                                    className="rounded border-gray-300 text-[#1428AE] focus:ring-[#1428AE]"
                                     checked={isCustomTheme}
                                     onChange={(e) => {
                                         setIsCustomTheme(e.target.checked);
@@ -544,7 +552,7 @@ export default function SettingsPage() {
                     <button
                         onClick={handleSaveSettings}
                         disabled={isLoading}
-                        className="flex items-center gap-2 px-8 py-3 bg-[#C10007] text-white rounded-[8px] hover:bg-[#a10006] transition-colors text-[16px] font-medium tracking-[-0.5px] shadow-lg shadow-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 px-8 py-3 bg-[#1428AE] text-white rounded-[8px] hover:bg-[#000785] transition-colors text-[16px] font-medium tracking-[-0.5px] shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isLoading ? (
                             "Saving..."

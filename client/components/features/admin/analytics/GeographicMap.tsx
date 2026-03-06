@@ -107,7 +107,7 @@ export function GeographicMap({ data }: GeographicMapProps) {
                         onClick={() => setSelectedMarker(marker)}
                         icon={{
                             path: google.maps.SymbolPath.CIRCLE,
-                            fillColor: '#C10007',
+                            fillColor: '#1428AE',
                             fillOpacity: 0.6,
                             strokeColor: '#FFFFFF',
                             strokeWeight: 2,
@@ -132,7 +132,7 @@ export function GeographicMap({ data }: GeographicMapProps) {
             {/* Subtle Legend */}
             <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full border border-slate-200 shadow-sm pointer-events-none">
                 <div className="flex -space-x-1">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#C10007]" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#1428AE]" />
                 </div>
                 <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Active Traffic</span>
             </div>

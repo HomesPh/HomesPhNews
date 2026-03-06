@@ -41,7 +41,7 @@ export default function CalendarViewSelector({
                         className={cn(
                             "px-5 py-2 rounded-[8px] text-[14px] font-medium transition-colors capitalize",
                             viewMode === mode
-                                ? 'bg-[#C10007] text-white shadow-sm'
+                                ? 'bg-[#1428AE] text-white shadow-sm'
                                 : 'bg-[#f3f4f6] text-[#374151] hover:bg-gray-200'
                         )}
                     >
@@ -67,7 +67,7 @@ export default function CalendarViewSelector({
                             const [y, m, d] = e.target.value.split('-').map(Number);
                             setCurrentDate(new Date(y, m - 1, d));
                         }}
-                        className="px-4 py-2 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007] focus:border-transparent cursor-pointer"
+                        className="px-4 py-2 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium bg-white focus:outline-none focus:ring-2 focus:ring-[#1428AE] focus:border-transparent cursor-pointer"
                     />
                 )}
 
@@ -79,7 +79,7 @@ export default function CalendarViewSelector({
                             newDate.setMonth(monthNames.indexOf(e.target.value));
                             setCurrentDate(newDate);
                         }}
-                        className="px-4 py-2 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007]"
+                        className="px-4 py-2 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium bg-white focus:outline-none focus:ring-2 focus:ring-[#1428AE]"
                     >
                         {monthNames.map(month => <option key={month} value={month}>{month}</option>)}
                     </select>
@@ -96,7 +96,7 @@ export default function CalendarViewSelector({
                             setCurrentDate(newDate);
                         }
                     }}
-                    className="px-4 py-2 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007]"
+                    className="px-4 py-2 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium bg-white focus:outline-none focus:ring-2 focus:ring-[#1428AE]"
                 >
                     {Array.from({ length: 11 }, (_, i) => 2020 + i).map(year => (
                         <option key={year} value={year}>{year}</option>
@@ -117,7 +117,7 @@ export default function CalendarViewSelector({
                 <select
                     value={selectedCountry}
                     onChange={(e) => setSelectedCountry(e.target.value)}
-                    className="px-4 py-2 border border-[#d1d5db] rounded-[8px] text-[14px] bg-white focus:outline-none focus:ring-2 focus:ring-[#C10007]"
+                    className="px-4 py-2 border border-[#d1d5db] rounded-[8px] text-[14px] bg-white focus:outline-none focus:ring-2 focus:ring-[#1428AE]"
                 >
                     <option>All Countries</option>
                     <option>Philippines</option>
