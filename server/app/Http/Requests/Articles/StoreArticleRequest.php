@@ -27,6 +27,8 @@ class StoreArticleRequest extends FormRequest
             'content' => 'required|string',
             'category' => 'nullable|string|max:50',
             'country' => 'required|string|max:100',
+            'province_id' => 'nullable|integer',
+            'city_id' => 'nullable|integer',
             'image' => 'nullable|string|max:2000',
             'published_sites' => 'nullable|array',
             'published_sites.*' => 'string',

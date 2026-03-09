@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Globe, Tag, Building2, Zap } from "lucide-react";
 import CategoryList from "@/components/features/admin/autonews/CategoryList";
 import CountryList from "@/components/features/admin/autonews/CountryList";
+import ProvinceList from "@/components/features/admin/autonews/ProvinceList";
 import CityList from "@/components/features/admin/autonews/CityList";
 import ManualScrapePanel from "@/components/features/admin/autonews/ManualScrapePanel";
 import ScraperControlPanel from "@/components/features/admin/articles/ScraperControlPanel";
@@ -36,6 +37,13 @@ export default function AutoNewsPage() {
                                 <span>Countries</span>
                             </TabsTrigger>
                             <TabsTrigger
+                                value="provinces"
+                                className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-[#1428AE] data-[state=active]:text-white"
+                            >
+                                <Globe className="w-4 h-4" />
+                                <span>Provinces</span>
+                            </TabsTrigger>
+                            <TabsTrigger
                                 value="cities"
                                 className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-[#1428AE] data-[state=active]:text-white"
                             >
@@ -61,6 +69,10 @@ export default function AutoNewsPage() {
 
                     <TabsContent value="countries" className="mt-0 border-none p-0 outline-none">
                         <CountryList />
+                    </TabsContent>
+
+                    <TabsContent value="provinces" className="mt-0 border-none p-0 outline-none">
+                        <ProvinceList />
                     </TabsContent>
 
                     <TabsContent value="cities" className="mt-0 border-none p-0 outline-none">

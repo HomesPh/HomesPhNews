@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Admin\CityController;
 use App\Http\Controllers\Api\Admin\CountryController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\MailingListGroupController;
+use App\Http\Controllers\Api\Admin\ProvinceController;
 use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Api\Admin\SiteController;
 use App\Http\Controllers\Api\Auth\AuthController;
@@ -100,49 +101,47 @@ Route::prefix('v1')->group(function () {
 // ═══════════════════════════════════════════════════════════════
 /*  middleware(['auth:sanctum', 'is.admin']): This is the security. It says a user must first be authenticated via Sanctum
  (logged in with a token) AND they must pass our is.admin check. */
-    // This group protects all routes within it.
-    Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
-        ->prefix('admin')
-        ->name('admin.')
-        ->group(function () {
+// This group protects all routes within it.
+Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
 
-            // Reports & Dashboards (Non-CRUD)
-            Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
-            Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
+        // Reports & Dashboards (Non-CRUD)
+        Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
+        Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
 
-            // CRUD Resources
-            // Route::apiResource('events', EventController::class);
-            Route::apiResource('article-publications', ArticlePublicationController::class);
+        // CRUD Resources
+        // Route::apiResource('events', EventController::class);
+        Route::apiResource('article-publications', ArticlePublicationController::class);
 
-            Route::get('sites/names', [SiteController::class, 'names']);
-            Route::patch('sites/{id}/toggle-status', [SiteController::class, 'toggleStatus']);
-            Route::patch('sites/{id}/refresh-key', [SiteController::class, 'refreshKey']);
-            Route::apiResource('sites', SiteController::class);
-            Route::apiResource('articles', AdminArticleController::class);
-            Route::apiResource('campaigns', AdminCampaignController::class);
-            Route::apiResource('categories', CategoryController::class);
-            Route::apiResource('countries', CountryController::class);
+        Route::get('sites/names', [SiteController::class, 'names']);
+        Route::patch('sites/{id}/toggle-status', [SiteController::class, 'toggleStatus']);
+        Route::patch('sites/{id}/refresh-key', [SiteController::class, 'refreshKey']);
+        Route::apiResource('sites', SiteController::class);
+        Route::apiResource('articles', AdminArticleController::class);
+        Route::apiResource('campaigns', AdminCampaignController::class);
 
-            // Custom Article Actions
-            Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
-            // Edit pending (Redis) article without touching the main database
-            Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
-            // Publish pending article (Redis → MySQL, then delete from Redis)
-            Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
-            // Restore soft-deleted article
-            Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
+        // Custom Article Actions
+        Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
+        // Edit pending (Redis) article without touching the main database
+        Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
+        // Publish pending article (Redis → MySQL, then delete from Redis)
+        Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
+        // Restore soft-deleted article
+        Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
 
-            // ═══════════════════════════════════════════════════════════════
-            // RESTAURANT ROUTES (Redis-based & Database Persistence)
-            // ═══════════════════════════════════════════════════════════════
-            Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
-            Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
-            Route::post('restaurants/{id}/publish', [AdminRestaurantController::class, 'publish'])->name('restaurants.publish');
-            Route::apiResource('restaurants', AdminRestaurantController::class);
+        // ═══════════════════════════════════════════════════════════════
+        // RESTAURANT ROUTES (Redis-based & Database Persistence)
+        // ═══════════════════════════════════════════════════════════════
+        Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
+        Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
+        Route::post('restaurants/{id}/publish', [AdminRestaurantController::class, 'publish'])->name('restaurants.publish');
+        Route::apiResource('restaurants', AdminRestaurantController::class);
 
-            // Upload Routes
-            Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
-        });
+        // Upload Routes
+        Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
+    });
 
     /*
     |--------------------------------------------------------------------------
@@ -266,6 +265,12 @@ Route::prefix('v1')->group(function () {
             // Site names — CEO needs this to select publish targets
             Route::get('sites/names', [SiteController::class, 'names']);
 
+            // Shared metadata resources
+            Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
+            Route::apiResource('countries', CountryController::class)->only(['index', 'show']);
+            Route::apiResource('provinces', ProvinceController::class)->only(['index', 'show']);
+            Route::apiResource('cities', CityController::class)->only(['index', 'show']);
+
             // Article update — CEO needs PATCH to set status=rejected
             Route::match(['put', 'patch'], 'articles/{article}', [AdminArticleController::class, 'update']);
 
@@ -314,9 +319,6 @@ Route::prefix('v1')->group(function () {
 
                 Route::apiResource('campaigns', AdminCampaignController::class);
                 Route::apiResource('ad-units', AdminAdUnitController::class);
-                Route::apiResource('categories', CategoryController::class);
-                Route::apiResource('countries', CountryController::class);
-                Route::apiResource('cities', CityController::class);
 
                 // Article Deletion/Restoration (Admin Only)
                 Route::delete('articles/{article}', [AdminArticleController::class, 'destroy']);
