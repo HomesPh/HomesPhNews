@@ -159,6 +159,7 @@ function CEOArticleDetailContent() {
         );
 
     const isEdited = article.status === "edited";
+    const isPending = article.status === "pending" || article.status === "pending review";
     const isPublished = article.status === "published";
     const isRejected = article.status === "rejected";
 
@@ -381,7 +382,7 @@ function CEOArticleDetailContent() {
                                 Review this article and decide whether to publish it or reject it back to the editor.
                             </p>
 
-                            {isEdited && (
+                            {(isEdited || isPending) && (
                                 <>
                                     <h4 className="text-[13px] font-semibold text-[#374151] mb-3 tracking-[-0.5px]">
                                         Select websites for publication:
@@ -409,29 +410,43 @@ function CEOArticleDetailContent() {
                                             className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#1428AE] text-white rounded-[8px] text-[14px] font-semibold hover:bg-[#000785] transition-all active:scale-95 shadow-sm disabled:opacity-50"
                                         >
                                             {isApproving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                                            Approve & Publish
+                                            Publish Article
                                         </button>
-                                        <button
-                                            onClick={() => setShowRejectDialog(true)}
-                                            disabled={isRejecting}
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-red-200 text-red-600 rounded-[8px] text-[14px] font-semibold hover:bg-red-50 transition-all active:scale-95 disabled:opacity-50"
-                                        >
-                                            {isRejecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                                            Reject Article
-                                        </button>
+                                        {isEdited && (
+                                            <button
+                                                onClick={() => setShowRejectDialog(true)}
+                                                disabled={isRejecting}
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-red-200 text-red-600 rounded-[8px] text-[14px] font-semibold hover:bg-red-50 transition-all active:scale-95 disabled:opacity-50"
+                                            >
+                                                {isRejecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                                                Reject Article
+                                            </button>
+                                        )}
                                     </div>
                                 </>
                             )}
 
-                            {!isEdited && (
+                            {(!isEdited && !isPending) && (
                                 <div className={cn(
                                     "p-4 rounded-lg flex items-start gap-3",
-                                    isPublished ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-red-50 text-red-700 border border-red-100"
+                                    isPublished ? "bg-emerald-50 text-emerald-700 border border-emerald-100" :
+                                        isRejected ? "bg-red-50 text-red-700 border border-red-100" :
+                                            "bg-amber-50 text-amber-700 border border-amber-100"
                                 )}>
-                                    {isPublished ? <CheckCircle2 className="w-5 h-5 flex-shrink-0" /> : <XCircle className="w-5 h-5 flex-shrink-0" />}
+                                    {isPublished ? <CheckCircle2 className="w-5 h-5 flex-shrink-0" /> :
+                                        isRejected ? <XCircle className="w-5 h-5 flex-shrink-0" /> :
+                                            <Clock className="w-5 h-5 flex-shrink-0 text-amber-600" />}
                                     <div>
-                                        <p className="text-[13px] font-bold mb-1">Article {isPublished ? 'Published' : 'Rejected'}</p>
-                                        <p className="text-[12px] opacity-90 leading-relaxed"> This article has already been {isPublished ? 'approved and published' : 'rejected'}.</p>
+                                        <p className="text-[13px] font-bold mb-1">
+                                            {isPublished ? 'Article Published' :
+                                                isRejected ? 'Article Rejected' :
+                                                    'State Unknown'}
+                                        </p>
+                                        <p className="text-[12px] opacity-90 leading-relaxed">
+                                            {isPublished ? 'This article has already been approved and published.' :
+                                                isRejected ? 'This article has been rejected and sent back to the editor.' :
+                                                    'This article is in an unknown or unexpected state.'}
+                                        </p>
                                     </div>
                                 </div>
                             )}

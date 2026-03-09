@@ -139,24 +139,28 @@ class ArticleController extends Controller
             try {
                 // To get counts for Redis items, we should ideally ask Redis for filtered counts
                 // For simplicity, we get all and filter in memory
-                $redisArticles = $this->redisService->filterArticles([], 1000); 
-                
+                $redisArticles = $this->redisService->filterArticles([], 1000);
+
                 // For Category counts, apply Redis side filtering except category
                 $redisCategoryCounts = collect($redisArticles)
-                    ->filter(function($a) use ($validated) {
+                    ->filter(function ($a) use ($validated) {
                         $match = true;
-                        if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false) $match = false;
-                        if (!empty($validated['country']) && ($a['country'] ?? '') !== $validated['country']) $match = false;
+                        if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false)
+                            $match = false;
+                        if (!empty($validated['country']) && ($a['country'] ?? '') !== $validated['country'])
+                            $match = false;
                         return $match;
                     })
                     ->groupBy('category')->map(fn($group) => $group->count())->toArray();
 
                 // For Country counts, apply Redis side filtering except country
                 $redisCountryCounts = collect($redisArticles)
-                    ->filter(function($a) use ($validated) {
+                    ->filter(function ($a) use ($validated) {
                         $match = true;
-                        if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false) $match = false;
-                        if (!empty($validated['category']) && ($a['category'] ?? '') !== $validated['category']) $match = false;
+                        if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false)
+                            $match = false;
+                        if (!empty($validated['category']) && ($a['category'] ?? '') !== $validated['category'])
+                            $match = false;
                         return $match;
                     })
                     ->groupBy('country')->map(fn($group) => $group->count())->toArray();
@@ -169,7 +173,8 @@ class ArticleController extends Controller
         $finalCategoryCounts = [];
         $allCategoryNames = collect(array_merge(array_keys($dbCategoryCounts), array_keys($redisCategoryCounts)))->unique()->toArray();
         foreach ($allCategoryNames as $cat) {
-            if (in_array(strtolower($cat), ['restaurant', 'restaurants', 'all'])) continue;
+            if (in_array(strtolower($cat), ['restaurant', 'restaurants', 'all']))
+                continue;
             $finalCategoryCounts[] = [
                 'name' => $cat,
                 'count' => ($dbCategoryCounts[$cat] ?? 0) + ($redisCategoryCounts[$cat] ?? 0)
@@ -1147,5 +1152,52 @@ class ArticleController extends Controller
         }
 
         return response()->json(['message' => "{$count} articles rejected successfully."]);
+    }
+
+    /**
+     * Bulk delete multiple articles.
+     */
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        $ids = $request->input('ids', []);
+        $hardDelete = $request->input('hard_delete', false);
+
+        if (empty($ids)) {
+            return response()->json(['message' => 'No articles selected.'], 400);
+        }
+
+        $count = 0;
+        foreach ($ids as $id) {
+            try {
+                if ($hardDelete) {
+                    $this->hardDelete($id);
+                } else {
+                    $this->destroy($id);
+                }
+                $count++;
+            } catch (\Exception $e) {
+                \Log::warning("Bulk delete failed for {$id}: " . $e->getMessage());
+            }
+        }
+
+        return response()->json(['message' => "{$count} articles deleted successfully."]);
+    }
+
+    /**
+     * Bulk unpublish multiple articles.
+     */
+    public function bulkUnpublish(Request $request): JsonResponse
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return response()->json(['message' => 'No articles selected.'], 400);
+        }
+
+        $count = Article::whereIn('id', $ids)
+            ->where('status', 'published')
+            ->update(['status' => 'pending review']);
+
+        return response()->json(['message' => "{$count} articles unpublished successfully."]);
     }
 }
