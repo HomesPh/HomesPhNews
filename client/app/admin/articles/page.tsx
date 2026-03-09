@@ -477,10 +477,10 @@ export default function ArticlesPage() {
                                     const currentPath = window.location.pathname + window.location.search;
                                     router.push(`/admin/articles/${article.id}?from=${encodeURIComponent(currentPath)}`);
                                 }}
-                                selection={{
+                                selection={filters.status !== 'all' ? {
                                     isSelected: selectedIds.has(article.id),
                                     onSelect: (checked) => handleToggleSelect(article.id, checked),
-                                }}
+                                } : undefined}
                             />
                         ))
                     ) : (
