@@ -6,3 +6,7 @@ export * from "./getCountries";
 export * from "./createCountry";
 export * from "./updateCountry";
 export * from "./deleteCountry";
+export * from "./getProvinces";
+export * from "./createProvince";
+export * from "./updateProvince";
+export * from "./deleteProvince";

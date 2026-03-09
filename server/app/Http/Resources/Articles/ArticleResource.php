@@ -189,6 +189,8 @@ class ArticleResource extends JsonResource
             'brand_story' => $get('brand_story'),
             'tags' => $get('tags', []),
             'features' => $get('features', []),
+            'edited_by' => (int)$get('edited_by', 0),
+            'editor_name' => $isModel && $res->relationLoaded('editor') ? $res->editor?->name : null,
         ];
     }
 

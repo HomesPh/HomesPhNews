@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { BlogDetails, BlockType } from "@/hooks/useBlockEditor";
 import { getCategories } from "@/lib/api-v2/admin/service/scraper/getCategories";
 import { getCountries } from "@/lib/api-v2/admin/service/scraper/getCountries";
+import { getProvinces } from "@/lib/api-v2/admin/service/scraper/getProvinces";
+import { getCities } from "@/lib/api-v2/admin/service/cities/getCities";
 
 interface BlockDrawerProps {
     details: BlogDetails;
@@ -62,6 +64,8 @@ export default function BlockDrawer({
     const [activeTab, setActiveTab] = useState<'blocks' | 'details'>('blocks');
     const [internalCategories, setInternalCategories] = useState<(string | { name: string; count: number })[]>([]);
     const [internalCountries, setInternalCountries] = useState<(string | { name: string; count: number })[]>([]);
+    const [internalProvinces, setInternalProvinces] = useState<any[]>([]);
+    const [internalCities, setInternalCities] = useState<any[]>([]);
     const [showAllPlatforms, setShowAllPlatforms] = useState(false);
 
     useEffect(() => {
@@ -85,8 +89,9 @@ export default function BlockDrawer({
         // Fetch countries if not provided as props
         if (!propsCountries || propsCountries.length === 0) {
             getCountries().then(res => {
-                if (Array.isArray(res.data)) {
-                    const names = res.data.map((c: any) => typeof c === 'string' ? c : c.name);
+                const data = (res.data as any).data || res.data;
+                if (Array.isArray(data)) {
+                    const names = data.map((c: any) => typeof c === 'string' ? c : c.name);
                     setInternalCountries(names);
                 }
             }).catch(err => {
@@ -96,6 +101,32 @@ export default function BlockDrawer({
             });
         }
     }, [propsCountries]);
+
+    useEffect(() => {
+        getProvinces().then(res => {
+            const data = (res.data as any).data || res.data;
+            console.log("BlockDrawer: Fetched provinces:", data);
+            if (Array.isArray(data)) {
+                setInternalProvinces(data);
+            }
+        }).catch(err => {
+            console.error("Failed to fetch provinces in BlockDrawer:", err);
+            setInternalProvinces([]);
+        });
+    }, []);
+
+    useEffect(() => {
+        getCities().then(res => {
+            const data = (res.data as any).data || res.data;
+            console.log("BlockDrawer: Fetched cities:", data);
+            if (Array.isArray(data)) {
+                setInternalCities(data);
+            }
+        }).catch(err => {
+            console.error("Failed to fetch cities in BlockDrawer:", err);
+            setInternalCities([]);
+        });
+    }, []);
 
     const finalCategories = (propsCategories && propsCategories.length > 0) ? propsCategories : internalCategories;
     const finalCountries = (propsCountries && propsCountries.length > 0) ? propsCountries : internalCountries;
@@ -267,7 +298,7 @@ export default function BlockDrawer({
                                     <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Country</label>
                                     <select
                                         value={details.country}
-                                        onChange={(e) => onUpdateDetails({ country: e.target.value })}
+                                        onChange={(e) => onUpdateDetails({ country: e.target.value, province_id: "", city_id: "" })}
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
                                         <option value="">Select Country</option>
@@ -275,6 +306,35 @@ export default function BlockDrawer({
                                             const data = getOptionData(c);
                                             return <option key={data.value} value={data.value}>{data.label}</option>;
                                         })}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Province</label>
+                                    <select
+                                        value={details.province_id}
+                                        onChange={(e) => onUpdateDetails({ province_id: e.target.value, city_id: "" })}
+                                        className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
+                                    >
+                                        <option value="">Select Province</option>
+                                        {internalProvinces.map((p: any) => (
+                                            <option key={p.id} value={p.id}>{p.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">City</label>
+                                    <select
+                                        value={details.city_id}
+                                        onChange={(e) => onUpdateDetails({ city_id: e.target.value })}
+                                        className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
+                                    >
+                                        <option value="">Select City</option>
+                                        {internalCities.map((c: any) => (
+                                            <option key={c.city_id} value={c.city_id}>{c.name}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
