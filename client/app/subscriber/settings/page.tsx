@@ -11,9 +11,9 @@ const THEME_PRESETS = [
     {
         id: "brand",
         label: "Brand Blue",
-        sidebarBg: "#000785",
+        sidebarBg: "#000566",
         sidebarText: "#ffffff",
-        primary: "#1428AE",
+        primary: "#102196",
         activeText: "#ffffff"
     },
     {
@@ -21,7 +21,7 @@ const THEME_PRESETS = [
         label: "Midnight",
         sidebarBg: "#1a1d2e",
         sidebarText: "#ffffff",
-        primary: "#1428AE",
+        primary: "#102196",
         activeText: "#ffffff"
     },
     {
@@ -29,7 +29,7 @@ const THEME_PRESETS = [
         label: "Light",
         sidebarBg: "#ffffff",
         sidebarText: "#1f2937",
-        primary: "#1428AE",
+        primary: "#102196",
         activeText: "#ffffff"
     },
     {
