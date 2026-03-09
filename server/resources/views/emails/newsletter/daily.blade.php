@@ -25,21 +25,9 @@
         }
 
         .header {
-            background-color: #dbe2e8;
+            background-color: #ffffff;
             padding: 25px 20px;
             text-align: center;
-        }
-
-        .logo-text {
-            font-size: 32px;
-            font-weight: 800;
-            color: #1e3a8a !important;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .logo-dot-ph {
-            font-weight: 500;
         }
 
         .color-bar {
@@ -207,9 +195,8 @@
         </table>
         <div class="header" style="background-color: #ffffff; padding: 25px 20px;">
             <a href="https://news.homes.ph" style="text-decoration: none;">
-                <span class="logo-text"
-                    style="color: #16297a !important; font-size: 36px; font-weight: 900; font-family: 'Inter', sans-serif;">Homes<span
-                        class="logo-dot-ph" style="font-weight: 500;">.ph</span> News</span>
+                <img src="https://news.homes.ph/images/HomesLogo.png" alt="Homes.ph News" style="height: 48px; width: auto; display: inline-block; vertical-align: middle;">
+
             </a>
         </div>
         <table class="color-bar" cellpadding="0" cellspacing="0" border="0" style="width: 100%; height: 12px;">
