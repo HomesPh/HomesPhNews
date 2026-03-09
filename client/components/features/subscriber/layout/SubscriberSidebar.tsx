@@ -48,7 +48,7 @@ export default function SubscriberSidebar() {
     });
 
     const [theme, setTheme] = useState({
-        sidebarBg: "#000785",
+        sidebarBg: "#000566",
         sidebarText: "#ffffff",
         primary: "#F4AA1D",
         activeText: "#000000"

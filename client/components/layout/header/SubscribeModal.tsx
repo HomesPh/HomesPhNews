@@ -223,7 +223,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                 `}</style>
 
                 {/* Brand Header */}
-                <div className="h-[70px] bg-[#c10007] relative overflow-hidden flex items-center justify-between px-[20px] flex-shrink-0">
+                <div className="h-[70px] bg-[#000785] relative overflow-hidden flex items-center justify-between px-[20px] flex-shrink-0">
                     <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
 
                     {/* Left Section: Back Button */}
@@ -242,9 +242,9 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                     {/* Center Section: Logo */}
                     <div className="flex-1 flex items-center justify-center z-10">
                         <img
-                            src="/images/HomesLogo.png"
+                            src="/images/HomesLogoW.png"
                             alt="Homes.ph News Logo"
-                            className="h-9 w-auto object-contain"
+                            className="h-7 w-auto object-contain"
                         />
                     </div>
 
@@ -274,9 +274,9 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                     <div className="grid gap-[12px]">
                                         <button
                                             onClick={() => setStep('email')}
-                                            className="group flex items-center gap-[16px] p-[20px] bg-white border border-[#e5e7eb] rounded-[20px] text-left transition-all hover:border-[#c10007] hover:shadow-xl"
+                                            className="group flex items-center gap-[16px] p-[20px] bg-white border border-[#e5e7eb] rounded-[20px] text-left transition-all hover:border-[#000785] hover:shadow-xl"
                                         >
-                                            <div className="w-[50px] h-[50px] bg-[#fef2f2] rounded-[12px] flex items-center justify-center text-[#c10007] transition-all group-hover:scale-110">
+                                            <div className="w-[50px] h-[50px] bg-blue-50 rounded-[12px] flex items-center justify-center text-[#000785] transition-all group-hover:scale-110">
                                                 <Mail className="w-7 h-7" />
                                             </div>
                                             <div>
@@ -318,7 +318,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                             onClick={() => setShowManual(!showManual)}
                                             className="w-full flex items-center justify-between p-[12px] hover:bg-gray-100 transition-colors"
                                         >
-                                            <div className="flex items-center gap-2 text-[#c10007]">
+                                            <div className="flex items-center gap-2 text-[#000785]">
                                                 <HelpCircle className="w-4 h-4" />
                                                 <span className="font-bold text-[14px] tracking-[-0.3px]">How to Subscribe?</span>
                                             </div>
@@ -328,19 +328,19 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                         <div className={`overflow-hidden transition-all duration-300 ${showManual ? 'max-h-[400px] p-[16px] pt-0' : 'max-h-0'}`}>
                                             <div className="space-y-[12px] text-[13px] text-[#4b5563]">
                                                 <div className="flex gap-3">
-                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#c10007] text-white flex items-center justify-center text-[10px] font-bold">1</div>
+                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#000785] text-white flex items-center justify-center text-[10px] font-bold">1</div>
                                                     <p><span className="font-semibold text-[#111827]">Pick Categories:</span> Choose news topics like "Community" or "Sports".</p>
                                                 </div>
                                                 <div className="flex gap-3">
-                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#c10007] text-white flex items-center justify-center text-[10px] font-bold">2</div>
+                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#000785] text-white flex items-center justify-center text-[10px] font-bold">2</div>
                                                     <p><span className="font-semibold text-[#111827]">Select Regions:</span> Target specific countries for relevant updates.</p>
                                                 </div>
                                                 <div className="flex gap-3">
-                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#c10007] text-white flex items-center justify-center text-[10px] font-bold">3</div>
+                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#000785] text-white flex items-center justify-center text-[10px] font-bold">3</div>
                                                     <p><span className="font-semibold text-[#111827]">Set Schedule:</span> Tell us how often and when you want to be notified.</p>
                                                 </div>
                                                 <div className="flex gap-3">
-                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#c10007] text-white flex items-center justify-center text-[10px] font-bold">4</div>
+                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#000785] text-white flex items-center justify-center text-[10px] font-bold">4</div>
                                                     <p><span className="font-semibold text-[#111827]">Confirm:</span> Enter your email and confirm the selection to finish!</p>
                                                 </div>
                                             </div>
@@ -356,7 +356,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                 </label>
                                                 <div className="relative group">
                                                     <select
-                                                        className={`w-full border ${errors.categories ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[12px] py-[10px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#c10007] bg-white transition-all appearance-none cursor-pointer`}
+                                                        className={`w-full border ${errors.categories ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[12px] py-[10px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white transition-all appearance-none cursor-pointer`}
                                                         value=""
                                                         onChange={(e) => {
                                                             const val = e.target.value;
@@ -392,7 +392,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                         const matched = allCats.find(c => c.id === catId);
                                                         const label = matched ? matched.displayName : catId;
                                                         return (
-                                                            <div key={catId} className="flex items-center gap-1 bg-[#fef2f2] text-[#c10007] px-2 py-0.5 rounded-full text-[11px] font-bold border border-[#fee2e2]">
+                                                            <div key={catId} className="flex items-center gap-1 bg-blue-50 text-[#000785] px-2 py-0.5 rounded-full text-[11px] font-bold border border-blue-100">
                                                                 {label}
                                                                 <X className="w-2.5 h-2.5 cursor-pointer" onClick={() => setFormData({ ...formData, categories: formData.categories.filter(id => id !== catId) })} />
                                                             </div>
@@ -408,7 +408,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                 </label>
                                                 <div className="relative group">
                                                     <select
-                                                        className={`w-full border ${errors.countries ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[12px] py-[10px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#c10007] bg-white transition-all appearance-none cursor-pointer`}
+                                                        className={`w-full border ${errors.countries ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[12px] py-[10px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white transition-all appearance-none cursor-pointer`}
                                                         value=""
                                                         onChange={(e) => {
                                                             const val = e.target.value;
@@ -454,7 +454,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                     if (errors.email) setErrors({ ...errors, email: "" });
                                                 }}
                                                 placeholder="your@email.com"
-                                                className={`w-full border ${errors.email ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#c10007] transition-all`}
+                                                className={`w-full border ${errors.email ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#000785] transition-all`}
                                             />
                                             {errors.email && <p className="text-red-500 text-[11px] mt-1 font-medium">{errors.email}</p>}
                                         </div>
@@ -469,7 +469,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                 </div>
                                                 <div className="relative">
                                                     <select
-                                                        className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#c10007] bg-white text-gray-900 transition-all appearance-none cursor-pointer"
+                                                        className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white text-gray-900 transition-all appearance-none cursor-pointer"
                                                         value={formData.frequency}
                                                         onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
                                                     >
@@ -493,7 +493,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                     type="time"
                                                     value={formData.deliveryTime}
                                                     onChange={(e) => setFormData({ ...formData, deliveryTime: e.target.value })}
-                                                    className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#c10007] bg-white text-gray-900 transition-all"
+                                                    className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white text-gray-900 transition-all"
                                                 />
                                             </div>
                                         </div>
@@ -501,7 +501,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                         <button
                                             type="submit"
                                             disabled={isLoading}
-                                            className="w-full bg-[#c10007] text-white py-[12px] rounded-[10px] font-bold text-[16px] tracking-[-0.5px] hover:bg-[#a00006] transition-all shadow-md active:scale-[0.98] mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                            className="w-full bg-[#000785] text-white py-[12px] rounded-[10px] font-bold text-[16px] tracking-[-0.5px] hover:bg-[#000566] transition-all shadow-md active:scale-[0.98] mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
                                         >
                                             {isLoading ? "Subscribing..." : "Subscribe Now"}
                                         </button>
@@ -520,7 +520,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-[16px] md:gap-[12px] mb-[20px]">
                                         {/* Basic Plan */}
-                                        <div className="border border-[#e5e7eb] rounded-[16px] p-[16px] flex flex-col hover:border-[#c10007] transition-all group relative overflow-hidden">
+                                        <div className="border border-[#e5e7eb] rounded-[16px] p-[16px] flex flex-col hover:border-[#000785] transition-all group relative overflow-hidden">
                                             <div className="mb-[12px]">
                                                 <h3 className="font-bold text-[16px] text-[#111827]">Basic</h3>
                                                 <p className="text-[12px] text-[#6b7280]">Essential tools for starters.</p>
@@ -531,15 +531,15 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                             </div>
                                             <ul className="space-y-[8px] mb-[16px] flex-1">
                                                 <li className="flex items-start gap-[8px] text-[12px] text-[#374151]">
-                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    <CheckCircle2 className="w-4 h-4 text-[#000785] flex-shrink-0" />
                                                     Daily News Updates
                                                 </li>
                                                 <li className="flex items-start gap-[8px] text-[12px] text-[#374151]">
-                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    <CheckCircle2 className="w-4 h-4 text-[#000785] flex-shrink-0" />
                                                     5 credits
                                                 </li>
                                                 <li className="flex items-start gap-[8px] text-[12px] text-[#374151]">
-                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    <CheckCircle2 className="w-4 h-4 text-[#000785] flex-shrink-0" />
                                                     Article management
                                                 </li>
                                             </ul>
@@ -552,12 +552,12 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                         </div>
 
                                         {/* Professional Plan */}
-                                        <div className="border border-[#c10007] bg-[#fff5f5] rounded-[16px] p-[16px] flex flex-col relative shadow-lg md:scale-105 z-10">
-                                            <div className="absolute top-0 right-0 bg-[#c10007] text-white text-[10px] font-bold px-2 py-1 rounded-bl-[10px] rounded-tr-[15px]">
+                                        <div className="border border-[#000785] bg-blue-50/50 rounded-[16px] p-[16px] flex flex-col relative shadow-lg md:scale-105 z-10">
+                                            <div className="absolute top-0 right-0 bg-[#000785] text-white text-[10px] font-bold px-2 py-1 rounded-bl-[10px] rounded-tr-[15px]">
                                                 POPULAR
                                             </div>
                                             <div className="mb-[12px]">
-                                                <h3 className="font-bold text-[16px] text-[#c10007]">Professional</h3>
+                                                <h3 className="font-bold text-[16px] text-[#000785]">Professional</h3>
                                                 <p className="text-[12px] text-[#6b7280]">For growing businesses.</p>
                                             </div>
                                             <div className="mb-[16px]">
@@ -566,28 +566,28 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                             </div>
                                             <ul className="space-y-[8px] mb-[16px] flex-1">
                                                 <li className="flex items-start gap-[8px] text-[12px] text-[#374151] font-medium">
-                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    <CheckCircle2 className="w-4 h-4 text-[#000785] flex-shrink-0" />
                                                     Everything in Basic
                                                 </li>
                                                 <li className="flex items-start gap-[8px] text-[12px] text-[#374151] font-medium">
-                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    <CheckCircle2 className="w-4 h-4 text-[#000785] flex-shrink-0" />
                                                     +15 credits
                                                 </li>
                                                 <li className="flex items-start gap-[8px] text-[12px] text-[#374151] font-medium">
-                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    <CheckCircle2 className="w-4 h-4 text-[#000785] flex-shrink-0" />
                                                     Priority Support
                                                 </li>
                                             </ul>
                                             <button
                                                 onClick={() => handleSelectPlan('Professional', 2499.00)}
-                                                className="w-full py-[8px] bg-[#c10007] text-white rounded-[8px] text-[13px] font-semibold hover:bg-[#a00006] transition-colors shadow-md"
+                                                className="w-full py-[8px] bg-[#000785] text-white rounded-[8px] text-[13px] font-semibold hover:bg-[#000566] transition-colors shadow-md"
                                             >
                                                 Select Pro
                                             </button>
                                         </div>
 
                                         {/* Enterprise Plan */}
-                                        <div className="border border-[#e5e7eb] rounded-[16px] p-[16px] flex flex-col hover:border-[#c10007] transition-all group">
+                                        <div className="border border-[#e5e7eb] rounded-[16px] p-[16px] flex flex-col hover:border-[#000785] transition-all group">
                                             <div className="mb-[12px]">
                                                 <h3 className="font-bold text-[16px] text-[#111827]">Enterprise</h3>
                                                 <p className="text-[12px] text-[#6b7280]">Maximum power & scale.</p>
@@ -598,15 +598,15 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                             </div>
                                             <ul className="space-y-[8px] mb-[16px] flex-1">
                                                 <li className="flex items-start gap-[8px] text-[12px] text-[#374151]">
-                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    <CheckCircle2 className="w-4 h-4 text-[#000785] flex-shrink-0" />
                                                     Everything in Pro
                                                 </li>
                                                 <li className="flex items-start gap-[8px] text-[12px] text-[#374151]">
-                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    <CheckCircle2 className="w-4 h-4 text-[#000785] flex-shrink-0" />
                                                     +30 credits
                                                 </li>
                                                 <li className="flex items-start gap-[8px] text-[12px] text-[#374151]">
-                                                    <CheckCircle2 className="w-4 h-4 text-[#c10007] flex-shrink-0" />
+                                                    <CheckCircle2 className="w-4 h-4 text-[#000785] flex-shrink-0" />
                                                     Custom API Access
                                                 </li>
                                             </ul>
@@ -621,7 +621,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
 
                                     <div className="text-center">
                                         <p className="text-[11px] text-[#9ca3af]">
-                                            Need a custom plan? <a href="#" className="text-[#c10007] font-medium hover:underline">Contact us</a> for more details.
+                                            Need a custom plan? <a href="#" className="text-[#000785] font-medium hover:underline">Contact us</a> for more details.
                                         </p>
                                     </div>
                                 </div>
@@ -638,7 +638,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
 
                                     <form onSubmit={handleSubmit} className="space-y-[12px]">
                                         {/* Logo Upload */}
-                                        <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:border-[#c10007] transition-colors cursor-pointer relative" onClick={() => document.getElementById('logo-upload')?.click()}>
+                                        <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:border-[#000785] transition-colors cursor-pointer relative" onClick={() => document.getElementById('logo-upload')?.click()}>
                                             <input
                                                 type="file"
                                                 id="logo-upload"
@@ -677,7 +677,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                     value={formData.email}
                                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                                     placeholder="john@example.com"
-                                                    className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#c10007] transition-all"
+                                                    className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#000785] transition-all"
                                                 />
                                             </div>
                                             <div className="col-span-2">
@@ -690,7 +690,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                     value={formData.companyName}
                                                     onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                                                     placeholder="Company Name"
-                                                    className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#c10007] transition-all"
+                                                    className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#000785] transition-all"
                                                 />
                                             </div>
 
@@ -708,7 +708,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                                 setFormData({ ...formData, categories: [category.id] });
                                                             }}
                                                             className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${formData.categories.includes(category.id)
-                                                                ? 'bg-[#fef2f2] border-[#c10007] text-[#c10007]'
+                                                                ? 'bg-blue-50 border-[#000785] text-[#000785]'
                                                                 : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
                                                                 }`}
                                                         >
@@ -723,7 +723,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                     Target Country
                                                 </label>
                                                 <select
-                                                    className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#c10007] bg-white transition-all cursor-pointer"
+                                                    className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white transition-all cursor-pointer"
                                                     onChange={(e) => {
                                                         if (e.target.value && !formData.countries.includes(e.target.value)) {
                                                             setFormData({ ...formData, countries: [e.target.value] }); // Single region for simplicity now
@@ -748,7 +748,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                             <button
                                                 type="submit"
                                                 disabled={isLoading}
-                                                className="bg-[#c10007] text-white px-6 py-2.5 rounded-[10px] font-bold text-[14px] hover:bg-[#a00006] transition-all shadow-md active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                                                className="bg-[#000785] text-white px-6 py-2.5 rounded-[10px] font-bold text-[14px] hover:bg-[#000566] transition-all shadow-md active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
                                             >
                                                 {isLoading ? "Processing..." : "Confirm & Pay"}
                                             </button>
@@ -774,7 +774,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
 
                     <div className="mt-[20px] pt-[16px] border-t border-[#f3f4f6]">
                         <p className="font-normal text-[11px] text-[#9ca3af] tracking-[-0.5px] text-center">
-                            By continuing, you agree to our <a href="#" className="underline hover:text-[#c10007]">Terms</a> and <a href="#" className="underline hover:text-[#c10007]">Privacy</a>.
+                            By continuing, you agree to our <a href="#" className="underline hover:text-[#000785]">Terms</a> and <a href="#" className="underline hover:text-[#000785]">Privacy</a>.
                         </p>
                     </div>
                 </div>
@@ -796,7 +796,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                 </button>
                                 <button
                                     onClick={processSubscription}
-                                    className="flex-1 py-[10px] rounded-[10px] bg-[#c10007] text-white font-semibold text-[14px] hover:bg-[#a00006] transition-all shadow-md active:scale-[0.98]"
+                                    className="flex-1 py-[10px] rounded-[10px] bg-[#000785] text-white font-semibold text-[14px] hover:bg-[#000566] transition-all shadow-md active:scale-[0.98]"
                                 >
                                     Yes, Proceed
                                 </button>
