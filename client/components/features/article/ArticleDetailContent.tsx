@@ -86,9 +86,11 @@ export default async function ArticleDetailContent({ id }: ArticleDetailContentP
           content={article.content}
           contentBlocks={article.content_blocks}
           topics={
-            article.keywords
-              ? article.keywords.split(",").map((t: string) => t.trim())
-              : []
+            Array.isArray((article as any).topics) ? (article as any).topics :
+              Array.isArray((article as any).tags) ? (article as any).tags :
+                typeof (article as any).topics === 'string' ? (article as any).topics.split(",").map((t: string) => t.trim()) :
+                  typeof (article as any).keywords === 'string' ? (article as any).keywords.split(",").map((t: string) => t.trim()) :
+                    []
           }
           originalUrl={article.original_url}
         />
