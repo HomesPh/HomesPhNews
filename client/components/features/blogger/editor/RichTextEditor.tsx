@@ -64,7 +64,7 @@ const RichTextEditor = ({ content, onChange, editable = true, className, placeho
         },
         editorProps: {
             attributes: {
-                class: cn("focus:outline-none min-h-[1.5em] [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5", className),
+                class: cn("focus:outline-none min-h-[1.5em] [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 break-words whitespace-pre-wrap", className),
                 style: style as any
             }
         },
@@ -110,7 +110,7 @@ const RichTextEditor = ({ content, onChange, editable = true, className, placeho
 
             // Also update classes if needed, though usually static
             if (className) {
-                const combinedClass = cn("focus:outline-none min-h-[1.5em] [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5", className);
+                const combinedClass = cn("focus:outline-none min-h-[1.5em] [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 break-words whitespace-pre-wrap", className);
                 if (dom.className !== combinedClass) {
                     // CAUTION: overwriting className might remove ProseMirror class? 
                     // Tiptap usually manages the class via attributes. 

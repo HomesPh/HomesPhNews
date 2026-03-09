@@ -363,7 +363,7 @@ export default function BlockRenderer({
                                 className="aspect-square"
                             />
                         </div>
-                        <div className="flex-1 w-full">
+                        <div className="flex-1 w-full min-w-0">
                             <RichTextEditor
                                 content={block.content.text || ""}
                                 onChange={(val) => onUpdate(block.id, { text: val })}
@@ -442,7 +442,7 @@ export default function BlockRenderer({
                                 className="rounded-none h-full border-0"
                             />
                         </div>
-                        <div className="flex-1 p-8 md:p-12 flex flex-col justify-center">
+                        <div className="flex-1 min-w-0 p-8 md:p-12 flex flex-col justify-center">
                             <RichTextEditor
                                 content={block.content.text || ""}
                                 onChange={(val) => onUpdate(block.id, { text: val })}
