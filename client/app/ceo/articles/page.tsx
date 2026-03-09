@@ -11,17 +11,18 @@ import Pagination from "@/components/features/admin/shared/Pagination";
 import AdminPageHeader from "@/components/features/admin/shared/AdminPageHeader";
 import usePagination from "@/hooks/usePagination";
 import useUrlFilters from "@/hooks/useUrlFilters";
-import { CheckCircle2, XCircle, Clock, Trash2, Globe, Check, Loader2, X } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Trash2, Globe, Check, Loader2, X, LayoutGrid, FileText } from "lucide-react";
 import { bulkPublishArticles, bulkRejectArticles, getSiteNames } from "@/lib/api-v2";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
 
 const URL_FILTERS_CONFIG = {
     status: {
-        default: "edited" as const,
-        resetValues: ["edited"],
+        default: "all" as const,
+        resetValues: ["all"],
     },
     category: {
         default: "" as const,
@@ -37,11 +38,13 @@ const URL_FILTERS_CONFIG = {
     },
 };
 
-type CEOTab = "edited" | "published" | "rejected";
+type CEOTab = "all" | "edited" | "published_articles" | "pending_review" | "rejected";
 
 const TABS: { id: CEOTab; label: string; icon: React.ElementType; color: string }[] = [
+    { id: "all", label: "All Articles", icon: LayoutGrid, color: "text-gray-600" },
+    { id: "published_articles", label: "Published articles", icon: Globe, color: "text-blue-600" },
+    { id: "pending_review", label: "Pending Review", icon: FileText, color: "text-amber-600" },
     { id: "edited", label: "Pending Approval", icon: Clock, color: "text-indigo-600" },
-    { id: "published", label: "Approved", icon: CheckCircle2, color: "text-emerald-600" },
     { id: "rejected", label: "Rejected", icon: XCircle, color: "text-red-600" },
 ];
 
@@ -59,13 +62,16 @@ export default function CEOArticlesPage() {
     }>({ categories: [], countries: [] });
 
     const [counts, setCounts] = useState({
-        edited: 0,
+        all: 0,
         published: 0,
+        pending: 0,
+        edited: 0,
         rejected: 0,
     });
 
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+    const [isEditorModalOpen, setIsEditorModalOpen] = useState(false);
     const [sites, setSites] = useState<string[]>([]);
     const [selectedSites, setSelectedSites] = useState<string[]>([]);
     const [isBulkActionLoading, setIsBulkActionLoading] = useState(false);
@@ -90,8 +96,12 @@ export default function CEOArticlesPage() {
         const fetchArticles = async () => {
             setIsLoading(true);
             try {
+                let statusParam = filters.status || "all";
+                if (statusParam === "pending_review") statusParam = "pending review";
+                if (statusParam === "published_articles") statusParam = "published";
+
                 const apiFilters = {
-                    status: filters.status || "edited",
+                    status: statusParam,
                     category: filters.category === "" ? undefined : filters.category,
                     country: filters.country === "" ? undefined : filters.country,
                     city: filters.city === "" ? undefined : filters.city,
@@ -104,18 +114,26 @@ export default function CEOArticlesPage() {
                 const { data, current_page, last_page, status_counts, available_filters } =
                     response.data;
 
-                const visibleArticles = (data ?? []).filter(
-                    (a: ArticleResource) => !a.is_redis && a.status !== "being_processed"
+                // Hide being_processed (Redis) and deleted articles from CEO view
+                const filteredData = (data ?? []).filter(
+                    (a: ArticleResource) => !a.is_redis && a.status !== "being_processed" && a.status !== "deleted"
                 );
-                setArticles(visibleArticles);
+                setArticles(filteredData);
 
                 pagination.handlePageChange(current_page ?? 1);
                 pagination.setTotalPages(last_page ?? 1);
 
                 if (status_counts) {
+                    // Adjust 'all' count to exclude being_processed if it's currently inclusive
+                    const rawAll = Number(status_counts.all ?? 0);
+                    const beingProcessedCount = Number(status_counts.being_processed ?? 0);
+                    const deletedCount = Number(status_counts.deleted ?? 0);
+
                     setCounts({
-                        edited: Number(status_counts.edited ?? 0),
+                        all: rawAll - beingProcessedCount - deletedCount,
                         published: Number(status_counts.published ?? 0),
+                        pending: Number(status_counts.pending ?? 0),
+                        edited: Number(status_counts.edited ?? 0),
                         rejected: Number(status_counts.rejected ?? 0),
                     });
                 }
@@ -159,18 +177,33 @@ export default function CEOArticlesPage() {
             await bulkRejectArticles(selectedIds);
             setSelectedIds([]);
             // Refresh counts and list
+            let statusParam = filters.status || "all";
+            if (statusParam === "pending_review") statusParam = "pending review";
+            if (statusParam === "published_articles") statusParam = "published";
+
             const apiFilters = {
-                status: filters.status || "edited",
+                status: statusParam,
                 page: pagination.currentPage,
                 per_page: 10,
             } as any;
             const response = await getAdminArticles(apiFilters);
             const { data, status_counts } = response.data;
-            setArticles(data ?? []);
+
+            const filteredData = (data ?? []).filter(
+                (a: ArticleResource) => !a.is_redis && a.status !== "being_processed" && a.status !== "deleted"
+            );
+            setArticles(filteredData);
+
             if (status_counts) {
+                const rawAll = Number(status_counts.all ?? 0);
+                const beingProcessedCount = Number(status_counts.being_processed ?? 0);
+                const deletedCount = Number(status_counts.deleted ?? 0);
+
                 setCounts({
-                    edited: Number(status_counts.edited ?? 0),
+                    all: rawAll - beingProcessedCount - deletedCount,
                     published: Number(status_counts.published ?? 0),
+                    pending: Number(status_counts.pending ?? 0),
+                    edited: Number(status_counts.edited ?? 0),
                     rejected: Number(status_counts.rejected ?? 0),
                 });
             }
@@ -193,18 +226,33 @@ export default function CEOArticlesPage() {
             setSelectedIds([]);
             setSelectedSites([]);
             // Refresh counts and list
+            let statusParam = filters.status || "all";
+            if (statusParam === "pending_review") statusParam = "pending review";
+            if (statusParam === "published_articles") statusParam = "published";
+
             const apiFilters = {
-                status: filters.status || "edited",
+                status: statusParam,
                 page: pagination.currentPage,
                 per_page: 10,
             } as any;
             const response = await getAdminArticles(apiFilters);
             const { data, status_counts } = response.data;
-            setArticles(data ?? []);
+
+            const filteredData = (data ?? []).filter(
+                (a: ArticleResource) => !a.is_redis && a.status !== "being_processed" && a.status !== "deleted"
+            );
+            setArticles(filteredData);
+
             if (status_counts) {
+                const rawAll = Number(status_counts.all ?? 0);
+                const beingProcessedCount = Number(status_counts.being_processed ?? 0);
+                const deletedCount = Number(status_counts.deleted ?? 0);
+
                 setCounts({
-                    edited: Number(status_counts.edited ?? 0),
+                    all: rawAll - beingProcessedCount - deletedCount,
                     published: Number(status_counts.published ?? 0),
+                    pending: Number(status_counts.pending ?? 0),
+                    edited: Number(status_counts.edited ?? 0),
                     rejected: Number(status_counts.rejected ?? 0),
                 });
             }
@@ -217,59 +265,97 @@ export default function CEOArticlesPage() {
         }
     };
 
-    const activeTab = (filters.status as CEOTab) || "edited";
+    const activeTab = (filters.status as CEOTab) || "all";
 
     return (
         <div className="p-8 bg-[#f9fafb] min-h-screen">
             <AdminPageHeader
                 title="Article Review"
                 description="Review editor-submitted articles and approve or reject them for publishing"
+                actionLabel="Add Article"
+                onAction={() => setIsEditorModalOpen(true)}
             />
 
-            <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-white rounded-xl border border-blue-100 p-5 shadow-sm flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
-                        <Clock className="w-5 h-5 text-[#1428AE]" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+                {/* 1. All Articles */}
+                <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm flex flex-col items-start gap-3 hover:shadow-md transition-shadow">
+                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0">
+                        <LayoutGrid className="w-5 h-5 text-gray-600" />
                     </div>
-                    <div>
-                        <p className="text-[12px] text-[#6b7280] font-medium tracking-[-0.5px]">Pending Approval</p>
-                        <p className="text-[24px] font-bold text-[#111827] tracking-[-1px]">{counts.edited}</p>
-                    </div>
-                </div>
-                <div className="bg-white rounded-xl border border-emerald-100 p-5 shadow-sm flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center">
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <div>
-                        <p className="text-[12px] text-[#6b7280] font-medium tracking-[-0.5px]">Approved</p>
-                        <p className="text-[24px] font-bold text-[#111827] tracking-[-1px]">{counts.published}</p>
+                    <div className="flex-1">
+                        <p className="text-[13px] font-bold text-[#111827] tracking-[-0.5px]">All Articles</p>
+                        <p className="text-[10px] text-[#9ca3af] font-medium leading-[13px] mt-0.5 mb-2">Total overview of all content managed in the system.</p>
+                        <p className="text-[24px] font-black text-[#111827] tracking-[-1px] leading-none">{counts.all}</p>
                     </div>
                 </div>
-                <div className="bg-white rounded-xl border border-red-100 p-5 shadow-sm flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+
+                {/* 2. Published Articles */}
+                <div className="bg-white rounded-xl border border-blue-50 p-5 shadow-sm flex flex-col items-start gap-3 hover:shadow-md transition-shadow">
+                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
+                        <Globe className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-[13px] font-bold text-[#111827] tracking-[-0.5px]">Published Articles</p>
+                        <p className="text-[10px] text-[#9ca3af] font-medium leading-[13px] mt-0.5 mb-2">Articles that are currently live and accessible to the public on partnered sites.</p>
+                        <p className="text-[24px] font-black text-[#111827] tracking-[-1px] leading-none">{counts.published}</p>
+                    </div>
+                </div>
+
+                {/* 3. Pending Review */}
+                <div className="bg-white rounded-xl border border-amber-50 p-5 shadow-sm flex flex-col items-start gap-3 hover:shadow-md transition-shadow">
+                    <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-[13px] font-bold text-[#111827] tracking-[-0.5px]">Pending Review</p>
+                        <p className="text-[10px] text-[#9ca3af] font-medium leading-[13px] mt-0.5 mb-2">Articles in the queue awaiting final verification before they can be published.</p>
+                        <p className="text-[24px] font-black text-[#111827] tracking-[-1px] leading-none">{counts.pending}</p>
+                    </div>
+                </div>
+
+                {/* 4. Pending Approval */}
+                <div className="bg-white rounded-xl border border-indigo-50 p-5 shadow-sm flex flex-col items-start gap-3 hover:shadow-md transition-shadow">
+                    <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                        <Clock className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-[13px] font-bold text-[#111827] tracking-[-0.5px]">Pending Approval</p>
+                        <p className="text-[10px] text-[#9ca3af] font-medium leading-[13px] mt-0.5 mb-2">Content edited and submitted for initial management review and confirmation.</p>
+                        <p className="text-[24px] font-black text-[#111827] tracking-[-1px] leading-none">{counts.edited}</p>
+                    </div>
+                </div>
+
+                {/* 5. Rejected */}
+                <div className="bg-white rounded-xl border border-red-50 p-5 shadow-sm flex flex-col items-start gap-3 hover:shadow-md transition-shadow">
+                    <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
                         <XCircle className="w-5 h-5 text-red-600" />
                     </div>
-                    <div>
-                        <p className="text-[12px] text-[#6b7280] font-medium tracking-[-0.5px]">Rejected</p>
-                        <p className="text-[24px] font-bold text-[#111827] tracking-[-1px]">{counts.rejected}</p>
+                    <div className="flex-1">
+                        <p className="text-[13px] font-bold text-[#111827] tracking-[-0.5px]">Rejected</p>
+                        <p className="text-[10px] text-[#9ca3af] font-medium leading-[13px] mt-0.5 mb-2">Content that did not meet editorial standards and was declined for publication.</p>
+                        <p className="text-[24px] font-black text-[#111827] tracking-[-1px] leading-none">{counts.rejected}</p>
                     </div>
                 </div>
             </div>
 
             <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
                 <div className="border-b border-[#e5e7eb] pt-5 px-0">
-                    <div className="flex gap-8 px-5">
-                        {TABS.map((tab) => {
+                    <div className="flex gap-8 px-5 overflow-x-auto no-scrollbar">
+                        {TABS.map((tab, index) => {
                             const isActive = activeTab === tab.id;
-                            const Icon = tab.icon;
+                            let statusKey: keyof typeof counts = "all";
+                            if (tab.id === "pending_review") statusKey = "pending";
+                            else if (tab.id === "published_articles") statusKey = "published";
+                            else if (tab.id === "all" || tab.id === "edited" || tab.id === "rejected") statusKey = tab.id;
+
                             return (
                                 <button
-                                    key={tab.id}
+                                    key={`${tab.id}-${index}`}
                                     onClick={() => {
                                         setFilter("status", tab.id);
                                         pagination.handlePageChange(1);
                                     }}
-                                    className={`flex items-center gap-[15px] px-2 pb-3 relative transition-all ${isActive ? "border-b-4 border-[#F4AA1D]" : ""
+                                    className={`flex items-center gap-[15px] px-2 pb-3 relative transition-all flex-shrink-0 ${isActive ? "border-b-4 border-[#F4AA1D]" : ""
                                         }`}
                                 >
                                     <span
@@ -286,7 +372,7 @@ export default function CEOArticlesPage() {
                                             : "bg-[#e5e7eb] text-[#4b5563] font-medium"
                                             }`}
                                     >
-                                        {counts[tab.id] ?? 0}
+                                        {counts[statusKey] ?? 0}
                                     </span>
                                 </button>
                             );
@@ -307,7 +393,7 @@ export default function CEOArticlesPage() {
                 />
 
                 {/* Bulk Actions Bar */}
-                {activeTab === 'edited' && articles.length > 0 && (
+                {(activeTab === 'edited' || activeTab === 'pending_review') && articles.length > 0 && (
                     <div className="bg-white border-b border-[#e5e7eb] px-5 py-3 flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
@@ -361,7 +447,7 @@ export default function CEOArticlesPage() {
                                 onClick={() => {
                                     router.push(`/ceo/articles/${article.id}`);
                                 }}
-                                selection={activeTab === 'edited' ? {
+                                selection={(activeTab === 'edited' || activeTab === 'pending_review') ? {
                                     isSelected: selectedIds.includes(article.id),
                                     onSelect: (checked) => handleSelectArticle(article.id, !!checked)
                                 } : undefined}
@@ -486,6 +572,15 @@ export default function CEOArticlesPage() {
                     }
                 `}</style>
             </Dialog>
+
+            <ArticleEditorModal
+                mode="create"
+                isOpen={isEditorModalOpen}
+                onClose={() => setIsEditorModalOpen(false)}
+                availableCategories={availableFilters.categories}
+                availableCountries={availableFilters.countries}
+            />
         </div>
     );
 }
+
