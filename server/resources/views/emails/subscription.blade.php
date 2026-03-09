@@ -6,44 +6,179 @@
     <title>{{ $subject }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; margin: 0; padding: 20px 0; -webkit-font-smoothing: antialiased; }
-        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .header { background-color: #dbe2e8; padding: 25px 20px; text-align: center; }
-        .logo-text { font-size: 32px; font-weight: 800; color: #1e3a8a !important; text-decoration: none; display: inline-block; }
-        .logo-dot-ph { font-weight: 500; }
-        .color-bar { width: 100%; height: 12px; }
-        .content { padding: 30px 30px; color: #111827; }
-        .top-article { margin-bottom: 30px; }
-        .top-article-img { width: 100%; height: 250px; object-fit: cover; border-radius: 12px; margin-bottom: 15px; display: block; }
-        .top-article-title { font-size: 22px; font-weight: 800; color: #1e3a8a; margin-bottom: 10px; text-decoration: none; display: block; line-height: 1.3; }
-        .top-article-summary { font-size: 14px; color: #4b5563; line-height: 1.6; margin-bottom: 10px; }
-        .article-date { font-size: 12px; color: #9ca3af; }
-        .list-article { margin-bottom: 20px; }
-        .list-article-table { width: 100%; border-collapse: collapse; }
-        .list-article-img { width: 160px; height: 100px; object-fit: cover; border-radius: 8px; display: block; }
-        .list-article-title { font-size: 16px; font-weight: 800; color: #1e3a8a; margin-bottom: 5px; text-decoration: none; display: block; line-height: 1.3; }
-        .list-article-summary { font-size: 12px; color: #4b5563; line-height: 1.5; margin-bottom: 5px; }
-        .bottom-links { text-align: center; padding: 25px 20px 35px; font-size: 13px; font-weight: 600; color: #1e3a8a; line-height: 2.2; }
-        .bottom-links a { color: #1e3a8a; text-decoration: none; }
-        .bottom-links .divider { color: #1e3a8a; margin: 0 10px; }
-        .footer-table { width: 100%; border-collapse: collapse; }
-        .footer-left { background-color: #1e3a8a; padding: 8px 15px; color: #ffffff; font-size: 11px; }
-        .footer-right { background-color: #eab308; padding: 8px 15px; text-align: right; vertical-align: middle; }
-        .social-icon { display: inline-block; margin-left: 12px; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 14px; }
-        .btn { display: inline-block; background-color: #1e3a8a; color: #ffffff !important; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 800; text-decoration: none; text-align: center; margin-top: 20px; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 20px 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background-color: #ffffff;
+            padding: 25px 20px;
+            text-align: center;
+        }
+
+        .color-bar {
+            width: 100%;
+            height: 12px;
+        }
+
+        .content {
+            padding: 30px 30px;
+            color: #111827;
+        }
+
+        .top-article {
+            margin-bottom: 30px;
+        }
+
+        .top-article-img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .top-article-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1e3a8a;
+            margin-bottom: 10px;
+            text-decoration: none;
+            display: block;
+            line-height: 1.3;
+        }
+
+        .top-article-summary {
+            font-size: 14px;
+            color: #4b5563;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .article-date {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .list-article {
+            margin-bottom: 20px;
+        }
+
+        .list-article-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .list-article-img {
+            width: 160px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            display: block;
+        }
+
+        .list-article-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #1e3a8a;
+            margin-bottom: 5px;
+            text-decoration: none;
+            display: block;
+            line-height: 1.3;
+        }
+
+        .list-article-summary {
+            font-size: 12px;
+            color: #4b5563;
+            line-height: 1.5;
+            margin-bottom: 5px;
+        }
+
+        .bottom-links {
+            text-align: center;
+            padding: 25px 20px 35px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e3a8a;
+            line-height: 2.2;
+        }
+
+        .bottom-links a {
+            color: #1e3a8a;
+            text-decoration: none;
+        }
+
+        .bottom-links .divider {
+            color: #1e3a8a;
+            margin: 0 10px;
+        }
+
+        .footer-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .footer-left {
+            background-color: #1e3a8a;
+            padding: 8px 15px;
+            color: #ffffff;
+            font-size: 11px;
+        }
+
+        .footer-right {
+            background-color: #eab308;
+            padding: 8px 15px;
+            text-align: right;
+            vertical-align: middle;
+        }
+
+        .social-icon {
+            display: inline-block;
+            margin-left: 12px;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: #1e3a8a;
+            color: #ffffff !important;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 800;
+            text-decoration: none;
+            text-align: center;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <table cellpadding="0" cellspacing="0" border="0" style="width: 100%; height: 8px;">
             <tr>
-                <td width="64%" style="background-color: #05103c;"></td>
-                <td width="36%" style="background-color: #8c6b1c;"></td>
+                <td width="64%" style="background-color: #16297a;"></td>
+                <td width="36%" style="background-color: #d19619;"></td>
             </tr>
         </table>
-        <div class="header" style="background-color: #bdc5cc; padding: 25px 20px;">
+        <div class="header" style="background-color: #ffffff; padding: 25px 20px;">
             <a href="https://news.homes.ph" style="text-decoration: none;">
-                <span class="logo-text" style="color: #16297a !important; font-size: 36px; font-weight: 900; font-family: 'Inter', sans-serif;">Homes<span class="logo-dot-ph" style="font-weight: 500;">.ph</span> News</span>
+                <img src="https://news.homes.ph/images/HomesLogo.png" alt="Homes.ph News" style="height: 48px; width: auto; display: inline-block; vertical-align: middle;">
             </a>
         </div>
         <table class="color-bar" cellpadding="0" cellspacing="0" border="0" style="width: 100%; height: 12px;">
