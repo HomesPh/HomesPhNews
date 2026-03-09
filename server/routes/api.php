@@ -73,76 +73,76 @@ Route::prefix('v1')->group(function () {
         return response()->json(['message' => 'Schedule executed']);
     });
 
-// ═══════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════
 // PUBLIC USER ROUTES (Mixed Database and Redis)
 // ═══════════════════════════════════════════════════════════════
 
-// Public User Routes
-Route::prefix('articles')->name('articles.')->group(function () {
-    Route::get('/', [UserArticleController::class, 'index'])->name('index');
-    Route::get('/feed', [UserArticleController::class, 'feed'])->name('feed');
-    Route::get('/{id}', [UserArticleController::class, 'show'])->name('show');
-    Route::post('/{id}/view', [UserArticleController::class, 'incrementViews'])->name('view');
-});
+    // Public User Routes
+    Route::prefix('articles')->name('articles.')->group(function () {
+        Route::get('/', [UserArticleController::class, 'index'])->name('index');
+        Route::get('/feed', [UserArticleController::class, 'feed'])->name('feed');
+        Route::get('/{id}', [UserArticleController::class, 'show'])->name('show');
+        Route::post('/{id}/view', [UserArticleController::class, 'incrementViews'])->name('view');
+    });
 
-// Alias for backward compatibility if needed, or just redirect
-Route::get('/article', [UserArticleController::class, 'index']);
+    // Alias for backward compatibility if needed, or just redirect
+    Route::get('/article', [UserArticleController::class, 'index']);
 
-// Statistics
-Route::get('/stats', [UserArticleController::class, 'stats']);
+    // Statistics
+    Route::get('/stats', [UserArticleController::class, 'stats']);
 
-// Ads (Public)
-Route::get('/ads', [UserAdController::class, 'index']);
-Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
+    // Ads (Public)
+    Route::get('/ads', [UserAdController::class, 'index']);
+    Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
 
-// ═══════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════
 // ADMIN ROUTES (Database-based for article management)
 // ═══════════════════════════════════════════════════════════════
 /*  middleware(['auth:sanctum', 'is.admin']): This is the security. It says a user must first be authenticated via Sanctum
  (logged in with a token) AND they must pass our is.admin check. */
-// This group protects all routes within it.
-Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
+    // This group protects all routes within it.
+    Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
 
-        // Reports & Dashboards (Non-CRUD)
-        Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
-        Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
+            // Reports & Dashboards (Non-CRUD)
+            Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
+            Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
 
-        // CRUD Resources
-        // Route::apiResource('events', EventController::class);
-        Route::apiResource('article-publications', ArticlePublicationController::class);
+            // CRUD Resources
+            // Route::apiResource('events', EventController::class);
+            Route::apiResource('article-publications', ArticlePublicationController::class);
 
-        Route::get('sites/names', [SiteController::class, 'names']);
-        Route::patch('sites/{id}/toggle-status', [SiteController::class, 'toggleStatus']);
-        Route::patch('sites/{id}/refresh-key', [SiteController::class, 'refreshKey']);
-        Route::apiResource('sites', SiteController::class);
-        Route::apiResource('articles', AdminArticleController::class);
-        Route::apiResource('campaigns', AdminCampaignController::class);
-        Route::apiResource('categories', CategoryController::class);
-        Route::apiResource('countries', CountryController::class);
+            Route::get('sites/names', [SiteController::class, 'names']);
+            Route::patch('sites/{id}/toggle-status', [SiteController::class, 'toggleStatus']);
+            Route::patch('sites/{id}/refresh-key', [SiteController::class, 'refreshKey']);
+            Route::apiResource('sites', SiteController::class);
+            Route::apiResource('articles', AdminArticleController::class);
+            Route::apiResource('campaigns', AdminCampaignController::class);
+            Route::apiResource('categories', CategoryController::class);
+            Route::apiResource('countries', CountryController::class);
 
-        // Custom Article Actions
-        Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
-        // Edit pending (Redis) article without touching the main database
-        Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
-        // Publish pending article (Redis → MySQL, then delete from Redis)
-        Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
-        // Restore soft-deleted article
-        Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
+            // Custom Article Actions
+            Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
+            // Edit pending (Redis) article without touching the main database
+            Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
+            // Publish pending article (Redis → MySQL, then delete from Redis)
+            Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
+            // Restore soft-deleted article
+            Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
 
-        // ═══════════════════════════════════════════════════════════════
-        // RESTAURANT ROUTES (Redis-based & Database Persistence)
-        // ═══════════════════════════════════════════════════════════════
-        Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
-        Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
-        Route::post('restaurants/{id}/publish', [AdminRestaurantController::class, 'publish'])->name('restaurants.publish');
-        Route::apiResource('restaurants', AdminRestaurantController::class);
+            // ═══════════════════════════════════════════════════════════════
+            // RESTAURANT ROUTES (Redis-based & Database Persistence)
+            // ═══════════════════════════════════════════════════════════════
+            Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
+            Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
+            Route::post('restaurants/{id}/publish', [AdminRestaurantController::class, 'publish'])->name('restaurants.publish');
+            Route::apiResource('restaurants', AdminRestaurantController::class);
 
-        // Upload Routes
-        Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
-    });
+            // Upload Routes
+            Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
+        });
 
     /*
     |--------------------------------------------------------------------------
@@ -252,7 +252,7 @@ Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
             // ═══════════════════════════════════════════════════════════════
             // SHARED ROUTES (Admin, CEO & Editor)
             // ═══════════════════════════════════════════════════════════════
-
+    
             // Mailing list functionality
             Route::get('/analytics/mailing-list', [AnalyticsController::class, 'mailingListStats']);
             Route::apiResource('mailing-list-groups', MailingListGroupController::class);
@@ -296,7 +296,9 @@ Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
                 // CEO can approve (publish) articles
                 Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
                 Route::post('articles/bulk-publish', [AdminArticleController::class, 'bulkPublish']);
+                Route::post('articles/bulk-unpublish', [AdminArticleController::class, 'bulkUnpublish']);
                 Route::post('articles/bulk-reject', [AdminArticleController::class, 'bulkReject']);
+                Route::post('articles/bulk-delete', [AdminArticleController::class, 'bulkDelete']);
             });
 
             // ═══════════════════════════════════════════════════════════════
