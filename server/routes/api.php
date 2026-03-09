@@ -74,29 +74,29 @@ Route::prefix('v1')->group(function () {
         return response()->json(['message' => 'Schedule executed']);
     });
 
-// ═══════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════
 // PUBLIC USER ROUTES (Mixed Database and Redis)
 // ═══════════════════════════════════════════════════════════════
 
-// Public User Routes
-Route::prefix('articles')->name('articles.')->group(function () {
-    Route::get('/', [UserArticleController::class, 'index'])->name('index');
-    Route::get('/feed', [UserArticleController::class, 'feed'])->name('feed');
-    Route::get('/{id}', [UserArticleController::class, 'show'])->name('show');
-    Route::post('/{id}/view', [UserArticleController::class, 'incrementViews'])->name('view');
-});
+    // Public User Routes
+    Route::prefix('articles')->name('articles.')->group(function () {
+        Route::get('/', [UserArticleController::class, 'index'])->name('index');
+        Route::get('/feed', [UserArticleController::class, 'feed'])->name('feed');
+        Route::get('/{id}', [UserArticleController::class, 'show'])->name('show');
+        Route::post('/{id}/view', [UserArticleController::class, 'incrementViews'])->name('view');
+    });
 
-// Alias for backward compatibility if needed, or just redirect
-Route::get('/article', [UserArticleController::class, 'index']);
+    // Alias for backward compatibility if needed, or just redirect
+    Route::get('/article', [UserArticleController::class, 'index']);
 
-// Statistics
-Route::get('/stats', [UserArticleController::class, 'stats']);
+    // Statistics
+    Route::get('/stats', [UserArticleController::class, 'stats']);
 
-// Ads (Public)
-Route::get('/ads', [UserAdController::class, 'index']);
-Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
+    // Ads (Public)
+    Route::get('/ads', [UserAdController::class, 'index']);
+    Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
 
-// ═══════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════
 // ADMIN ROUTES (Database-based for article management)
 // ═══════════════════════════════════════════════════════════════
 /*  middleware(['auth:sanctum', 'is.admin']): This is the security. It says a user must first be authenticated via Sanctum
@@ -251,7 +251,7 @@ Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
             // ═══════════════════════════════════════════════════════════════
             // SHARED ROUTES (Admin, CEO & Editor)
             // ═══════════════════════════════════════════════════════════════
-
+    
             // Mailing list functionality
             Route::get('/analytics/mailing-list', [AnalyticsController::class, 'mailingListStats']);
             Route::apiResource('mailing-list-groups', MailingListGroupController::class);
@@ -301,7 +301,9 @@ Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
                 // CEO can approve (publish) articles
                 Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
                 Route::post('articles/bulk-publish', [AdminArticleController::class, 'bulkPublish']);
+                Route::post('articles/bulk-unpublish', [AdminArticleController::class, 'bulkUnpublish']);
                 Route::post('articles/bulk-reject', [AdminArticleController::class, 'bulkReject']);
+                Route::post('articles/bulk-delete', [AdminArticleController::class, 'bulkDelete']);
             });
 
             // ═══════════════════════════════════════════════════════════════

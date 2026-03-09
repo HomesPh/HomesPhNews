@@ -141,7 +141,7 @@ export default function BlogPreviewModal({ blocks, details, onClose }: BlogPrevi
                                             ...style,
                                             fontSize: isActualMobile ? (parseFloat((style.fontSize as string) || '18px') * 0.9 + 'px') : style.fontSize
                                         }}
-                                        className="leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.5em]"
+                                        className="leading-relaxed break-words whitespace-pre-wrap [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.5em]"
                                         dangerouslySetInnerHTML={{ __html: block.content.text }}
                                     />
                                 );
@@ -180,7 +180,7 @@ export default function BlogPreviewModal({ blocks, details, onClose }: BlogPrevi
                                                 ...style,
                                                 fontSize: isActualMobile ? (parseFloat((style.fontSize as string) || '18px') * 0.9 + 'px') : style.fontSize
                                             }}
-                                            className="flex-1 leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.5em]"
+                                            className="flex-1 min-w-0 leading-relaxed break-words whitespace-pre-wrap [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.5em]"
                                             dangerouslySetInnerHTML={{ __html: block.content.text }}
                                         />
                                     </div>
