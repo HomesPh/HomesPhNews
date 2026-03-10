@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { cn, decodeHtml, formatViews, calculateReadTime, sanitizeImageUrl } from "@/lib/utils";
+import { cn, decodeHtml, formatViews, calculateReadTime, sanitizeImageUrl, formatParagraphs } from "@/lib/utils";
 import { useParams, useRouter } from 'next/navigation';
 import { Calendar, Eye, Clock, Building2, Globe, CheckCircle2, BookOpen, ArrowLeft, ExternalLink } from 'lucide-react';
 import { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
@@ -192,7 +192,7 @@ export default function SubscriberArticleDetailsPage() {
                                                                                 settings?.listType === 'bullet' && "list-disc ml-6",
                                                                                 settings?.listType === 'number' && "list-decimal ml-6"
                                                                             )}
-                                                                            dangerouslySetInnerHTML={{ __html: blockContent?.text || blockContent || '' }}
+                                                                            dangerouslySetInnerHTML={{ __html: formatParagraphs(blockContent?.text || blockContent || '') }}
                                                                         />
                                                                     )}
                                                                     {(type === 'image' || type === 'centered-image') && (
@@ -211,7 +211,7 @@ export default function SubscriberArticleDetailsPage() {
                                                                                     <p className="text-[11px] text-gray-400 mt-2 italic text-center leading-tight">{blockContent?.caption || block.caption}</p>
                                                                                 )}
                                                                             </div>
-                                                                            <div style={blockStyle} className="flex-1 text-[18px] text-[#374151] leading-[32px]" dangerouslySetInnerHTML={{ __html: decodeHtml(blockContent?.text || blockContent || '') }} />
+                                                                            <div style={blockStyle} className="flex-1 text-[18px] text-[#374151] leading-[32px]" dangerouslySetInnerHTML={{ __html: formatParagraphs(decodeHtml(blockContent?.text || blockContent || '')) }} />
                                                                         </div>
                                                                     )}
                                                                     {type === 'grid' && (
@@ -228,7 +228,7 @@ export default function SubscriberArticleDetailsPage() {
                                                 ) : (
                                                     <div
                                                         className="whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>li]:mb-1 [&>a]:text-blue-600 [&>a]:underline first-letter:text-[72px] first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-5px] first-letter:leading-[0.8] first-letter:text-[#0c0c0c] [&_p]:min-h-[1.5em]"
-                                                        dangerouslySetInnerHTML={{ __html: content }}
+                                                        dangerouslySetInnerHTML={{ __html: formatParagraphs(content) }}
                                                     />
                                                 )}
                                             </div>

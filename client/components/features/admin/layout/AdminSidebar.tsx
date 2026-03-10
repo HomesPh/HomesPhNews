@@ -136,7 +136,7 @@ export default function AdminSidebar() {
               <img
                 src="/images/HLogo.png"
                 alt="Homes.ph News"
-                className="w-6 h-6 object-contain"
+                className="w-6 h-6 object-contain brightness-0 invert"
               />
             </div>
           )}
@@ -185,7 +185,7 @@ export default function AdminSidebar() {
                       </SidebarMenuButton>
 
                       {isSubMenuOpen && !isCollapsed && (
-                        <SidebarMenuSub className="mt-1 ml-4 space-y-1 border-l border-[rgba(255,255,255,0.1)]">
+                        <SidebarMenuSub className="mt-1 ml-4 space-y-1 border-l border-[rgba(255, 255, 255, 0.98)]">
                           {item.subItems?.map((subItem) => {
                             const isSubActive = pathname === subItem.href;
                             const SubIcon = subItem.icon;
@@ -195,11 +195,18 @@ export default function AdminSidebar() {
                                   <Link
                                     href={subItem.href}
                                     className={cn(
-                                      "flex items-center gap-2 px-3 py-2 rounded-[6px] transition-colors text-[13px] w-full",
-                                      isSubActive ? "text-[#F4AA1D] font-semibold" : "text-gray-400 hover:text-white"
+                                      "group flex items-center gap-2 px-3 py-2 rounded-[6px] transition-colors text-[13px] w-full",
+                                      isSubActive ? "text-[#F4AA1D] font-semibold" : "text-white"
                                     )}
                                   >
-                                    {SubIcon && <SubIcon className="w-3.5 h-3.5" />}
+                                    {SubIcon && (
+                                      <SubIcon
+                                        className={cn(
+                                          "w-3.5 h-3.5 transition-colors",
+                                          isSubActive ? "text-[#F4AA1D]" : "text-white/70 group-hover:text-white"
+                                        )}
+                                      />
+                                    )}
                                     <span>{subItem.title}</span>
                                   </Link>
                                 </SidebarMenuSubButton>
@@ -215,8 +222,8 @@ export default function AdminSidebar() {
                       className={cn(
                         "flex items-center gap-3 px-4 py-3 rounded-[8px] transition-colors w-full h-auto",
                         isActive
-                          ? "bg-[#F4AA1D] text-black hover:bg-[#F4AA1D] hover:text-black"
-                          : "text-white hover:bg-[rgba(255,255,255,0.1)] hover:text-white",
+                          ? "bg-[#F4AA1D] text-black hover:bg-[#F4AA1D] hover:text-white"
+                          : "text-white hover:bg-[rgba(255, 255, 255, 1)] hover:text-white",
                         isCollapsed ? "justify-center" : ""
                       )}
                       tooltip={isCollapsed ? item.title : undefined}
