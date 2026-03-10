@@ -317,7 +317,7 @@ export default function CEOArticlesPage() {
     const activeTab = (filters.status as CEOTab) || "all";
 
     return (
-        <div className="p-8 bg-[#f9fafb] min-h-screen">
+        <div className="p-4 sm:p-6 lg:p-8 bg-[#f9fafb] min-h-screen">
             <AdminPageHeader
                 title="Article Review"
                 description="Review editor-submitted articles and approve or reject them for publishing"
@@ -325,7 +325,7 @@ export default function CEOArticlesPage() {
                 onAction={() => setIsEditorModalOpen(true)}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
                 {/* 1. All Articles */}
                 <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm flex flex-col items-start gap-3 hover:shadow-md transition-shadow">
                     <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0">
@@ -388,8 +388,8 @@ export default function CEOArticlesPage() {
             </div>
 
             <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
-                <div className="border-b border-[#e5e7eb] pt-5 px-0">
-                    <div className="flex gap-8 px-5 overflow-x-auto no-scrollbar">
+                <div className="border-b border-[#e5e7eb] pt-3 sm:pt-5 px-0">
+                    <div className="flex gap-6 sm:gap-8 px-4 sm:px-5 overflow-x-auto no-scrollbar">
                         {TABS.map((tab, index) => {
                             const isActive = activeTab === tab.id;
                             let statusKey: keyof typeof counts = "all";
@@ -443,7 +443,7 @@ export default function CEOArticlesPage() {
 
                 {/* Bulk Actions Bar */}
                 {(activeTab === 'edited' || activeTab === 'pending_review' || activeTab === 'published_articles') && articles.length > 0 && (
-                    <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-[#e5e7eb] bg-[#f9fafb]">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 py-3 border-b border-[#e5e7eb] bg-[#f9fafb]">
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
                                 <Checkbox
@@ -463,12 +463,12 @@ export default function CEOArticlesPage() {
                         </div>
 
                         {selectedIds.length > 0 && (
-                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2">
+                            <div className="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-right-2">
                                 {activeTab === 'published_articles' ? (
                                     <button
                                         onClick={handleBulkUnpublish}
                                         disabled={isBulkActionLoading}
-                                        className="flex items-center gap-2 h-9 px-4 rounded-lg text-[13px] font-bold bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-sm active:scale-95"
+                                        className="w-full sm:w-auto flex items-center justify-center gap-2 h-9 px-4 rounded-lg text-[12px] sm:text-[13px] font-bold bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-sm active:scale-95"
                                     >
                                         {isBulkActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
                                         GROUP UNPUBLISH
@@ -479,7 +479,7 @@ export default function CEOArticlesPage() {
                                             <button
                                                 onClick={handleBulkReject}
                                                 disabled={isBulkActionLoading}
-                                                className="h-9 px-4 font-bold text-[13px] text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-all flex items-center gap-2"
+                                                className="flex-1 sm:flex-none h-9 px-3 sm:px-4 font-bold text-[12px] sm:text-[13px] text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-all flex items-center justify-center gap-2"
                                             >
                                                 {isBulkActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
                                                 REJECT
@@ -488,7 +488,7 @@ export default function CEOArticlesPage() {
                                         <button
                                             onClick={() => setIsPublishModalOpen(true)}
                                             disabled={isBulkActionLoading}
-                                            className="h-9 px-4 bg-[#1428AE] text-white font-bold text-[13px] rounded-lg hover:bg-[#000785] transition-all shadow-sm flex items-center gap-2 active:scale-95"
+                                            className="flex-1 sm:flex-none h-9 px-3 sm:px-4 bg-[#1428AE] text-white font-bold text-[12px] sm:text-[13px] rounded-lg hover:bg-[#000785] transition-all shadow-sm flex items-center justify-center gap-2 active:scale-95"
                                         >
                                             {isBulkActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                                             GROUP PUBLISH
