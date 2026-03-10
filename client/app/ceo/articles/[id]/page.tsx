@@ -147,8 +147,8 @@ function CEOArticleDetailContent() {
         );
     if (!article)
         return (
-            <div className="p-20 text-center">
-                <h2 className="text-2xl font-bold mb-4">Article Not Found</h2>
+            <div className="p-8 sm:p-20 text-center">
+                <h2 className="text-xl sm:text-2xl font-bold mb-4">Article Not Found</h2>
                 <button
                     onClick={() => router.push("/ceo/articles")}
                     className="text-[#1428AE] hover:underline"
@@ -169,8 +169,8 @@ function CEOArticleDetailContent() {
 
     return (
         <div className="min-h-screen bg-[#f9fafb]">
-            <div className="w-full px-8 py-8">
-                <div className="flex items-center justify-between mb-6">
+            <div className="w-full px-4 py-6 sm:px-8 sm:py-8">
+                <div className="flex flex-row items-center justify-between mb-6 gap-2">
                     <ArticleBreadcrumb
                         homeLabel="Article Review"
                         homeHref={from}
@@ -186,9 +186,9 @@ function CEOArticleDetailContent() {
                     </button>
                 </div>
 
-                <div className="flex gap-8">
-                    <div className="flex-1 min-w-0">
-                        <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] mb-8">
+                <div className="flex flex-col lg:flex-row gap-8">
+                    <div className="flex-1 min-w-0 order-2 lg:order-1">
+                        <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-4 sm:p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.05)] mb-8">
                             <article>
                                 <div className="mb-6 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ function CEOArticleDetailContent() {
                                     <StatusBadge status={article.status as any} />
                                 </div>
 
-                                <h1 className="text-[32px] font-bold text-[#111827] leading-[44px] tracking-[-0.5px] mb-4">
+                                <h1 className="text-2xl sm:text-[32px] font-bold text-[#111827] leading-tight sm:leading-[44px] tracking-tight sm:tracking-[-0.5px] mb-4">
                                     {article.title}
                                 </h1>
 
@@ -304,7 +304,10 @@ function CEOArticleDetailContent() {
                                                                         </div>
                                                                     )}
                                                                     {type === 'grid' && (
-                                                                        <div className={cn("my-8 grid gap-4", (blockContent?.images?.length === 3) ? "grid-cols-3" : "grid-cols-2")}>
+                                                                        <div className={cn(
+                                                                            "my-8 grid gap-4",
+                                                                            (blockContent?.images?.length === 3) ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"
+                                                                        )}>
                                                                             {blockContent?.images?.map((img: string, i: number) => (
                                                                                 <img key={i} src={img} className="w-full aspect-square object-cover rounded-xl shadow-sm" />
                                                                             ))}
@@ -373,8 +376,8 @@ function CEOArticleDetailContent() {
                         })()}
                     </div>
 
-                    <aside className="w-[320px] flex-shrink-0 space-y-6">
-                        <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-sm sticky top-8">
+                    <aside className="w-full lg:w-[320px] flex-shrink-0 space-y-6 order-1 lg:order-2">
+                        <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-5 sm:p-6 shadow-sm lg:sticky lg:top-8">
                             <h3 className="text-[16px] font-semibold text-[#111827] mb-2 tracking-[-0.5px]">
                                 CEO Review Panel
                             </h3>
@@ -491,7 +494,7 @@ function CEOArticleDetailContent() {
 
 export default function CEOArticleDetailPage() {
     return (
-        <Suspense fallback={<div className="p-20 text-center text-[#6b7280]">Loading article details...</div>}>
+        <Suspense fallback={<div className="p-8 sm:p-20 text-center text-[#6b7280]">Loading article details...</div>}>
             <CEOArticleDetailContent />
         </Suspense>
     );
