@@ -9,8 +9,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 /**
  * Service class to handle all authentication and user-related operations.
@@ -20,12 +18,16 @@ class AuthService
     /** @var OTPService */
     protected $otpService;
 
+    /** @var FileService */
+    protected $fileService;
+
     /**
      * Create a new AuthService instance.
      */
-    public function __construct(OTPService $otpService)
+    public function __construct(OTPService $otpService, FileService $fileService)
     {
         $this->otpService = $otpService;
+        $this->fileService = $fileService;
     }
 
     /**
@@ -62,9 +64,9 @@ class AuthService
      */
     public function register(array $data): array
     {
-        return DB::transaction(function () use ($data) {
-            Log::info('[AuthService]: Registration attempt for: '.$data['email']);
+        Log::info('[AuthService]: Registration attempt for: {email}', ['email' => $data['email']]);
 
+        return DB::transaction(function () use ($data) {
             // Create user record in database
             $user = User::create([
                 'first_name' => $data['first_name'],
@@ -124,31 +126,9 @@ class AuthService
         // Process base64 avatar if present
         if (isset($data['avatar']) && str_starts_with($data['avatar'], 'data:image')) {
             try {
-                $imageData = $data['avatar'];
-
-                // Extract MIME type and encoded data
-                if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $type)) {
-                    $imageData = substr($imageData, strpos($imageData, ',') + 1);
-                    $format = strtolower($type[1]); // png, jpeg, etc.
-
-                    if (! in_array($format, ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
-                        throw new \Exception('Invalid image format.');
-                    }
-
-                    $imageData = base64_decode($imageData);
-                    if ($imageData === false) {
-                        throw new \Exception('Base64 decode failed.');
-                    }
-
-                    $imageName = Str::uuid().'.'.$format;
-                    $path = 'homes-ph-news/avatars/'.$imageName;
-
-                    Storage::disk('s3')->put($path, $imageData, 'public');
-
-                    // If user already has an old avatar on S3, we might want to delete it here
-                    // but usually keeping history or using UUIDs is fine.
-
-                    $user->avatar = Storage::disk('s3')->url($path);
+                $url = $this->fileService->uploadBase64Image($data['avatar'], 'homes-ph-news/avatars');
+                if ($url) {
+                    $user->avatar = $url;
                 }
             } catch (\Exception $e) {
                 \Log::error('[AuthService]: Avatar upload failed: '.$e->getMessage());
