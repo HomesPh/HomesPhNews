@@ -22,6 +22,8 @@ export const metadata: Metadata = {
   },
 };
 
+import AlertProvider from "@/components/providers/AlertProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -40,6 +42,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
+            <AlertProvider />
           </ThemeProvider>
         </ReactQueryProvider>
       </body>

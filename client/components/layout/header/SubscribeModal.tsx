@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Mail, Briefcase, ArrowLeft, CheckCircle2, ChevronDown, Clock, Calendar, HelpCircle, ChevronUp } from "lucide-react";
 import { Categories, Countries, RestaurantCategories } from "@/app/data";
+import { useAlert } from "@/hooks/useAlert";
 
 interface SubscribeModalProps {
     isOpen: boolean;
@@ -14,6 +15,7 @@ type Step = 'choice' | 'email' | 'service' | 'configure';
 
 export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps) {
     const router = useRouter();
+    const { showAlert } = useAlert();
     const [step, setStep] = useState<Step>('choice');
     const [formData, setFormData] = useState({
         email: "",
@@ -145,7 +147,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                         onClose();
                     }, 3000);
                 } else {
-                    alert(data.message || 'Something went wrong. Please try again.');
+                    showAlert('Error', data.message || 'Something went wrong. Please try again.');
                 }
             } else if (step === 'configure') {
                 // Handle service subscription with file upload
@@ -179,7 +181,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                         onClose();
                     }, 3000);
                 } else {
-                    alert(data.message || 'Something went wrong. Please try again.');
+                    showAlert('Error', data.message || 'Something went wrong. Please try again.');
                 }
             } else {
                 // Fallback
@@ -191,7 +193,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
             }
         } catch (error) {
             console.error('Subscription error:', error);
-            alert('Failed to connect to the server. Please check your internet connection.');
+            showAlert('Connection Error', 'Failed to connect to the server. Please check your internet connection.');
         } finally {
             setIsLoading(false);
         }

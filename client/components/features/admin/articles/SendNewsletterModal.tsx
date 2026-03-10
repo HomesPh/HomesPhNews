@@ -16,6 +16,7 @@ import { Search, Users, Loader2, Send } from "lucide-react";
 import { getSubscribersList, type Subscriber, sendNewsletter, bulkSendNewsletter } from "@/lib/api-v2";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { useAlert } from "@/hooks/useAlert";
 
 export interface ArticleInfo {
     id: string;
@@ -40,6 +41,7 @@ export default function SendNewsletterModal({
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [isSending, setIsSending] = useState(false);
+    const { showAlert, showConfirm } = useAlert();
 
     useEffect(() => {
         if (isOpen) {
@@ -95,7 +97,7 @@ export default function SendNewsletterModal({
             ? `Send ${articles.length} article(s) to ${selectedIds.length} selected subscribers?`
             : `Send ${articles.length} article(s) to all matching subscribers?`;
 
-        if (!confirm(confirmMsg)) return;
+        if (!await showConfirm("Confirm Broadcast", confirmMsg)) return;
 
         setIsSending(true);
         try {
@@ -105,11 +107,11 @@ export default function SendNewsletterModal({
             } else {
                 response = await sendNewsletter(articleIds[0], targetSubscriberIds);
             }
-            alert(response.data.message || "Newsletter distribution started!");
+            await showAlert("Broadcast Started", response.data.message || "Newsletter distribution started!");
             onClose();
         } catch (error: any) {
             console.error("Failed to send newsletter:", error);
-            alert(error.response?.data?.message || "Failed to trigger distribution.");
+            showAlert("Broadcast Error", error.response?.data?.message || "Failed to trigger distribution.");
         } finally {
             setIsSending(false);
         }

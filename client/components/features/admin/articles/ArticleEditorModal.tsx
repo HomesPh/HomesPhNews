@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { X, ArrowLeft, Save, Send } from 'lucide-react';
-import { cn } from "@/lib/utils";
 import { getSiteNames, updatePendingArticle, createArticle, updateArticle, publishArticle, uploadArticleImage, useAuth } from "@/lib/api-v2";
+import { useAlert } from "@/hooks/useAlert";
 import { blocksToHtml } from "@/lib/converter/blocksToHtml";
 import ArticleEditorForm from "./editor/ArticleEditorForm";
 import {
@@ -50,6 +50,7 @@ export default function ArticleEditorModal({
     const [availableSites, setAvailableSites] = useState<string[]>([]);
     const [showPublishDialog, setShowPublishDialog] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    const { showAlert } = useAlert();
     const { user } = useAuth();
     const isEditor = user?.roles?.includes('editor') && !user?.roles?.includes('admin') && !user?.roles?.includes('super-admin');
 
@@ -313,7 +314,7 @@ export default function ArticleEditorModal({
 
         if (isPublish && (!workingData.publishTo || workingData.publishTo.length === 0)) {
             console.log('Validation failed: No sites selected');
-            alert('Please select at least one site to publish to.');
+            showAlert('Wait!', 'Please select at least one site to publish to.');
             return;
         }
 
@@ -477,7 +478,8 @@ export default function ArticleEditorModal({
             if (mode === 'create') {
                 // For new articles, createArticle handles everything including status and sites
                 await createArticle(payload);
-                alert(`Article ${isPublish ? 'published' : 'created'} successfully!`);
+                if (isPublish) setShowPublishDialog(false);
+                await showAlert('Success!', `Article ${isPublish ? 'published' : 'created'} successfully!`);
             } else if (mode === 'edit' && isFromRedis) {
                 // For Redis articles, we now have an atomic publish that handles the migration
                 if (isPublish) {
@@ -485,11 +487,12 @@ export default function ArticleEditorModal({
                         ...payload,
                         published_sites: payload.published_sites,
                     } as any);
-                    alert('Article migrated and published successfully!');
+                    setShowPublishDialog(false);
+                    await showAlert('Success!', 'Article migrated and published successfully!');
                 } else {
                     // Just update Redis
                     await updatePendingArticle(initialData.id, payload);
-                    alert('Article draft updated successfully!');
+                    await showAlert('Success!', 'Article draft updated successfully!');
                 }
             } else if (mode === 'edit') {
                 // DB articles
@@ -499,10 +502,11 @@ export default function ArticleEditorModal({
                         ...payload,
                         published_sites: payload.published_sites,
                     } as any);
-                    alert('Article changes published successfully!');
+                    setShowPublishDialog(false);
+                    await showAlert('Success!', 'Article changes published successfully!');
                 } else {
                     await updateArticle(initialData.id, payload);
-                    alert('Article changes saved successfully!');
+                    await showAlert('Success!', 'Article changes saved successfully!');
                 }
             }
 
@@ -511,7 +515,7 @@ export default function ArticleEditorModal({
         } catch (error: any) {
             console.error('Error saving article:', error);
             const message = error.response?.data?.message || error.message || 'An error occurred while saving the article.';
-            alert(message);
+            showAlert('Save Error', message);
         } finally {
             setIsProcessing(false);
         }
@@ -519,7 +523,7 @@ export default function ArticleEditorModal({
 
     const handlePublishClick = (latestData: any) => {
         if (!latestData.platforms || latestData.platforms.length === 0) {
-            alert('Please select at least one site to publish to.');
+            showAlert('Wait!', 'Please select at least one site to publish to.');
             return;
         }
         // Save the latest data for when they click confirm in the dialog
