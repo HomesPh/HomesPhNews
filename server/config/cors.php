@@ -20,10 +20,17 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
+        // DEV ENDPOINTS
+        // client
         'http://localhost:3000',
         'http://127.0.0.1:3000',
+        // server
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+
+        // PROD ENDPOINTS
         'https://homes-ph-news.vercel.app',
-        'https://news.homes.ph'
+        'https://news.homes.ph',
     ],
 
     'allowed_origins_patterns' => [],
