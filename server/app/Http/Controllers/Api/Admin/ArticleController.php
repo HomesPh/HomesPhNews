@@ -350,6 +350,10 @@ class ArticleController extends Controller
         $validated['id'] = \Illuminate\Support\Str::uuid()->toString();
         $validated['article_id'] = $validated['id'];
 
+        if (($validated['status'] ?? '') === 'published') {
+            $validated['published_at'] = now();
+        }
+
         $siteNames = $validated['published_sites'] ?? [];
         unset($validated['published_sites']);
 
@@ -475,6 +479,10 @@ class ArticleController extends Controller
         unset($validated['split_images']); // Not stored in articles table
         unset($validated['date']); // Not a database column
 
+        if (isset($validated['status']) && $validated['status'] === 'published' && !$article->published_at) {
+            $validated['published_at'] = now();
+        }
+
         $validated['edited_by'] = auth()->id();
         $article->update($validated);
 
@@ -576,6 +584,7 @@ class ArticleController extends Controller
 
         // 2. Clean up and execute persistence
         $fillableData = collect($finalData)->only((new Article())->getFillable())->toArray();
+        $fillableData['published_at'] = now();
 
         if ($existing) {
             \Log::info("Updating existing DB record for publish: {$id}");
