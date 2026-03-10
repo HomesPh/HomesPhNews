@@ -17,6 +17,7 @@ import usePagination from '@/hooks/usePagination';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import useUrlFilters from '@/hooks/useUrlFilters';
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAlert } from "@/hooks/useAlert";
 
 const URL_FILTERS_CONFIG = {
     status: { default: 'all' as const, resetValues: ['all'] },
@@ -26,6 +27,7 @@ const URL_FILTERS_CONFIG = {
 
 export default function UsersPage() {
     const router = useRouter();
+    const { showAlert, showConfirm } = useAlert();
     const { filters, setFilter } = useUrlFilters(URL_FILTERS_CONFIG);
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
 
@@ -98,26 +100,26 @@ export default function UsersPage() {
     }, [users, searchQuery, filters]);
 
     // Handlers
-    const handleSuspendUser = (user: AdminUser) => {
-        if (confirm(`Are you sure you want to suspend ${user.name}? They will not be able to log in.`)) {
+    const handleSuspendUser = async (user: AdminUser) => {
+        if (await showConfirm("Suspend User", `Are you sure you want to suspend ${user.name}? They will not be able to log in.`)) {
             suspendUser(user.id);
         }
     };
 
-    const handleUnsuspendUser = (user: AdminUser) => {
-        if (confirm(`Restore access for ${user.name}?`)) {
+    const handleUnsuspendUser = async (user: AdminUser) => {
+        if (await showConfirm("Restore Access", `Restore access for ${user.name}?`)) {
             unsuspendUser(user.id);
         }
     };
 
-    const handleBanUser = (user: AdminUser) => {
-        if (confirm(`DANGER: Are you sure you want to BAN ${user.name}? This is a severe action.`)) {
+    const handleBanUser = async (user: AdminUser) => {
+        if (await showConfirm("Danger: Ban User", `Are you sure you want to BAN ${user.name}? This is a severe action.`)) {
             banUser(user.id);
         }
     };
 
-    const handleUnbanUser = (user: AdminUser) => {
-        if (confirm(`Unban ${user.name}?`)) {
+    const handleUnbanUser = async (user: AdminUser) => {
+        if (await showConfirm("Unban User", `Unban ${user.name}?`)) {
             unsuspendUser(user.id); // Reusing unsuspend logic which sets status to active
         }
     };
@@ -129,21 +131,21 @@ export default function UsersPage() {
     const handleAddUser = async (userData: any) => {
         try {
             const newUser = await addUser(userData);
-            alert(`User ${newUser.name} added successfully! Credential email has been sent.`);
+            await showAlert("User Added", `User ${newUser.name} added successfully! Credential email has been sent.`);
             setIsAddModalOpen(false);
         } catch (error: any) {
             console.error(error);
-            alert(error?.response?.data?.message || 'Failed to add user. Please check if the email is already in use.');
+            showAlert("Error", error?.response?.data?.message || 'Failed to add user. Please check if the email is already in use.');
         }
     };
 
-    const handleEditUser = (id: string, updates: Partial<AdminUser>) => {
+    const handleEditUser = async (id: string, updates: Partial<AdminUser>) => {
         updateUser(id, updates);
-        alert('User updated successfully!');
+        await showAlert("Success", 'User updated successfully!');
     };
 
-    const handleDeleteUser = (user: AdminUser) => {
-        if (confirm(`PERMANENTLY DELETE ${user.name}? This cannot be undone.`)) {
+    const handleDeleteUser = async (user: AdminUser) => {
+        if (await showConfirm("Delete User", `PERMANENTLY DELETE ${user.name}? This cannot be undone.`)) {
             deleteUser(user.id);
         }
     };

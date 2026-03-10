@@ -31,6 +31,7 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { getSiteNames } from "@/lib/api-v2/admin/service/sites/getSiteNames";
+import { useAlert } from "@/hooks/useAlert";
 
 interface ArticleDetailProps {
     id: string;
@@ -38,6 +39,7 @@ interface ArticleDetailProps {
 }
 
 export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
+    const { showAlert } = useAlert();
     const router = useRouter();
     const searchParams = useSearchParams();
     const { user } = useAuth();
@@ -146,7 +148,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
     const handlePublishClick = () => {
         if (!article || !id) return;
         if (publishToSites.length === 0) {
-            alert('Please select at least one site to publish to.');
+            showAlert('Wait!', 'Please select at least one site to publish to.');
             return;
         }
         setShowPublishDialog(true);
@@ -162,7 +164,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
             router.push(`${defaultBackPath}?status=published`);
         } catch (error: any) {
             const message = error.response?.data?.message || 'Failed to publish article';
-            alert(`Error: ${message}`);
+            showAlert('Publish Error', message);
         } finally {
             setIsPublishing(false);
             setShowPublishDialog(false);
@@ -181,7 +183,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
             router.push(`${defaultBackPath}?status=deleted`);
         } catch (error: any) {
             const message = error.response?.data?.message || 'Failed to delete article';
-            alert(`Error: ${message}`);
+            showAlert('Delete Error', message);
         } finally {
             setIsDeleting(false);
             setShowDeleteDialog(false);
@@ -200,7 +202,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
             router.push(defaultBackPath);
         } catch (error: any) {
             const message = error.response?.data?.message || 'Failed to restore article';
-            alert(`Error: ${message}`);
+            showAlert('Restore Error', message);
         } finally {
             setIsRestoring(false);
             setShowRestoreDialog(false);
@@ -219,7 +221,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
             router.push(defaultBackPath);
         } catch (error: any) {
             const message = error.response?.data?.message || 'Failed to permanently delete article';
-            alert(`Error: ${message}`);
+            showAlert('Permanent Delete Error', message);
         } finally {
             setIsHardDeleting(false);
             setShowHardDeleteDialog(false);
@@ -515,8 +517,8 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                             <div
                                                 onClick={() => !(isEditor && site !== "Main News Portal") && toggleSite(site)}
                                                 className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${publishToSites.includes(site)
-                                                        ? 'bg-[#111827] border-[#111827]'
-                                                        : 'bg-white border-[#d1d5db]'
+                                                    ? 'bg-[#111827] border-[#111827]'
+                                                    : 'bg-white border-[#d1d5db]'
                                                     } ${isEditor && site !== "Main News Portal" ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                                             >
                                                 {publishToSites.includes(site) && (

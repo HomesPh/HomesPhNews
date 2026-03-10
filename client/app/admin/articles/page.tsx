@@ -23,6 +23,7 @@ import { bulkPublishArticles } from "@/lib/api-v2/admin/service/article/bulkPubl
 import { bulkUnpublishArticles } from "@/lib/api-v2/admin/service/article/bulkUnpublishArticles";
 import { bulkDeleteArticles } from "@/lib/api-v2/admin/service/article/bulkDeleteArticles";
 import { bulkRejectArticles } from "@/lib/api-v2/admin/service/article/bulkRejectArticles";
+import { useAlert } from "@/hooks/useAlert";
 
 // Filter configuration with defaults and reset values
 // Only 'all' should remove the status param from URL; other tab values must stay so the correct tab stays active
@@ -50,6 +51,7 @@ const URL_FILTERS_CONFIG = {
  */
 export default function ArticlesPage() {
     const router = useRouter();
+    const { showAlert, showConfirm } = useAlert();
 
     // URL-synced filters (status, category, country, city)
     const { filters, setFilter, setFilters } = useUrlFilters(URL_FILTERS_CONFIG);
@@ -277,7 +279,7 @@ export default function ArticlesPage() {
             window.location.reload(); // Refresh to update everything
         } catch (err) {
             console.error("Bulk publish failed:", err);
-            alert("Failed to publish articles.");
+            showAlert("Error", "Failed to publish articles.");
         } finally {
             setIsBulkActionLoading(false);
         }
@@ -293,7 +295,7 @@ export default function ArticlesPage() {
             window.location.reload();
         } catch (err) {
             console.error("Bulk delete failed:", err);
-            alert("Failed to delete articles.");
+            showAlert("Error", "Failed to delete articles.");
         } finally {
             setIsBulkActionLoading(false);
         }
@@ -301,7 +303,7 @@ export default function ArticlesPage() {
 
     const handleBulkUnpublish = async () => {
         if (selectedIds.size === 0) return;
-        if (!confirm(`Are you sure you want to unpublish ${selectedIds.size} articles? They will be moved back to Pending Review.`)) return;
+        if (!await showConfirm("Unpublish Articles", `Are you sure you want to unpublish ${selectedIds.size} articles? They will be moved back to Pending Review.`)) return;
         setIsBulkActionLoading(true);
         try {
             await bulkUnpublishArticles(Array.from(selectedIds));
@@ -309,7 +311,7 @@ export default function ArticlesPage() {
             window.location.reload();
         } catch (err) {
             console.error("Bulk unpublish failed:", err);
-            alert("Failed to unpublish articles.");
+            showAlert("Error", "Failed to unpublish articles.");
         } finally {
             setIsBulkActionLoading(false);
         }
@@ -317,7 +319,7 @@ export default function ArticlesPage() {
 
     const handleBulkReject = async () => {
         if (selectedIds.size === 0) return;
-        if (!confirm(`Are you sure you want to reject ${selectedIds.size} articles?`)) return;
+        if (!await showConfirm("Reject Articles", `Are you sure you want to reject ${selectedIds.size} articles?`)) return;
         setIsBulkActionLoading(true);
         try {
             await bulkRejectArticles(Array.from(selectedIds));
@@ -325,7 +327,7 @@ export default function ArticlesPage() {
             window.location.reload();
         } catch (err) {
             console.error("Bulk reject failed:", err);
-            alert("Failed to reject articles.");
+            showAlert("Error", "Failed to reject articles.");
         } finally {
             setIsBulkActionLoading(false);
         }
