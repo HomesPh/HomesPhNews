@@ -196,8 +196,8 @@ class ArticleController extends Controller
 
         // Paginate DB results - Eager load to prevent N+1 queries
         $articles = $query
-            ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'article_id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'is_deleted', 'content_blocks', 'template', 'author')
+            ->with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name'])
+            ->select('id', 'article_id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'is_deleted', 'content_blocks', 'template', 'author', 'edited_by')
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage);
 
@@ -365,6 +365,7 @@ class ArticleController extends Controller
         }
 
         $validated['is_deleted'] = false;
+        $validated['edited_by'] = auth()->id();
         $article = Article::create($validated);
 
         if (!empty($siteNames)) {
@@ -393,12 +394,12 @@ class ArticleController extends Controller
     public function show($id): JsonResponse|ArticleResource
     {
         if (is_numeric($id) || !\Illuminate\Support\Str::isUuid($id)) {
-            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])->find($id);
+            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name'])->find($id);
             if ($article) {
                 return new ArticleResource($article);
             }
         } else {
-            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])->where('id', $id)->first();
+            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name'])->where('id', $id)->first();
             if ($article) {
                 return new ArticleResource($article);
             }
@@ -474,6 +475,7 @@ class ArticleController extends Controller
         unset($validated['split_images']); // Not stored in articles table
         unset($validated['date']); // Not a database column
 
+        $validated['edited_by'] = auth()->id();
         $article->update($validated);
 
         return new ArticleResource($article);
@@ -529,6 +531,7 @@ class ArticleController extends Controller
         $finalData = [
             'status' => 'published',
             'is_deleted' => false,
+            'edited_by' => auth()->id(),
         ];
 
         // A. Start with Redis as fallback if available
@@ -853,6 +856,7 @@ class ArticleController extends Controller
                         'status' => 'pending review',
                         'views_count' => 0,
                         'is_deleted' => false,
+                        'edited_by' => auth()->id(),
                     ];
 
                     $article = Article::create($payload);
@@ -1144,6 +1148,7 @@ class ArticleController extends Controller
                         'source' => $redisArticle['source'] ?? 'Scraper',
                         'status' => 'rejected',
                         'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? 'article-' . $id),
+                        'edited_by' => auth()->id(),
                     ]);
                     $this->redisService->deleteArticle($id);
                     $count++;

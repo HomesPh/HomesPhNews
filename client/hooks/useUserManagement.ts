@@ -4,10 +4,12 @@ import { useState, useCallback, useEffect } from 'react';
 import { AdminUser } from '@/app/admin/users/data';
 import { createUser } from '@/lib/api-v2';
 import { getUsers } from '@/lib/api-v2/admin/service/users/getUsers';
+import { useAlert } from './useAlert';
 
 export function useUserManagement() {
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const { showAlert } = useAlert();
 
     // ----------------------
     // Fetch users from DB on mount
@@ -119,8 +121,8 @@ export function useUserManagement() {
     const changePassword = useCallback((id: string, newPassword: string) => {
         // In a real app, this would make an API call
         console.log(`Password changed for user ${id} to ${newPassword}`);
-        alert('Password changed successfully (Mock)');
-    }, []);
+        showAlert('Success', 'Password changed successfully (Mock)');
+    }, [showAlert]);
 
     // Helper functions for common status updates
     const suspendUser = useCallback((id: string) => {

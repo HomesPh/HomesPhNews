@@ -10,6 +10,8 @@ export * from "./public/services/restaurant/getRestaurants";
 export * from "./public/services/restaurant/getRestaurantById";
 export * from "./public/services/subscription";
 export * from "./public/services/ads/getAdsByCampaign";
+export * from "./public/services/metadata/getCategories";
+export * from "./public/services/metadata/getCountries";
 
 /**
  * exports from admin
@@ -77,6 +79,7 @@ export type * from "./types/Event";
 export type * from "./types/SiteResource";
 export type * from "./types/CategoryResource";
 export type * from "./types/CountryResource";
+export type * from "./types/ProvinceResource";
 export type * from "./types/CityResource";
 export { ApiError } from "./types/ApiError";
 

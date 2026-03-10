@@ -22,6 +22,8 @@ import { getSiteNames } from "@/lib/api-v2/admin/service/sites/getSiteNames";
 import { bulkPublishArticles } from "@/lib/api-v2/admin/service/article/bulkPublishArticles";
 import { bulkUnpublishArticles } from "@/lib/api-v2/admin/service/article/bulkUnpublishArticles";
 import { bulkDeleteArticles } from "@/lib/api-v2/admin/service/article/bulkDeleteArticles";
+import { bulkRejectArticles } from "@/lib/api-v2/admin/service/article/bulkRejectArticles";
+import { useAlert } from "@/hooks/useAlert";
 
 // Filter configuration with defaults and reset values
 // Only 'all' should remove the status param from URL; other tab values must stay so the correct tab stays active
@@ -49,6 +51,7 @@ const URL_FILTERS_CONFIG = {
  */
 export default function ArticlesPage() {
     const router = useRouter();
+    const { showAlert, showConfirm } = useAlert();
 
     // URL-synced filters (status, category, country, city)
     const { filters, setFilter, setFilters } = useUrlFilters(URL_FILTERS_CONFIG);
@@ -276,7 +279,7 @@ export default function ArticlesPage() {
             window.location.reload(); // Refresh to update everything
         } catch (err) {
             console.error("Bulk publish failed:", err);
-            alert("Failed to publish articles.");
+            showAlert("Error", "Failed to publish articles.");
         } finally {
             setIsBulkActionLoading(false);
         }
@@ -292,7 +295,7 @@ export default function ArticlesPage() {
             window.location.reload();
         } catch (err) {
             console.error("Bulk delete failed:", err);
-            alert("Failed to delete articles.");
+            showAlert("Error", "Failed to delete articles.");
         } finally {
             setIsBulkActionLoading(false);
         }
@@ -300,7 +303,7 @@ export default function ArticlesPage() {
 
     const handleBulkUnpublish = async () => {
         if (selectedIds.size === 0) return;
-        if (!confirm(`Are you sure you want to unpublish ${selectedIds.size} articles? They will be moved back to Pending Review.`)) return;
+        if (!await showConfirm("Unpublish Articles", `Are you sure you want to unpublish ${selectedIds.size} articles? They will be moved back to Pending Review.`)) return;
         setIsBulkActionLoading(true);
         try {
             await bulkUnpublishArticles(Array.from(selectedIds));
@@ -308,7 +311,23 @@ export default function ArticlesPage() {
             window.location.reload();
         } catch (err) {
             console.error("Bulk unpublish failed:", err);
-            alert("Failed to unpublish articles.");
+            showAlert("Error", "Failed to unpublish articles.");
+        } finally {
+            setIsBulkActionLoading(false);
+        }
+    };
+
+    const handleBulkReject = async () => {
+        if (selectedIds.size === 0) return;
+        if (!await showConfirm("Reject Articles", `Are you sure you want to reject ${selectedIds.size} articles?`)) return;
+        setIsBulkActionLoading(true);
+        try {
+            await bulkRejectArticles(Array.from(selectedIds));
+            setSelectedIds(new Set());
+            window.location.reload();
+        } catch (err) {
+            console.error("Bulk reject failed:", err);
+            showAlert("Error", "Failed to reject articles.");
         } finally {
             setIsBulkActionLoading(false);
         }
@@ -379,7 +398,7 @@ export default function ArticlesPage() {
                 )}
 
                 {/* Global Bulk Actions Bar */}
-                {filters.status !== 'being_processed' && filteredArticles.length > 0 && (
+                {filters.status !== 'being_processed' && filters.status !== 'all' && filteredArticles.length > 0 && (
                     <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-[#e5e7eb] bg-[#f9fafb]">
                         <div className="flex items-center gap-4">
                             <label className="flex items-center gap-2 cursor-pointer">
@@ -401,33 +420,47 @@ export default function ArticlesPage() {
 
                         {selectedIds.size > 0 && (
                             <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2">
-                                <button
-                                    onClick={() => {
-                                        setIsHardDelete(filters.status === 'deleted');
-                                        setIsDeleteModalOpen(true);
-                                    }}
-                                    className="flex items-center gap-2 h-9 px-4 rounded-lg text-[13px] font-bold text-red-600 border border-red-100 hover:bg-red-50 transition-all"
-                                >
-                                    <Trash className="w-4 h-4" />
-                                    GROUP DELETE
-                                </button>
-                                {filters.status === 'published' ? (
+                                {filters.status === 'edited' ? (
                                     <button
-                                        onClick={handleBulkUnpublish}
+                                        onClick={handleBulkReject}
                                         disabled={isBulkActionLoading}
-                                        className="flex items-center gap-2 h-9 px-4 rounded-lg text-[13px] font-bold bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-sm active:scale-95"
+                                        className="flex items-center gap-2 h-9 px-4 rounded-lg text-[13px] font-bold text-amber-600 border border-amber-100 hover:bg-amber-50 transition-all shadow-sm active:scale-95"
                                     >
                                         {isBulkActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                                        GROUP UNPUBLISH
+                                        GROUP REJECT
                                     </button>
                                 ) : (
                                     <button
-                                        onClick={() => setIsPublishModalOpen(true)}
-                                        className="flex items-center gap-2 h-9 px-4 rounded-lg text-[13px] font-bold bg-[#1428AE] text-white hover:bg-[#000785] transition-all shadow-sm active:scale-95"
+                                        onClick={() => {
+                                            setIsHardDelete(filters.status === 'deleted');
+                                            setIsDeleteModalOpen(true);
+                                        }}
+                                        className="flex items-center gap-2 h-9 px-4 rounded-lg text-[13px] font-bold text-red-600 border border-red-100 hover:bg-red-50 transition-all shadow-sm active:scale-95"
                                     >
-                                        <CheckCircle2 className="w-4 h-4" />
-                                        GROUP PUBLISH
+                                        <Trash className="w-4 h-4" />
+                                        {filters.status === 'deleted' ? 'PERMANENT DELETE' : 'GROUP DELETE'}
                                     </button>
+                                )}
+
+                                {filters.status !== 'rejected' && filters.status !== 'deleted' && (
+                                    filters.status === 'published' ? (
+                                        <button
+                                            onClick={handleBulkUnpublish}
+                                            disabled={isBulkActionLoading}
+                                            className="flex items-center gap-2 h-9 px-4 rounded-lg text-[13px] font-bold bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-sm active:scale-95"
+                                        >
+                                            {isBulkActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                                            GROUP UNPUBLISH
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => setIsPublishModalOpen(true)}
+                                            className="flex items-center gap-2 h-9 px-4 rounded-lg text-[13px] font-bold bg-[#1428AE] text-white hover:bg-[#000785] transition-all shadow-sm active:scale-95"
+                                        >
+                                            <CheckCircle2 className="w-4 h-4" />
+                                            GROUP PUBLISH
+                                        </button>
+                                    )
                                 )}
                             </div>
                         )}
@@ -446,10 +479,10 @@ export default function ArticlesPage() {
                                     const currentPath = window.location.pathname + window.location.search;
                                     router.push(`/admin/articles/${article.id}?from=${encodeURIComponent(currentPath)}`);
                                 }}
-                                selection={{
+                                selection={filters.status !== 'all' ? {
                                     isSelected: selectedIds.has(article.id),
                                     onSelect: (checked) => handleToggleSelect(article.id, checked),
-                                }}
+                                } : undefined}
                             />
                         ))
                     ) : (

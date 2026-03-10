@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Admin\CityController;
 use App\Http\Controllers\Api\Admin\CountryController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\MailingListGroupController;
+use App\Http\Controllers\Api\Admin\ProvinceController;
 use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Api\Admin\SiteController;
 use App\Http\Controllers\Api\Auth\AuthController;
@@ -203,6 +204,10 @@ Route::prefix('v1')->group(function () {
     Route::get('/subscribe/{id}', [SubscriptionController::class, 'show']);
     Route::patch('/subscribe/{id}', [SubscriptionController::class, 'update']);
 
+    // Metadata (Public)
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/countries', [CountryController::class, 'index']);
+
     /*
     |--------------------------------------------------------------------------
     | Authenticated User Routes
@@ -267,6 +272,12 @@ Route::prefix('v1')->group(function () {
             // Site names — CEO needs this to select publish targets
             Route::get('sites/names', [SiteController::class, 'names']);
 
+            // Shared metadata resources
+            Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
+            Route::apiResource('countries', CountryController::class)->only(['index', 'show']);
+            Route::apiResource('provinces', ProvinceController::class)->only(['index', 'show']);
+            Route::apiResource('cities', CityController::class)->only(['index', 'show']);
+
             // Article update — CEO needs PATCH to set status=rejected
             Route::match(['put', 'patch'], 'articles/{article}', [AdminArticleController::class, 'update']);
 
@@ -315,9 +326,6 @@ Route::prefix('v1')->group(function () {
 
                 Route::apiResource('campaigns', AdminCampaignController::class);
                 Route::apiResource('ad-units', AdminAdUnitController::class);
-                Route::apiResource('categories', CategoryController::class);
-                Route::apiResource('countries', CountryController::class);
-                Route::apiResource('cities', CityController::class);
 
                 // Article Deletion/Restoration (Admin Only)
                 Route::delete('articles/{article}', [AdminArticleController::class, 'destroy']);

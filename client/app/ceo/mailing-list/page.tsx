@@ -389,14 +389,14 @@ export default function ManualNewsletterPage() {
     ];
 
     return (
-        <div className="p-8 bg-[#f9fafb] min-h-screen" data-layout-v2="true">
+        <div className="p-4 sm:p-6 lg:p-8 bg-[#f9fafb] min-h-screen" data-layout-v2="true">
             <AdminPageHeader
                 title="Manual Mailing List Broadcast"
                 description="Targeted article distribution to your subscriber base"
             />
 
             {/* Analytics Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
                 {isLoadingStats ? (
                     Array(3).fill(0).map((_, i) => (
                         <Skeleton key={i} className="h-[120px] rounded-xl bg-white shadow-sm" />
@@ -426,23 +426,23 @@ export default function ManualNewsletterPage() {
             </div>
 
             {/* Stepper */}
-            <div className="flex items-center justify-between mb-8 bg-white p-6 rounded-2xl border border-[#e5e7eb] shadow-sm">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-0 mb-8 bg-white p-6 rounded-2xl border border-[#e5e7eb] shadow-sm">
                 {steps.map((step, idx) => {
                     const isActive = currentStep === step.id;
                     const isCompleted = steps.findIndex(s => s.id === currentStep) > idx;
                     const StepIcon = step.icon;
 
                     return (
-                        <div key={step.id} className="flex-1 flex items-center group">
-                            <div className="flex flex-col items-center flex-1">
+                        <div key={step.id} className="flex-1 flex sm:flex-row items-center group w-full sm:w-auto">
+                            <div className="flex flex-row sm:flex-col items-center flex-1 gap-4 sm:gap-0">
                                 <div className={cn(
-                                    "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300",
+                                    "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 shrink-0",
                                     isActive ? "bg-[#1428AE] text-white shadow-lg shadow-blue-100" :
                                         isCompleted ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400"
                                 )}>
                                     {isCompleted ? <Check className="w-5 h-5" /> : <StepIcon className="w-5 h-5" />}
                                 </div>
-                                <div className="mt-2 text-center">
+                                <div className="sm:mt-2 text-left sm:text-center">
                                     <p className={cn(
                                         "text-[13px] font-bold tracking-tight",
                                         isActive ? "text-[#1428AE]" : "text-gray-500"
@@ -451,7 +451,7 @@ export default function ManualNewsletterPage() {
                                 </div>
                             </div>
                             {idx < steps.length - 1 && (
-                                <div className="w-px h-10 bg-gray-200 hidden md:block" />
+                                <div className="hidden md:block w-px h-10 bg-gray-200 mx-4" />
                             )}
                         </div>
                     );
@@ -474,20 +474,20 @@ export default function ManualNewsletterPage() {
                             </div>
 
                             {/* Row 2: Search and Filters (Modern Single Line) */}
-                            <div className="flex items-center gap-3 w-full">
-                                <div className="flex-1 relative group">
+                            <div className="flex flex-wrap items-center gap-3 w-full">
+                                <div className="w-full lg:flex-1 relative group">
                                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#9ca3af] group-focus-within:text-[#1428AE] transition-colors" />
                                     <input
                                         type="text"
                                         placeholder="Search published articles..."
                                         value={articleSearch}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setArticleSearch(e.target.value)}
-                                        className="w-full h-[48px] pl-12 pr-4 bg-white border border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all duration-200"
+                                        className="w-full h-[44px] sm:h-[48px] pl-11 sm:pl-12 pr-4 bg-white border border-[#e5e7eb] rounded-xl text-[13px] sm:text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all duration-200"
                                     />
                                 </div>
-                                <div className="w-[180px] flex-none">
+                                <div className="w-[calc(50%-6px)] md:w-[180px] flex-none">
                                     <Select value={articleCategory || "all"} onValueChange={(val) => setArticleCategory(val === "all" ? "" : val)}>
-                                        <SelectTrigger className="w-full h-[48px] !h-[48px] px-4 bg-white border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all">
+                                        <SelectTrigger className="w-full h-[44px] sm:h-[48px] px-3 sm:px-4 bg-white border-[#e5e7eb] rounded-xl text-[13px] sm:text-[14px] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all">
                                             <SelectValue placeholder="All Categories" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -500,9 +500,9 @@ export default function ManualNewsletterPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="w-[180px] flex-none">
+                                <div className="w-[calc(50%-6px)] md:w-[180px] flex-none">
                                     <Select value={articleCountry || "all"} onValueChange={(val) => setArticleCountry(val === "all" ? "" : val)}>
-                                        <SelectTrigger className="w-full h-[48px] !h-[48px] px-4 bg-white border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all">
+                                        <SelectTrigger className="w-full h-[44px] sm:h-[48px] px-3 sm:px-4 bg-white border-[#e5e7eb] rounded-xl text-[13px] sm:text-[14px] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all">
                                             <SelectValue placeholder="All Countries" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -515,14 +515,14 @@ export default function ManualNewsletterPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="w-[180px] flex-none">
+                                <div className="w-full md:w-[180px] flex-none">
                                     <Select
                                         value={articleCity || "all"}
                                         onValueChange={(val) => setArticleCity(val === "all" ? "" : val)}
                                         disabled={!articleCountry}
                                     >
                                         <SelectTrigger className={cn(
-                                            "w-full h-[48px] !h-[48px] px-4 rounded-xl text-[14px] focus:outline-none transition-all duration-200",
+                                            "w-full h-[44px] sm:h-[48px] px-3 sm:px-4 rounded-xl text-[13px] sm:text-[14px] focus:outline-none transition-all duration-200",
                                             !articleCountry
                                                 ? "bg-gray-50 border-[#e5e7eb] text-[#9ca3af] cursor-not-allowed"
                                                 : "bg-white border-[#e5e7eb] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE]"
@@ -648,22 +648,22 @@ export default function ManualNewsletterPage() {
                             </div>
 
                             {/* Row 2: Search and Filters (Modern Single Line) */}
-                            <div className="flex items-center gap-3 w-full">
-                                <div className="flex-1 relative group">
+                            <div className="flex flex-wrap items-center gap-3 w-full">
+                                <div className="w-full lg:flex-1 relative group">
                                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#9ca3af] text-[#1428AE] transition-colors" />
                                     <input
                                         type="text"
                                         placeholder={recipientTab === 'individual' ? "Search by email..." : "Search groups..."}
                                         value={subscriberSearch}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSubscriberSearch(e.target.value)}
-                                        className="w-full h-[48px] pl-12 pr-4 bg-white border border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all duration-200"
+                                        className="w-full h-[44px] sm:h-[48px] pl-11 sm:pl-12 pr-4 bg-white border border-[#e5e7eb] rounded-xl text-[13px] sm:text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all duration-200"
                                     />
                                 </div>
                                 {recipientTab === 'individual' && (
                                     <>
-                                        <div className="w-[180px] flex-none">
+                                        <div className="w-[calc(50%-6px)] md:w-[180px] flex-none">
                                             <Select value={subscriberCategory || "all"} onValueChange={(val) => setSubscriberCategory(val === "all" ? "" : val)}>
-                                                <SelectTrigger className="w-full h-[48px] px-4 bg-white border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all">
+                                                <SelectTrigger className="w-full h-[44px] sm:h-[48px] px-3 sm:px-4 bg-white border-[#e5e7eb] rounded-xl text-[13px] sm:text-[14px] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all">
                                                     <SelectValue placeholder="Matches Category" />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -676,9 +676,9 @@ export default function ManualNewsletterPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="w-[180px] flex-none">
+                                        <div className="w-[calc(50%-6px)] md:w-[180px] flex-none">
                                             <Select value={subscriberCountry || "all"} onValueChange={(val) => setSubscriberCountry(val === "all" ? "" : val)}>
-                                                <SelectTrigger className="w-full h-[48px] px-4 bg-white border-[#e5e7eb] rounded-xl text-[14px] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all">
+                                                <SelectTrigger className="w-full h-[44px] sm:h-[48px] px-3 sm:px-4 bg-white border-[#e5e7eb] rounded-xl text-[13px] sm:text-[14px] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE] transition-all">
                                                     <SelectValue placeholder="Matches Country" />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -691,14 +691,14 @@ export default function ManualNewsletterPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="w-[180px] flex-none">
+                                        <div className="w-full md:w-[180px] flex-none">
                                             <Select
                                                 value={subscriberCity || "all"}
                                                 onValueChange={(val) => setSubscriberCity(val === "all" ? "" : val)}
                                                 disabled={!subscriberCountry}
                                             >
                                                 <SelectTrigger className={cn(
-                                                    "w-full h-[48px] px-4 rounded-xl text-[14px] focus:outline-none transition-all duration-200",
+                                                    "w-full h-[44px] sm:h-[48px] px-3 sm:px-4 rounded-xl text-[13px] sm:text-[14px] focus:outline-none transition-all duration-200",
                                                     !subscriberCountry
                                                         ? "bg-gray-50 border-[#e5e7eb] text-[#9ca3af] cursor-not-allowed"
                                                         : "bg-white border-[#e5e7eb] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE]"
@@ -1010,140 +1010,129 @@ export default function ManualNewsletterPage() {
             {/* Broadcast Detail Dialog */}
             {selectedBroadcast && (
                 <Dialog open={!!selectedBroadcast} onOpenChange={(open) => { if (!open) setSelectedBroadcast(null); }}>
-                    <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto force-light">
-                        <DialogHeader>
-                            <DialogTitle className="text-xl font-black text-[#1e293b] uppercase tracking-tight flex items-center gap-2">
-                                <Send className="w-5 h-5 text-[#1428AE]" />
-                                Broadcast Details
-                            </DialogTitle>
-                        </DialogHeader>
+                    <DialogContent className="w-[95vw] sm:max-w-xl max-h-[90vh] overflow-hidden force-light gap-0 p-0 rounded-2xl border-none shadow-2xl flex flex-col">
+                        <div className="p-6 border-b border-gray-100 bg-white">
+                            <DialogHeader>
+                                <DialogTitle className="text-xl font-black text-[#1e293b] uppercase tracking-tight flex items-center gap-2">
+                                    <Send className="w-5 h-5 text-[#1428AE]" />
+                                    Broadcast Details
+                                </DialogTitle>
+                            </DialogHeader>
+                        </div>
 
-                        <div className="space-y-5 py-2">
-                            {/* Meta info grid */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="bg-gray-50 rounded-xl p-3">
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Date Sent</p>
-                                    <p className="text-sm font-bold text-[#1e293b]">{new Date(selectedBroadcast.sent_at).toLocaleDateString()}</p>
-                                    <p className="text-xs text-gray-400">{new Date(selectedBroadcast.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        <div className="p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent flex-1 bg-white">
+                            <div className="space-y-5">
+                                {/* Meta info grid */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="bg-gray-50 rounded-xl p-3">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Date Sent</p>
+                                        <p className="text-sm font-bold text-[#1e293b]">{new Date(selectedBroadcast.sent_at).toLocaleDateString()}</p>
+                                        <p className="text-xs text-gray-400">{new Date(selectedBroadcast.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                    </div>
+                                    <div className="bg-gray-50 rounded-xl p-3">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Type</p>
+                                        <p className="text-sm font-bold text-[#1e293b] capitalize">{selectedBroadcast.type || 'Manual'}</p>
+                                    </div>
+                                    <div className="bg-gray-50 rounded-xl p-3">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Status</p>
+                                        <Badge className="bg-green-50 text-green-600 border-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter mt-1">
+                                            {selectedBroadcast.status}
+                                        </Badge>
+                                    </div>
+                                    <div className="bg-[rgba(20,40,174,0.05)] rounded-xl p-3 col-span-1">
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Total Articles</p>
+                                        <p className="text-2xl font-black text-[#1428AE]">{selectedBroadcast.article_count}</p>
+                                    </div>
                                 </div>
-                                <div className="bg-gray-50 rounded-xl p-3">
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Type</p>
-                                    <p className="text-sm font-bold text-[#1e293b] capitalize">{selectedBroadcast.type || 'Manual'}</p>
-                                </div>
-                                <div className="bg-gray-50 rounded-xl p-3">
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Status</p>
-                                    <Badge className="bg-green-50 text-green-600 border-none px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter mt-1">
-                                        {selectedBroadcast.status}
-                                    </Badge>
-                                </div>
-                                <div className="bg-[rgba(20,40,174,0.05)] rounded-xl p-3 col-span-1">
-                                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Total Articles</p>
-                                    <p className="text-2xl font-black text-[#1428AE]">{selectedBroadcast.article_count}</p>
-                                </div>
-                            </div>
 
-                            {/* Articles Sent section */}
-                            <div>
-                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">
-                                    Articles Sent ({selectedBroadcast.article_count})
-                                </p>
-                                <div className="space-y-2 max-h-72 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-                                    {Object.values(selectedBroadcast.articles || {}).length > 0 ? (
-                                        Object.values(selectedBroadcast.articles || {}).map((article, idx) => (
-                                            <div key={article.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-100 transition-colors">
-                                                {/* Thumbnail */}
-                                                <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-200 shrink-0">
-                                                    {article.image ? (
-                                                        <img
-                                                            src={article.image}
-                                                            alt=""
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center">
-                                                            <FileText className="w-5 h-5 text-gray-400" />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                {/* Info */}
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-1.5 mb-1">
-                                                        <span className="text-[9px] font-black text-gray-400 bg-white border border-gray-200 rounded px-1.5 py-0.5 shrink-0">#{idx + 1}</span>
-                                                        {article.category && (
-                                                            <Badge variant="secondary" className="bg-[rgba(20,40,174,0.05)] text-[#1428AE] border-none text-[9px] font-bold uppercase px-1.5 py-0">
-                                                                {article.category}
-                                                            </Badge>
-                                                        )}
-                                                        {article.country && (
-                                                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-tight">{article.country}</span>
+                                {/* Articles Sent section */}
+                                <div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">
+                                        Articles Sent ({selectedBroadcast.article_count})
+                                    </p>
+                                    <div className="space-y-2 max-h-72 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+                                        {Object.values(selectedBroadcast.articles || {}).length > 0 ? (
+                                            Object.values(selectedBroadcast.articles || {}).map((article, idx) => (
+                                                <div key={article.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-100 transition-colors">
+                                                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-200 shrink-0">
+                                                        {article.image ? (
+                                                            <img src={article.image} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center">
+                                                                <FileText className="w-5 h-5 text-gray-400" />
+                                                            </div>
                                                         )}
                                                     </div>
-                                                    {article.title ? (
-                                                        <p className="text-sm font-bold text-[#1e293b] leading-snug line-clamp-2">{article.title}</p>
-                                                    ) : (
-                                                        <p className="text-xs font-mono text-gray-400 truncate">{article.id}</p>
-                                                    )}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-1.5 mb-1">
+                                                            <span className="text-[9px] font-black text-gray-400 bg-white border border-gray-200 rounded px-1.5 py-0.5 shrink-0">#{idx + 1}</span>
+                                                            {article.category && (
+                                                                <Badge variant="secondary" className="bg-[rgba(20,40,174,0.05)] text-[#1428AE] border-none text-[9px] font-bold uppercase px-1.5 py-0">
+                                                                    {article.category}
+                                                                </Badge>
+                                                            )}
+                                                            {article.country && (
+                                                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-tight">{article.country}</span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-sm font-bold text-[#1e293b] leading-snug line-clamp-2">{article.title || article.id}</p>
+                                                    </div>
                                                 </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-6 text-gray-400">
+                                                <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                                                <p className="text-sm font-medium">No article details available.</p>
                                             </div>
-                                        ))
-                                    ) : Object.values(selectedBroadcast.article_ids || {}).length > 0 ? (
-                                        // Fallback for cases where 'articles' detail array is missing but IDs exist
-                                        Object.values(selectedBroadcast.article_ids || {}).map((id, idx) => (
-                                            <div key={id as string} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                                <span className="text-[10px] font-black text-gray-400 bg-white border border-gray-200 rounded px-1.5 py-0.5 shrink-0">#{idx + 1}</span>
-                                                <p className="text-xs font-mono text-gray-500 truncate">{id}</p>
-                                            </div>
-                                        ))
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Recipients section */}
+                                <div className="border border-gray-100 rounded-xl overflow-hidden">
+                                    <div className="flex items-center justify-between px-4 py-3 bg-[rgba(20,40,174,0.05)]/60">
+                                        <div className="flex items-center gap-2">
+                                            <Users className="w-4 h-4 text-[#1428AE]" />
+                                            <p className="text-[11px] font-black text-[#1428AE] uppercase tracking-widest">Recipients</p>
+                                        </div>
+                                        <span className="text-2xl font-black text-[#1428AE]">{selectedBroadcast.recipient_count.toLocaleString()}</span>
+                                    </div>
+                                    {selectedBroadcast.recipients && selectedBroadcast.recipients.length > 0 ? (
+                                        <div className="max-h-48 overflow-y-auto divide-y divide-gray-50 bg-white scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+                                            {selectedBroadcast.recipients.map((recipient, i) => (
+                                                <div key={i} className="px-4 py-2 flex items-center justify-between hover:bg-gray-25 transition-colors">
+                                                    <p className="text-xs font-medium text-gray-600 truncate mr-2">{recipient.email}</p>
+                                                    <Badge className={`text-[9px] font-bold uppercase px-1.5 py-0 border-none ${recipient.status === 'sent' ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'}`}>
+                                                        {recipient.status}
+                                                    </Badge>
+                                                </div>
+                                            ))}
+                                        </div>
                                     ) : (
-                                        <div className="text-center py-6 text-gray-400">
-                                            <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                                            <p className="text-sm font-medium">No article details available.</p>
-                                            <pre className="text-xs text-left overflow-auto mt-4 p-4 bg-gray-100 rounded text-gray-800">
-                                                {JSON.stringify(selectedBroadcast, null, 2)}
-                                            </pre>
+                                        <div className="px-4 py-3 bg-gray-50 flex items-start gap-2">
+                                            <AlertCircle className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+                                            <p className="text-[11px] text-gray-400 leading-relaxed">
+                                                Individual recipient emails are not stored for older broadcasts.
+                                            </p>
                                         </div>
                                     )}
                                 </div>
                             </div>
-
-                            {/* Recipients section */}
-                            <div className="border border-gray-100 rounded-xl overflow-hidden">
-                                <div className="flex items-center justify-between px-4 py-3 bg-[rgba(20,40,174,0.05)]/60">
-                                    <div className="flex items-center gap-2">
-                                        <Users className="w-4 h-4 text-[#1428AE]" />
-                                        <p className="text-[11px] font-black text-[#1428AE] uppercase tracking-widest">Recipients</p>
-                                    </div>
-                                    <span className="text-2xl font-black text-[#1428AE]">{selectedBroadcast.recipient_count.toLocaleString()}</span>
-                                </div>
-                                {selectedBroadcast.recipients && selectedBroadcast.recipients.length > 0 ? (
-                                    <div className="max-h-48 overflow-y-auto divide-y divide-gray-50 bg-white">
-                                        {selectedBroadcast.recipients.map((recipient, i) => (
-                                            <div key={i} className="px-4 py-2 flex items-center justify-between hover:bg-gray-25 transition-colors">
-                                                <p className="text-xs font-medium text-gray-600 truncate mr-2">{recipient.email}</p>
-                                                <Badge className={`text-[9px] font-bold uppercase px-1.5 py-0 border-none ${recipient.status === 'sent' ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'
-                                                    }`}>
-                                                    {recipient.status}
-                                                </Badge>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="px-4 py-3 bg-gray-50 flex items-start gap-2">
-                                        <AlertCircle className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
-                                        <p className="text-[11px] text-gray-400 leading-relaxed">
-                                            Individual recipient emails are not stored for older broadcasts. New broadcasts will log full recipient details.
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
                         </div>
 
-                        <div className="pt-2">
+                        <div className="p-6 border-t border-gray-100 bg-gray-50 flex gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => setSelectedBroadcast(null)}
+                                className="flex-1 bg-white hover:bg-gray-100 text-[#1e293b] font-bold h-11 rounded-xl"
+                            >
+                                BACK
+                            </Button>
                             <Button
                                 onClick={() => setSelectedBroadcast(null)}
-                                className="w-full bg-[#1428AE] hover:bg-[#000785] text-white font-black h-11 rounded-xl"
+                                className="flex-[2] bg-[#1428AE] hover:bg-[#000785] text-white font-black h-11 rounded-xl shadow-lg shadow-blue-100"
                             >
-                                Close
+                                CLOSE
                             </Button>
                         </div>
                     </DialogContent>
