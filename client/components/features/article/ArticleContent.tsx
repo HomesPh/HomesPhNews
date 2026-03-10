@@ -1,52 +1,7 @@
 "use client";
 
 import AdSpace from "@/components/features/admin/ads/AdSpace";
-import { cn, decodeHtml } from "@/lib/utils";
-
-// Splits text into multiple paragraphs if there are more than 5 sentences
-const formatParagraphs = (htmlOrText: string, maxSentences: number = 5): string => {
-  if (!htmlOrText) return htmlOrText;
-
-  const splitIntoChunks = (text: string) => {
-    // Match sentences safely ensuring we don't break HTML tags if possible
-    const sentences = text.match(/[^.!?]+[.!?]+(?:\s+|$)|[^.!?]+$/g);
-    if (!sentences || sentences.length <= maxSentences) return null;
-
-    const chunks = [];
-    for (let i = 0; i < sentences.length; i += maxSentences) {
-      chunks.push(sentences.slice(i, i + maxSentences).join('').trim());
-    }
-    return chunks;
-  };
-
-  const hasBlockTags = /<(p|div|ul|ol|table|blockquote|h[1-6])[\s>]/i.test(htmlOrText);
-
-  if (hasBlockTags) {
-    if (/<p[\s>]/i.test(htmlOrText)) {
-      return htmlOrText.replace(/<p([^>]*)>([\s\S]*?)<\/p>/gi, (match, pAttrs, pInner) => {
-        // Avoid splitting paragraphs that contain block elements
-        if (/<(div|ul|ol|table|blockquote|h[1-6])/i.test(pInner)) return match;
-
-        const chunks = splitIntoChunks(pInner);
-        if (!chunks) return match;
-
-        // Instead of breaking into multiple <p> tags with CSS margins,
-        // we simulate hitting Enter twice between split chunks
-        return `<p${pAttrs}>${chunks.join('<br><br>')}</p>`;
-      });
-    }
-    return htmlOrText;
-  } else {
-    // Treat as inline HTML / plain text by splitting on double newlines and then sentences
-    // the whitespace-pre-wrap utility will render \n\n as empty lines
-    const paras = htmlOrText.split(/\n\s*\n/).filter(p => p.trim());
-    return paras.map(p => {
-      const chunks = splitIntoChunks(p);
-      if (!chunks) return p;
-      return chunks.join('\n\n');
-    }).join('\n\n\n'); // Allow some distinction between manual paras and automatic chunks
-  }
-};
+import { cn, decodeHtml, formatParagraphs } from "@/lib/utils";
 
 interface ArticleContentProps {
   content: string;
@@ -257,17 +212,17 @@ export default function ArticleContent({ content, contentBlocks, topics, origina
         </div>
 
         {originalUrl && (
-          <div className={`mt-4 pt-4 border-t border-[#e5e7eb] ${darkClass('dark:border-[#2a2d3e]')}`}>
-            <p className={`font-semibold text-[15px] text-[#111827] ${darkClass('dark:text-white')} tracking-[-0.5px] leading-[20px] mb-2`}>
+          <div className={`mt-4 pt-4 border-t border-[#e5e7eb] ${darkClass('dark:border-[#2a2d3e]')} opacity-60 hover:opacity-100 transition-opacity`}>
+            <p className={`font-medium text-[11px] text-[#6b7280] ${darkClass('dark:text-gray-400')} uppercase tracking-wider mb-1`}>
               Source:
             </p>
             <a
               href={originalUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[14px] text-[#3b82f6] hover:underline break-all"
+              className={`text-[12px] text-[#6b7280] ${darkClass('dark:text-gray-400')} hover:text-[#3b82f6] ${darkClass('dark:hover:text-blue-400')} underline underline-offset-2 transition-colors break-all`}
             >
-              {originalUrl.length > 60 ? originalUrl.substring(0, 60) + "..." : originalUrl}
+              {originalUrl.length > 80 ? originalUrl.substring(0, 80) + "..." : originalUrl}
             </a>
           </div>
         )}

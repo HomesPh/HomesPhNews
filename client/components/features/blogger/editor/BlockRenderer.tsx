@@ -6,7 +6,7 @@ import {
     Grid, Plus, GripVertical, Move, Check, X as XIcon
 } from "lucide-react";
 import { Block, BlockType } from "@/hooks/useBlockEditor";
-import { cn } from "@/lib/utils";
+import { cn, formatParagraphs } from "@/lib/utils";
 import { useDrag, useDrop } from 'react-dnd';
 import { useRef, useEffect, useState } from 'react';
 import RichTextEditor from "./RichTextEditor";
@@ -302,7 +302,7 @@ export default function BlockRenderer({
                 <ListWrapper className={listClass}>
                     <li className={settings.listType ? 'marker:text-[#1428AE]' : ''}>
                         <RichTextEditor
-                            content={block.content.text}
+                            content={formatParagraphs(block.content.text)}
                             onChange={(val) => onUpdate(block.id, { text: val })}
                             placeholder={settings.listType ? "List item..." : "Start typing..."}
                             style={style}
@@ -365,7 +365,7 @@ export default function BlockRenderer({
                         </div>
                         <div className="flex-1 w-full min-w-0">
                             <RichTextEditor
-                                content={block.content.text || ""}
+                                content={formatParagraphs(block.content.text || "")}
                                 onChange={(val) => onUpdate(block.id, { text: val })}
                                 placeholder="Enter text alongside image..."
                                 style={style}
@@ -444,7 +444,7 @@ export default function BlockRenderer({
                         </div>
                         <div className="flex-1 min-w-0 p-8 md:p-12 flex flex-col justify-center">
                             <RichTextEditor
-                                content={block.content.text || ""}
+                                content={formatParagraphs(block.content.text || "")}
                                 onChange={(val) => onUpdate(block.id, { text: val })}
                                 placeholder="Enter featured text here..."
                                 style={{ ...style, fontSize: '20px', fontWeight: '500' }}

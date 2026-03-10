@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Chrome, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/lib/api-v2";
+import { useAlert } from "@/hooks/useAlert";
 
 interface SignInFormProps {
     fields: {
@@ -22,6 +23,7 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
     const searchParams = useSearchParams();
     const login = useAuth((state) => state.login);
     const setAuth = useAuth((state) => state.setAuth);
+    const { showAlert } = useAlert();
 
     const [isLoading, setIsLoading] = useState(false);
     const [userInfo, setUserInfo] = useState<{ first_name: string, last_name: string, avatar?: string | null } | null>(null);
@@ -82,7 +84,7 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
     }, [searchParams]);
 
     const handleGoogleAuth = async () => {
-        alert("Google authentication will be implemented with OAuth");
+        showAlert("Coming Soon", "Google authentication will be implemented soon.");
     };
 
     const handleSignIn = async (e: React.FormEvent) => {
@@ -107,7 +109,7 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
             }
         } catch (error) {
             console.error(error);
-            alert("Invalid credentials or server error");
+            showAlert("Login Failed", "Invalid credentials or server error. Please try again.");
         } finally {
             setIsLoading(false);
         }
