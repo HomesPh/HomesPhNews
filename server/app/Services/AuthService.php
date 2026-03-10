@@ -37,17 +37,24 @@ class AuthService
      */
     public function login(string $email, string $password): ?array
     {
-        Log::info('Login attempt for email: {email}', ['email' => $email]);
+        Log::info('[AuthService]: Login attempt for email: {email}', ['email' => $email]);
 
         $user = User::where('email', $email)->first();
 
         // Verify user existence and password validity
         if (! $user || ! Hash::check($password, $user->password)) {
+            Log::warning('[AuthService]: Login failed for email: {email}', ['email' => $email]);
+
             return null;
         }
 
         // Generate Sanctum token
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        Log::info('[AuthService]: Login successful for user: {user} ({email})', [
+            'user' => $user->id,
+            'email' => $user->email,
+        ]);
 
         return [
             'access_token' => $token,
@@ -67,39 +74,52 @@ class AuthService
         Log::info('[AuthService]: Registration attempt for: {email}', ['email' => $data['email']]);
 
         return DB::transaction(function () use ($data) {
-            // Create user record in database
-            $user = User::create([
-                'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'],
-                'name' => $data['first_name'].' '.$data['last_name'],
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-                'roles' => ['subscriber'], // Store role in JSON column
-            ]);
+            try {
+                // Create user record in database
+                $user = User::create([
+                    'first_name' => $data['first_name'],
+                    'last_name' => $data['last_name'],
+                    'name' => $data['first_name'].' '.$data['last_name'],
+                    'email' => $data['email'],
+                    'password' => Hash::make($data['password']),
+                    'roles' => ['subscriber'], // Store role in JSON column
+                ]);
 
-            // Attach 'subscriber' role using relationship
-            $subscriberRole = Role::where('slug', 'subscriber')->orWhere('name', 'subscriber')->first();
-            if ($subscriberRole) {
-                $user->roles()->sync($subscriberRole->id);
+                // Attach 'subscriber' role using relationship
+                $subscriberRole = Role::where('slug', 'subscriber')->orWhere('name', 'subscriber')->first();
+                if ($subscriberRole) {
+                    $user->roles()->sync($subscriberRole->id);
+                }
+
+                Log::info('[AuthService]: User registered successfully: {user} ({email})', [
+                    'user' => $user->id,
+                    'email' => $user->email,
+                ]);
+
+                // Generate email verification OTP
+                $otpData = $this->otpService->generateOTP($user->email, 'verify-email');
+
+                // Queue verification email
+                SendMailJob::dispatch(
+                    $user->name,
+                    $user->email,
+                    $otpData['otp']
+                );
+
+                $token = $user->createToken('auth_token')->plainTextToken;
+
+                return [
+                    'token' => $token,
+                    'user' => new UserResource($user->load('roles')),
+                    'otp_expires_in' => 10, // Minutes
+                ];
+            } catch (\Exception $e) {
+                Log::error('[AuthService]: Registration failed for {email}: {message}', [
+                    'email' => $data['email'],
+                    'message' => $e->getMessage(),
+                ]);
+                throw $e;
             }
-
-            // Generate email verification OTP
-            $otpData = $this->otpService->generateOTP($user->email, 'verify-email');
-
-            // Queue verification email
-            SendMailJob::dispatch(
-                $user->name,
-                $user->email,
-                $otpData['otp']
-            );
-
-            $token = $user->createToken('auth_token')->plainTextToken;
-
-            return [
-                'token' => $token,
-                'user' => new UserResource($user->load('roles')),
-                'otp_expires_in' => 10, // Minutes
-            ];
         });
     }
 
@@ -108,6 +128,8 @@ class AuthService
      */
     public function logout(User $user): ?bool
     {
+        Log::info('[AuthService]: Logout for user: {user}', ['user' => $user->id]);
+
         return $user->currentAccessToken()?->delete();
     }
 
@@ -119,6 +141,7 @@ class AuthService
      */
     public function updateProfile(User $user, array $data): UserResource
     {
+        Log::info('[AuthService]: Update profile attempt for user: {user}', ['user' => $user->id]);
         $user->first_name = $data['first_name'];
         $user->last_name = $data['last_name'];
         $user->name = $data['first_name'].' '.$data['last_name'];
@@ -137,6 +160,8 @@ class AuthService
 
         $user->save();
 
+        Log::info('[AuthService]: Profile updated for user: {user}', ['user' => $user->id]);
+
         return new UserResource($user->load('roles'));
     }
 
@@ -147,13 +172,22 @@ class AuthService
      */
     public function changePassword(User $user, string $currentPassword, string $newPassword): bool
     {
+        Log::info('[AuthService]: Change password attempt for user: {user}', ['user' => $user->id]);
         // Check if the current password is correct
         if (! Hash::check($currentPassword, $user->password)) {
+            Log::warning('[AuthService]: Password change failed (incorrect current password) for user: {user}', ['user' => $user->id]);
+
             return false;
         }
 
         $user->password = Hash::make($newPassword);
 
-        return $user->save();
+        $saved = $user->save();
+
+        if ($saved) {
+            Log::info('[AuthService]: Password changed successfully for user: {user}', ['user' => $user->id]);
+        }
+
+        return $saved;
     }
 }
