@@ -8,7 +8,7 @@ import { TemplateType } from "./TemplateSelector";
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ContentBlock } from "../ArticleEditorModal";
-import { cn } from "@/lib/utils";
+import { cn, formatParagraphs } from "@/lib/utils";
 
 interface ArticleEditorPreviewProps {
     data: {
@@ -204,7 +204,7 @@ export default function ArticleEditorPreview({ data, template, onDataChange }: A
                                                         "prose max-w-none text-gray-700 leading-relaxed break-words [&_ul]:list-disc [&_ul]:ml-6 [&_ol]:list-decimal [&_ol]:ml-6 [&_li]:mb-1 [&_p[style*='text-align: center']]:text-center [&_p[style*='text-align: right']]:text-right [&_p[style*='text-align: justify']]:text-justify [&_div[style*='text-align: center']]:text-center [&_div[style*='text-align: right']]:text-right [&_div[style*='text-align: justify']]:text-justify",
                                                         idx === 0 && "drop-cap"
                                                     )}
-                                                    dangerouslySetInnerHTML={{ __html: block.content || 'Text section content...' }}
+                                                    dangerouslySetInnerHTML={{ __html: formatParagraphs(block.content || 'Text section content...') }}
                                                 />
                                             ) : (
                                                 <div className="my-6">
@@ -253,7 +253,7 @@ export default function ArticleEditorPreview({ data, template, onDataChange }: A
                                                         "prose max-w-none text-gray-700 leading-relaxed break-words [&_ul]:list-disc [&_ul]:ml-6 [&_ol]:list-decimal [&_ol]:ml-6 [&_li]:mb-1 [&_p[style*='text-align: center']]:text-center [&_p[style*='text-align: right']]:text-right [&_p[style*='text-align: justify']]:text-justify [&_div[style*='text-align: center']]:text-center [&_div[style*='text-align: right']]:text-right [&_div[style*='text-align: justify']]:text-justify",
                                                         idx === 0 && "drop-cap"
                                                     )}
-                                                    dangerouslySetInnerHTML={{ __html: block.content || "Content flowing around image..." }}
+                                                    dangerouslySetInnerHTML={{ __html: formatParagraphs(block.content || "Content flowing around image...") }}
                                                 />
                                                 <div className="clear-both" />
                                             </div>
@@ -291,7 +291,7 @@ export default function ArticleEditorPreview({ data, template, onDataChange }: A
                                                             "prose max-w-none text-gray-700 leading-relaxed break-words [&_ul]:list-disc [&_ul]:ml-6 [&_ol]:list-decimal [&_ol]:ml-6 [&_li]:mb-1 [&_p[style*='text-align: center']]:text-center [&_p[style*='text-align: right']]:text-right [&_p[style*='text-align: justify']]:text-justify [&_div[style*='text-align: center']]:text-center [&_div[style*='text-align: right']]:text-right [&_div[style*='text-align: justify']]:text-justify",
                                                             idx === 0 && "drop-cap"
                                                         )}
-                                                        dangerouslySetInnerHTML={{ __html: block.content || (block.type === 'text' ? 'Content section...' : 'Content after image...') }}
+                                                        dangerouslySetInnerHTML={{ __html: formatParagraphs(block.content || (block.type === 'text' ? 'Content section...' : 'Content after image...')) }}
                                                     />
                                                 )}
                                             </div>

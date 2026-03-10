@@ -24,12 +24,12 @@ function NavContent({ countries }: LandingCountryNavProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const activeCountry = searchParams.get("country") || "all";
+  const activeCountry = searchParams.get("country") || "Global";
 
   const handleChangeCountryTab = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
 
-    if (value && value !== "all") {
+    if (value && value !== "Global") {
       params.set("country", value);
     } else {
       params.delete("country");

@@ -25,7 +25,7 @@ function NavContent({ categories }: LandingCategoryNavProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const activeCategory = searchParams.get("category") || searchParams.get("topic") || "all"; // Support topic for restaurants
+  const activeCategory = searchParams.get("category") || searchParams.get("topic") || "All"; // Support topic for restaurants
 
   // Dynamic Category Switch
   const isRestaurantPage = pathname.startsWith("/restaurants");
@@ -36,7 +36,7 @@ function NavContent({ categories }: LandingCategoryNavProps) {
   const handleChangeCategoryTab = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
 
-    if (value && value !== "all") {
+    if (value && value !== "All") {
       params.set("category", value);
     } else {
       params.delete("category");
