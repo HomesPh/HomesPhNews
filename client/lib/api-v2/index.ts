@@ -10,6 +10,8 @@ export * from "./public/services/restaurant/getRestaurants";
 export * from "./public/services/restaurant/getRestaurantById";
 export * from "./public/services/subscription";
 export * from "./public/services/ads/getAdsByCampaign";
+export * from "./public/services/metadata/getCategories";
+export * from "./public/services/metadata/getCountries";
 
 /**
  * exports from admin

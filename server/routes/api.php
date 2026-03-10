@@ -201,6 +201,10 @@ Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
     Route::get('/subscribe/{id}', [SubscriptionController::class, 'show']);
     Route::patch('/subscribe/{id}', [SubscriptionController::class, 'update']);
 
+    // Metadata (Public)
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/countries', [CountryController::class, 'index']);
+
     /*
     |--------------------------------------------------------------------------
     | Authenticated User Routes
