@@ -7,6 +7,8 @@ export interface ArticleResource {
   content: string;
   category: string;
   country: string;
+  province_id?: string | number;
+  city_id?: string | number;
   status: string | "deleted";
   created_at: string;
   views_count: number;

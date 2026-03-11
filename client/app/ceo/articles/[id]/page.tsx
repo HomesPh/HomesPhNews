@@ -207,15 +207,23 @@ function CEOArticleDetailContent() {
                                     {article.title}
                                 </h1>
 
-                                <div className="flex items-center gap-4 mb-6 text-[14px] text-[#6b7280] tracking-[-0.5px]">
+                                <div className="flex flex-wrap items-center gap-4 mb-6 text-[14px] text-[#6b7280] tracking-[-0.5px]">
                                     <span className="font-medium text-[#111827]">
                                         By {article.author || "HOMESPH NEWS"}
                                     </span>
+                                    {article.editor_first_name && (
+                                        <>
+                                            <span className="text-[#e5e7eb]">|</span>
+                                            <span className="font-semibold text-[#1428AE]">
+                                                Edited by {article.editor_first_name} {article.editor_last_name}
+                                            </span>
+                                        </>
+                                    )}
                                     <span className="text-[#e5e7eb]">|</span>
                                     <div className="flex items-center gap-1.5">
                                         <Calendar className="w-4 h-4" />
                                         <span>
-                                            {new Date(article.created_at || "").toLocaleDateString(
+                                            {new Date(article.date || article.created_at || "").toLocaleDateString(
                                                 "en-US",
                                                 { year: "numeric", month: "long", day: "numeric" }
                                             )}

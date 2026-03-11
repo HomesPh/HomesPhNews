@@ -2,7 +2,7 @@
 HomesPh Restaurants Service
 FastAPI + APScheduler — Restaurants only, port 8012.
 
-Runs every hour — same as articles service.
+Runs daily at 06:00 — restaurant data is stable and Google Places API has quota limits.
 
 Usage:
     python main.py              # Start Restaurants Service (Port 8012)
@@ -48,12 +48,12 @@ start_time = datetime.now()
 async def lifespan(app: FastAPI):
     """Handle startup and shutdown events."""
 
-    # Schedule Restaurants: Run every hour
+    # Schedule Restaurants: Run daily at 06:00
     scheduler.add_job(
         run_restaurant_job,
-        CronTrigger(minute=0),
+        CronTrigger(hour=6, minute=0),
         id='restaurant_job',
-        name='HomesPh Restaurant Scraper (Hourly)',
+        name='HomesPh Restaurant Scraper (Daily)',
         replace_existing=True
     )
 
@@ -64,7 +64,7 @@ async def lifespan(app: FastAPI):
     if rest_job:
         update_restaurant_next_run(rest_job.next_run_time.isoformat())
 
-    sched_status = "ON (hourly)" if scheduler_is_enabled() else "OFF (paused – use POST /scheduler/on to resume)"
+    sched_status = "ON (Daily at 06:00)" if scheduler_is_enabled() else "OFF (paused – use POST /scheduler/on to resume)"
     print("")
     print("=" * 60)
     print("🍴 HOMESPH RESTAURANTS SERVICE STARTED")

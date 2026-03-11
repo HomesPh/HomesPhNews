@@ -66,6 +66,7 @@ export default function BlockDrawer({
     const [internalCountries, setInternalCountries] = useState<(string | { name: string; count: number })[]>([]);
     const [internalProvinces, setInternalProvinces] = useState<any[]>([]);
     const [internalCities, setInternalCities] = useState<any[]>([]);
+    const [allCountries, setAllCountries] = useState<any[]>([]);
     const [showAllPlatforms, setShowAllPlatforms] = useState(false);
 
     useEffect(() => {
@@ -85,51 +86,97 @@ export default function BlockDrawer({
         }
     }, [propsCategories]);
 
+    // Consolidate initial data fetching
     useEffect(() => {
-        // Fetch countries if not provided as props
-        if (!propsCountries || propsCountries.length === 0) {
-            getCountries().then(res => {
-                const data = (res.data as any).data || res.data;
-                if (Array.isArray(data)) {
-                    const names = data.map((c: any) => typeof c === 'string' ? c : c.name);
-                    setInternalCountries(names);
+        const fetchInitialData = async () => {
+            try {
+                // Fetch Countries
+                const countryRes = await getCountries();
+                const countryData = (countryRes.data as any).data || countryRes.data;
+                if (Array.isArray(countryData)) {
+                    setAllCountries(countryData);
+                    if (!propsCountries || propsCountries.length === 0) {
+                        setInternalCountries(countryData.map((c: any) => c.name));
+                    }
                 }
-            }).catch(err => {
-                console.error("Failed to fetch countries in BlockDrawer:", err);
-                // Fallback to defaults
-                setInternalCountries(["PHILIPPINES", "AUSTRALIA", "SINGAPORE", "USA", "UAE"]);
-            });
+
+                // Fetch Provinces
+                const provinceRes = await getProvinces();
+                const provinceData = (provinceRes.data as any).data || provinceRes.data;
+                if (Array.isArray(provinceData)) {
+                    setInternalProvinces(provinceData);
+                }
+
+                // Fetch Cities
+                const cityRes = await getCities();
+                const cityData = (cityRes.data as any).data || cityRes.data;
+                if (Array.isArray(cityData)) {
+                    setInternalCities(cityData);
+                }
+            } catch (err) {
+                console.error("BlockDrawer: Failed to fetch initial location data:", err);
+            }
+        };
+
+        fetchInitialData();
+    }, []); // Only fetch once on mount
+
+    // Update internal countries if props change later (e.g. parent filter loads)
+    useEffect(() => {
+        if (propsCountries && propsCountries.length > 0 && allCountries.length > 0) {
+            // No action needed as finalCountries handle it, but we keep this effect hook 
+            // available if we need to sync specific state later.
         }
-    }, [propsCountries]);
-
-    useEffect(() => {
-        getProvinces().then(res => {
-            const data = (res.data as any).data || res.data;
-            console.log("BlockDrawer: Fetched provinces:", data);
-            if (Array.isArray(data)) {
-                setInternalProvinces(data);
-            }
-        }).catch(err => {
-            console.error("Failed to fetch provinces in BlockDrawer:", err);
-            setInternalProvinces([]);
-        });
-    }, []);
-
-    useEffect(() => {
-        getCities().then(res => {
-            const data = (res.data as any).data || res.data;
-            console.log("BlockDrawer: Fetched cities:", data);
-            if (Array.isArray(data)) {
-                setInternalCities(data);
-            }
-        }).catch(err => {
-            console.error("Failed to fetch cities in BlockDrawer:", err);
-            setInternalCities([]);
-        });
-    }, []);
+    }, [propsCountries, allCountries.length]);
 
     const finalCategories = (propsCategories && propsCategories.length > 0) ? propsCategories : internalCategories;
     const finalCountries = (propsCountries && propsCountries.length > 0) ? propsCountries : internalCountries;
+
+    // Filter Logic
+    const selectedCountryId = useMemo(() => {
+        if (!details.country || !allCountries.length) return null;
+        const normalizedInput = details.country.trim().toUpperCase();
+        const countryObj = allCountries.find(c =>
+            c.name?.trim().toUpperCase() === normalizedInput ||
+            c.id?.trim().toUpperCase() === normalizedInput
+        );
+        return countryObj?.id || null;
+    }, [details.country, allCountries]);
+
+    const filteredProvinces = useMemo(() => {
+        if (!selectedCountryId) {
+            // If we have a country selected but haven't resolved the ID yet, show nothing
+            // rather than showing everything.
+            if (details.country) return [];
+            return internalProvinces;
+        }
+
+        const countryIdUpper = selectedCountryId.toUpperCase();
+        return internalProvinces.filter(p =>
+            p.country_id?.trim().toUpperCase() === countryIdUpper
+        );
+    }, [selectedCountryId, details.country, internalProvinces]);
+
+    const filteredCities = useMemo(() => {
+        if (!selectedCountryId) {
+            // Same as above: prevent showing wrong cities during load or if mapping failed
+            if (details.country) return [];
+            return internalCities;
+        }
+
+        const countryIdUpper = selectedCountryId.toUpperCase();
+        let filtered = internalCities.filter(c =>
+            c.country_id?.trim().toUpperCase() === countryIdUpper
+        );
+
+        // Only sub-filter by province if one is actually selected
+        if (details.province_id && details.province_id !== "" && details.province_id !== "0") {
+            const provinceIdStr = String(details.province_id);
+            filtered = filtered.filter(c => String(c.province_id) === provinceIdStr);
+        }
+
+        return filtered;
+    }, [selectedCountryId, details.province_id, internalCities]);
 
     const getOptionData = (opt: string | { name: string; count: number }) => {
         if (typeof opt === 'string') return { value: opt, label: opt };
@@ -288,7 +335,7 @@ export default function BlockDrawer({
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
                                         <option value="">Select Category</option>
-                                        {finalCategories.map(c => {
+                                        {finalCategories.map((c: any) => {
                                             const data = getOptionData(c);
                                             return <option key={data.value} value={data.value}>{data.label}</option>;
                                         })}
@@ -302,7 +349,7 @@ export default function BlockDrawer({
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
                                         <option value="">Select Country</option>
-                                        {finalCountries.map(c => {
+                                        {finalCountries.map((c: any) => {
                                             const data = getOptionData(c);
                                             return <option key={data.value} value={data.value}>{data.label}</option>;
                                         })}
@@ -319,7 +366,7 @@ export default function BlockDrawer({
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
                                         <option value="">Select Province</option>
-                                        {internalProvinces.map((p: any) => (
+                                        {filteredProvinces.map((p: any) => (
                                             <option key={p.id} value={p.id}>{p.name}</option>
                                         ))}
                                     </select>
@@ -332,7 +379,7 @@ export default function BlockDrawer({
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
                                         <option value="">Select City</option>
-                                        {internalCities.map((c: any) => (
+                                        {filteredCities.map((c: any) => (
                                             <option key={c.city_id} value={c.city_id}>{c.name}</option>
                                         ))}
                                     </select>
