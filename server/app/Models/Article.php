@@ -38,6 +38,7 @@ class Article extends Model
         'is_deleted',
         'slug',
         'edited_by',
+        'published_at',
     ];
 
     /**
@@ -52,6 +53,7 @@ class Article extends Model
         'image' => 'array',
         'views_count' => 'integer',
         'is_deleted' => 'boolean',
+        'published_at' => 'datetime',
     ];
 
     /**
