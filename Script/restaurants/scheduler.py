@@ -1,6 +1,6 @@
 """
 HomesPh Restaurants Service - Scheduler
-Background job that runs every hour to fetch restaurant data.
+Background job that runs daily at 06:00 to fetch restaurant data.
 Uses Google Places API as primary source.
 
 This is the restaurants-only scheduler. For the unified service, use root scheduler.py.
@@ -327,7 +327,7 @@ def send_discord_notification(results: List[Dict]):
 
 
 # ═══════════════════════════════════════════════════════════════
-# MAIN JOB (Hourly)
+# MAIN JOB (Daily: 06:00)
 # ═══════════════════════════════════════════════════════════════
 
 async def run_restaurant_job():
