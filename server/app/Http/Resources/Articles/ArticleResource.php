@@ -147,6 +147,8 @@ class ArticleResource extends JsonResource
             // Restaurant Meta
             'clickbait_hook' => $get('clickbait_hook'),
             'city' => $get('city'),
+            'province_id' => $get('province_id'),
+            'city_id' => $get('city_id'),
             'cuisine_type' => $get('cuisine_type'),
             'rating' => $get('rating'),
             'is_filipino_owned' => (bool) $get('is_filipino_owned', false),

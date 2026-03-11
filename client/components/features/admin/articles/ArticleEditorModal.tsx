@@ -75,6 +75,8 @@ export default function ArticleEditorModal({
                 contentBlocks: initialData.content_blocks || [],
                 image_position: initialData.image_position || 0,
                 image_position_x: initialData.image_position_x || 50,
+                province_id: initialData.province_id || '',
+                city_id: initialData.city_id || '',
                 status: initialData.status,
                 is_redis: initialData.is_redis
             };
@@ -98,7 +100,9 @@ export default function ArticleEditorModal({
             splitImages: [] as string[],
             contentBlocks: [] as ContentBlock[],
             image_position: 50,
-            image_position_x: 50
+            image_position_x: 50,
+            province_id: '',
+            city_id: ''
         };
     };
 
@@ -129,7 +133,9 @@ export default function ArticleEditorModal({
                 splitImages: initialData.split_images || [],
                 contentBlocks: initialData.content_blocks || [],
                 image_position: initialData.image_position || 0,
-                image_position_x: initialData.image_position_x || 50
+                image_position_x: initialData.image_position_x || 50,
+                province_id: initialData.province_id || '',
+                city_id: initialData.city_id || ''
             });
             if (initialData.template) {
                 setTemplate(initialData.template);
@@ -153,7 +159,9 @@ export default function ArticleEditorModal({
                 splitImages: [],
                 contentBlocks: [],
                 image_position: 0,
-                image_position_x: 50
+                image_position_x: 50,
+                province_id: '',
+                city_id: ''
             });
             setTemplate('single');
         }
@@ -306,7 +314,9 @@ export default function ArticleEditorModal({
             contentBlocks: currentEditorData.contentBlocks,
             author: currentEditorData.author,
             publishDate: currentEditorData.publishDate,
-            publishTime: currentEditorData.publishTime
+            publishTime: currentEditorData.publishTime,
+            province_id: currentEditorData.province_id,
+            city_id: currentEditorData.city_id
         } : articleData;
 
         // Validation Logic - Check before processing
@@ -443,6 +453,8 @@ export default function ArticleEditorModal({
                 content: finalHtmlContent,
                 category: workingData.category,
                 country: workingData.country,
+                province_id: workingData.province_id,
+                city_id: workingData.city_id,
                 image: effectiveFinalImage,
                 published_sites: isEditor ? workingData.publishTo.filter((s: string) => s === "Main News Portal") : workingData.publishTo,
                 status: isPublish

@@ -44,6 +44,8 @@ class ArticleActionRequest extends FormRequest
             'slug' => 'nullable|string',
             'image_position' => 'nullable|integer',
             'image_position_x' => 'nullable|integer',
+            'province_id' => 'nullable|integer',
+            'city_id' => 'nullable|integer',
         ];
     }
 }

@@ -66,6 +66,7 @@ export default function BlockDrawer({
     const [internalCountries, setInternalCountries] = useState<(string | { name: string; count: number })[]>([]);
     const [internalProvinces, setInternalProvinces] = useState<any[]>([]);
     const [internalCities, setInternalCities] = useState<any[]>([]);
+    const [allCountries, setAllCountries] = useState<any[]>([]);
     const [showAllPlatforms, setShowAllPlatforms] = useState(false);
 
     useEffect(() => {
@@ -91,12 +92,13 @@ export default function BlockDrawer({
             getCountries().then(res => {
                 const data = (res.data as any).data || res.data;
                 if (Array.isArray(data)) {
-                    const names = data.map((c: any) => typeof c === 'string' ? c : c.name);
+                    setAllCountries(data);
+                    const names = data.map((c: any) => c.name);
                     setInternalCountries(names);
                 }
             }).catch(err => {
                 console.error("Failed to fetch countries in BlockDrawer:", err);
-                // Fallback to defaults
+                setAllCountries([]);
                 setInternalCountries(["PHILIPPINES", "AUSTRALIA", "SINGAPORE", "USA", "UAE"]);
             });
         }
@@ -130,6 +132,31 @@ export default function BlockDrawer({
 
     const finalCategories = (propsCategories && propsCategories.length > 0) ? propsCategories : internalCategories;
     const finalCountries = (propsCountries && propsCountries.length > 0) ? propsCountries : internalCountries;
+
+    // Filter Logic
+    const selectedCountryId = useMemo(() => {
+        if (!details.country) return null;
+        const countryObj = allCountries.find(c => c.name.toUpperCase() === details.country.toUpperCase());
+        return countryObj?.id || null;
+    }, [details.country, allCountries]);
+
+    const filteredProvinces = useMemo(() => {
+        if (!selectedCountryId) return internalProvinces;
+        return internalProvinces.filter(p => p.country_id === selectedCountryId);
+    }, [selectedCountryId, internalProvinces]);
+
+    const filteredCities = useMemo(() => {
+        if (!selectedCountryId) return internalCities;
+        // If a province is selected, filter by province?
+        // Let's check if internalCities has province_id
+        let filtered = internalCities.filter(c => c.country_id === selectedCountryId);
+        
+        if (details.province_id) {
+            filtered = filtered.filter(c => String(c.province_id) === String(details.province_id));
+        }
+        
+        return filtered;
+    }, [selectedCountryId, details.province_id, internalCities]);
 
     const getOptionData = (opt: string | { name: string; count: number }) => {
         if (typeof opt === 'string') return { value: opt, label: opt };
@@ -288,7 +315,7 @@ export default function BlockDrawer({
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
                                         <option value="">Select Category</option>
-                                        {finalCategories.map(c => {
+                                        {finalCategories.map((c: any) => {
                                             const data = getOptionData(c);
                                             return <option key={data.value} value={data.value}>{data.label}</option>;
                                         })}
@@ -302,7 +329,7 @@ export default function BlockDrawer({
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
                                         <option value="">Select Country</option>
-                                        {finalCountries.map(c => {
+                                        {finalCountries.map((c: any) => {
                                             const data = getOptionData(c);
                                             return <option key={data.value} value={data.value}>{data.label}</option>;
                                         })}
@@ -319,7 +346,7 @@ export default function BlockDrawer({
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
                                         <option value="">Select Province</option>
-                                        {internalProvinces.map((p: any) => (
+                                        {filteredProvinces.map((p: any) => (
                                             <option key={p.id} value={p.id}>{p.name}</option>
                                         ))}
                                     </select>
@@ -332,7 +359,7 @@ export default function BlockDrawer({
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
                                         <option value="">Select City</option>
-                                        {internalCities.map((c: any) => (
+                                        {filteredCities.map((c: any) => (
                                             <option key={c.city_id} value={c.city_id}>{c.name}</option>
                                         ))}
                                     </select>
