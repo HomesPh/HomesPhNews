@@ -33,6 +33,7 @@ interface BaseArticleCardProps {
         image_position_x?: number;
         editor_first_name?: string | null;
         editor_last_name?: string | null;
+        published_at?: string | null;
         edited_by?: number;
     };
     variant?: 'compact' | 'list';
@@ -90,7 +91,7 @@ export default function BaseArticleCard({
     const imageUrl = sanitizeImageUrl(article.image_url || article.image || 'https://placehold.co/800x450?text=No+Image');
     const location = article.country || article.location || 'Unknown';
     const description = article.summary || article.description || '';
-    const dateStr = article.created_at || article.date || null;
+    const dateStr = article.published_at || article.created_at || article.date || null;
     const viewsStr = article.views ?? formatViews(article.views_count);
 
     // Handle published_sites which can be string or string[]

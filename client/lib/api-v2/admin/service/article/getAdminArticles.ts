@@ -16,7 +16,7 @@ export type AdminArticleListParams = {
   limit?: number;
   offset?: number;
   status?: "published" | "pending" | "rejected" | "pending review" | "being_processed" | "all" | "deleted";
-  sort_by?: "created_at" | "views_count" | "title" | "timestamp";
+  sort_by?: "created_at" | "views_count" | "title" | "timestamp" | "published_at";
   sort_direction?: "asc" | "desc";
   per_page?: number;
   page?: number;
