@@ -87,21 +87,23 @@ export default function BlockDrawer({
     }, [propsCategories]);
 
     useEffect(() => {
-        // Fetch countries if not provided as props
-        if (!propsCountries || propsCountries.length === 0) {
-            getCountries().then(res => {
-                const data = (res.data as any).data || res.data;
-                if (Array.isArray(data)) {
-                    setAllCountries(data);
+        // Always fetch countries to get IDs for mapping, even if names are provided as props
+        getCountries().then(res => {
+            const data = (res.data as any).data || res.data;
+            if (Array.isArray(data)) {
+                setAllCountries(data);
+                // Only set the internal dropdown options if not provided via props
+                if (!propsCountries || propsCountries.length === 0) {
                     const names = data.map((c: any) => c.name);
                     setInternalCountries(names);
                 }
-            }).catch(err => {
-                console.error("Failed to fetch countries in BlockDrawer:", err);
-                setAllCountries([]);
+            }
+        }).catch(err => {
+            console.error("Failed to fetch countries in BlockDrawer:", err);
+            if (!propsCountries || propsCountries.length === 0) {
                 setInternalCountries(["PHILIPPINES", "AUSTRALIA", "SINGAPORE", "USA", "UAE"]);
-            });
-        }
+            }
+        });
     }, [propsCountries]);
 
     useEffect(() => {
@@ -136,7 +138,11 @@ export default function BlockDrawer({
     // Filter Logic
     const selectedCountryId = useMemo(() => {
         if (!details.country) return null;
-        const countryObj = allCountries.find(c => c.name.toUpperCase() === details.country.toUpperCase());
+        const normalizedInput = details.country.trim().toUpperCase();
+        const countryObj = allCountries.find(c => 
+            c.name.trim().toUpperCase() === normalizedInput || 
+            c.id.trim().toUpperCase() === normalizedInput
+        );
         return countryObj?.id || null;
     }, [details.country, allCountries]);
 
