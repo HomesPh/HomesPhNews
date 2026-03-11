@@ -37,6 +37,8 @@ class ArticleController extends Controller
         $page = $request->input('page', 1);
         $sortBy = $validated['sort_by'] ?? 'created_at';
         $sortDirection = $validated['sort_direction'] ?? 'desc';
+        $user = auth()->user();
+        $isEditorOnly = $user && $user->hasRole('editor') && !$user->hasRole('admin');
 
         // Redirect to specialized Redis fetcher if status is 'being_processed' or legacy 'pending'
         // This ensures we get the full list from the scraper/Redis (Being Processed tab)
@@ -47,14 +49,31 @@ class ArticleController extends Controller
         // Apply common filters (Search, Dates, Topics)
         $query = Article::query()
             // Filter by status if specified (except 'all' and 'deleted' which handle is_deleted)
-            // Note: 'pending' is redirected to getPendingArticlesFromRedis at line 41.
-            ->when($status === 'published', fn($q) => $q->where('status', 'published'))
+            ->when($status === 'published', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'published');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
             ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
-            ->when($status === 'rejected', fn($q) => $q->where('status', 'rejected'))
-            ->when($status === 'edited', fn($q) => $q->where('status', 'edited'))
-            ->when(!$status || $status === 'all', function ($q) {
-                // For "All", show active primary statuses
-                return $q->whereIn('status', ['published', 'pending review', 'edited']);
+            ->when($status === 'rejected', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'rejected');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when($status === 'edited', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'edited');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when(!$status || $status === 'all', function ($q) use ($isEditorOnly, $user) {
+                if ($isEditorOnly) {
+                    $q->where(function ($sub) use ($user) {
+                        $sub->where('status', 'pending review')
+                            ->orWhere(function ($sub2) use ($user) {
+                                $sub2->whereIn('status', ['published', 'edited', 'rejected'])
+                                    ->where('edited_by', $user->id);
+                            });
+                    });
+                } else {
+                    $q->whereIn('status', ['published', 'pending review', 'edited', 'rejected']);
+                }
             })
 
             // Filter by is_deleted based on status
@@ -82,14 +101,36 @@ class ArticleController extends Controller
 
         // 1. Base query for Category counts (ignore current category)
         $categoryBaseQuery = Article::query()
-            ->when($status === 'published', fn($q) => $q->where('status', 'published'))
-            ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
-            ->when($status === 'rejected', fn($q) => $q->where('status', 'rejected'))
-            ->when($status === 'edited', fn($q) => $q->where('status', 'edited'))
-            ->when(!$status || $status === 'all', function ($q) {
-                return $q->whereIn('status', ['published', 'pending review', 'edited']);
+            ->when($status === 'published', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'published');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
             })
-            ->when($status === 'deleted', fn($q) => $q->where('is_deleted', true))
+            ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
+            ->when($status === 'rejected', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'rejected');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when($status === 'edited', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'edited');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when(!$status || $status === 'all', function ($q) use ($isEditorOnly, $user) {
+                if ($isEditorOnly) {
+                    $q->where(function ($sub) use ($user) {
+                        $sub->where('status', 'pending review')
+                            ->orWhere(function ($sub2) use ($user) {
+                                $sub2->whereIn('status', ['published', 'edited', 'rejected'])
+                                    ->where('edited_by', $user->id);
+                            });
+                    });
+                } else {
+                    $q->whereIn('status', ['published', 'pending review', 'edited', 'rejected']);
+                }
+            })
+            ->when($status === 'deleted', function ($q) use ($isEditorOnly, $user) {
+                $q->where('is_deleted', true);
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
             ->when($status !== 'deleted', fn($q) => $q->where('is_deleted', false))
             ->when($validated['search'] ?? null, function ($q, $s) {
                 $q->where(function ($sub) use ($s) {
@@ -108,12 +149,31 @@ class ArticleController extends Controller
 
         // 2. Base query for Country counts (ignore current country/city)
         $countryBaseQuery = Article::query()
-            ->when($status === 'published', fn($q) => $q->where('status', 'published'))
+            ->when($status === 'published', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'published');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
             ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
-            ->when($status === 'rejected', fn($q) => $q->where('status', 'rejected'))
-            ->when($status === 'edited', fn($q) => $q->where('status', 'edited'))
-            ->when(!$status || $status === 'all', function ($q) {
-                return $q->whereIn('status', ['published', 'pending review', 'edited']);
+            ->when($status === 'rejected', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'rejected');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when($status === 'edited', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'edited');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when(!$status || $status === 'all', function ($q) use ($isEditorOnly, $user) {
+                if ($isEditorOnly) {
+                    $q->where(function ($sub) use ($user) {
+                        $sub->where('status', 'pending review')
+                            ->orWhere(function ($sub2) use ($user) {
+                                $sub2->whereIn('status', ['published', 'edited', 'rejected'])
+                                    ->where('edited_by', $user->id);
+                            });
+                    });
+                } else {
+                    $q->whereIn('status', ['published', 'pending review', 'edited', 'rejected']);
+                }
             })
             ->when($status === 'deleted', fn($q) => $q->where('is_deleted', true))
             ->when($status !== 'deleted', fn($q) => $q->where('is_deleted', false))
@@ -196,7 +256,7 @@ class ArticleController extends Controller
 
         // Paginate DB results - Eager load to prevent N+1 queries
         $articles = $query
-            ->with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name'])
+            ->with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name'])
             ->select('id', 'article_id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'is_deleted', 'content_blocks', 'template', 'author', 'edited_by')
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage);
@@ -398,12 +458,12 @@ class ArticleController extends Controller
     public function show($id): JsonResponse|ArticleResource
     {
         if (is_numeric($id) || !\Illuminate\Support\Str::isUuid($id)) {
-            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name'])->find($id);
+            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name'])->find($id);
             if ($article) {
                 return new ArticleResource($article);
             }
         } else {
-            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name'])->where('id', $id)->first();
+            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name'])->where('id', $id)->first();
             if ($article) {
                 return new ArticleResource($article);
             }
@@ -540,6 +600,7 @@ class ArticleController extends Controller
             'status' => 'published',
             'is_deleted' => false,
             'edited_by' => auth()->id(),
+            'published_at' => now(),
         ];
 
         // A. Start with Redis as fallback if available
@@ -766,15 +827,33 @@ class ArticleController extends Controller
      */
     protected function getStatusCounts(): array
     {
-        // Database counts for active articles
-        $counts = Article::where('is_deleted', false)
-            ->selectRaw('status, count(*) as total')
-            ->groupBy('status')
-            ->pluck('total', 'status')
-            ->toArray();
+        $user = auth()->user();
+        $isEditorOnly = $user && $user->hasRole('editor') && !$user->hasRole('admin');
 
-        // Count soft-deleted articles separately
-        $deletedCount = Article::where('is_deleted', true)->count();
+        // Database counts for active articles
+        $query = Article::where('is_deleted', false);
+
+        if ($isEditorOnly) {
+            // For editors, we filter Published, Edited, and Rejected by their ID
+            // but keep Pending Review global so they can pick up new work.
+            $counts = [
+                'published' => (clone $query)->where('status', 'published')->where('edited_by', $user->id)->count(),
+                'pending review' => (clone $query)->where('status', 'pending review')->count(),
+                'edited' => (clone $query)->where('status', 'edited')->where('edited_by', $user->id)->count(),
+                'rejected' => (clone $query)->where('status', 'rejected')->where('edited_by', $user->id)->count(),
+            ];
+            
+            // Count soft-deleted articles for this editor only?
+            $deletedCount = Article::where('is_deleted', true)->where('edited_by', $user->id)->count();
+        } else {
+            $counts = (clone $query)
+                ->selectRaw('status, count(*) as total')
+                ->groupBy('status')
+                ->pluck('total', 'status')
+                ->toArray();
+                
+            $deletedCount = Article::where('is_deleted', true)->count();
+        }
 
         // Redis count (all Redis articles are pending)
         $pendingCount = 0;
@@ -791,8 +870,8 @@ class ArticleController extends Controller
         $editedCount = $counts['edited'] ?? 0;
         $rejectedCount = $counts['rejected'] ?? 0;
 
-        // DB Total (Published + Pending Review + Edited) - excluding soft deleted
-        $dbTotal = $publishedCount + $pendingReviewCount + $editedCount;
+        // DB Total (Published + Pending Review + Edited + Rejected) - excluding soft deleted
+        $dbTotal = $publishedCount + $pendingReviewCount + $editedCount + $rejectedCount;
 
         // All = DB Total + Redis Pending
         $allCount = $dbTotal + $pendingCount;
@@ -1140,7 +1219,10 @@ class ArticleController extends Controller
         foreach ($ids as $id) {
             $article = Article::find($id);
             if ($article) {
-                $article->update(['status' => 'rejected']);
+                $article->update([
+                    'status' => 'rejected',
+                    'edited_by' => $article->edited_by ?: auth()->id()
+                ]);
                 $count++;
             } else if (\Illuminate\Support\Str::isUuid($id)) {
                 $redisArticle = $this->redisService->getArticle($id);

@@ -31,6 +31,10 @@ export interface ArticleResource {
   template?: string;
   author?: string;
   read_time?: string;
+  edited_by?: number;
+  editor_name?: string | null;
+  editor_first_name?: string | null;
+  editor_last_name?: string | null;
 
   // Restaurant Meta
   clickbait_hook?: string;
