@@ -33,7 +33,6 @@ interface BaseArticleCardProps {
         image_position_x?: number;
         editor_first_name?: string | null;
         editor_last_name?: string | null;
-        published_at?: string | null;
         edited_by?: number;
     };
     variant?: 'compact' | 'list';

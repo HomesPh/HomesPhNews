@@ -7,6 +7,8 @@ export interface ArticleResource {
   content: string;
   category: string;
   country: string;
+  province_id?: string | number;
+  city_id?: string | number;
   status: string | "deleted";
   created_at: string;
   views_count: number;
@@ -35,7 +37,6 @@ export interface ArticleResource {
   editor_name?: string | null;
   editor_first_name?: string | null;
   editor_last_name?: string | null;
-  published_at?: string | null;
 
   // Restaurant Meta
   clickbait_hook?: string;
