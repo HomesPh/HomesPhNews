@@ -466,6 +466,7 @@ export default function ArticleEditorModal({
                 topics: workingData.tags,
                 author: workingData.author || 'HOMESPH NEWS',
                 date: workingData.publishDate,
+                published_at: isPublish ? new Date().toISOString() : (mode === 'edit' ? initialData?.published_at : null),
                 gallery_images: finalGalleryImages,
                 split_images: finalSplitImages,
                 content_blocks: finalContentBlocks,
