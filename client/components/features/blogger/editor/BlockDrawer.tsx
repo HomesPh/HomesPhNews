@@ -137,28 +137,34 @@ export default function BlockDrawer({
 
     // Filter Logic
     const selectedCountryId = useMemo(() => {
-        if (!details.country) return null;
+        if (!details.country || !allCountries.length) return null;
         const normalizedInput = details.country.trim().toUpperCase();
         const countryObj = allCountries.find(c => 
-            c.name.trim().toUpperCase() === normalizedInput || 
-            c.id.trim().toUpperCase() === normalizedInput
+            c.name?.trim().toUpperCase() === normalizedInput || 
+            c.id?.trim().toUpperCase() === normalizedInput
         );
         return countryObj?.id || null;
     }, [details.country, allCountries]);
 
     const filteredProvinces = useMemo(() => {
         if (!selectedCountryId) return internalProvinces;
-        return internalProvinces.filter(p => p.country_id === selectedCountryId);
+        return internalProvinces.filter(p => 
+            p.country_id?.trim().toUpperCase() === selectedCountryId.toUpperCase()
+        );
     }, [selectedCountryId, internalProvinces]);
 
     const filteredCities = useMemo(() => {
         if (!selectedCountryId) return internalCities;
-        // If a province is selected, filter by province?
-        // Let's check if internalCities has province_id
-        let filtered = internalCities.filter(c => c.country_id === selectedCountryId);
         
-        if (details.province_id) {
-            filtered = filtered.filter(c => String(c.province_id) === String(details.province_id));
+        const countryIdUpper = selectedCountryId.toUpperCase();
+        let filtered = internalCities.filter(c => 
+            c.country_id?.trim().toUpperCase() === countryIdUpper
+        );
+        
+        // Only sub-filter by province if one is actually selected
+        if (details.province_id && details.province_id !== "" && details.province_id !== "0") {
+            const provinceIdStr = String(details.province_id);
+            filtered = filtered.filter(c => String(c.province_id) === provinceIdStr);
         }
         
         return filtered;
