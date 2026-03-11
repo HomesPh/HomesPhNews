@@ -22,7 +22,7 @@ export interface Article {
   template: string | null;
   author: string | null;
   custom_titles: unknown[] | null;
-  published_date: string | null;
+  published_at: string | null;
   views_count: number;
   created_at: string | null;
   updated_at: string | null;
