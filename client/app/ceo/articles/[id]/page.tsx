@@ -223,7 +223,7 @@ function CEOArticleDetailContent() {
                                     <div className="flex items-center gap-1.5">
                                         <Calendar className="w-4 h-4" />
                                         <span>
-                                            {new Date(article.published_at || article.created_at || "").toLocaleDateString(
+                                            {new Date(article.date || article.created_at || "").toLocaleDateString(
                                                 "en-US",
                                                 { year: "numeric", month: "long", day: "numeric" }
                                             )}
