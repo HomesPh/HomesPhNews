@@ -19,12 +19,24 @@ export default function AdminDashboard() {
     const userName = "Admin";
     const [isLoading, setIsLoading] = useState(true);
     const [data, setData] = useState<AdminStatsResponse | null>(null);
+    const [recentArticles, setRecentArticles] = useState<any[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await getAdminStats();
-                setData(response.data);
+                // Fetch stats
+                const statsResponse = await getAdminStats();
+                setData(statsResponse.data);
+
+                // Fetch real recently published articles
+                const { getAdminArticles } = await import("@/lib/api-v2/admin/service/article/getAdminArticles");
+                const articlesResponse = await getAdminArticles({
+                    status: 'published',
+                    sort_by: 'published_at',
+                    sort_direction: 'desc',
+                    limit: 5
+                });
+                setRecentArticles((articlesResponse.data.data || []).slice(0, 5));
             } catch (error) {
                 console.error("Failed to fetch dashboard stats", error);
             } finally {
@@ -111,8 +123,8 @@ export default function AdminDashboard() {
                             Array(3).fill(0).map((_, i) => (
                                 <Skeleton key={i} className="h-[100px] rounded-lg bg-white shadow-sm" />
                             ))
-                        ) : data?.recent_articles && data.recent_articles.length > 0 ? (
-                            data.recent_articles.map((article: any) => (
+                        ) : recentArticles && recentArticles.length > 0 ? (
+                            recentArticles.map((article: any) => (
                                 <ArticleCard
                                     key={article.id}
                                     id={article.id}
@@ -120,7 +132,7 @@ export default function AdminDashboard() {
                                     category={article.category}
                                     location={article.country}
                                     title={article.title}
-                                    date={new Date(article.created_at).toLocaleDateString()}
+                                    date={new Date(article.published_at || article.created_at).toLocaleDateString()}
                                     views={article.views_count.toString()}
                                     status={article.status}
                                     image_position={article.image_position}

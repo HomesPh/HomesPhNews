@@ -79,7 +79,7 @@ export default function VerticalArticleCard({
             {/* Content below */}
             <div className="p-[16px] flex flex-col gap-[10px] flex-1">
 
-                <h3 className="font-bold text-[18px] text-[#111827] dark:text-white tracking-[-0.5px] leading-[1.3] line-clamp-2 transition-colors group-hover:text-[#c10007]">
+                <h3 className="font-bold text-[18px] text-[#111827] dark:text-white tracking-[-0.5px] leading-[1.3] line-clamp-2 transition-colors group-hover:text-[#F4AA1D] dark:group-hover:text-[#F4AA1D]">
                     {title}
                 </h3>
 

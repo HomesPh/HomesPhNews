@@ -35,6 +35,7 @@ export interface ArticleResource {
   editor_name?: string | null;
   editor_first_name?: string | null;
   editor_last_name?: string | null;
+  published_at?: string | null;
 
   // Restaurant Meta
   clickbait_hook?: string;
