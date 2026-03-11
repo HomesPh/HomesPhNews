@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Mail, Briefcase, ArrowLeft, CheckCircle2, ChevronDown, Clock, Calendar, HelpCircle, ChevronUp } from "lucide-react";
+import { Categories, Countries, RestaurantCategories } from "@/app/data";
 import { useAlert } from "@/hooks/useAlert";
 
 interface SubscribeModalProps {
