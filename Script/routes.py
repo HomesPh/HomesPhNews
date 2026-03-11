@@ -79,17 +79,6 @@ def format_summary(article: dict) -> dict:
     }
 
 
-def format_restaurant_summary(restaurant: dict) -> dict:
-    """Format restaurant as summary. Handles None values."""
-    return {
-        "id": restaurant.get("id", ""),
-        "name": restaurant.get("name") or "Unknown Restaurant",
-        "country": restaurant.get("country") or "",
-        "cuisine_type": restaurant.get("cuisine_type") or "Restaurant",
-        "image_url": restaurant.get("image_url") or ""
-    }
-
-
 # ═══════════════════════════════════════════════════════════════
 # ARTICLE ROUTES
 # ═══════════════════════════════════════════════════════════════
@@ -206,124 +195,6 @@ async def search_articles(
 
 
 # ═══════════════════════════════════════════════════════════════
-# RESTAURANT ROUTES
-# ═══════════════════════════════════════════════════════════════
-
-@router.get("/restaurants", response_model=List[RestaurantSummary], tags=["Restaurants"])
-async def get_all_restaurants(
-    limit: int = Query(20, ge=1, le=100),
-    offset: int = Query(0, ge=0)
-):
-    """Get all restaurants with pagination."""
-    # We use a different prefix for restaurants
-    restaurant_ids = redis_client.smembers(f"{PREFIX}all_restaurants")
-    sorted_ids = sorted(list(restaurant_ids), reverse=True)[offset:offset + limit]
-    
-    restaurants = []
-    for rid in sorted_ids:
-        data = redis_client.get(f"{PREFIX}restaurant:{rid}")
-        if data:
-            restaurants.append(json.loads(data))
-    
-    return [format_restaurant_summary(r) for r in restaurants]
-
-
-@router.get("/restaurants/{restaurant_id}", response_model=Restaurant, tags=["Restaurants"])
-async def get_restaurant(restaurant_id: str):
-    """Get a single restaurant by ID."""
-    data = redis_client.get(f"{PREFIX}restaurant:{restaurant_id}")
-    if not data:
-        raise HTTPException(status_code=404, detail="Restaurant not found")
-    return json.loads(data)
-
-
-@router.get("/restaurants/country/{country}", response_model=List[RestaurantSummary], tags=["Restaurants"])
-async def get_restaurants_by_country(
-    country: str,
-    limit: int = Query(20, ge=1, le=100)
-):
-    """Get restaurants filtered by country."""
-    key = f"{PREFIX}country:{country.lower().replace(' ', '_')}:restaurants"
-    restaurant_ids = redis_client.smembers(key)
-    sorted_ids = sorted(list(restaurant_ids), reverse=True)[:limit]
-    
-    restaurants = []
-    for rid in sorted_ids:
-        data = redis_client.get(f"{PREFIX}restaurant:{rid}")
-        if data:
-            restaurants.append(json.loads(data))
-    
-    return [format_restaurant_summary(r) for r in restaurants]
-
-
-@router.post("/restaurants/clear-all", tags=["Restaurants"])
-async def clear_all_restaurants():
-    """Wipe ALL restaurants from Redis AND their S3 images."""
-    from storage import StorageHandler
-    storage = StorageHandler()
-    
-    # Get all restaurant IDs
-    restaurant_ids = redis_client.smembers(f"{PREFIX}all_restaurants")
-    deleted_count = 0
-    deleted_images = 0
-    
-    for rid in restaurant_ids:
-        # Get restaurant data to find image URL
-        data = redis_client.get(f"{PREFIX}restaurant:{rid}")
-        if data:
-            restaurant = json.loads(data)
-            image_url = restaurant.get("image_url", "")
-            
-            # Delete image from S3 if it's not a placeholder/unsplash
-            if image_url and "amazonaws.com" in image_url:
-                storage._delete_cloud_image(image_url)
-                deleted_images += 1
-            
-            # Delete restaurant from Redis
-            redis_client.delete(f"{PREFIX}restaurant:{rid}")
-            deleted_count += 1
-    
-    # Clear the main set
-    redis_client.delete(f"{PREFIX}all_restaurants")
-    
-    # Clear country-specific sets
-    country_keys = redis_client.keys(f"{PREFIX}country:*:restaurants")
-    for key in country_keys:
-        redis_client.delete(key)
-    
-    return {
-        "message": f"Successfully deleted {deleted_count} restaurants and {deleted_images} S3 images.",
-        "restaurants_deleted": deleted_count,
-        "images_deleted": deleted_images
-    }
-
-
-@router.post("/generate-images", tags=["AI"])
-async def generate_images(payload: ImageGenerationRequest):
-    """
-    Generate images using AI based on a text prompt.
-    Directly uploads to Cloud Storage and returns public URLs.
-    """
-    from ai_service import AIProcessor
-    ai = AIProcessor()
-    
-    generated_urls = []
-    
-    # Run generation 'n' times
-    # Note: Sequential for now to avoid rapid API limit hits on free tier
-    for i in range(payload.n):
-        # We pass None as article_id so it generates a random one
-        url = ai.generate_image(payload.prompt, None, upload=True)
-        if url and "placehold.co" not in url:
-            generated_urls.append(url)
-            
-    if not generated_urls:
-        raise HTTPException(status_code=500, detail="Failed to generate images. AI model might be busy or quota exceeded.")
-        
-    return {"urls": generated_urls}
-
-
-# ═══════════════════════════════════════════════════════════════
 # METADATA ROUTES
 # ═══════════════════════════════════════════════════════════════
 
@@ -412,30 +283,6 @@ async def trigger_job():
     }
 
 
-@router.post("/trigger/restaurants", tags=["Admin"])
-async def trigger_restaurant_job():
-    """
-    Manually trigger the restaurant scraper job.
-    """
-    from scheduler import run_restaurant_job
-    import time
-    
-    start_time = time.time()
-    results = await run_restaurant_job()
-    duration = round(time.time() - start_time, 2)
-    
-    success = sum(1 for r in (results or []) if r.get("status") == "success")
-    
-    return {
-        "status": "completed",
-        "message": f"Restaurant Job completed in {duration}s. {success} restaurants found.",
-        "duration_seconds": duration,
-        "success_count": success,
-        "results": results,
-        "timestamp": str(__import__('datetime').datetime.now())
-    }
-
-
 @router.post("/trigger/sports", tags=["Admin"])
 async def trigger_sports_job():
     """
@@ -489,23 +336,6 @@ async def get_status():
         "total_success": status["total_success"],
         "total_errors": status["total_errors"],
         "total_skipped": status["total_skipped"],
-        "last_run": status["last_run"],
-        "next_run": status["next_run"],
-        "last_results": status["last_results"]
-    }
-
-
-@router.get("/status/restaurants", tags=["Admin"])
-async def get_restaurant_status():
-    """Get current restaurant job status and statistics."""
-    from scheduler import get_restaurant_job_status
-    status = get_restaurant_job_status()
-    
-    return {
-        "is_running": status["is_running"],
-        "total_runs": status["total_runs"],
-        "total_success": status["total_success"],
-        "total_errors": status["total_errors"],
         "last_run": status["last_run"],
         "next_run": status["next_run"],
         "last_results": status["last_results"]

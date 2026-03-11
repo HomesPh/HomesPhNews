@@ -129,7 +129,7 @@ export default async function SearchPage({ searchParams }: Props) {
                                 location={article.country}
                                 title={article.title}
                                 description={article.summary}
-                                timeAgo={new Date(article.created_at).toLocaleDateString('en-US', {
+                                timeAgo={new Date(article.published_at || article.created_at).toLocaleDateString('en-US', {
                                     month: 'short',
                                     day: 'numeric',
                                     year: 'numeric'

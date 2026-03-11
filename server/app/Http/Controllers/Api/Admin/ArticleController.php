@@ -37,6 +37,8 @@ class ArticleController extends Controller
         $page = $request->input('page', 1);
         $sortBy = $validated['sort_by'] ?? 'created_at';
         $sortDirection = $validated['sort_direction'] ?? 'desc';
+        $user = auth()->user();
+        $isEditorOnly = $user && $user->hasRole('editor') && !$user->hasRole('admin');
 
         // Redirect to specialized Redis fetcher if status is 'being_processed' or legacy 'pending'
         // This ensures we get the full list from the scraper/Redis (Being Processed tab)
@@ -47,14 +49,31 @@ class ArticleController extends Controller
         // Apply common filters (Search, Dates, Topics)
         $query = Article::query()
             // Filter by status if specified (except 'all' and 'deleted' which handle is_deleted)
-            // Note: 'pending' is redirected to getPendingArticlesFromRedis at line 41.
-            ->when($status === 'published', fn($q) => $q->where('status', 'published'))
+            ->when($status === 'published', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'published');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
             ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
-            ->when($status === 'rejected', fn($q) => $q->where('status', 'rejected'))
-            ->when($status === 'edited', fn($q) => $q->where('status', 'edited'))
-            ->when(!$status || $status === 'all', function ($q) {
-                // For "All", show active primary statuses
-                return $q->whereIn('status', ['published', 'pending review', 'edited']);
+            ->when($status === 'rejected', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'rejected');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when($status === 'edited', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'edited');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when(!$status || $status === 'all', function ($q) use ($isEditorOnly, $user) {
+                if ($isEditorOnly) {
+                    $q->where(function ($sub) use ($user) {
+                        $sub->where('status', 'pending review')
+                            ->orWhere(function ($sub2) use ($user) {
+                                $sub2->whereIn('status', ['published', 'edited', 'rejected'])
+                                    ->where('edited_by', $user->id);
+                            });
+                    });
+                } else {
+                    $q->whereIn('status', ['published', 'pending review', 'edited', 'rejected']);
+                }
             })
 
             // Filter by is_deleted based on status
@@ -82,14 +101,36 @@ class ArticleController extends Controller
 
         // 1. Base query for Category counts (ignore current category)
         $categoryBaseQuery = Article::query()
-            ->when($status === 'published', fn($q) => $q->where('status', 'published'))
-            ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
-            ->when($status === 'rejected', fn($q) => $q->where('status', 'rejected'))
-            ->when($status === 'edited', fn($q) => $q->where('status', 'edited'))
-            ->when(!$status || $status === 'all', function ($q) {
-                return $q->whereIn('status', ['published', 'pending review', 'edited']);
+            ->when($status === 'published', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'published');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
             })
-            ->when($status === 'deleted', fn($q) => $q->where('is_deleted', true))
+            ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
+            ->when($status === 'rejected', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'rejected');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when($status === 'edited', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'edited');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when(!$status || $status === 'all', function ($q) use ($isEditorOnly, $user) {
+                if ($isEditorOnly) {
+                    $q->where(function ($sub) use ($user) {
+                        $sub->where('status', 'pending review')
+                            ->orWhere(function ($sub2) use ($user) {
+                                $sub2->whereIn('status', ['published', 'edited', 'rejected'])
+                                    ->where('edited_by', $user->id);
+                            });
+                    });
+                } else {
+                    $q->whereIn('status', ['published', 'pending review', 'edited', 'rejected']);
+                }
+            })
+            ->when($status === 'deleted', function ($q) use ($isEditorOnly, $user) {
+                $q->where('is_deleted', true);
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
             ->when($status !== 'deleted', fn($q) => $q->where('is_deleted', false))
             ->when($validated['search'] ?? null, function ($q, $s) {
                 $q->where(function ($sub) use ($s) {
@@ -108,12 +149,31 @@ class ArticleController extends Controller
 
         // 2. Base query for Country counts (ignore current country/city)
         $countryBaseQuery = Article::query()
-            ->when($status === 'published', fn($q) => $q->where('status', 'published'))
+            ->when($status === 'published', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'published');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
             ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
-            ->when($status === 'rejected', fn($q) => $q->where('status', 'rejected'))
-            ->when($status === 'edited', fn($q) => $q->where('status', 'edited'))
-            ->when(!$status || $status === 'all', function ($q) {
-                return $q->whereIn('status', ['published', 'pending review', 'edited']);
+            ->when($status === 'rejected', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'rejected');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when($status === 'edited', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'edited');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when(!$status || $status === 'all', function ($q) use ($isEditorOnly, $user) {
+                if ($isEditorOnly) {
+                    $q->where(function ($sub) use ($user) {
+                        $sub->where('status', 'pending review')
+                            ->orWhere(function ($sub2) use ($user) {
+                                $sub2->whereIn('status', ['published', 'edited', 'rejected'])
+                                    ->where('edited_by', $user->id);
+                            });
+                    });
+                } else {
+                    $q->whereIn('status', ['published', 'pending review', 'edited', 'rejected']);
+                }
             })
             ->when($status === 'deleted', fn($q) => $q->where('is_deleted', true))
             ->when($status !== 'deleted', fn($q) => $q->where('is_deleted', false))
@@ -139,24 +199,28 @@ class ArticleController extends Controller
             try {
                 // To get counts for Redis items, we should ideally ask Redis for filtered counts
                 // For simplicity, we get all and filter in memory
-                $redisArticles = $this->redisService->filterArticles([], 1000); 
-                
+                $redisArticles = $this->redisService->filterArticles([], 1000);
+
                 // For Category counts, apply Redis side filtering except category
                 $redisCategoryCounts = collect($redisArticles)
-                    ->filter(function($a) use ($validated) {
+                    ->filter(function ($a) use ($validated) {
                         $match = true;
-                        if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false) $match = false;
-                        if (!empty($validated['country']) && ($a['country'] ?? '') !== $validated['country']) $match = false;
+                        if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false)
+                            $match = false;
+                        if (!empty($validated['country']) && ($a['country'] ?? '') !== $validated['country'])
+                            $match = false;
                         return $match;
                     })
                     ->groupBy('category')->map(fn($group) => $group->count())->toArray();
 
                 // For Country counts, apply Redis side filtering except country
                 $redisCountryCounts = collect($redisArticles)
-                    ->filter(function($a) use ($validated) {
+                    ->filter(function ($a) use ($validated) {
                         $match = true;
-                        if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false) $match = false;
-                        if (!empty($validated['category']) && ($a['category'] ?? '') !== $validated['category']) $match = false;
+                        if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false)
+                            $match = false;
+                        if (!empty($validated['category']) && ($a['category'] ?? '') !== $validated['category'])
+                            $match = false;
                         return $match;
                     })
                     ->groupBy('country')->map(fn($group) => $group->count())->toArray();
@@ -169,7 +233,8 @@ class ArticleController extends Controller
         $finalCategoryCounts = [];
         $allCategoryNames = collect(array_merge(array_keys($dbCategoryCounts), array_keys($redisCategoryCounts)))->unique()->toArray();
         foreach ($allCategoryNames as $cat) {
-            if (in_array(strtolower($cat), ['restaurant', 'restaurants', 'all'])) continue;
+            if (in_array(strtolower($cat), ['restaurant', 'restaurants', 'all']))
+                continue;
             $finalCategoryCounts[] = [
                 'name' => $cat,
                 'count' => ($dbCategoryCounts[$cat] ?? 0) + ($redisCategoryCounts[$cat] ?? 0)
@@ -191,8 +256,8 @@ class ArticleController extends Controller
 
         // Paginate DB results - Eager load to prevent N+1 queries
         $articles = $query
-            ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'article_id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'is_deleted', 'content_blocks', 'template', 'author')
+            ->with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name'])
+            ->select('id', 'article_id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'is_deleted', 'content_blocks', 'template', 'author', 'edited_by')
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage);
 
@@ -345,6 +410,10 @@ class ArticleController extends Controller
         $validated['id'] = \Illuminate\Support\Str::uuid()->toString();
         $validated['article_id'] = $validated['id'];
 
+        if (($validated['status'] ?? '') === 'published') {
+            $validated['published_at'] = now();
+        }
+
         $siteNames = $validated['published_sites'] ?? [];
         unset($validated['published_sites']);
 
@@ -360,6 +429,7 @@ class ArticleController extends Controller
         }
 
         $validated['is_deleted'] = false;
+        $validated['edited_by'] = auth()->id();
         $article = Article::create($validated);
 
         if (!empty($siteNames)) {
@@ -388,12 +458,12 @@ class ArticleController extends Controller
     public function show($id): JsonResponse|ArticleResource
     {
         if (is_numeric($id) || !\Illuminate\Support\Str::isUuid($id)) {
-            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])->find($id);
+            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name'])->find($id);
             if ($article) {
                 return new ArticleResource($article);
             }
         } else {
-            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])->where('id', $id)->first();
+            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name'])->where('id', $id)->first();
             if ($article) {
                 return new ArticleResource($article);
             }
@@ -469,6 +539,11 @@ class ArticleController extends Controller
         unset($validated['split_images']); // Not stored in articles table
         unset($validated['date']); // Not a database column
 
+        if (isset($validated['status']) && $validated['status'] === 'published' && !$article->published_at) {
+            $validated['published_at'] = now();
+        }
+
+        $validated['edited_by'] = auth()->id();
         $article->update($validated);
 
         return new ArticleResource($article);
@@ -524,6 +599,8 @@ class ArticleController extends Controller
         $finalData = [
             'status' => 'published',
             'is_deleted' => false,
+            'edited_by' => auth()->id(),
+            'published_at' => now(),
         ];
 
         // A. Start with Redis as fallback if available
@@ -568,6 +645,7 @@ class ArticleController extends Controller
 
         // 2. Clean up and execute persistence
         $fillableData = collect($finalData)->only((new Article())->getFillable())->toArray();
+        $fillableData['published_at'] = now();
 
         if ($existing) {
             \Log::info("Updating existing DB record for publish: {$id}");
@@ -749,15 +827,33 @@ class ArticleController extends Controller
      */
     protected function getStatusCounts(): array
     {
-        // Database counts for active articles
-        $counts = Article::where('is_deleted', false)
-            ->selectRaw('status, count(*) as total')
-            ->groupBy('status')
-            ->pluck('total', 'status')
-            ->toArray();
+        $user = auth()->user();
+        $isEditorOnly = $user && $user->hasRole('editor') && !$user->hasRole('admin');
 
-        // Count soft-deleted articles separately
-        $deletedCount = Article::where('is_deleted', true)->count();
+        // Database counts for active articles
+        $query = Article::where('is_deleted', false);
+
+        if ($isEditorOnly) {
+            // For editors, we filter Published, Edited, and Rejected by their ID
+            // but keep Pending Review global so they can pick up new work.
+            $counts = [
+                'published' => (clone $query)->where('status', 'published')->where('edited_by', $user->id)->count(),
+                'pending review' => (clone $query)->where('status', 'pending review')->count(),
+                'edited' => (clone $query)->where('status', 'edited')->where('edited_by', $user->id)->count(),
+                'rejected' => (clone $query)->where('status', 'rejected')->where('edited_by', $user->id)->count(),
+            ];
+            
+            // Count soft-deleted articles for this editor only?
+            $deletedCount = Article::where('is_deleted', true)->where('edited_by', $user->id)->count();
+        } else {
+            $counts = (clone $query)
+                ->selectRaw('status, count(*) as total')
+                ->groupBy('status')
+                ->pluck('total', 'status')
+                ->toArray();
+                
+            $deletedCount = Article::where('is_deleted', true)->count();
+        }
 
         // Redis count (all Redis articles are pending)
         $pendingCount = 0;
@@ -774,8 +870,8 @@ class ArticleController extends Controller
         $editedCount = $counts['edited'] ?? 0;
         $rejectedCount = $counts['rejected'] ?? 0;
 
-        // DB Total (Published + Pending Review + Edited) - excluding soft deleted
-        $dbTotal = $publishedCount + $pendingReviewCount + $editedCount;
+        // DB Total (Published + Pending Review + Edited + Rejected) - excluding soft deleted
+        $dbTotal = $publishedCount + $pendingReviewCount + $editedCount + $rejectedCount;
 
         // All = DB Total + Redis Pending
         $allCount = $dbTotal + $pendingCount;
@@ -848,6 +944,7 @@ class ArticleController extends Controller
                         'status' => 'pending review',
                         'views_count' => 0,
                         'is_deleted' => false,
+                        'edited_by' => auth()->id(),
                     ];
 
                     $article = Article::create($payload);
@@ -1122,7 +1219,10 @@ class ArticleController extends Controller
         foreach ($ids as $id) {
             $article = Article::find($id);
             if ($article) {
-                $article->update(['status' => 'rejected']);
+                $article->update([
+                    'status' => 'rejected',
+                    'edited_by' => $article->edited_by ?: auth()->id()
+                ]);
                 $count++;
             } else if (\Illuminate\Support\Str::isUuid($id)) {
                 $redisArticle = $this->redisService->getArticle($id);
@@ -1139,6 +1239,7 @@ class ArticleController extends Controller
                         'source' => $redisArticle['source'] ?? 'Scraper',
                         'status' => 'rejected',
                         'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? 'article-' . $id),
+                        'edited_by' => auth()->id(),
                     ]);
                     $this->redisService->deleteArticle($id);
                     $count++;
@@ -1147,5 +1248,52 @@ class ArticleController extends Controller
         }
 
         return response()->json(['message' => "{$count} articles rejected successfully."]);
+    }
+
+    /**
+     * Bulk delete multiple articles.
+     */
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        $ids = $request->input('ids', []);
+        $hardDelete = $request->input('hard_delete', false);
+
+        if (empty($ids)) {
+            return response()->json(['message' => 'No articles selected.'], 400);
+        }
+
+        $count = 0;
+        foreach ($ids as $id) {
+            try {
+                if ($hardDelete) {
+                    $this->hardDelete($id);
+                } else {
+                    $this->destroy($id);
+                }
+                $count++;
+            } catch (\Exception $e) {
+                \Log::warning("Bulk delete failed for {$id}: " . $e->getMessage());
+            }
+        }
+
+        return response()->json(['message' => "{$count} articles deleted successfully."]);
+    }
+
+    /**
+     * Bulk unpublish multiple articles.
+     */
+    public function bulkUnpublish(Request $request): JsonResponse
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return response()->json(['message' => 'No articles selected.'], 400);
+        }
+
+        $count = Article::whereIn('id', $ids)
+            ->where('status', 'published')
+            ->update(['status' => 'pending review']);
+
+        return response()->json(['message' => "{$count} articles unpublished successfully."]);
     }
 }

@@ -4,46 +4,44 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
-use App\Jobs\SendMailJob;
 use App\Models\User;
-use App\Services\OTPService;
+use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
+/**
+ * Controller to manage user authentication, registration, and profile updates.
+ */
 class AuthController extends Controller
 {
-    protected $otpService;
+    /** @var AuthService */
+    protected $authService;
 
-    public function __construct(OTPService $otpService)
+    /**
+     * Create a new AuthController instance.
+     */
+    public function __construct(AuthService $authService)
     {
-        $this->otpService = $otpService;
+        $this->authService = $authService;
     }
 
     /**
      * Authenticate user and return token.
+     *
+     * @group Authentication
      */
     public function login(LoginRequest $request): JsonResponse
     {
-        \Log::info('Login attempt for: '.$request->email);
         $validated = $request->validated();
+        $result = $this->authService->login($validated['email'], $validated['password']);
 
-        $user = User::where('email', $validated['email'])->first();
-
-        if (! $user || ! Hash::check($validated['password'], $user->password)) {
-            return response()->json([
-                'message' => 'Invalid login details',
-            ], 401);
+        if (! $result) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => new UserResource($user->load('roles')),
-        ]);
+        return response()->json($result);
     }
 
     /**
@@ -54,62 +52,25 @@ class AuthController extends Controller
      *
      * @group Authentication
      */
-    public function register(Request $request): JsonResponse
+    public function register(RegisterRequest $request): JsonResponse
     {
-        // Validate the request
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-        ]);
-
-        \Log::info('Registration attempt for: '.$request->email);
-
-        // Create the user
-        $user = User::create([
-            'first_name' => $validated['first_name'],
-            'last_name' => $validated['last_name'],
-            'name' => $validated['first_name'].' '.$validated['last_name'], // Full name
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'roles' => ['subscriber'], // Save to explicit roles JSON column
-        ]);
-
-        // Attach default 'subscriber' role
-        $subscriberRole = \App\Models\Role::where('name', 'subscriber')->first();
-        if ($subscriberRole) {
-            $user->roles()->attach($subscriberRole);
-        }
-
-        // generate otp
-        $otpData = $this->otpService->generateOTP($user->email, 'verify-email');
-
-        // send email
-        SendMailJob::dispatch(
-            $user->name,
-            $user->email,
-            $otpData['otp']
-        );
-
-        // create token
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $result = $this->authService->register($request->validated());
 
         return response()->json([
             'success' => true,
             'message' => 'User registered successfully. Please check your email for the verification code.',
-            'token' => $token,
-            'user' => new UserResource($user->load('roles')),
-            'otp_expires_in' => 10,
+            ...$result,
         ], 201);
     }
 
     /**
      * Log the user out (Revoke token).
+     *
+     * @group Authentication
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $this->authService->logout($request->user());
 
         return response()->json([
             'message' => 'Logged out successfully',
@@ -117,7 +78,9 @@ class AuthController extends Controller
     }
 
     /**
-     * Get the authenticated user.
+     * Get the currently authenticated user's information.
+     *
+     * @group User Profile
      */
     public function me(Request $request): UserResource
     {
@@ -125,7 +88,9 @@ class AuthController extends Controller
     }
 
     /**
-     * Legacy user endpoint.
+     * Return user details for legacy client compatibility.
+     *
+     * @group User Profile
      */
     public function user(Request $request): UserResource
     {
@@ -133,57 +98,38 @@ class AuthController extends Controller
     }
 
     /**
-     * Update user profile.
+     * Update the authenticated user's profile information.
+     *
+     * @return UserResource Updated user resource.
+     *
+     * @group User Profile
      */
     public function updateProfile(Request $request): UserResource
     {
-        $user = $request->user();
-
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'avatar' => 'nullable|string', // Expecting base64 string
         ]);
 
-        $user->first_name = $validated['first_name'];
-        $user->last_name = $validated['last_name'];
-        $user->name = $validated['first_name'].' '.$validated['last_name'];
-
-        if (isset($validated['avatar']) && str_starts_with($validated['avatar'], 'data:image')) {
-            // Handle base64 avatar upload
-            try {
-                $imageData = $validated['avatar'];
-                $format = strpos($imageData, 'data:image/png') !== false ? 'png' : 'jpg';
-                $imageData = str_replace(['data:image/png;base64,', 'data:image/jpeg;base64,', ' '], ['', '', '+'], $imageData);
-                $imageName = \Illuminate\Support\Str::uuid().'.'.$format;
-
-                $path = 'homestv/avatars/'.$imageName;
-                \Illuminate\Support\Facades\Storage::disk('s3')->put($path, base64_decode($imageData), 'public');
-
-                $user->avatar = \Illuminate\Support\Facades\Storage::disk('s3')->url($path);
-            } catch (\Exception $e) {
-                \Log::error('Avatar upload failed: '.$e->getMessage());
-            }
-        }
-
-        $user->save();
-
-        return new UserResource($user->load('roles'));
+        return $this->authService->updateProfile($request->user(), $validated);
     }
 
     /**
-     * Change user password.
+     * Update the authenticated user's password.
+     *
+     * @group User Profile
      */
     public function changePassword(Request $request): JsonResponse
     {
-        $user = $request->user();
-
         $validated = $request->validate([
             'current_password' => 'required|string',
             'new_password' => 'required|string|min:8|confirmed',
         ]);
 
-        if (! Hash::check($validated['current_password'], $user->password)) {
+        $success = $this->authService->changePassword($request->user(), $validated['current_password'], $validated['new_password']);
+
+        if (! $success) {
             return response()->json([
                 'message' => 'The provided password does not match your current password.',
                 'errors' => [
@@ -191,9 +137,6 @@ class AuthController extends Controller
                 ],
             ], 422);
         }
-
-        $user->password = Hash::make($validated['new_password']);
-        $user->save();
 
         return response()->json([
             'message' => 'Password changed successfully.',

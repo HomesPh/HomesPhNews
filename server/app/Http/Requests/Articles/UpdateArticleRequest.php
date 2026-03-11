@@ -27,6 +27,8 @@ class UpdateArticleRequest extends FormRequest
             'content' => 'nullable|string',
             'category' => 'nullable|string|max:50',
             'country' => 'nullable|string|max:100',
+            'province_id' => 'nullable|integer',
+            'city_id' => 'nullable|integer',
             'image' => 'nullable|string|max:2000',
             'image_url' => 'nullable|string|max:2000', // Support both for flexiblity
             'published_sites' => 'nullable|array',

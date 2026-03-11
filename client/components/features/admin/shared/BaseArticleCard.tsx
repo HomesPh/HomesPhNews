@@ -5,6 +5,7 @@ import { Calendar, Eye, MapPin } from 'lucide-react';
 import { cn, sanitizeImageUrl, decodeHtml, calculateReadTime, stripHtml } from "@/lib/utils";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 import ShareButtons from "@/components/shared/ShareButtons";
+import { useAuth } from "@/hooks/useAuth";
 
 interface BaseArticleCardProps {
     article: {
@@ -30,6 +31,9 @@ interface BaseArticleCardProps {
         published_sites?: string | string[]; // New API field
         image_position?: number;
         image_position_x?: number;
+        editor_first_name?: string | null;
+        editor_last_name?: string | null;
+        edited_by?: number;
     };
     variant?: 'compact' | 'list';
     onClick?: () => void;
@@ -74,13 +78,19 @@ export default function BaseArticleCard({
     selection,
     actions,
 }: BaseArticleCardProps) {
+    const { user } = useAuth();
+    const showEditorAttribution = useMemo(() => {
+        if (!user) return false;
+        return user.roles.includes('admin');
+    }, [user]);
+
     const isCompact = variant === 'compact';
 
     // Normalize field names (support both new and legacy)
     const imageUrl = sanitizeImageUrl(article.image_url || article.image || 'https://placehold.co/800x450?text=No+Image');
     const location = article.country || article.location || 'Unknown';
     const description = article.summary || article.description || '';
-    const dateStr = article.created_at || article.date || null;
+    const dateStr = article.published_at || article.created_at || article.date || null;
     const viewsStr = article.views ?? formatViews(article.views_count);
 
     // Handle published_sites which can be string or string[]
@@ -167,76 +177,106 @@ export default function BaseArticleCard({
         <div
             onClick={onClick}
             className={cn(
-                "flex gap-[13px] p-5 cursor-pointer hover:bg-gray-50 transition-colors bg-white",
+                "flex flex-col sm:flex-row gap-[13px] sm:gap-[20px] p-4 sm:p-5 cursor-pointer hover:bg-gray-50 transition-colors bg-white",
                 className
             )}
         >
-            {selection && (
-                <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0 self-center">
-                    <input
-                        type="checkbox"
-                        checked={selection.isSelected}
-                        onChange={(e) => selection.onSelect(e.target.checked)}
-                        className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                </div>
-            )}
-            {/* Thumbnail */}
-            <div className="w-[118px] h-[106px] rounded-[8px] overflow-hidden flex-shrink-0">
-                <img
-                    src={imageUrl}
-                    alt={article.title}
-                    className="w-full h-full object-cover"
-                    style={{ objectPosition: `${article.image_position_x ?? 50}% ${article.image_position ?? 0}%` }}
-                />
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 flex flex-col justify-between min-h-[106px]">
-                {/* Category, Location, and Status */}
-                <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                        <span className="px-3 py-1 bg-white border border-[#e5e7eb] rounded-[4px] text-[12px] font-semibold text-[#111827] tracking-[-0.5px] uppercase">
-                            {article.category}
-                        </span>
-                        <span className="text-[14px] text-[#111827]">|</span>
-                        <span className="text-[12px] font-semibold text-[#111827] tracking-[-0.5px] uppercase">
-                            {location}
-                        </span>
+            <div className="flex items-center gap-3 sm:hidden mb-2">
+                {selection && (
+                    <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
+                        <input
+                            type="checkbox"
+                            checked={selection.isSelected}
+                            onChange={(e) => selection.onSelect(e.target.checked)}
+                            className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        />
                     </div>
+                )}
+                <div className="flex items-center gap-1">
                     {!hideStatus && <StatusBadge status={(article.is_redis ? 'being_processed' : article.status) as any} />}
                 </div>
+            </div>
 
-                {/* Title */}
-                <h3 className="text-[18px] font-bold text-[#1f2937] leading-[32px] tracking-[-0.5px] mb-2 line-clamp-1">
-                    {article.title}
-                </h3>
+            <div className="flex gap-[13px] w-full items-start">
+                {selection && (
+                    <div onClick={(e) => e.stopPropagation()} className="hidden sm:block flex-shrink-0 self-center">
+                        <input
+                            type="checkbox"
+                            checked={selection.isSelected}
+                            onChange={(e) => selection.onSelect(e.target.checked)}
+                            className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        />
+                    </div>
+                )}
+                {/* Thumbnail */}
+                <div className="w-[100px] h-[80px] sm:w-[118px] sm:h-[106px] rounded-[8px] overflow-hidden flex-shrink-0">
+                    <img
+                        src={imageUrl}
+                        alt={article.title}
+                        className="w-full h-full object-cover"
+                        style={{ objectPosition: `${article.image_position_x ?? 50}% ${article.image_position ?? 0}%` }}
+                    />
+                </div>
 
-                {/* Description */}
-                <p className="text-[14px] text-[#4b5563] leading-[normal] tracking-[-0.5px] mb-2 line-clamp-1">
-                    {stripHtml(description)}
-                </p>
+                {/* Content */}
+                <div className="flex-1 flex flex-col justify-between min-h-[80px] sm:min-h-[106px]">
+                    {/* Category, Location, and Status */}
+                    <div className="flex items-center justify-between mb-1 sm:mb-2">
+                        <div className="flex items-center gap-2">
+                            <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-white border border-[#e5e7eb] rounded-[4px] text-[10px] sm:text-[12px] font-semibold text-[#111827] tracking-[-0.5px] uppercase">
+                                {article.category}
+                            </span>
+                            <span className="text-[12px] sm:text-[14px] text-[#111827]">|</span>
+                            <span className="text-[10px] sm:text-[12px] font-semibold text-[#111827] tracking-[-0.5px] uppercase">
+                                {location}
+                            </span>
+                        </div>
+                        <div className="hidden sm:flex items-center gap-2">
+                            {!hideStatus && <StatusBadge status={(article.is_redis ? 'being_processed' : article.status) as any} />}
+                        </div>
+                    </div>
 
-                {/* Date and Views */}
-                <div className="flex items-center gap-2 text-[12px] text-[#6b7280] tracking-[-0.5px] mb-2">
-                    <Calendar className="w-[11px] h-[12px]" />
-                    <span className="leading-[20px]">{formatDate(dateStr)}</span>
-                    <span className="text-[16px]">•</span>
-                    <span className="leading-[20px]">{viewsStr}</span>
-                    <span className="text-[16px]">•</span>
-                    <span className="leading-[20px]">{calculateReadTime(article.content || description)}</span>
-                    {article.status === 'published' && (
-                        <>
-                            <span className="text-[16px]">•</span>
-                            <ShareButtons
-                                url={`/article/${article.slug || article.id}`}
-                                title={article.title}
-                                description={stripHtml(description)}
-                                size="xs"
-                                className="ml-1"
-                            />
-                        </>
-                    )}
+                    {/* Title */}
+                    <h3 className="text-[15px] sm:text-[18px] font-bold text-[#1f2937] leading-tight sm:leading-[32px] tracking-[-0.5px] mb-1 sm:mb-2 line-clamp-2 sm:line-clamp-1">
+                        {article.title}
+                    </h3>
+
+                    {/* Description - Hidden on very small screens or clamped further */}
+                    <p className="text-[12px] sm:text-[14px] text-[#4b5563] leading-snug sm:leading-[normal] tracking-[-0.5px] mb-1 sm:mb-2 line-clamp-1">
+                        {stripHtml(description)}
+                    </p>
+
+                    {/* Date and Views */}
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] sm:text-[12px] text-[#6b7280] tracking-[-0.5px]">
+                        <div className="flex items-center gap-1">
+                            <Calendar className="w-[10px] h-[10px] sm:w-[11px] sm:h-[12px]" />
+                            <span className="leading-none sm:leading-[20px]">{formatDate(dateStr)}</span>
+                        </div>
+                        <span className="hidden sm:inline text-[16px]">•</span>
+                        <span className="leading-none sm:leading-[20px]">{viewsStr}</span>
+                        <span className="text-[16px]">•</span>
+                        <span className="leading-none sm:leading-[20px]">{calculateReadTime(article.content || description)}</span>
+                        {article.editor_first_name && showEditorAttribution && (
+                            <>
+                                <span className="text-[16px] mx-1 font-bold">•</span>
+                                <span className="text-[#1428AE] font-semibold whitespace-nowrap">
+                                    Edited by {article.editor_first_name} {article.editor_last_name}
+                                </span>
+                            </>
+                        )}
+                        {article.status === 'published' && (
+                            <div className="flex items-center">
+                                <span className="text-[16px] mx-1">•</span>
+                                <ShareButtons
+                                    url={`/article/${article.slug || article.id}`}
+                                    title={article.title}
+                                    description={stripHtml(description)}
+                                    size="xs"
+                                    className="ml-1"
+                                />
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

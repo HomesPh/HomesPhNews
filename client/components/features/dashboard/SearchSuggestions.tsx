@@ -74,7 +74,7 @@ export default function SearchSuggestions({ query, onClose, className }: SearchS
     return (
         <div
             className={cn(
-                "absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1f2937] rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-[60]",
+                "absolute top-full left-0 mt-2 w-[300px] bg-white dark:bg-[#1f2937] rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-[60]",
                 className
             )}
         >
@@ -93,7 +93,7 @@ export default function SearchSuggestions({ query, onClose, className }: SearchS
                             key={article.id}
                             href={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                             onClick={onClose}
-                            className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0"
+                            className="group/suggestion flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0"
                         >
                             <div className="relative w-12 h-12 shrink-0 rounded overflow-hidden bg-gray-100">
                                 <Image
@@ -105,7 +105,7 @@ export default function SearchSuggestions({ query, onClose, className }: SearchS
                                 />
                             </div>
                             <div className="flex-1 min-w-0 flex items-center">
-                                <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2 leading-snug group-hover:text-[#c10007]">
+                                <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2 leading-snug group-hover/suggestion:text-[#F4AA1D] dark:group-hover/suggestion:text-[#F4AA1D]">
                                     {article.title}
                                 </h4>
                             </div>
@@ -114,7 +114,7 @@ export default function SearchSuggestions({ query, onClose, className }: SearchS
                     <Link
                         href={`/search?q=${encodeURIComponent(query)}`}
                         onClick={onClose}
-                        className="block px-4 py-3 text-center text-sm font-medium text-[#c10007] hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-t border-gray-100 dark:border-gray-700"
+                        className="block px-4 py-3 text-center text-sm font-medium text-[#1428AE] dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-t border-gray-100 dark:border-gray-700"
                     >
                         View all results
                     </Link>

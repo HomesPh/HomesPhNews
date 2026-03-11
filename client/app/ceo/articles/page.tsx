@@ -13,7 +13,8 @@ import usePagination from "@/hooks/usePagination";
 import useUrlFilters from "@/hooks/useUrlFilters";
 import { CheckCircle2, XCircle, Clock, Trash2, Globe, Check, Loader2, X, LayoutGrid, FileText } from "lucide-react";
 import { bulkPublishArticles, bulkRejectArticles, getSiteNames } from "@/lib/api-v2";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { bulkUnpublishArticles } from "@/lib/api-v2/admin/service/article/bulkUnpublishArticles";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -216,6 +217,54 @@ export default function CEOArticlesPage() {
         }
     };
 
+    const handleBulkUnpublish = async () => {
+        if (selectedIds.length === 0) return;
+        if (!confirm(`Are you sure you want to unpublish ${selectedIds.length} articles? They will be moved back to Pending Review.`)) return;
+
+        setIsBulkActionLoading(true);
+        try {
+            await bulkUnpublishArticles(selectedIds);
+            setSelectedIds([]);
+            // Refresh counts and list
+            let statusParam = filters.status || "all";
+            if (statusParam === "pending_review") statusParam = "pending review";
+            if (statusParam === "published_articles") statusParam = "published";
+
+            const apiFilters = {
+                status: statusParam,
+                page: pagination.currentPage,
+                per_page: 10,
+            } as any;
+            const response = await getAdminArticles(apiFilters);
+            const { data, status_counts } = response.data;
+
+            const filteredData = (data ?? []).filter(
+                (a: ArticleResource) => !a.is_redis && a.status !== "being_processed" && a.status !== "deleted"
+            );
+            setArticles(filteredData);
+
+            if (status_counts) {
+                const rawAll = Number(status_counts.all ?? 0);
+                const beingProcessedCount = Number(status_counts.being_processed ?? 0);
+                const deletedCount = Number(status_counts.deleted ?? 0);
+
+                setCounts({
+                    all: rawAll - beingProcessedCount - deletedCount,
+                    published: Number(status_counts.published ?? 0),
+                    pending: Number(status_counts.pending ?? 0),
+                    edited: Number(status_counts.edited ?? 0),
+                    rejected: Number(status_counts.rejected ?? 0),
+                });
+            }
+            alert("Articles unpublished successfully.");
+        } catch (error) {
+            console.error("Bulk unpublish failed:", error);
+            alert("Failed to unpublish articles.");
+        } finally {
+            setIsBulkActionLoading(false);
+        }
+    };
+
     const handleBulkPublish = async () => {
         if (selectedIds.length === 0 || selectedSites.length === 0) return;
 
@@ -268,7 +317,7 @@ export default function CEOArticlesPage() {
     const activeTab = (filters.status as CEOTab) || "all";
 
     return (
-        <div className="p-8 bg-[#f9fafb] min-h-screen">
+        <div className="p-4 sm:p-6 lg:p-8 bg-[#f9fafb] min-h-screen">
             <AdminPageHeader
                 title="Article Review"
                 description="Review editor-submitted articles and approve or reject them for publishing"
@@ -276,7 +325,7 @@ export default function CEOArticlesPage() {
                 onAction={() => setIsEditorModalOpen(true)}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
                 {/* 1. All Articles */}
                 <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm flex flex-col items-start gap-3 hover:shadow-md transition-shadow">
                     <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0">
@@ -339,8 +388,8 @@ export default function CEOArticlesPage() {
             </div>
 
             <div className="bg-white rounded-2xl border border-[#e5e7eb] overflow-hidden shadow-[0px_1px_3px_rgba(0,0,0,0.05)]">
-                <div className="border-b border-[#e5e7eb] pt-5 px-0">
-                    <div className="flex gap-8 px-5 overflow-x-auto no-scrollbar">
+                <div className="border-b border-[#e5e7eb] pt-3 sm:pt-5 px-0">
+                    <div className="flex gap-6 sm:gap-8 px-4 sm:px-5 overflow-x-auto no-scrollbar">
                         {TABS.map((tab, index) => {
                             const isActive = activeTab === tab.id;
                             let statusKey: keyof typeof counts = "all";
@@ -393,8 +442,8 @@ export default function CEOArticlesPage() {
                 />
 
                 {/* Bulk Actions Bar */}
-                {(activeTab === 'edited' || activeTab === 'pending_review') && articles.length > 0 && (
-                    <div className="bg-white border-b border-[#e5e7eb] px-5 py-3 flex items-center justify-between">
+                {(activeTab === 'edited' || activeTab === 'pending_review' || activeTab === 'published_articles') && articles.length > 0 && (
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-5 py-3 border-b border-[#e5e7eb] bg-[#f9fafb]">
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
                                 <Checkbox
@@ -414,23 +463,38 @@ export default function CEOArticlesPage() {
                         </div>
 
                         {selectedIds.length > 0 && (
-                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2">
-                                <button
-                                    onClick={handleBulkReject}
-                                    disabled={isBulkActionLoading}
-                                    className="h-[36px] px-4 font-bold text-[13px] text-red-600 border border-red-100 rounded-[6px] hover:bg-red-50 transition-all flex items-center gap-2"
-                                >
-                                    {isBulkActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                                    REJECT
-                                </button>
-                                <button
-                                    onClick={() => setIsPublishModalOpen(true)}
-                                    disabled={isBulkActionLoading}
-                                    className="h-[36px] px-4 bg-[#3b82f6] text-white font-bold text-[13px] rounded-[6px] hover:bg-[#2563eb] transition-all shadow-sm flex items-center gap-2 active:scale-95"
-                                >
-                                    {isBulkActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                                    APPROVE & PUBLISH
-                                </button>
+                            <div className="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-right-2">
+                                {activeTab === 'published_articles' ? (
+                                    <button
+                                        onClick={handleBulkUnpublish}
+                                        disabled={isBulkActionLoading}
+                                        className="w-full sm:w-auto flex items-center justify-center gap-2 h-9 px-4 rounded-lg text-[12px] sm:text-[13px] font-bold bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-sm active:scale-95"
+                                    >
+                                        {isBulkActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                                        GROUP UNPUBLISH
+                                    </button>
+                                ) : (
+                                    <>
+                                        {activeTab !== 'pending_review' && (
+                                            <button
+                                                onClick={handleBulkReject}
+                                                disabled={isBulkActionLoading}
+                                                className="flex-1 sm:flex-none h-9 px-3 sm:px-4 font-bold text-[12px] sm:text-[13px] text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-all flex items-center justify-center gap-2"
+                                            >
+                                                {isBulkActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                                                REJECT
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => setIsPublishModalOpen(true)}
+                                            disabled={isBulkActionLoading}
+                                            className="flex-1 sm:flex-none h-9 px-3 sm:px-4 bg-[#1428AE] text-white font-bold text-[12px] sm:text-[13px] rounded-lg hover:bg-[#000785] transition-all shadow-sm flex items-center justify-center gap-2 active:scale-95"
+                                        >
+                                            {isBulkActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                                            GROUP PUBLISH
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>
@@ -447,7 +511,7 @@ export default function CEOArticlesPage() {
                                 onClick={() => {
                                     router.push(`/ceo/articles/${article.id}`);
                                 }}
-                                selection={(activeTab === 'edited' || activeTab === 'pending_review') ? {
+                                selection={(activeTab === 'edited' || activeTab === 'pending_review' || activeTab === 'published_articles') ? {
                                     isSelected: selectedIds.includes(article.id),
                                     onSelect: (checked) => handleSelectArticle(article.id, !!checked)
                                 } : undefined}
@@ -477,25 +541,40 @@ export default function CEOArticlesPage() {
                     <div className="bg-white flex flex-col w-full animate-in zoom-in-95 duration-200">
                         {/* Header */}
                         <div className="p-8 pb-0">
-                            <div className="relative mb-8">
-                                <div>
-                                    <h2 className="font-bold text-[28px] leading-[42px] text-[#111827] tracking-[-0.5px]">
-                                        Bulk Publish Selection
-                                    </h2>
-                                    <p className="font-normal text-[16px] leading-[24px] text-[#6b7280] tracking-[-0.5px] mt-2">
-                                        Choose target platforms for <strong>{selectedIds.length}</strong> selected articles
-                                    </p>
+                            <div className="flex items-center gap-4 mb-3">
+                                <div className="bg-[#3b82f6]/10 p-2 rounded-full">
+                                    <CheckCircle2 className="w-6 h-6 text-[#3b82f6]" />
                                 </div>
+                                <DialogTitle className="text-[24px] font-bold text-[#1e293b] tracking-tight">Group Publish Articles</DialogTitle>
                             </div>
+                            <DialogDescription className="text-[#64748b] text-[15px]">
+                                You have selected <span className="font-bold text-[#3b82f6]">{selectedIds.length}</span> articles. Please select the partner sites where you want to publish them.
+                            </DialogDescription>
                         </div>
 
                         {/* Content */}
-                        <div className="px-8 pb-8 flex flex-col gap-6">
-                            <div className="space-y-4">
-                                <label className="block font-bold text-[14px] text-[#111827] tracking-[-0.5px]">
-                                    Select Target Publishing Sites
-                                </label>
-                                <div className="grid grid-cols-1 gap-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="p-8 max-h-[400px] overflow-y-auto custom-scrollbar">
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-[14px] font-black text-[#64748b] uppercase tracking-[1px]">Partner Sites</h3>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setSelectedSites(sites)}
+                                            className="text-[12px] font-bold text-[#3b82f6] hover:underline"
+                                        >
+                                            Select All
+                                        </button>
+                                        <span className="text-gray-300">|</span>
+                                        <button
+                                            onClick={() => setSelectedSites([])}
+                                            className="text-[12px] font-bold text-[#64748b] hover:underline"
+                                        >
+                                            Clear
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
                                     {sites.length > 0 ? (
                                         sites.map((siteName) => {
                                             const isSelected = selectedSites.includes(siteName);
@@ -507,26 +586,26 @@ export default function CEOArticlesPage() {
                                                             isSelected ? prev.filter(s => s !== siteName) : [...prev, siteName]
                                                         );
                                                     }}
-                                                    className={`flex items-center justify-between p-4 rounded-[8px] border-2 transition-all cursor-pointer ${isSelected
-                                                        ? 'border-[#3b82f6] bg-[#eff6ff]'
-                                                        : 'border-[#f3f4f6] bg-white hover:border-gray-200'
+                                                    className={`flex items-center justify-between p-4 rounded-[12px] border-2 transition-all cursor-pointer ${isSelected
+                                                        ? 'border-[#3b82f6] bg-[#eff6ff] shadow-sm'
+                                                        : 'border-[#f1f5f9] bg-white hover:border-gray-200'
                                                         }`}
                                                 >
-                                                    <span className={`text-[15px] font-semibold ${isSelected ? 'text-[#1d4ed8]' : 'text-[#374151]'}`}>
+                                                    <span className={`text-[15px] font-semibold ${isSelected ? 'text-[#1d4ed8]' : 'text-[#334155]'}`}>
                                                         {siteName}
                                                     </span>
                                                     {isSelected && (
-                                                        <div className="bg-[#3b82f6] rounded-full p-1">
-                                                            <Check className="w-3 h-3 text-white" />
+                                                        <div className="bg-[#3b82f6] rounded-full p-1 shadow-sm">
+                                                            <Check className="w-3 h-3 text-white" strokeWidth={3} />
                                                         </div>
                                                     )}
                                                 </div>
                                             );
                                         })
                                     ) : (
-                                        <div className="text-center py-12 bg-[#f9fafb] rounded-[10px] border-dashed border-2 border-[#e5e7eb]">
-                                            <Loader2 className="w-6 h-6 animate-spin text-[#9ca3af] mx-auto mb-2" />
-                                            <p className="text-[14px] text-[#6b7280] font-medium uppercase tracking-wider">Loading available sites...</p>
+                                        <div className="col-span-2 text-center py-12 bg-[#f8fafc] rounded-[16px] border-2 border-dashed border-[#e2e8f0]">
+                                            <Loader2 className="w-6 h-6 animate-spin text-[#94a3b8] mx-auto mb-2" />
+                                            <p className="text-[14px] text-[#64748b] font-medium uppercase tracking-wider">Loading available sites...</p>
                                         </div>
                                     )}
                                 </div>
@@ -534,17 +613,17 @@ export default function CEOArticlesPage() {
                         </div>
 
                         {/* Footer */}
-                        <div className="h-[75px] border-t border-[#e5e7eb] px-8 flex items-center justify-end gap-3 bg-[#fdfdfd]">
+                        <div className="px-8 py-6 border-t border-[#e2e8f0] flex items-center justify-end gap-3 bg-[#f8fafc]">
                             <button
                                 onClick={() => setIsPublishModalOpen(false)}
-                                className="h-[44px] px-6 font-normal text-[16px] text-[#6b7280] tracking-[-0.5px] hover:text-[#111827] transition-colors rounded-[6px] hover:bg-gray-50"
+                                className="h-[44px] px-6 font-semibold text-[15px] text-[#64748b] hover:text-[#1e293b] transition-colors"
                             >
                                 Cancel
                             </button>
                             <Button
                                 onClick={handleBulkPublish}
                                 disabled={selectedSites.length === 0 || isBulkActionLoading}
-                                className="h-[44px] px-[25px] bg-[#3b82f6] text-white rounded-[8px] font-semibold text-[16px] tracking-[-0.5px] hover:bg-[#2563eb] transition-all active:scale-95 shadow-sm disabled:opacity-50"
+                                className="h-[44px] px-8 bg-[#3b82f6] text-white rounded-[10px] font-bold text-[15px] hover:bg-[#2563eb] transition-all active:scale-95 shadow-lg shadow-blue-500/20 disabled:opacity-50"
                             >
                                 {isBulkActionLoading ? (
                                     <Loader2 className="w-4 h-4 animate-spin mr-2" />

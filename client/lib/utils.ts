@@ -115,3 +115,86 @@ export function formatViews(count: number | undefined | null): string {
   // Pluralization logic
   return `${count} ${count === 1 ? 'view' : 'views'}`;
 }
+
+/**
+ * Splits text into multiple paragraphs if there are more than 5 sentences.
+ * Uses smart balancing to avoid lonely single-sentence paragraphs.
+ */
+export function formatParagraphs(htmlOrText: string | null | undefined, maxSentences: number = 5): string {
+  if (!htmlOrText) return "";
+
+  const splitIntoChunks = (text: string) => {
+    // List of common abbreviations to avoid splitting on their dots
+    const abbreviations = ['Mr', 'Ms', 'Mrs', 'Dr', 'Prof', 'Sr', 'Jr', 'Co', 'Inc', 'Ltd', 'Corp', 'St', 'Ave', 'Rd', 'approx', 'est', 'misc', 'vs', 'e\\.g', 'i\\.e', 'etc', 'Ph\\.D', 'M\\.D', 'B\\.A', 'M\\.A', 'U\\.S', 'U\\.K', 'A\\.M', 'P\\.M', 'Phil', 'Gov', 'Dept', 'Adm', 'Atty', 'Capt', 'Col', 'Gen', 'Hon', 'Lt', 'Maj', 'Rev', 'Sgt'];
+    const abbrPattern = abbreviations.join('|');
+
+    // Split on punctuation followed by space or end of string.
+    // Enhanced lookbehind: ensure the punctuation itself is included in the lookbehind pattern 
+    // to match "Co." or "Dr." correctly as a single unit when checking for exceptions.
+    const rawSentences = text.split(new RegExp(`(?<=[.!?])(?<!\\b(?:${abbrPattern})[.!?])(?:\\s+|$)`, 'gi')).filter(Boolean);
+
+    // Merge fragments that look like stray abbreviations into the preceding sentence.
+    const sentences: string[] = [];
+    rawSentences.forEach((s) => {
+      const trimmed = s.trim().toLowerCase();
+      const isAbbr = abbreviations.some(abbr => {
+        const cleanAbbr = abbr.toLowerCase().replace(/\\\\/g, '').replace(/\\/g, '');
+        return trimmed === cleanAbbr || trimmed === cleanAbbr + '.';
+      });
+
+      if (sentences.length > 0 && (isAbbr || (trimmed.length <= 2 && trimmed.match(/[a-z]/i)))) {
+        sentences[sentences.length - 1] += ' ' + s;
+      } else {
+        sentences.push(s);
+      }
+    });
+
+    const N = sentences.length;
+    // SMART BALANCING:
+    // 1. If we have N <= maxSentences + 1, don't split at all (e.g. 6 sentences stay together).
+    if (N <= maxSentences + 1) return null;
+
+    // 2. Distribute sentences evenly across paragraphs to avoid "widow" sentences (lonely 1-sentence paragraphs).
+    // Instead of always taking 5, we divide the N sentences into balanced groups.
+    const numChunks = Math.ceil(N / maxSentences);
+    const targetSize = Math.floor(N / numChunks);
+    let extra = N % numChunks;
+
+    const chunks = [];
+    let currentIdx = 0;
+    for (let i = 0; i < numChunks; i++) {
+      const size = targetSize + (extra > 0 ? 1 : 0);
+      chunks.push(sentences.slice(currentIdx, currentIdx + size).join(' ').trim());
+      currentIdx += size;
+      extra--;
+    }
+
+    return chunks;
+  };
+
+  const hasBlockTags = /<(p|div|ul|ol|table|blockquote|h[1-6])[\s>]/i.test(htmlOrText);
+
+  if (hasBlockTags) {
+    if (/<p[\s>]/i.test(htmlOrText)) {
+      return htmlOrText.replace(/<p([^>]*)>([\s\S]*?)<\/p>/gi, (match, pAttrs, pInner) => {
+        // Avoid splitting paragraphs that contain block elements
+        if (/<(div|ul|ol|table|blockquote|h[1-6])/i.test(pInner)) return match;
+
+        const chunks = splitIntoChunks(pInner);
+        if (!chunks) return match;
+
+        // Simulate paragraph breaks within the block using <br><br>
+        return `<p${pAttrs}>${chunks.join('<br><br>')}</p>`;
+      });
+    }
+    return htmlOrText;
+  } else {
+    // Treat as plain text or inline HTML
+    const paras = htmlOrText.split(/\n\s*\n/).filter(p => p.trim());
+    return paras.map(p => {
+      const chunks = splitIntoChunks(p);
+      if (!chunks) return p;
+      return chunks.join('\n\n');
+    }).join('\n\n\n');
+  }
+}

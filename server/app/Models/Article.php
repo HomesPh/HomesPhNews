@@ -25,6 +25,8 @@ class Article extends Model
         'views_count',
         'category',
         'country',
+        'province_id',
+        'city_id',
         'source',
         'original_url',
         'keywords',
@@ -35,6 +37,8 @@ class Article extends Model
         'author',          // Author name
         'is_deleted',
         'slug',
+        'edited_by',
+        'published_at',
     ];
 
     /**
@@ -49,6 +53,7 @@ class Article extends Model
         'image' => 'array',
         'views_count' => 'integer',
         'is_deleted' => 'boolean',
+        'published_at' => 'datetime',
     ];
 
     /**
@@ -98,5 +103,12 @@ class Article extends Model
 
         // Fallback for single record access
         return $this->publishedSites()->pluck('site_name')->toArray();
+    }
+    /**
+     * Relationship: The user who last edited this article
+     */
+    public function editor()
+    {
+        return $this->belongsTo(User::class, 'edited_by');
     }
 }

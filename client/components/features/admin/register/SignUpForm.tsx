@@ -9,6 +9,7 @@ import { Chrome, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useAuth } from "@/lib/api-v2";
 import { useRegister } from "@/hooks/useRegister";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useAlert } from "@/hooks/useAlert";
 
 interface SignUpFormProps {
   initialMode?: SignUpMode;
@@ -20,6 +21,7 @@ export default function SignUpForm({ initialMode = 'signup-step1' }: SignUpFormP
   const router = useRouter();
   const user = useAuth((state) => state.user);
   const setAuth = useAuth((state) => state.setAuth);
+  const { showAlert } = useAlert();
 
   const [mode, setMode] = useState<SignUpMode>(initialMode);
   const { isLoading, error, handleRegister, handleVerifyOTP } = useRegister();
@@ -39,24 +41,24 @@ export default function SignUpForm({ initialMode = 'signup-step1' }: SignUpFormP
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleGoogleAuth = async () => {
-    alert("Google authentication will be implemented with OAuth");
+    showAlert("Coming Soon", "Google authentication will be implemented soon.");
   };
 
   const handleSignUpStep1Continue = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!signupData.firstName || !signupData.lastName || !signupData.email || !signupData.password || !signupData.confirmPassword) {
-      alert("Please fill in all fields");
+      showAlert("Missing Information", "Please fill in all fields to continue.");
       return;
     }
 
     if (signupData.password !== signupData.confirmPassword) {
-      alert("Passwords do not match!");
+      showAlert("Password Mismatch", "Passwords do not match! Please check and try again.");
       return;
     }
 
     if (signupData.password.length < 8) {
-      alert("Password must be at least 8 characters");
+      showAlert("Password Too Short", "Password must be at least 8 characters long.");
       return;
     }
 
@@ -78,12 +80,12 @@ export default function SignUpForm({ initialMode = 'signup-step1' }: SignUpFormP
     e.preventDefault();
 
     if (!signupData.verificationCode) {
-      alert("Please enter the verification code");
+      showAlert("Verification Required", "Please enter the verification code sent to your email.");
       return;
     }
 
     if (signupData.verificationCode.length !== 6) {
-      alert("Verification code must be 6 digits");
+      showAlert("Invalid Code", "Verification code must be exactly 6 digits.");
       return;
     }
 
@@ -356,7 +358,7 @@ export default function SignUpForm({ initialMode = 'signup-step1' }: SignUpFormP
             <div className="text-center">
               <button
                 type="button"
-                onClick={() => alert("Code resent!")}
+                onClick={() => showAlert("Code Sent", "A new verification code has been sent to your email.")}
                 className="text-sm text-[#1428AE] hover:underline font-medium"
               >
                 Resend Code

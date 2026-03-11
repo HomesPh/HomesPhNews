@@ -4,16 +4,20 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Mail, Briefcase, ArrowLeft, CheckCircle2, ChevronDown, Clock, Calendar, HelpCircle, ChevronUp } from "lucide-react";
 import { Categories, Countries, RestaurantCategories } from "@/app/data";
+import { useAlert } from "@/hooks/useAlert";
 
 interface SubscribeModalProps {
     isOpen: boolean;
     onClose: () => void;
+    categories?: { id: string; label: string }[];
+    countries?: { id: string; label: string }[];
 }
 
 type Step = 'choice' | 'email' | 'service' | 'configure';
 
-export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps) {
+export default function SubscribeModal({ isOpen, onClose, categories = [], countries = [] }: SubscribeModalProps) {
     const router = useRouter();
+    const { showAlert } = useAlert();
     const [step, setStep] = useState<Step>('choice');
     const [formData, setFormData] = useState({
         email: "",
@@ -145,7 +149,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                         onClose();
                     }, 3000);
                 } else {
-                    alert(data.message || 'Something went wrong. Please try again.');
+                    showAlert('Error', data.message || 'Something went wrong. Please try again.');
                 }
             } else if (step === 'configure') {
                 // Handle service subscription with file upload
@@ -179,7 +183,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                         onClose();
                     }, 3000);
                 } else {
-                    alert(data.message || 'Something went wrong. Please try again.');
+                    showAlert('Error', data.message || 'Something went wrong. Please try again.');
                 }
             } else {
                 // Fallback
@@ -191,7 +195,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
             }
         } catch (error) {
             console.error('Subscription error:', error);
-            alert('Failed to connect to the server. Please check your internet connection.');
+            showAlert('Connection Error', 'Failed to connect to the server. Please check your internet connection.');
         } finally {
             setIsLoading(false);
         }
@@ -367,14 +371,11 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                         }}
                                                     >
                                                         <option value="" disabled>Choose...</option>
-                                                        {([
-                                                            ...Categories.filter(c => c.id !== "All").map(c => ({ ...c, displayName: c.label })),
-                                                            ...RestaurantCategories.filter(c => c.id !== "All").map(c => ({ id: c.label, label: c.label, displayName: `Restaurant (${c.label})` }))
-                                                        ])
+                                                        {categories.filter(c => c.id !== "All")
                                                             .filter(c => !formData.categories.includes(c.id))
                                                             .map((category) => (
                                                                 <option key={`${category.id}-${category.label}`} value={category.id}>
-                                                                    {category.displayName}
+                                                                    {category.label}
                                                                 </option>
                                                             ))}
                                                     </select>
@@ -385,12 +386,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                 {errors.categories && <p className="text-red-500 text-[11px] mt-1 font-medium">{errors.categories}</p>}
                                                 <div className="flex flex-wrap gap-1.5 mt-2">
                                                     {formData.categories.map((catId) => {
-                                                        const allCats = [
-                                                            ...Categories.filter(c => c.id !== "All").map(c => ({ ...c, displayName: c.label })),
-                                                            ...RestaurantCategories.filter(c => c.id !== "All").map(c => ({ id: c.label, label: c.label, displayName: `Restaurant (${c.label})` }))
-                                                        ];
-                                                        const matched = allCats.find(c => c.id === catId);
-                                                        const label = matched ? matched.displayName : catId;
+                                                        const label = categories.find(c => c.id === catId)?.label || catId;
                                                         return (
                                                             <div key={catId} className="flex items-center gap-1 bg-blue-50 text-[#000785] px-2 py-0.5 rounded-full text-[11px] font-bold border border-blue-100">
                                                                 {label}
@@ -419,7 +415,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                         }}
                                                     >
                                                         <option value="" disabled>Choose...</option>
-                                                        {Countries.filter(c => c.id !== "Global" && !formData.countries.includes(c.id)).map((country) => (
+                                                        {countries.filter(c => c.id !== "Global" && !formData.countries.includes(c.id)).map((country) => (
                                                             <option key={country.id} value={country.id}>
                                                                 {country.label}
                                                             </option>
@@ -433,7 +429,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                 <div className="flex flex-wrap gap-1.5 mt-2">
                                                     {formData.countries.map((countryId) => (
                                                         <div key={countryId} className="flex items-center gap-1 bg-[#f0f9ff] text-[#0369a1] px-2 py-0.5 rounded-full text-[11px] font-bold border border-[#e0f2fe]">
-                                                            {Countries.find(c => c.id === countryId)?.label}
+                                                            {countries.find(c => c.id === countryId)?.label || countryId}
                                                             <X className="w-2.5 h-2.5 cursor-pointer" onClick={() => setFormData({ ...formData, countries: formData.countries.filter(id => id !== countryId) })} />
                                                         </div>
                                                     ))}
@@ -700,7 +696,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                     Category
                                                 </label>
                                                 <div className="flex flex-wrap gap-2">
-                                                    {Categories.filter(c => c.id !== "All").map((category) => (
+                                                    {categories.filter(c => c.id !== "All").map((category) => (
                                                         <button
                                                             key={category.id}
                                                             type="button"
@@ -731,7 +727,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
                                                     }}
                                                 >
                                                     <option value="">Select Country...</option>
-                                                    {Countries.filter(c => c.id !== "Global").map((country) => (
+                                                    {countries.filter(c => c.id !== "Global").map((country) => (
                                                         <option key={country.id} value={country.id}>
                                                             {country.label}
                                                         </option>

@@ -37,6 +37,8 @@ export interface BlogDetails {
     summary: string;
     category: string;
     country: string;
+    province_id: string | number;
+    city_id: string | number;
     tags: string[];
     author: string;
     authorTitle?: string;
@@ -61,6 +63,8 @@ export function useBlockEditor() {
             summary: "",
             category: "",
             country: "",
+            province_id: "",
+            city_id: "",
             tags: [],
             author: "",
             authorTitle: "",

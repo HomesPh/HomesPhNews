@@ -13,7 +13,12 @@ import { cn } from "@/lib/utils";
 import { getArticlesList, type ArticleResource } from "@/lib/api-v2";
 import SearchSuggestions from "@/components/features/dashboard/SearchSuggestions";
 
-export default function LandingHeader() {
+export type LandingHeaderProps = {
+  categories?: { id: string; label: string }[];
+  countries?: { id: string; label: string }[];
+}
+
+export default function LandingHeader({ categories = [], countries = [] }: LandingHeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -211,6 +216,8 @@ export default function LandingHeader() {
       <SubscribeModal
         isOpen={isSubscribeModalOpen}
         onClose={() => setIsSubscribeModalOpen(false)}
+        categories={categories}
+        countries={countries}
       />
     </>
   );

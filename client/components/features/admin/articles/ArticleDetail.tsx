@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from 'react';
-import { cn, decodeHtml } from "@/lib/utils";
+import { cn, decodeHtml, formatParagraphs } from "@/lib/utils";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "@/lib/api-v2";
 import { Calendar, Eye, Edit, ChevronLeft, Loader2, ExternalLink } from 'lucide-react';
@@ -31,6 +31,7 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { getSiteNames } from "@/lib/api-v2/admin/service/sites/getSiteNames";
+import { useAlert } from "@/hooks/useAlert";
 
 interface ArticleDetailProps {
     id: string;
@@ -38,6 +39,7 @@ interface ArticleDetailProps {
 }
 
 export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
+    const { showAlert } = useAlert();
     const router = useRouter();
     const searchParams = useSearchParams();
     const { user } = useAuth();
@@ -146,7 +148,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
     const handlePublishClick = () => {
         if (!article || !id) return;
         if (publishToSites.length === 0) {
-            alert('Please select at least one site to publish to.');
+            showAlert('Wait!', 'Please select at least one site to publish to.');
             return;
         }
         setShowPublishDialog(true);
@@ -162,7 +164,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
             router.push(`${defaultBackPath}?status=published`);
         } catch (error: any) {
             const message = error.response?.data?.message || 'Failed to publish article';
-            alert(`Error: ${message}`);
+            showAlert('Publish Error', message);
         } finally {
             setIsPublishing(false);
             setShowPublishDialog(false);
@@ -181,7 +183,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
             router.push(`${defaultBackPath}?status=deleted`);
         } catch (error: any) {
             const message = error.response?.data?.message || 'Failed to delete article';
-            alert(`Error: ${message}`);
+            showAlert('Delete Error', message);
         } finally {
             setIsDeleting(false);
             setShowDeleteDialog(false);
@@ -200,7 +202,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
             router.push(defaultBackPath);
         } catch (error: any) {
             const message = error.response?.data?.message || 'Failed to restore article';
-            alert(`Error: ${message}`);
+            showAlert('Restore Error', message);
         } finally {
             setIsRestoring(false);
             setShowRestoreDialog(false);
@@ -219,7 +221,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
             router.push(defaultBackPath);
         } catch (error: any) {
             const message = error.response?.data?.message || 'Failed to permanently delete article';
-            alert(`Error: ${message}`);
+            showAlert('Permanent Delete Error', message);
         } finally {
             setIsHardDeleting(false);
             setShowHardDeleteDialog(false);
@@ -360,7 +362,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                                                                 settings?.listType === 'bullet' && "list-disc ml-6",
                                                                                 settings?.listType === 'number' && "list-decimal ml-6"
                                                                             )}
-                                                                            dangerouslySetInnerHTML={{ __html: content?.text || content || '' }}
+                                                                            dangerouslySetInnerHTML={{ __html: formatParagraphs(content?.text || content || '') }}
 
                                                                         />
                                                                     )}
@@ -400,7 +402,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                                                             <div
                                                                                 style={blockStyle}
                                                                                 className="flex-1 text-[18px] text-[#374151] leading-[32px]"
-                                                                                dangerouslySetInnerHTML={{ __html: decodeHtml(content?.text || content || '') }}
+                                                                                dangerouslySetInnerHTML={{ __html: formatParagraphs(decodeHtml(content?.text || content || '')) }}
                                                                             />
                                                                         </div>
                                                                     )}
@@ -434,7 +436,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                                                             <div
                                                                                 style={blockStyle}
                                                                                 className="flex-1 p-8 md:p-12 flex items-center text-[20px] text-[#111827] leading-[1.4] font-medium"
-                                                                                dangerouslySetInnerHTML={{ __html: decodeHtml(content?.text || content || '') }}
+                                                                                dangerouslySetInnerHTML={{ __html: formatParagraphs(decodeHtml(content?.text || content || '')) }}
                                                                             />
                                                                         </div>
                                                                     )}
@@ -457,7 +459,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                                 ) : (
                                                     <div
                                                         className="whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>li]:mb-1 [&>a]:text-blue-600 [&>a]:underline first-letter:text-[72px] first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-5px] first-letter:leading-[0.8] first-letter:text-[#0c0c0c] [&_p]:min-h-[1.5em]"
-                                                        dangerouslySetInnerHTML={{ __html: content }}
+                                                        dangerouslySetInnerHTML={{ __html: formatParagraphs(content) }}
                                                     />
                                                 )}
                                             </div>
@@ -515,8 +517,8 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                             <div
                                                 onClick={() => !(isEditor && site !== "Main News Portal") && toggleSite(site)}
                                                 className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${publishToSites.includes(site)
-                                                        ? 'bg-[#111827] border-[#111827]'
-                                                        : 'bg-white border-[#d1d5db]'
+                                                    ? 'bg-[#111827] border-[#111827]'
+                                                    : 'bg-white border-[#d1d5db]'
                                                     } ${isEditor && site !== "Main News Portal" ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                                             >
                                                 {publishToSites.includes(site) && (
