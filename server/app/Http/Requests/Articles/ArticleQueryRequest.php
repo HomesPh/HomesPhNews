@@ -32,7 +32,7 @@ class ArticleQueryRequest extends FormRequest
             'limit' => 'nullable|integer|min:1|max:100',
             'offset' => 'nullable|integer|min:0',
             'status' => 'nullable|string|in:published,pending,rejected,pending review,being_processed,all,deleted,edited',
-            'sort_by' => 'nullable|string|in:created_at,views_count,title,timestamp',
+            'sort_by' => 'nullable|string|in:created_at,views_count,title,timestamp,published_at',
             'sort_direction' => 'nullable|string|in:asc,desc',
             'per_page' => 'nullable|integer|min:1|max:100',
             'page' => 'nullable|integer|min:1',
