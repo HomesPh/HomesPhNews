@@ -1,22 +1,22 @@
 """
-HomesPh Global News Engine - API Routes
-FastAPI route handlers for articles and metadata.
+HomesPh Articles Service - API Routes
+FastAPI route handlers for articles, metadata, and admin triggers.
+
+This is the articles-only router. For the unified service, use root routes.py.
 """
 
 import json
-import asyncio
+import time
 from typing import List
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
+from sqlalchemy.orm import Session
 
 from models import (
-    Article, ArticleSummary, Restaurant, RestaurantSummary, 
+    Article, ArticleSummary,
     CountryStats, CategoryStats, ImageGenerationRequest,
     CategoryDB, CountryDB, CityDB, DBCategory, DBCountry, DBCity
 )
 from database import redis_client, PREFIX, get_db
-from sqlalchemy.orm import Session
-from fastapi import Depends
-
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -24,6 +24,7 @@ from fastapi import Depends
 # ═══════════════════════════════════════════════════════════════
 
 router = APIRouter()
+
 
 # ═══════════════════════════════════════════════════════════════
 # DATABASE ROUTES (MYSQL)
@@ -35,20 +36,19 @@ async def get_db_categories(db: Session = Depends(get_db)):
     categories = db.query(CategoryDB).all()
     return categories
 
+
 @router.get("/db/countries", response_model=List[DBCountry], tags=["Database"])
 async def get_db_countries(db: Session = Depends(get_db)):
     """Fetch all countries from the MySQL database."""
     countries = db.query(CountryDB).all()
     return countries
 
+
 @router.get("/db/cities", response_model=List[DBCity], tags=["Database"])
 async def get_db_cities(db: Session = Depends(get_db)):
     """Fetch all cities from the MySQL database."""
     cities = db.query(CityDB).all()
     return cities
-
-
-
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -59,7 +59,7 @@ def get_articles_from_set(key: str, limit: int = 20, offset: int = 0) -> List[di
     """Fetch articles from a Redis set, sorted by ID (desc)."""
     article_ids = redis_client.smembers(key)
     sorted_ids = sorted(list(article_ids), reverse=True)[offset:offset + limit]
-    
+
     articles = []
     for aid in sorted_ids:
         data = redis_client.get(f"{PREFIX}article:{aid}")
@@ -107,11 +107,11 @@ async def delete_article(article_id: str):
     """Delete an article and its associated cloud storage image."""
     from storage import StorageHandler
     storage = StorageHandler()
-    
+
     success = storage.delete_article(article_id)
     if not success:
         raise HTTPException(status_code=404, detail="Article not found or could not be deleted")
-        
+
     return {"message": f"Article {article_id} deleted successfully"}
 
 
@@ -120,7 +120,7 @@ async def clear_all_articles():
     """Wipe ALL articles from Redis and Cloud Storage."""
     from storage import StorageHandler
     storage = StorageHandler()
-    
+
     deleted_count = storage.clear_all_articles()
     return {"message": f"Successfully deleted {deleted_count} articles and images. Database is clean."}
 
@@ -133,10 +133,10 @@ async def get_articles_by_country(
     """Get articles filtered by country."""
     key = f"{PREFIX}country:{country.lower().replace(' ', '_')}"
     articles = get_articles_from_set(key, limit)
-    
+
     if not articles:
         raise HTTPException(status_code=404, detail=f"No articles for: {country}")
-    
+
     return [format_summary(a) for a in articles]
 
 
@@ -148,10 +148,10 @@ async def get_articles_by_category(
     """Get articles filtered by category."""
     key = f"{PREFIX}category:{category.lower().replace(' ', '_')}"
     articles = get_articles_from_set(key, limit)
-    
+
     if not articles:
         raise HTTPException(status_code=404, detail=f"No articles for: {category}")
-    
+
     return [format_summary(a) for a in articles]
 
 
@@ -159,13 +159,13 @@ async def get_articles_by_category(
 async def get_latest_articles(limit: int = Query(10, ge=1, le=50)):
     """Get the most recent articles."""
     article_ids = redis_client.zrevrange(f"{PREFIX}articles_by_time", 0, limit - 1)
-    
+
     articles = []
     for aid in article_ids:
         data = redis_client.get(f"{PREFIX}article:{aid}")
         if data:
             articles.append(json.loads(data))
-    
+
     return [format_summary(a) for a in articles]
 
 
@@ -178,19 +178,19 @@ async def search_articles(
     all_ids = redis_client.smembers(f"{PREFIX}all_articles")
     results = []
     query_lower = q.lower()
-    
+
     for aid in all_ids:
         data = redis_client.get(f"{PREFIX}article:{aid}")
         if data:
             article = json.loads(data)
             title = article.get("title", "").lower()
             content = article.get("content", "").lower()
-            
+
             if query_lower in title or query_lower in content:
                 results.append(format_summary(article))
                 if len(results) >= limit:
                     break
-    
+
     return results
 
 
@@ -202,13 +202,13 @@ async def search_articles(
 async def get_countries():
     """Get list of all countries with article counts."""
     keys = redis_client.keys(f"{PREFIX}country:*")
-    
+
     countries = []
     for key in sorted(keys):
         name = key.split(":")[-1].replace("_", " ").title()
         count = redis_client.scard(key)
         countries.append({"name": name, "count": count})
-    
+
     return sorted(countries, key=lambda x: x["count"], reverse=True)
 
 
@@ -216,30 +216,53 @@ async def get_countries():
 async def get_categories():
     """Get list of all categories with article counts."""
     from config import CATEGORIES
-    
-    # 1. Get counts from Redis
+
     keys = redis_client.keys(f"{PREFIX}category:*")
     counts = {}
     for key in keys:
         raw_name = key.split(":")[-1].replace("_", " ").title()
         counts[raw_name] = redis_client.scard(key)
-    
-    # 2. Build list from master CATEGORIES list
+
     results = []
     seen_names = set()
-    
+
     for cat_name in CATEGORIES:
         name = cat_name.title()
         count = counts.get(name, 0)
         results.append({"name": name, "count": count})
         seen_names.add(name)
-    
-    # 3. Add any categories found in Redis but NOT in config (just in case)
+
     for name, count in counts.items():
         if name not in seen_names:
             results.append({"name": name, "count": count})
-    
+
     return sorted(results, key=lambda x: x["count"], reverse=True)
+
+
+# ═══════════════════════════════════════════════════════════════
+# AI ROUTES
+# ═══════════════════════════════════════════════════════════════
+
+@router.post("/generate-images", tags=["AI"])
+async def generate_images(payload: ImageGenerationRequest):
+    """
+    Generate images using AI based on a text prompt.
+    Directly uploads to Cloud Storage and returns public URLs.
+    """
+    from ai_service import AIProcessor
+    ai = AIProcessor()
+
+    generated_urls = []
+
+    for i in range(payload.n):
+        url = ai.generate_image(payload.prompt, None, upload=True)
+        if url and "placehold.co" not in url:
+            generated_urls.append(url)
+
+    if not generated_urls:
+        raise HTTPException(status_code=500, detail="Failed to generate images. AI model might be busy or quota exceeded.")
+
+    return {"urls": generated_urls}
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -251,27 +274,19 @@ async def trigger_job():
     """
     Manually trigger the scheduled scraper job.
     SYNCHRONOUS: Waits for job to complete before returning.
-    This keeps the Cloud Run instance alive during processing.
-    Timeout: Up to 60 minutes (set via --timeout 3600)
     """
     from scheduler import run_hourly_job, job_status
-    import time
-    
-    # Check if already running
+
     if job_status["is_running"]:
         raise HTTPException(status_code=409, detail="Job is already running. Please wait for it to complete.")
-    
+
     start_time = time.time()
-    
-    # Run the job SYNCHRONOUSLY (await it)
     results = await run_hourly_job()
-    
     duration = round(time.time() - start_time, 2)
-    
-    # Calculate summary
+
     success = sum(1 for r in (results or []) if r.get("status") == "success")
     errors = sum(1 for r in (results or []) if r.get("status") == "error")
-    
+
     return {
         "status": "completed",
         "message": f"Job completed in {duration}s. {success} success, {errors} errors.",
@@ -285,18 +300,15 @@ async def trigger_job():
 
 @router.post("/trigger/sports", tags=["Admin"])
 async def trigger_sports_job():
-    """
-    Manually trigger the sports-specific generation job.
-    """
+    """Manually trigger the sports-specific generation job."""
     from scheduler import run_sports_job
-    import time
-    
+
     start_time = time.time()
     results = await run_sports_job()
     duration = round(time.time() - start_time, 2)
-    
+
     success = sum(1 for r in results if r["status"] == "success")
-    
+
     return {
         "status": "completed",
         "message": f"Sports Job completed in {duration}s. {success} articles published.",
@@ -309,10 +321,7 @@ async def trigger_sports_job():
 
 @router.post("/trigger/cancel", tags=["Admin"])
 async def cancel_job():
-    """
-    Request the running news scraper job to stop.
-    The job will stop after finishing the current batch of countries (up to 5).
-    """
+    """Request the running news scraper job to stop."""
     from scheduler import get_job_status, request_job_cancel
     status = get_job_status()
     if not status["is_running"]:
@@ -327,7 +336,7 @@ async def get_status():
     from scheduler import get_job_status
     from scheduler_control import is_enabled as scheduler_is_enabled
     status = get_job_status()
-    
+
     return {
         "is_running": status["is_running"],
         "cancel_requested": status.get("cancel_requested", False),
