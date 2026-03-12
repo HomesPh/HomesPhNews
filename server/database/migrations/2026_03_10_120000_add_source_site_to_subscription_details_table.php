@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('subscription_details', function (Blueprint $table) {
-            if (!Schema::hasColumn('subscription_details', 'source_site')) {
-                $table->string('source_site')->nullable()->after('company_name');
-            }
-        });
+        if (Schema::hasTable('subscription_details')) {
+            Schema::table('subscription_details', function (Blueprint $table) {
+                if (!Schema::hasColumn('subscription_details', 'source_site')) {
+                    $table->string('source_site')->nullable()->after('company_name');
+                }
+            });
+        }
     }
 
     /**
@@ -23,10 +25,12 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('subscription_details', function (Blueprint $table) {
-            if (Schema::hasColumn('subscription_details', 'source_site')) {
-                $table->dropColumn('source_site');
-            }
-        });
+        if (Schema::hasTable('subscription_details')) {
+            Schema::table('subscription_details', function (Blueprint $table) {
+                if (Schema::hasColumn('subscription_details', 'source_site')) {
+                    $table->dropColumn('source_site');
+                }
+            });
+        }
     }
 };
