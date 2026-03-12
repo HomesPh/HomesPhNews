@@ -48,6 +48,7 @@ class UpdateArticleRequest extends FormRequest
             'slug' => 'nullable|string|max:255',
             'image_position' => 'nullable|integer',
             'image_position_x' => 'nullable|integer',
+            'original_url' => 'nullable|string|max:2000',
         ];
     }
 }
