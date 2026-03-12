@@ -84,9 +84,11 @@ export default function ArticlesPage() {
     const [availableFilters, setAvailableFilters] = useState<{
         categories: { name: string; count: number }[];
         countries: { name: string; count: number }[];
+        cities: { name: string; count: number }[];
     }>({
         categories: [],
         countries: [],
+        cities: [],
     });
 
     // State for status counts (from backend)
@@ -363,6 +365,7 @@ export default function ArticlesPage() {
                     setFilters={setFilters}
                     availableCategories={availableFilters.categories}
                     availableCountries={availableFilters.countries}
+                    availableCities={availableFilters.cities}
                 />
 
                 {/* Being Processed: bulk Move to DB bar */}

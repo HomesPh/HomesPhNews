@@ -22,6 +22,7 @@ export type AdminArticleListParams = {
   page?: number;
   start_date?: string;
   end_date?: string;
+  editor_id?: string | number;
 };
 
 export interface AdminArticleStatusCounts {
@@ -38,6 +39,7 @@ export interface AdminArticleStatusCounts {
 export interface AdminArticleAvailableFilters {
   categories: { name: string; count: number }[];
   countries: { name: string; count: number }[];
+  cities: { name: string; count: number }[];
 }
 
 export interface PaginatorLink {
