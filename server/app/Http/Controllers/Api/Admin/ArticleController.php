@@ -92,7 +92,14 @@ class ArticleController extends Controller
             ->when($validated['start_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '>=', $d))
             ->when($validated['end_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '<=', $d))
             ->when($validated['category'] ?? null, fn($q, $c) => $q->where('category', $c))
-            ->when($validated['country'] ?? null, fn($q, $c) => $q->where('country', 'like', "%{$c}%"));
+            ->when($validated['country'] ?? null, fn($q, $c) => $q->where('country', 'like', "%{$c}%"))
+            ->when($validated['city'] ?? null, function ($q, $c) {
+                if ($c && $c !== 'all') {
+                    $city = \App\Models\City::where('name', 'LIKE', $c)->first();
+                    $q->where('city_id', $city ? $city->city_id : -1); // Use -1 if not found to show nothing
+                }
+            })
+            ->when($validated['editor_id'] ?? null, fn($q, $id) => $q->where('edited_by', $id));
 
         // Get available filter counts dynamically based on OTHER active filters
         // Logic: 
@@ -143,7 +150,13 @@ class ArticleController extends Controller
             })
             ->when($validated['start_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '>=', $d))
             ->when($validated['end_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '<=', $d))
-            ->when($validated['country'] ?? null, fn($q, $c) => $q->where('country', 'like', "%{$c}%")); // Ignore city for category counts if country is fixed? Actually city belongs to country.
+            ->when($validated['country'] ?? null, fn($q, $c) => $q->where('country', 'like', "%{$c}%"))
+            ->when($validated['city'] ?? null, function ($q, $c) {
+                if ($c && $c !== 'all') {
+                    $city = \App\Models\City::where('name', 'LIKE', $c)->first();
+                    $q->where('city_id', $city ? $city->city_id : -1);
+                }
+            }); 
 
         $dbCategoryCounts = (clone $categoryBaseQuery)->whereNotNull('category')->groupBy('category')->selectRaw('category, count(*) as count')->pluck('count', 'category')->toArray();
 
@@ -192,9 +205,41 @@ class ArticleController extends Controller
 
         $dbCountryCounts = (clone $countryBaseQuery)->whereNotNull('country')->groupBy('country')->selectRaw('country, count(*) as count')->pluck('count', 'country')->toArray();
 
+        // 3. Base query for City counts (only if country is selected, ignore current city)
+        $dbCityCounts = [];
+        if (!empty($validated['country'])) {
+            $countryModel = \App\Models\Country::where('name', 'like', "%{$validated['country']}%")->first();
+            
+            if ($countryModel) {
+                $allCitiesForCountry = \App\Models\City::where('country_id', $countryModel->id)->where('is_active', true)->get();
+                
+                // Iterate carefully: we want to show all valid cities for this country in the filter dropdown
+                foreach ($allCitiesForCountry as $cityObj) {
+                    $dbCityCounts[$cityObj->name] = 0;
+                }
+
+                $cityBaseQuery = (clone $countryBaseQuery)->where('country', 'like', "%{$validated['country']}%");
+                $dbCityCountsRaw = (clone $cityBaseQuery)
+                    ->whereNotNull('city_id')
+                    ->whereIn('city_id', $allCitiesForCountry->pluck('city_id'))
+                    ->groupBy('city_id')
+                    ->selectRaw('city_id, count(*) as count')
+                    ->pluck('count', 'city_id')
+                    ->toArray();
+                    
+                foreach ($dbCityCountsRaw as $cityId => $count) {
+                    $city = $allCitiesForCountry->firstWhere('city_id', $cityId);
+                    if ($city) {
+                        $dbCityCounts[$city->name] += $count;
+                    }
+                }
+            }
+        }
+
         // Also merge Redis counts when fetching 'all' or 'being_processed'
         $redisCategoryCounts = [];
         $redisCountryCounts = [];
+        $redisCityCounts = [];
         if (!$status || $status === 'all' || $status === 'being_processed') {
             try {
                 // To get counts for Redis items, we should ideally ask Redis for filtered counts
@@ -209,11 +254,13 @@ class ArticleController extends Controller
                             $match = false;
                         if (!empty($validated['country']) && ($a['country'] ?? '') !== $validated['country'])
                             $match = false;
+                        if (!empty($validated['city']) && ($a['city'] ?? '') !== $validated['city'])
+                            $match = false;
                         return $match;
                     })
                     ->groupBy('category')->map(fn($group) => $group->count())->toArray();
 
-                // For Country counts, apply Redis side filtering except country
+                // For Country counts, apply Redis side filtering except country and city
                 $redisCountryCounts = collect($redisArticles)
                     ->filter(function ($a) use ($validated) {
                         $match = true;
@@ -224,6 +271,27 @@ class ArticleController extends Controller
                         return $match;
                     })
                     ->groupBy('country')->map(fn($group) => $group->count())->toArray();
+                
+                // For City counts, apply Redis side filtering except city (only if country is matched)
+                if (!empty($validated['country'])) {
+                    $redisCityCounts = collect($redisArticles)
+                        ->filter(function ($a) use ($validated) {
+                            $match = true;
+                            if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false)
+                                $match = false;
+                            if (!empty($validated['category']) && ($a['category'] ?? '') !== $validated['category'])
+                                $match = false;
+                            if (($a['country'] ?? '') !== $validated['country'])
+                                $match = false;
+                            
+                            // Important: ignore empty strings or nulls for city in redis otherwise we get counts for ''
+                            if (empty($a['city'])) 
+                                $match = false;
+
+                            return $match;
+                        })
+                        ->groupBy('city')->map(fn($group) => $group->count())->toArray();
+                }
             } catch (\Exception $e) {
                 \Log::warning('Failed to get Redis counts: ' . $e->getMessage());
             }
@@ -250,9 +318,19 @@ class ArticleController extends Controller
             ];
         }
 
+        $finalCityCounts = [];
+        $allCityNames = collect(array_merge(array_keys($dbCityCounts), array_keys($redisCityCounts)))->unique()->filter()->toArray();
+        foreach ($allCityNames as $city) {
+            $finalCityCounts[] = [
+                'name' => $city,
+                'count' => ($dbCityCounts[$city] ?? 0) + ($redisCityCounts[$city] ?? 0)
+            ];
+        }
+
         // Sort results
         usort($finalCategoryCounts, fn($a, $b) => strcmp($a['name'], $b['name']));
         usort($finalCountryCounts, fn($a, $b) => strcmp($a['name'], $b['name']));
+        usort($finalCityCounts, fn($a, $b) => strcmp($a['name'], $b['name']));
 
         // Paginate DB results - Eager load to prevent N+1 queries
         $articles = $query
@@ -323,6 +401,7 @@ class ArticleController extends Controller
             'available_filters' => [
                 'categories' => $finalCategoryCounts,
                 'countries' => $finalCountryCounts,
+                'cities' => $finalCityCounts,
             ],
         ]);
     }
@@ -539,11 +618,32 @@ class ArticleController extends Controller
         unset($validated['split_images']); // Not stored in articles table
         unset($validated['date']); // Not a database column
 
+        // Determine if there are actual content changes (excluding status and non-content fields)
+        $nonContentFields = ['status', 'published_sites', 'custom_titles', 'galleryImages', 'gallery_images', 'split_images', 'date'];
+        $hasContentChanges = false;
+
+        foreach ($validated as $key => $value) {
+            if (!in_array($key, $nonContentFields)) {
+                if ($article->getAttribute($key) != $value) {
+                    $hasContentChanges = true;
+                    break;
+                }
+            }
+        }
+
+        // Also check gallery images
+        if (!$hasContentChanges && (isset($validated['galleryImages']) || isset($validated['gallery_images']))) {
+            $hasContentChanges = true;
+        }
+
         if (isset($validated['status']) && $validated['status'] === 'published' && !$article->published_at) {
             $validated['published_at'] = now();
         }
 
-        $validated['edited_by'] = auth()->id();
+        if ($hasContentChanges) {
+            $validated['edited_by'] = auth()->id();
+        }
+
         $article->update($validated);
 
         return new ArticleResource($article);
@@ -599,7 +699,6 @@ class ArticleController extends Controller
         $finalData = [
             'status' => 'published',
             'is_deleted' => false,
-            'edited_by' => auth()->id(),
             'published_at' => now(),
         ];
 
@@ -635,6 +734,30 @@ class ArticleController extends Controller
         // C. Layer with Request Payload (Decisive authority)
         // Only include fields that were explicitly sent in the request
         $payload = array_filter($validated, fn($v) => !is_null($v));
+
+        // Determine if there are actual content changes in the payload
+        $nonContentFields = ['status', 'published_sites', 'custom_titles', 'gallery_images', 'galleryImages'];
+        $hasContentChanges = false;
+        foreach ($payload as $key => $value) {
+            if (!in_array($key, $nonContentFields)) {
+                $baseValue = $existing ? $existing->getAttribute($key) : ($redisArticle[$key] ?? null);
+                if ($baseValue != $value) {
+                    $hasContentChanges = true;
+                    break;
+                }
+            }
+        }
+
+        if (!$hasContentChanges && (isset($payload['gallery_images']) || isset($payload['galleryImages']))) {
+            $hasContentChanges = true;
+        }
+
+        if ($hasContentChanges) {
+            $finalData['edited_by'] = auth()->id();
+        } else {
+            $finalData['edited_by'] = $existing ? $existing->edited_by : null;
+        }
+
         $finalData = array_merge($finalData, $payload);
 
         // 1.5 - Force status and clear deletion flag
@@ -944,7 +1067,7 @@ class ArticleController extends Controller
                         'status' => 'pending review',
                         'views_count' => 0,
                         'is_deleted' => false,
-                        'edited_by' => auth()->id(),
+                        'edited_by' => null, // Initial move to DB for review is not an edit
                     ];
 
                     $article = Article::create($payload);
@@ -1239,7 +1362,7 @@ class ArticleController extends Controller
                         'source' => $redisArticle['source'] ?? 'Scraper',
                         'status' => 'rejected',
                         'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? 'article-' . $id),
-                        'edited_by' => auth()->id(),
+                        'edited_by' => null, // Rejecting a raw scraper article is not an edit
                     ]);
                     $this->redisService->deleteArticle($id);
                     $count++;

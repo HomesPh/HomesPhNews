@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Admin\CategoryController;
 use App\Http\Controllers\Api\Admin\CityController;
 use App\Http\Controllers\Api\Admin\CountryController;
 use App\Http\Controllers\Api\Admin\DashboardController;
+use App\Http\Controllers\Api\Admin\GenerationController;
 use App\Http\Controllers\Api\Admin\MailingListGroupController;
 use App\Http\Controllers\Api\Admin\ProvinceController;
 use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
@@ -299,6 +300,12 @@ Route::prefix('v1')->group(function () {
 
                 // Upload Routes
                 Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
+
+                // AI Generation Routes
+                Route::prefix('generate')->name('generate.')->group(function () {
+                    Route::post('/text', [GenerationController::class, 'text'])->name('text');
+                    Route::post('/image', [GenerationController::class, 'image'])->name('image');
+                });
             });
 
             // ═══════════════════════════════════════════════════════════════
