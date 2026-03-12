@@ -26,6 +26,7 @@ interface ArticlesFiltersProps {
     setFilters: (updates: any) => void;
     availableCategories?: (string | FilterOption)[];
     availableCountries?: (string | FilterOption)[];
+    availableCities?: (string | FilterOption)[];
 }
 
 // Dummy city data mapped by country name
@@ -48,7 +49,8 @@ export default function ArticlesFilters({
     cityFilter,
     setFilters,
     availableCategories = [],
-    availableCountries = []
+    availableCountries = [],
+    availableCities = []
 }: ArticlesFiltersProps) {
     // Filter out "Restaurant" categories
     const filteredCategories = availableCategories.filter((cat) => {
@@ -61,14 +63,9 @@ export default function ArticlesFilters({
         return { value: opt.name, name: opt.name, count: opt.count };
     };
 
-    // Get cities based on selected country
-    const [cities, setCities] = useState<string[]>([]);
-
+    // Handle city filter reset when country changes
     useEffect(() => {
-        if (countryFilter && DUMMY_CITIES[countryFilter]) {
-            setCities(DUMMY_CITIES[countryFilter]);
-        } else {
-            setCities([]);
+        if (!countryFilter) {
             // Only clear city if it's not already empty to prevent infinite loops
             if (cityFilter !== '') {
                 setFilters({ city: '' });
@@ -147,9 +144,14 @@ export default function ArticlesFilters({
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">{countryFilter ? 'All Cities' : 'Select Country First'}</SelectItem>
-                        {cities.map((city) => (
-                            <SelectItem key={city} value={city}>{city}</SelectItem>
-                        ))}
+                        {availableCities.map((city) => {
+                            const data = getOptionData(city);
+                            return (
+                                <SelectItem key={data.value} value={data.value}>
+                                    {data.name} <span className="text-[#1428AE] ml-1">({data.count})</span>
+                                </SelectItem>
+                            );
+                        })}
                     </SelectContent>
                 </Select>
             </div>
