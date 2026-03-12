@@ -67,11 +67,12 @@ class SendDailyNewsletter extends Command
                 continue;
             }
 
-            // Find articles matching subscriber preferences
+            // Find articles matching subscriber preferences from the last 24 hours
             $articles = Article::whereIn('category', $subscriber->category)
                 ->whereIn('country', $subscriber->country)
                 ->where('status', 'published')
-                ->latest()
+                ->where('published_at', '>=', now()->subDay())
+                ->latest('published_at')
                 ->limit(5)
                 ->get();
 

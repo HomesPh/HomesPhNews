@@ -25,7 +25,8 @@ Artisan::command('newsletter:test {email}', function (string $email) {
     $articles = Article::whereIn('category', $subscriber->category ?? [])
         ->whereIn('country', $subscriber->country ?? [])
         ->where('status', 'published')
-        ->latest()
+        ->where('published_at', '>=', now()->subDay())
+        ->latest('published_at')
         ->limit(5)
         ->get();
 
