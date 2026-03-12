@@ -195,8 +195,7 @@
         </table>
         <div class="header" style="background-color: #ffffff; padding: 25px 20px;">
             <a href="https://news.homes.ph" style="text-decoration: none;">
-                <img src="https://news.homes.ph/images/HomesLogo.png" alt="Homes.ph News" style="height: 32px; width: auto; display: inline-block; vertical-align: middle;">
-
+                <img src="{{ $logo ?? 'https://news.homes.ph/images/HomesLogo.png' }}" alt="Homes.ph News" style="height: 28px; width: auto; display: inline-block; vertical-align: middle;">
             </a>
         </div>
         <table class="color-bar" cellpadding="0" cellspacing="0" border="0" style="width: 100%; height: 12px;">

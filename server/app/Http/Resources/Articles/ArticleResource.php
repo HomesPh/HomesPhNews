@@ -167,10 +167,10 @@ class ArticleResource extends JsonResource
             'brand_story' => $get('brand_story'),
             'tags' => $get('tags', []),
             'features' => $get('features', []),
-            'edited_by' => (int)$get('edited_by', 0),
-            'editor_name' => $isModel && $res->relationLoaded('editor') ? $res->editor?->name : null,
-            'editor_first_name' => $isModel && $res->relationLoaded('editor') ? $res->editor?->first_name : null,
-            'editor_last_name' => $isModel && $res->relationLoaded('editor') ? $res->editor?->last_name : null,
+            'edited_by' => !in_array(strtolower($status), ['pending', 'pending review']) ? (int)$get('edited_by', 0) : null,
+            'editor_name' => !in_array(strtolower($status), ['pending', 'pending review']) && $isModel && $res->relationLoaded('editor') ? $res->editor?->name : null,
+            'editor_first_name' => !in_array(strtolower($status), ['pending', 'pending review']) && $isModel && $res->relationLoaded('editor') ? $res->editor?->first_name : null,
+            'editor_last_name' => !in_array(strtolower($status), ['pending', 'pending review']) && $isModel && $res->relationLoaded('editor') ? $res->editor?->last_name : null,
             'published_at' => (string) $get('published_at', ''),
         ];
     }
