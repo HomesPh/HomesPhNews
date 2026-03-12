@@ -618,11 +618,32 @@ class ArticleController extends Controller
         unset($validated['split_images']); // Not stored in articles table
         unset($validated['date']); // Not a database column
 
+        // Determine if there are actual content changes (excluding status and non-content fields)
+        $nonContentFields = ['status', 'published_sites', 'custom_titles', 'galleryImages', 'gallery_images', 'split_images', 'date'];
+        $hasContentChanges = false;
+
+        foreach ($validated as $key => $value) {
+            if (!in_array($key, $nonContentFields)) {
+                if ($article->getAttribute($key) != $value) {
+                    $hasContentChanges = true;
+                    break;
+                }
+            }
+        }
+
+        // Also check gallery images
+        if (!$hasContentChanges && (isset($validated['galleryImages']) || isset($validated['gallery_images']))) {
+            $hasContentChanges = true;
+        }
+
         if (isset($validated['status']) && $validated['status'] === 'published' && !$article->published_at) {
             $validated['published_at'] = now();
         }
 
-        $validated['edited_by'] = auth()->id();
+        if ($hasContentChanges) {
+            $validated['edited_by'] = auth()->id();
+        }
+
         $article->update($validated);
 
         return new ArticleResource($article);
@@ -678,7 +699,6 @@ class ArticleController extends Controller
         $finalData = [
             'status' => 'published',
             'is_deleted' => false,
-            'edited_by' => auth()->id(),
             'published_at' => now(),
         ];
 
@@ -714,6 +734,30 @@ class ArticleController extends Controller
         // C. Layer with Request Payload (Decisive authority)
         // Only include fields that were explicitly sent in the request
         $payload = array_filter($validated, fn($v) => !is_null($v));
+
+        // Determine if there are actual content changes in the payload
+        $nonContentFields = ['status', 'published_sites', 'custom_titles', 'gallery_images', 'galleryImages'];
+        $hasContentChanges = false;
+        foreach ($payload as $key => $value) {
+            if (!in_array($key, $nonContentFields)) {
+                $baseValue = $existing ? $existing->getAttribute($key) : ($redisArticle[$key] ?? null);
+                if ($baseValue != $value) {
+                    $hasContentChanges = true;
+                    break;
+                }
+            }
+        }
+
+        if (!$hasContentChanges && (isset($payload['gallery_images']) || isset($payload['galleryImages']))) {
+            $hasContentChanges = true;
+        }
+
+        if ($hasContentChanges) {
+            $finalData['edited_by'] = auth()->id();
+        } else {
+            $finalData['edited_by'] = $existing ? $existing->edited_by : null;
+        }
+
         $finalData = array_merge($finalData, $payload);
 
         // 1.5 - Force status and clear deletion flag
@@ -1023,7 +1067,7 @@ class ArticleController extends Controller
                         'status' => 'pending review',
                         'views_count' => 0,
                         'is_deleted' => false,
-                        'edited_by' => auth()->id(),
+                        'edited_by' => null, // Initial move to DB for review is not an edit
                     ];
 
                     $article = Article::create($payload);
@@ -1318,7 +1362,7 @@ class ArticleController extends Controller
                         'source' => $redisArticle['source'] ?? 'Scraper',
                         'status' => 'rejected',
                         'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? 'article-' . $id),
-                        'edited_by' => auth()->id(),
+                        'edited_by' => null, // Rejecting a raw scraper article is not an edit
                     ]);
                     $this->redisService->deleteArticle($id);
                     $count++;
