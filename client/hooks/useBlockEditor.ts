@@ -46,6 +46,7 @@ export interface BlogDetails {
     publishTime: string;
     platforms: string[];
     views: number;
+    original_url: string;
 }
 
 interface EditorState {
@@ -71,7 +72,8 @@ export function useBlockEditor() {
             publishDate: new Date().toISOString().split('T')[0],
             publishTime: "12:00",
             platforms: [],
-            views: 0
+            views: 0,
+            original_url: ""
         }
     };
 

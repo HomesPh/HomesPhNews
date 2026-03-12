@@ -42,6 +42,7 @@ class StoreArticleRequest extends FormRequest
             'author' => 'nullable|string',
             'date' => 'nullable|string',
             'slug' => 'nullable|string',
+            'original_url' => 'nullable|string|max:2000',
         ];
     }
 }
