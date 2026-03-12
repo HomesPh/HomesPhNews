@@ -23,6 +23,11 @@ const SidebarItems = [
         icon: FileText,
     },
     {
+        title: "Editor",
+        href: "/ceo/editors",
+        icon: FileText,
+    },
+    {
         title: "Mailing List",
         href: "/ceo/mailing-list",
         icon: Send,

@@ -26,6 +26,7 @@ class ArticleQueryRequest extends FormRequest
             'q' => 'nullable|string|max:100',
             'search' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:50',
+            'city' => 'nullable|string|max:50',
             'category' => 'nullable|string|max:50',
             'topic' => 'nullable|string|max:50',
             'topics' => 'nullable|string',
@@ -38,6 +39,7 @@ class ArticleQueryRequest extends FormRequest
             'page' => 'nullable|integer|min:1',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
+            'editor_id' => 'nullable|integer',
         ];
     }
 }

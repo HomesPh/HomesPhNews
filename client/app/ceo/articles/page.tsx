@@ -60,7 +60,8 @@ export default function CEOArticlesPage() {
     const [availableFilters, setAvailableFilters] = useState<{
         categories: { name: string; count: number }[];
         countries: { name: string; count: number }[];
-    }>({ categories: [], countries: [] });
+        cities: { name: string; count: number }[];
+    }>({ categories: [], countries: [], cities: [] });
 
     const [counts, setCounts] = useState({
         all: 0,
@@ -439,6 +440,7 @@ export default function CEOArticlesPage() {
                     setFilters={setFilters}
                     availableCategories={availableFilters.categories}
                     availableCountries={availableFilters.countries}
+                    availableCities={availableFilters.cities}
                 />
 
                 {/* Bulk Actions Bar */}
