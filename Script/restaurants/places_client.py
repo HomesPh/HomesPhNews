@@ -214,7 +214,8 @@ def _places_text_search_with_query(
     }
     try:
         time.sleep(REQUEST_DELAY_SECONDS)
-        resp = requests.get(url, params=params, timeout=15)
+        # Timeout 25s to reduce DEADLINE_EXCEEDED (Google Places can be slow for some regions e.g. Japan)
+        resp = requests.get(url, params=params, timeout=25)
         data = resp.json()
         if data.get("status") != "OK":
             if data.get("status") == "ZERO_RESULTS":
