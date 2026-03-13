@@ -12,15 +12,28 @@ import { getCategories } from "@/lib/api-v2/admin/service/scraper/getCategories"
 import { getCountries } from "@/lib/api-v2/admin/service/scraper/getCountries";
 import { getProvinces } from "@/lib/api-v2/admin/service/scraper/getProvinces";
 import { getCities } from "@/lib/api-v2/admin/service/cities/getCities";
+import { Button } from "@/components/ui/button";
+
+// props type for on generate title and summary
+interface OnGenerateProps {
+    loading: boolean;
+    action: () => void;
+}
 
 interface BlockDrawerProps {
     details: BlogDetails;
-    onUpdateDetails: (updates: Partial<BlogDetails>) => void;
-    onAddBlock: (type: BlockType) => void;
     availableCategories?: (string | { name: string; count: number })[];
     availableCountries?: (string | { name: string; count: number })[];
     availableSites?: string[];
     isEditor?: boolean;
+
+    // callbacks
+    onUpdateDetails: (updates: Partial<BlogDetails>) => void;
+    onAddBlock: (type: BlockType) => void;
+
+    // props
+    onGenerateTitle: OnGenerateProps,
+    onGenerateSummary: OnGenerateProps
     mode?: 'create' | 'edit';
 }
 
@@ -55,12 +68,15 @@ function TagsInput({ tags, onChange }: { tags: string[], onChange: (tags: string
 
 export default function BlockDrawer({
     details,
-    onUpdateDetails,
-    onAddBlock,
     availableCategories: propsCategories,
     availableCountries: propsCountries,
     availableSites,
     isEditor,
+    onUpdateDetails,
+    onAddBlock,
+
+    onGenerateTitle,
+    onGenerateSummary,
     mode = 'create'
 }: BlockDrawerProps) {
     const [activeTab, setActiveTab] = useState<'blocks' | 'details'>('blocks');
@@ -277,7 +293,7 @@ export default function BlockDrawer({
                                 Meta Details
                             </h3>
                             <div className="space-y-4">
-                                <div>
+                                <div className="space-y-2">
                                     <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Internal Title</label>
                                     <input
                                         type="text"
@@ -286,8 +302,15 @@ export default function BlockDrawer({
                                         placeholder="Enter title"
                                         className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#1428AE]/20 transition-all font-inter text-gray-800"
                                     />
+                                    <Button
+                                        className="w-full"
+                                        onClick={onGenerateTitle.action}
+                                        disabled={onGenerateTitle.loading}
+                                    >
+                                        Generate Title
+                                    </Button>
                                 </div>
-                                <div>
+                                <div className="space-y-4">
                                     <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Summary / Abstract</label>
                                     <textarea
                                         value={details.summary}
@@ -295,6 +318,13 @@ export default function BlockDrawer({
                                         rows={3}
                                         className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#1428AE]/20 transition-all text-gray-600 leading-relaxed"
                                     />
+                                    <Button
+                                        className="w-full"
+                                        onClick={onGenerateSummary.action}
+                                        disabled={onGenerateSummary.loading}
+                                    >
+                                        Generate Summary
+                                    </Button>
                                 </div>
                                 <div>
                                     <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">URL Slug</label>

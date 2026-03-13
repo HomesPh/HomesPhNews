@@ -60,6 +60,7 @@ export * from "./admin/service/sites/refreshKey";
 export * from "./admin/service/upload/uploadArticleImage";
 export * from "./admin/service/upload/uploadImage";
 export * from "./admin/service/ai/generateImages";
+export * from "./admin/service/ai/generateText";
 
 export * from "./admin/service/ads";
 export * from "./admin/service/ads/getAdMetrics";

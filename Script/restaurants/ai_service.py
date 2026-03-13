@@ -70,8 +70,8 @@ class AIProcessor:
             self.text_model = None
 
     def _init_text_model(self):
-        """Initialize the best available text model."""
-        models_to_try = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro']
+        """Initialize the best available text model (prefer Gemini 2.5 Flash)."""
+        models_to_try = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro']
         for model_name in models_to_try:
             try:
                 model = genai.GenerativeModel(model_name)

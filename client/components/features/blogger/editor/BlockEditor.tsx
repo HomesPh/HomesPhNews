@@ -95,6 +95,14 @@ export default function BlockEditor() {
                     >
                         <div className="h-full overflow-hidden flex flex-col w-[360px]">
                             <BlockDrawer
+                                onGenerateTitle={{
+                                    loading: editor.isGenerateTitleLoading,
+                                    action: editor.generateTitle
+                                }}
+                                onGenerateSummary={{
+                                    loading: editor.isGenerateSummaryLoading,
+                                    action: editor.generateSummary
+                                }}
                                 onAddBlock={editor.addBlock}
                                 details={editor.details}
                                 onUpdateDetails={editor.updateDetails}
