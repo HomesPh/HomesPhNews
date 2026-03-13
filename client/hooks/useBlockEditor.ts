@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { generateImages, generateText } from "@/lib/api-v2";
 
 export type BlockType =
@@ -274,6 +274,18 @@ export function useBlockEditor() {
      * These functions call the admin AI endpoints and write the result back
      * into the specified block content.
      */
+
+    /**
+     * Memoized state for aggregating texts from content blocks
+     * into one text array.
+     */
+    const contentString = useMemo(() => {
+        return state.blocks
+            .filter(blk => blk.type === "text")
+            .map(blk => blk.content.text as string)
+            .join("");
+    }, [state.blocks]);
+
     /**
      * Generate text from a prompt and write it into a target block.
      * Intended for `text` blocks, but writes to `content.text` generically.
@@ -295,6 +307,19 @@ export function useBlockEditor() {
         setBlockLoading(blockId, true);
         setGenerationError(null);
         try {
+            const context = contentString;
+            const instructions = `You are a professional copywriter for editorial and marketing materials.
+                Your output must be plain text only — no markdown, no bullet symbols, no explanations, no preamble.
+                Tone: confident, clear, and modern.
+
+                Guidelines:
+                - Write in a natural, human voice — avoid AI-sounding filler phrases like "In today's world" or "It's important to note"
+                - Be concise: say more with less
+                - Match the register of the surrounding content (professional, conversational, persuasive, etc.)
+                - Do not introduce yourself, explain your output, or add any commentary
+                - Output only the requested copy and nothing else`;
+            const prompt = `Create text about these details: ${context}`;
+
             const res = await generateText({ prompt, options: { instructions } });
             const text = res.data?.data?.text ?? "";
 
@@ -315,7 +340,7 @@ export function useBlockEditor() {
             setBlockLoading(blockId, false);
             setIsGenerating(false);
         }
-    }, [state.blocks, updateBlockContent]);
+    }, [state.blocks, updateBlockContent, contentString]);
 
     /**
      * Generate one or more images from a prompt and write them into a target block.
@@ -323,20 +348,30 @@ export function useBlockEditor() {
      */
     const generateImagesForBlock = useCallback(async (params: {
         blockId: string;
-        prompt: string;
         /**
          * Number of images to request (default 1).
          * The API returns an array of URLs.
          */
         count?: number;
     }) => {
-        const { blockId, prompt, count = 1 } = params;
-        if (!prompt?.trim()) return;
+        const { blockId, count = 1 } = params;
 
         setIsGenerating(true);
         setBlockLoading(blockId, true);
         setGenerationError(null);
         try {
+            const context = contentString;
+            const prompt = `You are a professional visual content creator for editorial and marketing materials.
+                Generate a high-quality, photorealistic image that visually represents the provided content.
+                Guidelines:
+                - The image should feel editorial, clean, and modern
+                - Avoid text, watermarks, or overlaid typography
+                - Use natural lighting and composition
+                - Match the tone of the content (professional, warm, dramatic, etc.)
+                - Prefer wide/landscape orientation for banner and hero blocks
+                Create an image about these details: ${context}
+                `;
+
             const urls = await generateImages(prompt, count);
 
             console.log("[BlockRenderer.tsx]: Generate button clicked!");
@@ -364,7 +399,75 @@ export function useBlockEditor() {
             setBlockLoading(blockId, false);
             setIsGenerating(false);
         }
-    }, [state.blocks, updateBlockContent]);
+    }, [state.blocks, updateBlockContent, contentString]);
+
+    const [isGenerateTitleLoading, setGenerateTitleLoading] = useState<boolean>(false);
+    const generateTitle = useCallback(async () => {
+        setGenerateTitleLoading(true);
+
+        // content block text, reduced into string array
+        const context = contentString;
+        const instructions = `
+            You are a clickbait title generator. Given the provided text content, generate a single attention-grabbing, curiosity-inducing title.
+            Guidelines:
+            - Return ONLY the title text with no explanations or quotes
+            - Keep it between 5–12 words
+            - Use proven clickbait patterns such as:
+            - "You Won't Believe..."
+            - "X Reasons Why..."
+            - "The Secret to..."
+            - "Why Everyone Is Talking About..."
+            - "This Changes Everything About..."
+            - "Nobody Tells You About..."
+            - Create a curiosity gap that compels the reader to click
+            - Use power words like: shocking, secret, proven, instant, effortless, surprising
+            - If the content is too vague or empty, return "You Won't Believe What We Found"
+            `;
+        const prompt = `Create a title about these details: ${context}`;
+
+        try {
+            const res = await generateText({ prompt, options: { instructions } });
+            const text = res.data?.data?.text ?? "";
+
+            console.log("[useBlockEditor.ts][generateTitle]:", res);
+            updateDetails({ title: text });
+        } catch {
+            console.log("[useBlockEditor.ts][generateTitle]: error generating title");
+        } finally {
+            setGenerateTitleLoading(false);
+        }
+    }, [contentString, updateDetails]);
+
+    const [isGenerateSummaryLoading, setGenerateSummaryLoading] = useState<boolean>(false);
+    const generateSummary = useCallback(async () => {
+        setGenerateSummaryLoading(true);
+
+        // content block text, reduced into string array
+        const context = contentString;
+        const instructions = `
+            You are a content summarization assistant. Given the provided text content, generate a concise and informative summary.
+            Guidelines:
+            - Return ONLY the summary text with no explanations, labels, or formatting
+            - Keep it between 2–4 sentences
+            - Capture the key points and main ideas of the content
+            - Use clear, neutral, and professional language
+            - Preserve the original meaning without adding interpretation or opinion
+            - If the content is too vague or empty, return "No summary available"
+        `;
+        const prompt = `Summarize the following content: ${context}`;
+
+        try {
+            const res = await generateText({ prompt, options: { instructions } });
+            const text = res.data?.data?.text ?? "";
+
+            console.log("[useBlockEditor.ts][generateSummary]:", res);
+            updateDetails({ summary: text });
+        } catch {
+            console.log("[useBlockEditor.ts][generateSummary]: error generating title");
+        } finally {
+            setGenerateSummaryLoading(false);
+        }
+    }, [contentString, updateDetails]);
 
     /**
      * Replace the entire blocks array (still recorded into history).
@@ -409,7 +512,15 @@ export function useBlockEditor() {
         generateText: generateTextForBlock,
         generateImages: generateImagesForBlock,
         setBlocks,
-        loadData
+        loadData,
+
+        // Generate Title
+        isGenerateTitleLoading,
+        generateTitle,
+
+        // Generate Summary
+        isGenerateSummaryLoading,
+        generateSummary,
     };
 }
 
