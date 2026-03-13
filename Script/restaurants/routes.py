@@ -158,20 +158,31 @@ async def clear_all_restaurants():
 
 @router.post("/trigger/restaurants", tags=["Admin"])
 async def trigger_restaurant_job():
-    """Manually trigger the restaurant scraper job."""
-    from scheduler import run_restaurant_job
-
+    """
+    Manually trigger the restaurant scraper job.
+    SYNCHRONOUS: Waits for job to complete before returning.
+    """
+    from scheduler import run_restaurant_job, get_restaurant_job_status
+    import time
+    
+    # Check if already running
+    status = get_restaurant_job_status()
+    if status["is_running"]:
+        raise HTTPException(status_code=409, detail="Job is already running. Please wait for it to complete.")
+    
     start_time = time.time()
     results = await run_restaurant_job()
     duration = round(time.time() - start_time, 2)
 
     success = sum(1 for r in (results or []) if r.get("status") == "success")
+    errors = sum(1 for r in (results or []) if r.get("status") == "error")
 
     return {
         "status": "completed",
         "message": f"Restaurant Job completed in {duration}s. {success} restaurants found.",
         "duration_seconds": duration,
         "success_count": success,
+        "error_count": errors,
         "results": results,
         "timestamp": str(__import__('datetime').datetime.now())
     }
@@ -181,11 +192,13 @@ async def trigger_restaurant_job():
 async def get_restaurant_status():
     """Get current restaurant job status and statistics."""
     from scheduler import get_restaurant_job_status
+    from scheduler_control import is_enabled as scheduler_is_enabled
     status = get_restaurant_job_status()
 
     return {
         "is_running": status["is_running"],
         "cancel_requested": status.get("cancel_requested", False),
+        "scheduler_enabled": scheduler_is_enabled(),
         "total_runs": status["total_runs"],
         "total_success": status["total_success"],
         "total_errors": status["total_errors"],

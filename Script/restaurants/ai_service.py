@@ -558,9 +558,87 @@ Be concise. English only."""
         except:
             return f"Professional {category} scene in {country}, photojournalism style"
 
+    def _try_openai_dalle(self, visual_prompt, article_id):
+        """
+        Try OpenAI DALL-E models as fallback.
+        Returns temp file path if successful, None otherwise.
+        """
+        import os
+        api_key = os.getenv("OPENAI_API_KEY")
+        
+        if not api_key:
+            return None
+        
+        # Check if OpenAI fallback is enabled (default: true if API key exists)
+        fallback_enabled = os.getenv("OPENAI_FALLBACK_ENABLED", "true").lower() == "true"
+        if not fallback_enabled:
+            return None
+        
+        try:
+            from openai import OpenAI
+        except ImportError:
+            print("⚠️ OpenAI library not installed. Install with: pip install openai")
+            return None
+        
+        # Configuration from env or defaults
+        image_size = os.getenv("OPENAI_IMAGE_SIZE", "1024x1024")
+        image_quality = os.getenv("OPENAI_IMAGE_QUALITY", "standard")
+        
+        # Try DALL-E 3 first, then DALL-E 2
+        models = [
+            {"model": "dall-e-3", "size": image_size, "quality": image_quality},
+            {"model": "dall-e-2", "size": "1024x1024", "quality": None}  # DALL-E 2 doesn't support quality parameter
+        ]
+        
+        client = OpenAI(api_key=api_key)
+        temp_filename = f"gen_{article_id}.png"
+        temp_path = os.path.abspath(temp_filename)
+        
+        for model_config in models:
+            try:
+                model = model_config["model"]
+                size = model_config["size"]
+                quality = model_config.get("quality")
+                
+                print(f"   🔄 Trying OpenAI {model}...")
+                
+                # Prepare request parameters
+                request_params = {
+                    "model": model,
+                    "prompt": visual_prompt,
+                    "n": 1,
+                    "size": size
+                }
+                
+                # Add quality for DALL-E 3 only
+                if quality and model == "dall-e-3":
+                    request_params["quality"] = quality
+                
+                # Generate image
+                response = client.images.generate(**request_params)
+                
+                # Download image
+                image_url = response.data[0].url
+                import requests
+                img_response = requests.get(image_url)
+                img_response.raise_for_status()
+                
+                # Save to temp file
+                img = Image.open(io.BytesIO(img_response.content))
+                img.save(temp_path)
+                
+                print(f"✅ Image generated using OpenAI {model}")
+                return temp_path
+                
+            except Exception as e:
+                print(f"   ⚠️ OpenAI {model_config['model']} failed: {str(e)[:100]}")
+                continue
+        
+        return None
+
     def generate_image(self, visual_prompt, article_id, upload=True):
         """
-        Generates an image using available Gemini/Imagen models.
+        Generates an image using available Gemini/Imagen models with OpenAI DALL-E fallback.
         If upload=True, uploads to S3/GCP and returns URL.
         Otherwise returns local path.
         """
@@ -575,9 +653,11 @@ Be concise. English only."""
 
         # Use uuid if no article_id provided (for new generations)
         import uuid
+        import io
         if not article_id:
             article_id = str(uuid.uuid4())
 
+        # Step 1: Try Gemini/Imagen models
         for model_name in image_models:
             try:
                 full_model_name = f"models/{model_name}"
@@ -597,7 +677,6 @@ Be concise. English only."""
                         if hasattr(part, 'inline_data'):
                             image_bytes_data = part.inline_data.data
                             if image_bytes_data:
-                                import io
                                 img = Image.open(io.BytesIO(image_bytes_data))
                                 img.save(temp_path)
                                 image_bytes = True
@@ -609,8 +688,6 @@ Be concise. English only."""
                     if upload:
                         from storage import StorageHandler
                         storage = StorageHandler()
-                        # Upload to cloud (folder: generated)
-                        # Remove existing file if fails, but StorageHandler handles cleanup mostly
                         destination = f"generated/{temp_filename}"
                         public_url = storage.upload_image(temp_path, destination)
                         return public_url
@@ -621,6 +698,20 @@ Be concise. English only."""
                 # print(f"   Model {model_name} failed: {e}") # Verbose
                 continue
         
+        # Step 2: Fallback to OpenAI DALL-E
+        print("🔄 Gemini models failed, trying OpenAI DALL-E fallback...")
+        openai_result = self._try_openai_dalle(visual_prompt, article_id)
+        if openai_result and os.path.exists(openai_result):
+            if upload:
+                from storage import StorageHandler
+                storage = StorageHandler()
+                temp_filename = f"gen_{article_id}.png"
+                destination = f"generated/{temp_filename}"
+                public_url = storage.upload_image(openai_result, destination)
+                return public_url
+            return openai_result
+        
+        # Step 3: Placeholder
         print("⚠️ Image generation failed. Using placeholder.")
         return "https://placehold.co/800x450?text=News+Image"
 

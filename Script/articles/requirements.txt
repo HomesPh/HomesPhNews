@@ -76,3 +76,4 @@ watchfiles==1.1.1
 websockets==16.0
 sqlalchemy
 pymysql
+openai>=1.0.0
