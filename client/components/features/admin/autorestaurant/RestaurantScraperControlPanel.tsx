@@ -24,7 +24,7 @@ interface RestaurantScraperResponse {
     timestamp: string;
 }
 
-const SCRAPER_API_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:8001';
+const SCRAPER_API_URL = process.env.NEXT_PUBLIC_RESTAURANTS_SERVICE_URL || 'http://localhost:8012';
 
 export default function RestaurantScraperControlPanel() {
     const [status, setStatus] = useState<RestaurantScraperStatus | null>(null);
@@ -43,7 +43,7 @@ export default function RestaurantScraperControlPanel() {
                 setStatus(s);
             }
         } catch {
-            // Scraper service may be offline — ignore
+            // Restaurant service may be offline — ignore
         }
     };
 
@@ -79,8 +79,7 @@ export default function RestaurantScraperControlPanel() {
     const handleStop = async () => {
         setIsStoppingJob(true);
         try {
-            // Note: Restaurant scraper might not have a stop endpoint yet
-            await fetch(`${SCRAPER_API_URL}/cancel/restaurants`, { method: 'POST' });
+            await fetch(`${SCRAPER_API_URL}/trigger/cancel`, { method: 'POST' });
             await fetchStatus();
         } catch (err: any) {
             setError(err.message || 'Failed to stop scraper');
@@ -94,7 +93,7 @@ export default function RestaurantScraperControlPanel() {
         setIsTogglingScheduler(true);
         setError(null);
         try {
-            const endpoint = status.scheduler_enabled ? '/scheduler/restaurants/off' : '/scheduler/restaurants/on';
+            const endpoint = status.scheduler_enabled ? '/scheduler/off' : '/scheduler/on';
             const response = await fetch(`${SCRAPER_API_URL}${endpoint}`, { method: 'POST' });
             const res = await response.json();
             setStatus(prev => prev ? { ...prev, scheduler_enabled: res.scheduler_enabled } : prev);
@@ -131,8 +130,8 @@ export default function RestaurantScraperControlPanel() {
                         disabled={isTogglingScheduler || status === null}
                         title={schedulerOn ? 'Turn off auto-schedule' : 'Turn on auto-schedule'}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${schedulerOn
-                                ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
-                                : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                            : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
                             }`}
                     >
                         {isTogglingScheduler
@@ -163,7 +162,7 @@ export default function RestaurantScraperControlPanel() {
                             type="button"
                             onClick={handleRun}
                             disabled={isRunning}
-                            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-semibold bg-[#1428AE] text-white hover:bg-[#000785] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-semibold bg-[#1428AE] text-white hover:bg-[#000785] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                         >
                             {isRunning
                                 ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
