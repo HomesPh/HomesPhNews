@@ -154,7 +154,7 @@ export function useBlockEditor() {
      */
     const addBlock = useCallback((type: BlockType) => {
         const newBlock: Block = {
-            id: Math.random().toString(36).substr(2, 9),
+            id: crypto.randomUUID(),
             type,
             content: getDefaultContent(type),
             settings: { textAlign: 'left', fontSize: '18px' }
@@ -167,7 +167,7 @@ export function useBlockEditor() {
      */
     const addBlockAt = useCallback((index: number, type: BlockType = 'text') => {
         const newBlock: Block = {
-            id: Math.random().toString(36).substr(2, 9),
+            id: crypto.randomUUID(),
             type,
             content: getDefaultContent(type),
             settings: { textAlign: 'left', fontSize: '18px' }

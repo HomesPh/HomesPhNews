@@ -262,7 +262,15 @@ export default function ArticleEditorForm({
         /* Do not uncomment this, I still have no idea where to get context for generating text.
         if (block.type === 'text') {
             editor.generateText({ blockId: id, prompt: "ecchi koto suru desu ka? romaji ni hanashite kudasai" });
+        }
+        else if (block.type === 'image') {
+            const prompt = `Generate an image for an article titled 
+                "${article.title}". ${article.summary ?
+                    `The article is about: ${article.summary}` : ''}`.trim();
+
+            editor.generateImages({ blockId: id, prompt });
         }*/
+
         if (block.type === 'image') {
             const prompt = `Generate an image for an article titled 
                 "${article.title}". ${article.summary ?
