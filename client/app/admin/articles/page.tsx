@@ -144,7 +144,7 @@ export default function ArticlesPage() {
                     city: filters.city === '' ? undefined : filters.city,
                     search: searchQuery || undefined,
                     page: pagination.currentPage,
-                    per_page: 5
+                    per_page: 10
                 } as any;
 
                 const response = await getAdminArticles(apiFilters);
@@ -381,7 +381,7 @@ export default function ArticlesPage() {
                         <div className="flex items-center gap-3">
                             {moveResult !== null && (
                                 <span className="text-[14px] text-[#059669]">
-                                    {moveResult.inserted} moved to Pending Review
+                                    {moveResult.inserted} moved to Awaiting Publish
                                     {moveResult.failed > 0 && <span className="text-amber-600">, {moveResult.failed} failed</span>}
                                 </span>
                             )}

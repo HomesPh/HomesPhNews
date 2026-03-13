@@ -1,6 +1,6 @@
 "use client";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
-import { FileText, Settings, LogOut } from "lucide-react";
+import { FileText, Settings, LogOut, Calendar } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,11 @@ const SidebarItems = [
         title: "Articles",
         href: "/editor/articles",
         icon: FileText
+    },
+    {
+        title: "Calendar",
+        href: "/editor/calendar",
+        icon: Calendar
     },
     {
         title: "Settings",

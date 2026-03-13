@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Schedule;
 // Send newsletters every minute
 Schedule::command('newsletter:send')->everyMinute()->onOneServer();
 
+// Process scheduled article publications every minute
+Schedule::command('articles:publish-scheduled')->everyMinute()->onOneServer();
+
 // artisan newsletter:test {email}
 // for testing purposes
 Artisan::command('newsletter:test {email}', function (string $email) {

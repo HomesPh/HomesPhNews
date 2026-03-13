@@ -10,7 +10,7 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar";
-import { FileText, LogOut, Send } from "lucide-react";
+import { FileText, LogOut, Send, Calendar } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -26,6 +26,11 @@ const SidebarItems = [
         title: "Mailing List",
         href: "/ceo/mailing-list",
         icon: Send,
+    },
+    {
+        title: "Calendar",
+        href: "/ceo/calendar",
+        icon: Calendar,
     }
 ];
 

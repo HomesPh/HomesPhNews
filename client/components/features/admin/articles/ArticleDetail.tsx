@@ -533,7 +533,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                 </div>
                                 {article.is_redis && (
                                     <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-[12px] text-amber-700 leading-relaxed font-medium">
-                                        This article is <strong>Being Processed</strong> (in Redis only) and is not yet in the database. Move it to DB from the Being Processed tab, or click Publish here to save and publish in one step.
+                                        This article is <strong>Pending Review</strong> (Imported) and is not yet in the database. Move it to DB from the Pending Review tab, or click Publish here to save and publish in one step.
                                     </div>
                                 )}
                                 <div className="flex gap-3">
