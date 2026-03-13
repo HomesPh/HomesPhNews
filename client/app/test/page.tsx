@@ -282,7 +282,8 @@ export default function TestPage() {
                       action="createEvent"
                       onClick={() => createEvent({
                         event_title: "System Check",
-                        description: "Manual triggering of system event check",
+                        //description: "Manual triggering of system event check",
+                        // fix this bro
                         date: new Date().toISOString()
                       })}
                     />
