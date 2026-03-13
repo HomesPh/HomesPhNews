@@ -104,14 +104,45 @@ class ArticleResource extends JsonResource
         $isDeleted = (bool) $get('is_deleted', false);
         $status = (string) $get('status', 'pending');
 
-        // Check if this is an external API call (has authenticated site)
-        $isExternalApi = $request->attributes->has('site');
-
         // Get content values - Use raw content (HTML) for all consumers
         // User requested "pure HTML" so external consumers don't have to manually adjust paragraphs
         $content = (string) $get('content', '');
         $summary = (string) $get('summary', $content);
         $description = (string) $get('summary', $content);
+
+        // Resolve primary image values once so we can reuse them and dedupe blocks against them
+        $rawImageUrl = $data['image_url'] ?? $data['image'] ?? '';
+        $rawImage = $data['image'] ?? $data['image_url'] ?? '';
+        $primaryImageUrl = $this->sanitizeImageUrl($rawImageUrl);
+        $primaryImage = $this->sanitizeImageUrl($rawImage);
+        $heroImage = $primaryImageUrl !== '' ? $primaryImageUrl : $primaryImage;
+
+        // Decode content blocks and remove any image blocks that duplicate the hero image URL
+        $rawBlocks = $get('content_blocks', []);
+        if (is_string($rawBlocks)) {
+            $decodedBlocks = json_decode($rawBlocks, true);
+            $contentBlocks = is_array($decodedBlocks) ? $decodedBlocks : [];
+        } elseif (is_array($rawBlocks)) {
+            $contentBlocks = $rawBlocks;
+        } else {
+            $contentBlocks = [];
+        }
+
+        if ($heroImage && is_array($contentBlocks)) {
+            $contentBlocks = array_values(array_filter($contentBlocks, function ($block) use ($heroImage) {
+                if (!is_array($block)) {
+                    return true;
+                }
+                if (($block['type'] ?? '') !== 'image') {
+                    return true;
+                }
+                $src = $block['content']['src'] ?? null;
+                if (!$src) {
+                    return true;
+                }
+                return (string) $src !== (string) $heroImage;
+            }));
+        }
 
         return [
             'id' => (string) $get('id', ''),
@@ -125,8 +156,8 @@ class ArticleResource extends JsonResource
             'status' => $isDeleted ? 'deleted' : $status,
             'created_at' => (string) $date,
             'views_count' => (int) $get('views_count', 0),
-            'image_url' => $this->sanitizeImageUrl($data['image_url'] ?? $data['image'] ?? ''),
-            'image' => $this->sanitizeImageUrl($data['image'] ?? $data['image_url'] ?? ''),
+            'image_url' => $primaryImageUrl,
+            'image' => $primaryImage,
             'location' => (string) $get('country', $get('location', 'Global')),
             'description' => $description,
             'date' => (string) $date,
@@ -140,7 +171,7 @@ class ArticleResource extends JsonResource
             'original_url' => (string) $get('original_url', ''),
             'is_deleted' => $isDeleted,
             'is_redis' => !$isModel,
-            'content_blocks' => is_string($get('content_blocks')) ? json_decode($get('content_blocks'), true) : $get('content_blocks', []),
+            'content_blocks' => $contentBlocks,
             'template' => (string) $get('template', ''),
             'author' => (string) $get('author', ''),
 
