@@ -3,25 +3,27 @@
 
 import {
     Trash2, Type, Image as ImageIcon,
-    Grid, Plus, GripVertical, Move, Check, X as XIcon
+    Grid, Plus, GripVertical, Move, Check, X as XIcon, Sparkles
 } from "lucide-react";
 import { Block, BlockType } from "@/hooks/useBlockEditor";
 import { cn, formatParagraphs } from "@/lib/utils";
 import { useDrag, useDrop } from 'react-dnd';
 import { useRef, useEffect, useState, useMemo } from 'react';
 import RichTextEditor from "./RichTextEditor";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface BlockRendererProps {
     index: number;
     block: Block;
     isActive: boolean;
     viewMode?: 'desktop' | 'tablet' | 'mobile';
+    isLoading?: boolean;
     onSelect: () => void;
     onUpdate: (id: string, content: any) => void;
     onRemove: (id: string) => void;
     onMove: (id: string, direction: 'up' | 'down') => void;
     onReorder: (dragIndex: number, hoverIndex: number) => void;
-    // New prop to update settings directly
+    onGenerate?: (args: { id: string; block: Block; }) => void;
     onUpdateSettings?: (id: string, settings: any) => void;
 }
 
@@ -162,8 +164,8 @@ const DraggableImage = ({
                     <ImageIcon className={cn("w-8 h-8 text-gray-200 mx-auto mb-2 transition-transform duration-200", isDraggingOver && "scale-125 text-[#1428AE]")} />
                     <span className={cn(
                         "text-xs font-bold px-3 py-1.5 rounded-full shadow-sm border transition-all duration-200 block whitespace-nowrap",
-                        isDraggingOver 
-                            ? "bg-[#1428AE] text-white border-[#1428AE] scale-110" 
+                        isDraggingOver
+                            ? "bg-[#1428AE] text-white border-[#1428AE] scale-110"
                             : "bg-white text-[#1428AE] border-gray-100"
                     )}>
                         {isDraggingOver ? "Drop Image Now" : placeholderLabel}
@@ -272,11 +274,13 @@ export default function BlockRenderer({
     block,
     isActive,
     viewMode = 'desktop',
+    isLoading = false,
     onSelect,
     onUpdate,
     onRemove,
     onMove,
     onReorder,
+    onGenerate,
     onUpdateSettings
 }: BlockRendererProps) {
     const ref = useRef<HTMLDivElement>(null);
@@ -334,6 +338,66 @@ export default function BlockRenderer({
                 onUpdateSettings(block.id, { imagePosition: pos });
             }
         }
+    };
+
+    const renderSkeleton = () => {
+        // Text block skeleton
+        if (block.type === "text") {
+            return (
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-5/6" />
+                    <Skeleton className="h-4 w-2/3" />
+                </div>
+            );
+        }
+
+        // Image-like blocks
+        if (
+            block.type === "image" ||
+            block.type === "centered-image" ||
+            block.type === "left-image" ||
+            block.type === "right-image" ||
+            block.type === "split-left" ||
+            block.type === "split-right"
+        ) {
+            return (
+                <div className="space-y-3">
+                    <Skeleton className="w-full aspect-video rounded-xl" />
+                    {(block.type === "image" || block.type === "centered-image") && (
+                        <Skeleton className="h-4 w-1/3" />
+                    )}
+                </div>
+            );
+        }
+
+        // Grid block skeleton
+        if (block.type === "grid") {
+            return (
+                <div className="grid grid-cols-2 gap-4">
+                    <Skeleton className="aspect-square rounded-xl" />
+                    <Skeleton className="aspect-square rounded-xl" />
+                </div>
+            );
+        }
+
+        // Dynamic images skeleton
+        if (block.type === "dynamic-images") {
+            return (
+                <div className="space-y-4">
+                    <Skeleton className="w-full aspect-video rounded-xl" />
+                    <Skeleton className="w-full aspect-video rounded-xl" />
+                </div>
+            );
+        }
+
+        // Fallback
+        return (
+            <div className="space-y-2">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-4 w-1/3" />
+            </div>
+        );
     };
 
     const renderBlockContent = () => {
@@ -553,6 +617,21 @@ export default function BlockRenderer({
                 isActive && "opacity-100"
             )}>
                 <div className="p-1 px-1.5 bg-white rounded-lg shadow-sm border border-gray-100 flex flex-col gap-0.5">
+                    {block.type === "image" && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+
+                                console.log("[BlockRenderer.tsx]: Generate button clicked!");
+                                onGenerate?.({ id: block.id, block });
+                            }}
+                            className="p-1.5 hover:bg-[#eef2ff] rounded-md text-gray-400 hover:text-[#1428AE]"
+                            title="Generate"
+                            disabled={isLoading}
+                        >
+                            <Sparkles className="w-3.5 h-3.5" />
+                        </button>
+                    )}
                     <button
                         className="p-1.5 hover:bg-gray-50 rounded-md text-gray-400 hover:text-[#1428AE] cursor-grab active:cursor-grabbing"
                         title="Drag to reorder"
@@ -578,7 +657,7 @@ export default function BlockRenderer({
 
             {/* Main Content Padding */}
             <div className="p-4">
-                {renderBlockContent()}
+                {isLoading ? renderSkeleton() : renderBlockContent()}
             </div>
         </div>
     );
