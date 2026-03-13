@@ -186,6 +186,40 @@ def process_single_restaurant_location(loc: Dict) -> Dict:
     return result
 
 
+async def run_restaurant_job_for_locations(locations: List[Dict]) -> List[Dict]:
+    """
+    Run the restaurant job for a specific subset of locations.
+    This is used by targeted/manual endpoints and does NOT touch the global job status.
+    """
+    if not locations:
+        return []
+
+    loop = asyncio.get_event_loop()
+    BATCH_SIZE = 10
+    results: List[Dict] = []
+
+    print(f"📍 Targeted run for {len(locations)} restaurant location(s)")
+
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        for i in range(0, len(locations), BATCH_SIZE):
+            batch = locations[i:i + BATCH_SIZE]
+            futures = [
+                loop.run_in_executor(executor, process_single_restaurant_location, loc)
+                for loc in batch
+            ]
+            batch_results = await asyncio.gather(*futures)
+            results.extend(batch_results)
+
+    success_count = sum(1 for r in results if r["status"] == "success")
+    total_saved = sum(r.get("saved", 0) for r in results)
+    error_count = sum(1 for r in results if r["status"] == "error")
+
+    print(f"🍴 Targeted Restaurant Summary: {total_saved} new restaurants saved "
+          f"({success_count} locations with results, {error_count} errors).")
+
+    return results
+
+
 def process_single_restaurant_country(country: str) -> Dict:
     """
     Fallback: Process one country for restaurants using news-based scraping.
@@ -354,21 +388,7 @@ async def run_restaurant_job():
     locations = fetch_locations()
     if locations:
         print(f"📍 Using Places API for {len(locations)} locations (country+city from DB)")
-        loop = asyncio.get_event_loop()
-        BATCH_SIZE = 10
-        results = []
-        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            for i in range(0, len(locations), BATCH_SIZE):
-                if restaurant_job_status.get("cancel_requested"):
-                    print("\n🛑 Cancel requested. Stopping after current batch...")
-                    break
-                batch = locations[i:i + BATCH_SIZE]
-                futures = [
-                    loop.run_in_executor(executor, process_single_restaurant_location, loc)
-                    for loc in batch
-                ]
-                batch_results = await asyncio.gather(*futures)
-                results.extend(batch_results)
+        results = await run_restaurant_job_for_locations(locations)
         success_count = sum(1 for r in results if r["status"] == "success")
         total_saved = sum(r.get("saved", 0) for r in results)
         error_count = sum(1 for r in results if r["status"] == "error")
