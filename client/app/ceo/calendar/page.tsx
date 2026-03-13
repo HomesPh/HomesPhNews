@@ -74,7 +74,7 @@ export default function CalendarPage() {
             let allEvents: CalendarEvent[] = [];
 
             if (pubResponse.status === 'fulfilled') {
-                const mappedPubs: CalendarEvent[] = pubResponse.value.data.map(pub => {
+                const mappedPubs: CalendarEvent[] = pubResponse.value.data.map((pub: any) => {
                     const dt = new Date(pub.scheduled_at);
                     const timeStr = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
@@ -98,7 +98,7 @@ export default function CalendarPage() {
             }
 
             if (customEventsResponse.status === 'fulfilled') {
-                const mappedCustom: CalendarEvent[] = customEventsResponse.value.data.map(ev => ({
+                const mappedCustom: CalendarEvent[] = customEventsResponse.value.data.map((ev: DBEvent) => ({
                     id: ev.id,
                     title: ev.event_title,
                     date: ev.date.split('T')[0],
@@ -135,7 +135,7 @@ export default function CalendarPage() {
             try {
                 const holidayPromises = activeCountries.map(async (country) => {
                     const nagerHolidays = await getPublicHolidays(country.id, selectedYear);
-                    return nagerHolidays.map((h, idx) => ({
+                    return nagerHolidays.map((h: NagerHoliday, idx: number) => ({
                         id: `holiday-${country.id}-${h.date}-${idx}` as any,
                         title: h.name,
                         date: h.date,
@@ -296,8 +296,8 @@ export default function CalendarPage() {
             <AdminPageHeader
                 title="Event Calendar"
                 description="Manage events and view public holidays across all countries"
-                actionLabel="Article Scheduler"
-                onAction={() => router.push('/admin/calendar/create')}
+                actionLabel="Create Event"
+                onAction={() => setShowCreateModal(true)}
                 actionIcon={Plus}
             />
 

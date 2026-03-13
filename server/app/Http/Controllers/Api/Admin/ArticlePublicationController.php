@@ -39,6 +39,7 @@ class ArticlePublicationController extends Controller
             'articles.*.country' => 'nullable|string',
             'articles.*.summary' => 'nullable|string',
             'articles.*.source' => 'nullable|string',
+            'sites' => 'nullable|array',
         ]);
 
         $scheduledAt = $validated['date'] . ' ' . $validated['time'];
@@ -48,6 +49,7 @@ class ArticlePublicationController extends Controller
             foreach ($validated['articles'] as $articleData) {
                 $publications[] = ArticlePublication::create([
                     'article_id' => $articleData['id'],
+                    'target_sites' => $validated['sites'] ?? [],
                     'title' => $articleData['title'],
                     'summary' => $articleData['summary'] ?? null,
                     'image_url' => $articleData['image'] ?? null,

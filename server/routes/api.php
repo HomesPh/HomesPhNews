@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Admin\CategoryController;
 use App\Http\Controllers\Api\Admin\CityController;
 use App\Http\Controllers\Api\Admin\CountryController;
 use App\Http\Controllers\Api\Admin\DashboardController;
+use App\Http\Controllers\Api\Admin\EventController;
 use App\Http\Controllers\Api\Admin\GenerationController;
 use App\Http\Controllers\Api\Admin\MailingListGroupController;
 use App\Http\Controllers\Api\Admin\ProvinceController;
@@ -35,20 +36,9 @@ use App\Http\Controllers\v2\RoleController as RoleControllerV2;
 use App\Http\Controllers\v2\UserController as UserControllerV2;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Versions
-|--------------------------------------------------------------------------
-*/
+/* |-------------------------------------------------------------------------- | API Versions |-------------------------------------------------------------------------- */
 
-/*
-|--------------------------------------------------------------------------
-| External Site Routes
-|--------------------------------------------------------------------------
-|
-| Version-independent routes for external site integration.
-|
-*/
+/* |-------------------------------------------------------------------------- | External Site Routes |-------------------------------------------------------------------------- | | Version-independent routes for external site integration. | */
 Route::middleware('site.auth')->prefix('external')->group(function () {
     Route::get('/articles', [SiteContentController::class, 'getArticles']);
     Route::get('/restaurants', [SiteContentController::class, 'getRestaurants']);
@@ -57,13 +47,13 @@ Route::middleware('site.auth')->prefix('external')->group(function () {
 
 Route::prefix('v1')->group(function () {
     /*
-    |--------------------------------------------------------------------------
-    | System Routes
-    |--------------------------------------------------------------------------
-    |
-    | Routes for system health checks, testing, and scheduled tasks.
-    |
-    */
+     |--------------------------------------------------------------------------
+     | System Routes
+     |--------------------------------------------------------------------------
+     |
+     | Routes for system health checks, testing, and scheduled tasks.
+     |
+     */
 
     Route::get('/redis-test', [SystemController::class, 'redisTest']);
     Route::get('/db-test', [SystemController::class, 'dbTest']);
@@ -74,7 +64,8 @@ Route::prefix('v1')->group(function () {
         \Illuminate\Support\Facades\Artisan::call('schedule:run');
 
         return response()->json(['message' => 'Schedule executed']);
-    });
+    }
+    );
 
     // ═══════════════════════════════════════════════════════════════
     // PUBLIC USER ROUTES (Mixed Database and Redis)
@@ -86,7 +77,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/feed', [UserArticleController::class, 'feed'])->name('feed');
         Route::get('/{id}', [UserArticleController::class, 'show'])->name('show');
         Route::post('/{id}/view', [UserArticleController::class, 'incrementViews'])->name('view');
-    });
+    }
+    );
 
     // Alias for backward compatibility if needed, or just redirect
     Route::get('/article', [UserArticleController::class, 'index']);
@@ -112,10 +104,6 @@ Route::prefix('v1')->group(function () {
             // Reports & Dashboards (Non-CRUD)
             Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
             Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
-
-            // CRUD Resources
-            // Route::apiResource('events', EventController::class);
-            Route::apiResource('article-publications', ArticlePublicationController::class);
 
             Route::get('sites/names', [SiteController::class, 'names']);
             Route::patch('sites/{id}/toggle-status', [SiteController::class, 'toggleStatus']);
@@ -145,16 +133,17 @@ Route::prefix('v1')->group(function () {
 
             // Upload Routes
             Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
-        });
+        }
+        );
 
     /*
-    |--------------------------------------------------------------------------
-    | Authentication Routes (Public)
-    |--------------------------------------------------------------------------
-    |
-    | Routes for user login, registration, and social authentication.
-    |
-    */
+     |--------------------------------------------------------------------------
+     | Authentication Routes (Public)
+     |--------------------------------------------------------------------------
+     |
+     | Routes for user login, registration, and social authentication.
+     |
+     */
 
     // Traditional Auth
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
@@ -165,13 +154,13 @@ Route::prefix('v1')->group(function () {
     Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
 
     /*
-    |--------------------------------------------------------------------------
-    | Public Data Routes
-    |--------------------------------------------------------------------------
-    |
-    | Routes accessible to the public without authentication.
-    |
-    */
+     |--------------------------------------------------------------------------
+     | Public Data Routes
+     |--------------------------------------------------------------------------
+     |
+     | Routes accessible to the public without authentication.
+     |
+     */
 
     // Articles
     Route::group(['prefix' => 'articles', 'as' => 'articles.'], function () {
@@ -179,7 +168,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/feed', [UserArticleController::class, 'feed'])->name('feed');
         Route::get('/{id}', [UserArticleController::class, 'show'])->name('show');
         Route::post('/{id}/view', [UserArticleController::class, 'incrementViews'])->name('view');
-    });
+    }
+    );
     // Legacy Article Alias
     Route::get('/article', [UserArticleController::class, 'index']);
 
@@ -193,12 +183,16 @@ Route::prefix('v1')->group(function () {
     // Ad metrics
     Route::post('/ads/metrics', [AdminAdMetricController::class, 'store']);
 
+    // Countries
+    Route::get('/countries', [CountryController::class, 'index']);
+
     // Restaurants
     Route::group(['prefix' => 'restaurants', 'as' => 'restaurants.'], function () {
         Route::get('/', [UserRestaurantController::class, 'index'])->name('index');
         Route::get('/{id}', [UserRestaurantController::class, 'show'])->name('show');
         Route::get('/country/{country}', [UserRestaurantController::class, 'byCountry'])->name('byCountry');
-    });
+    }
+    );
 
     // Subscription (Newsletter/Updates)
     Route::post('/subscribe', [SubscriptionController::class, 'store']);
@@ -210,13 +204,13 @@ Route::prefix('v1')->group(function () {
     Route::get('/countries', [CountryController::class, 'index']);
 
     /*
-    |--------------------------------------------------------------------------
-    | Authenticated User Routes
-    |--------------------------------------------------------------------------
-    |
-    | Routes requiring the user to be logged in (Sanctum).
-    |
-    */
+     |--------------------------------------------------------------------------
+     | Authenticated User Routes
+     |--------------------------------------------------------------------------
+     |
+     | Routes requiring the user to be logged in (Sanctum).
+     |
+     */
 
     Route::middleware('auth:sanctum')->group(function () {
         // User Info
@@ -239,17 +233,19 @@ Route::prefix('v1')->group(function () {
         Route::middleware('is.verified')->prefix('subscriber')->group(function () {
             Route::get('/articles', [SubscriberArticleController::class, 'index']);
             Route::get('/articles/{id}', [SubscriberArticleController::class, 'show']);
-        });
-    });
+        }
+        );
+    }
+    );
 
     /*
-    |--------------------------------------------------------------------------
-    | Admin Routes
-    |--------------------------------------------------------------------------
-    |
-    | Routes requiring authentication AND admin privileges.
-    |
-    */
+         |--------------------------------------------------------------------------
+         | Admin Routes
+         |--------------------------------------------------------------------------
+         |
+         | Routes requiring authentication AND admin privileges.
+         |
+         */
 
     Route::middleware(['auth:sanctum', 'is.authenticated:admin,ceo,editor'])
         ->prefix('admin')
@@ -265,6 +261,10 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('mailing-list-groups', MailingListGroupController::class);
             Route::get('subscribers', [AdminArticleController::class, 'getSubscribers']);
             Route::post('articles/bulk-send-newsletter', [AdminArticleController::class, 'bulkSend']);
+
+            // Calendar / Scheduled Publications
+            Route::apiResource('article-publications', ArticlePublicationController::class);
+            Route::apiResource('events', EventController::class);
 
             // Article listing & detail — accessible by Admin, CEO, and Editor
             Route::get('articles', [AdminArticleController::class, 'index']);
@@ -286,8 +286,6 @@ Route::prefix('v1')->group(function () {
             // SHARED ROUTES (Admin & Editor only)
             // ═══════════════════════════════════════════════════════════════
             Route::middleware('is.authenticated:admin,editor')->group(function () {
-                // Resources
-                Route::apiResource('article-publications', ArticlePublicationController::class);
 
                 // Article write operations (Store)
                 Route::post('articles', [AdminArticleController::class, 'store']);
@@ -306,7 +304,8 @@ Route::prefix('v1')->group(function () {
                     Route::post('/text', [GenerationController::class, 'text'])->name('text');
                     Route::post('/image', [GenerationController::class, 'image'])->name('image');
                 });
-            });
+            }
+            );
 
             // ═══════════════════════════════════════════════════════════════
             // SHARED ROUTES (Admin & CEO only)
@@ -318,7 +317,8 @@ Route::prefix('v1')->group(function () {
                 Route::post('articles/bulk-unpublish', [AdminArticleController::class, 'bulkUnpublish']);
                 Route::post('articles/bulk-reject', [AdminArticleController::class, 'bulkReject']);
                 Route::post('articles/bulk-delete', [AdminArticleController::class, 'bulkDelete']);
-            });
+            }
+            );
 
             // ═══════════════════════════════════════════════════════════════
             // ADMIN ONLY ROUTES
@@ -353,8 +353,10 @@ Route::prefix('v1')->group(function () {
 
                 // Restaurant routes (Database Persistence)
                 Route::post('restaurants/{id}/publish', [AdminRestaurantController::class, 'publish'])->name('restaurants.publish');
-            });
-        });
+            }
+            );
+        }
+        );
 });
 
 Route::prefix('v2')->middleware(['auth:sanctum', 'is.authenticated:admin'])->group(function () {

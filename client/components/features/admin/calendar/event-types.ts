@@ -12,6 +12,7 @@ export interface CalendarEvent {
     borderColor: string;
     isPublicHoliday: boolean;
     allDay?: boolean;
+    status?: string;
 }
 
 export type ViewMode = 'day' | 'week' | 'month' | 'year';

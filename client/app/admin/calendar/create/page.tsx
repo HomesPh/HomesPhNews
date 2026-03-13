@@ -11,6 +11,9 @@ import { getAdminArticles } from "@/lib/api-v2/admin/service/article/getAdminArt
 import ArticleListItem from "@/components/features/admin/articles/ArticleListItem";
 import { Input } from "@/components/ui/input";
 import { scheduleArticles } from "@/lib/api-v2/admin/service/article-publications";
+import { getAdminSites } from "@/lib/api-v2/admin/service/sites/getAdminSites";
+import { SiteResource } from "@/lib/api-v2/types/SiteResource";
+import { Globe, LayoutGrid } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -43,6 +46,11 @@ export default function CreateEventPage() {
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [successData, setSuccessData] = useState<{ count: number, date: string, time: string } | null>(null);
 
+    // Sites State
+    const [sites, setSites] = useState<SiteResource[]>([]);
+    const [selectedSites, setSelectedSites] = useState<number[]>([]);
+    const [isSitesLoading, setIsSitesLoading] = useState(true);
+
 
     // Fetch Pending Articles
     useEffect(() => {
@@ -73,6 +81,37 @@ export default function CreateEventPage() {
         return () => clearTimeout(timer);
     }, [searchQuery, categoryFilter, countryFilter]);
 
+    // Fetch Sites
+    useEffect(() => {
+        const fetchSites = async () => {
+            setIsSitesLoading(true);
+            try {
+                const response = await getAdminSites();
+                setSites(response.data.data ?? []);
+                // By default, select all active sites
+                const activeSiteIds = response.data.data
+                    .filter(s => s.status === 'active')
+                    .map(s => s.id);
+                setSelectedSites(activeSiteIds);
+            } catch (error) {
+                console.error("Failed to fetch sites", error);
+            } finally {
+                setIsSitesLoading(false);
+            }
+        };
+        fetchSites();
+    }, []);
+
+    const handleSiteToggle = (siteId: number) => {
+        setSelectedSites(prev => {
+            if (prev.includes(siteId)) {
+                return prev.filter(id => id !== siteId);
+            } else {
+                return [...prev, siteId];
+            }
+        });
+    };
+
     const handleArticleToggle = (article: ArticleResource) => {
         setSelectedArticles(prev => {
             const isSelected = prev.some(a => a.id === article.id);
@@ -93,6 +132,10 @@ export default function CreateEventPage() {
             alert("Please select at least one article to schedule");
             return;
         }
+        if (selectedSites.length === 0) {
+            alert("Please select at least one target site for publication");
+            return;
+        }
 
         try {
             await scheduleArticles({
@@ -106,7 +149,8 @@ export default function CreateEventPage() {
                     country: article.country,
                     summary: article.summary,
                     source: article.source
-                }))
+                })),
+                sites: selectedSites.map(String)
             });
 
             setSuccessData({
@@ -132,9 +176,9 @@ export default function CreateEventPage() {
             </div>
 
             <AdminPageHeader
-                title="Create Calendar Event"
-                description="Create calendar events to publish pending articles"
-                actionLabel={`Save ${selectedArticles.length > 0 ? selectedArticles.length : ''} Event${selectedArticles.length !== 1 ? 's' : ''}`}
+                title="Article Publication Scheduler"
+                description="Schedule multiple articles for bulk publication on the selected date"
+                actionLabel={`Schedule ${selectedArticles.length > 0 ? selectedArticles.length : ''} Article${selectedArticles.length !== 1 ? 's' : ''}`}
                 onAction={handleSave}
                 actionIcon={Save}
             />
@@ -172,6 +216,48 @@ export default function CreateEventPage() {
                             </div>
                         </div>
 
+                        {/* Sites Selection */}
+                        <div className="pt-4 border-t border-gray-50">
+                            <h3 className="font-semibold text-lg flex items-center gap-2 mb-4">
+                                <Globe className="w-5 h-5 text-gray-500" />
+                                Target Sites
+                            </h3>
+                            <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2">
+                                {isSitesLoading ? (
+                                    <div className="text-sm text-gray-400 py-4 text-center">Loading sites...</div>
+                                ) : sites.length === 0 ? (
+                                    <div className="text-sm text-gray-400 py-4 text-center">No sites found.</div>
+                                ) : (
+                                    sites.map(site => (
+                                        <div 
+                                            key={site.id}
+                                            onClick={() => handleSiteToggle(site.id)}
+                                            className={cn(
+                                                "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all",
+                                                selectedSites.includes(site.id)
+                                                    ? "bg-blue-50 border-blue-200 text-blue-700"
+                                                    : "bg-white border-gray-100 hover:border-gray-300 text-gray-600"
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "w-4 h-4 rounded border flex items-center justify-center",
+                                                selectedSites.includes(site.id) ? "bg-blue-600 border-blue-600" : "border-gray-300"
+                                            )}>
+                                                {selectedSites.includes(site.id) && <Check className="w-3 h-3 text-white" />}
+                                            </div>
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="text-sm font-medium truncate">{site.name}</span>
+                                                <span className="text-[10px] opacity-70 truncate">{site.domain}</span>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                            <p className="text-[10px] text-gray-400 mt-3 italic">
+                                * Selection defaults to all active sites
+                            </p>
+                        </div>
+
                         {selectedArticles.length > 0 && (
                             <div className="space-y-3">
                                 <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg animate-in fade-in zoom-in-95 duration-200">
@@ -203,11 +289,11 @@ export default function CreateEventPage() {
                     <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm min-h-[600px]">
                         <div className="flex flex-col gap-4 mb-6">
                             <div className="flex items-center justify-between">
-                                <h3 className="font-semibold text-lg">Select Pending Articles</h3>
+                                <h3 className="font-semibold text-lg">Select Pending Review Articles</h3>
                                 <div className="relative w-full max-w-sm">
                                     <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                                     <Input
-                                        placeholder="Search pending articles..."
+                                        placeholder="Search pending review articles..."
                                         className="pl-9 h-10"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -224,7 +310,7 @@ export default function CreateEventPage() {
                                     <option value="">All Categories</option>
                                     {availableFilters.categories.map(cat => (
                                         <option key={cat.name} value={cat.name}>
-                                            {cat.name} <span className="text-[#1428AE]">({cat.count})</span>
+                                            {cat.name} ({cat.count})
                                         </option>
                                     ))}
                                 </select>
@@ -237,7 +323,7 @@ export default function CreateEventPage() {
                                     <option value="">All Countries</option>
                                     {availableFilters.countries.map(c => (
                                         <option key={c.name} value={c.name}>
-                                            {c.name} <span className="text-[#1428AE]">({c.count})</span>
+                                            {c.name} ({c.count})
                                         </option>
                                     ))}
                                 </select>

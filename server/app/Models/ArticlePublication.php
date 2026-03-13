@@ -21,10 +21,12 @@ class ArticlePublication extends Model
         'published_at',
         'status',
         'error_message',
+        'target_sites',
     ];
 
     protected $casts = [
         'scheduled_at' => 'datetime',
         'published_at' => 'datetime',
+        'target_sites' => 'array',
     ];
 }

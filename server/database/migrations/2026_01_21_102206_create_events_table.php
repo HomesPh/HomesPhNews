@@ -16,7 +16,13 @@ return new class extends Migration {
             $table->date('date');
             $table->time('time')->nullable();
             $table->string('location')->nullable();
-            $table->text('description')->nullable();
+            $table->text('details')->nullable();
+            $table->string('category')->nullable();
+            $table->string('country')->nullable();
+            $table->string('color')->nullable();
+            $table->string('bg_color')->nullable();
+            $table->string('border_color')->nullable();
+            $table->boolean('is_public_holiday')->default(false);
             $table->timestamps();
         });
     }

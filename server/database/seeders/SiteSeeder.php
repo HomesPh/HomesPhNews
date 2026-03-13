@@ -55,7 +55,7 @@ class SiteSeeder extends Seeder
             ],
             [
                 'site_name' => 'Main News Portal',
-                'site_url' => 'mainnewsportal.com',
+                'site_url' => 'news.homes.ph',
                 'site_logo' => '/images/HomesTV.png',
                 'site_description' => 'The main news aggregation portal for all HomesPh network articles.',
                 'site_keywords' => ['News', 'General', 'All Categories'],
@@ -67,7 +67,7 @@ class SiteSeeder extends Seeder
 
         foreach ($sites as $siteData) {
             Site::updateOrCreate(
-                ['site_name' => $siteData['site_name']],
+            ['site_name' => $siteData['site_name']],
                 $siteData
             );
         }

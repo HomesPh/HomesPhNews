@@ -2,15 +2,7 @@
 
 import AXIOS_INSTANCE_ADMIN from "../../axios-instance";
 import type { AxiosResponse } from "axios";
-import type { Event } from "../../../types/Event";
-
-export interface UpdateEventRequest {
-  event_title?: string | null;
-  date?: string | null; // date-time
-  time?: string | null;
-  location?: string | null;
-  description?: string | null;
-}
+import type { Event, CreateEventPayload } from "../../../types/Event";
 
 /**
  * Update an event
@@ -18,8 +10,7 @@ export interface UpdateEventRequest {
  */
 export async function updateEvent(
   eventId: number,
-  body: UpdateEventRequest
+  body: Partial<CreateEventPayload>
 ): Promise<AxiosResponse<Event>> {
   return AXIOS_INSTANCE_ADMIN.put<Event>(`/v1/admin/events/${eventId}`, body);
 }
-
