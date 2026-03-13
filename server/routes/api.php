@@ -40,9 +40,9 @@ use Illuminate\Support\Facades\Route;
 
 /* |-------------------------------------------------------------------------- | External Site Routes |-------------------------------------------------------------------------- | | Version-independent routes for external site integration. | */
 Route::middleware('site.auth')->prefix('external')->group(function () {
-    Route::get('/articles', [SiteContentController::class , 'getArticles']);
-    Route::get('/restaurants', [SiteContentController::class , 'getRestaurants']);
-    Route::post('/subscribe', [SubscriptionController::class , 'store']);
+    Route::get('/articles', [SiteContentController::class, 'getArticles']);
+    Route::get('/restaurants', [SiteContentController::class, 'getRestaurants']);
+    Route::post('/subscribe', [SubscriptionController::class, 'store']);
 });
 
 Route::prefix('v1')->group(function () {
@@ -55,60 +55,59 @@ Route::prefix('v1')->group(function () {
      |
      */
 
-    Route::get('/redis-test', [SystemController::class , 'redisTest']);
-    Route::get('/db-test', [SystemController::class , 'dbTest']);
+    Route::get('/redis-test', [SystemController::class, 'redisTest']);
+    Route::get('/db-test', [SystemController::class, 'dbTest']);
 
     Route::get('/scheduler/run', function () {
-            // ⚠️ Security Note: In production, you should protect this route!
-            // Example: if (request('key') !== env('CRON_KEY')) abort(403);
-            \Illuminate\Support\Facades\Artisan::call('schedule:run');
+        // ⚠️ Security Note: In production, you should protect this route!
+        // Example: if (request('key') !== env('CRON_KEY')) abort(403);
+        \Illuminate\Support\Facades\Artisan::call('schedule:run');
 
-            return response()->json(['message' => 'Schedule executed']);
-        }
-        );
+        return response()->json(['message' => 'Schedule executed']);
+    }
+    );
 
-        // ═══════════════════════════════════════════════════════════════
-        // PUBLIC USER ROUTES (Mixed Database and Redis)
-        // ═══════════════════════════════════════════════════════════════
-    
-        // Public User Routes
-        Route::prefix('articles')->name('articles.')->group(function () {
-            Route::get('/', [UserArticleController::class , 'index'])->name('index');
-            Route::get('/feed', [UserArticleController::class , 'feed'])->name('feed');
-            Route::get('/{id}', [UserArticleController::class , 'show'])->name('show');
-            Route::post('/{id}/view', [UserArticleController::class , 'incrementViews'])->name('view');
-        }
-        );
+    // ═══════════════════════════════════════════════════════════════
+    // PUBLIC USER ROUTES (Mixed Database and Redis)
+    // ═══════════════════════════════════════════════════════════════
 
-        // Alias for backward compatibility if needed, or just redirect
-        Route::get('/article', [UserArticleController::class , 'index']);
+    // Public User Routes
+    Route::prefix('articles')->name('articles.')->group(function () {
+        Route::get('/', [UserArticleController::class, 'index'])->name('index');
+        Route::get('/feed', [UserArticleController::class, 'feed'])->name('feed');
+        Route::get('/{id}', [UserArticleController::class, 'show'])->name('show');
+        Route::post('/{id}/view', [UserArticleController::class, 'incrementViews'])->name('view');
+    }
+    );
 
-        // Statistics
-        Route::get('/stats', [UserArticleController::class , 'stats']);
+    // Alias for backward compatibility if needed, or just redirect
+    Route::get('/article', [UserArticleController::class, 'index']);
 
-        // Ads (Public)
-        Route::get('/ads', [UserAdController::class , 'index']);
-        Route::get('/ads/{name}', [UserAdController::class , 'showByName']);
+    // Statistics
+    Route::get('/stats', [UserArticleController::class, 'stats']);
 
-        // ═══════════════════════════════════════════════════════════════
-        // ADMIN ROUTES (Database-based for article management)
-        // ═══════════════════════════════════════════════════════════════
-        /*  middleware(['auth:sanctum', 'is.admin']): This is the security. It says a user must first be authenticated via Sanctum
+    // Ads (Public)
+    Route::get('/ads', [UserAdController::class, 'index']);
+    Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
+
+    // ═══════════════════════════════════════════════════════════════
+    // ADMIN ROUTES (Database-based for article management)
+    // ═══════════════════════════════════════════════════════════════
+    /*  middleware(['auth:sanctum', 'is.admin']): This is the security. It says a user must first be authenticated via Sanctum
      (logged in with a token) AND they must pass our is.admin check. */
-        // This group protects all routes within it.
-        Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
-            ->prefix('admin')
-            ->name('admin.')
-            ->group(function () {
+    // This group protects all routes within it.
+    Route::middleware(['auth:sanctum', 'is.authenticated:admin'])
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
 
             // Reports & Dashboards (Non-CRUD)
-            Route::get('/stats', [DashboardController::class , 'getStats'])->name('stats');
-            Route::get('/analytics', [AnalyticsController::class , 'index'])->name('analytics');
+            Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
+            Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
 
-
-            Route::get('sites/names', [SiteController::class , 'names']);
-            Route::patch('sites/{id}/toggle-status', [SiteController::class , 'toggleStatus']);
-            Route::patch('sites/{id}/refresh-key', [SiteController::class , 'refreshKey']);
+            Route::get('sites/names', [SiteController::class, 'names']);
+            Route::patch('sites/{id}/toggle-status', [SiteController::class, 'toggleStatus']);
+            Route::patch('sites/{id}/refresh-key', [SiteController::class, 'refreshKey']);
             Route::apiResource('sites', SiteController::class);
             Route::apiResource('articles', AdminArticleController::class);
             Route::apiResource('campaigns', AdminCampaignController::class);
@@ -116,28 +115,28 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('countries', CountryController::class);
 
             // Custom Article Actions
-            Route::patch('articles/{article}/titles', [AdminArticleController::class , 'updateTitles']);
+            Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
             // Edit pending (Redis) article without touching the main database
-            Route::patch('articles/{id}/pending', [AdminArticleController::class , 'updatePending']);
+            Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
             // Publish pending article (Redis → MySQL, then delete from Redis)
-            Route::post('articles/{id}/publish', [AdminArticleController::class , 'publish']);
+            Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
             // Restore soft-deleted article
-            Route::post('articles/{id}/restore', [AdminArticleController::class , 'restore']);
+            Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
 
             // ═══════════════════════════════════════════════════════════════
             // RESTAURANT ROUTES (Redis-based & Database Persistence)
             // ═══════════════════════════════════════════════════════════════
-            Route::get('restaurants/stats', [AdminRestaurantController::class , 'stats'])->name('restaurants.stats');
-            Route::get('restaurants/country/{country}', [AdminRestaurantController::class , 'byCountry'])->name('restaurants.byCountry');
-            Route::post('restaurants/{id}/publish', [AdminRestaurantController::class , 'publish'])->name('restaurants.publish');
+            Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
+            Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
+            Route::post('restaurants/{id}/publish', [AdminRestaurantController::class, 'publish'])->name('restaurants.publish');
             Route::apiResource('restaurants', AdminRestaurantController::class);
 
             // Upload Routes
-            Route::post('upload/image', [UploadController::class , 'uploadImage'])->name('upload.image');
+            Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
         }
         );
 
-        /*
+    /*
      |--------------------------------------------------------------------------
      | Authentication Routes (Public)
      |--------------------------------------------------------------------------
@@ -146,15 +145,15 @@ Route::prefix('v1')->group(function () {
      |
      */
 
-        // Traditional Auth
-        Route::post('/login', [AuthController::class , 'login'])->middleware('throttle:login');
-        Route::post('/auth/register', [AuthController::class , 'register']);
+    // Traditional Auth
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
+    Route::post('/auth/register', [AuthController::class, 'register']);
 
-        // Social Auth
-        Route::get('/auth/google/redirect', [SocialAuthController::class , 'redirectToGoogle']);
-        Route::get('/auth/google/callback', [SocialAuthController::class , 'handleGoogleCallback']);
+    // Social Auth
+    Route::get('/auth/google/redirect', [SocialAuthController::class, 'redirectToGoogle']);
+    Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
 
-        /*
+    /*
      |--------------------------------------------------------------------------
      | Public Data Routes
      |--------------------------------------------------------------------------
@@ -163,48 +162,48 @@ Route::prefix('v1')->group(function () {
      |
      */
 
-        // Articles
-        Route::group(['prefix' => 'articles', 'as' => 'articles.'], function () {
-            Route::get('/', [UserArticleController::class , 'index'])->name('index');
-            Route::get('/feed', [UserArticleController::class , 'feed'])->name('feed');
-            Route::get('/{id}', [UserArticleController::class , 'show'])->name('show');
-            Route::post('/{id}/view', [UserArticleController::class , 'incrementViews'])->name('view');
-        }
-        );
-        // Legacy Article Alias
-        Route::get('/article', [UserArticleController::class , 'index']);
+    // Articles
+    Route::group(['prefix' => 'articles', 'as' => 'articles.'], function () {
+        Route::get('/', [UserArticleController::class, 'index'])->name('index');
+        Route::get('/feed', [UserArticleController::class, 'feed'])->name('feed');
+        Route::get('/{id}', [UserArticleController::class, 'show'])->name('show');
+        Route::post('/{id}/view', [UserArticleController::class, 'incrementViews'])->name('view');
+    }
+    );
+    // Legacy Article Alias
+    Route::get('/article', [UserArticleController::class, 'index']);
 
-        // Stats
-        Route::get('/stats', [UserArticleController::class , 'stats']);
+    // Stats
+    Route::get('/stats', [UserArticleController::class, 'stats']);
 
-        // Ads
-        Route::get('/ads', [UserAdController::class , 'index']);
-        Route::get('/ads/{name}', [UserAdController::class , 'showByName']);
+    // Ads
+    Route::get('/ads', [UserAdController::class, 'index']);
+    Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
 
-        // Ad metrics
-        Route::post('/ads/metrics', [AdminAdMetricController::class , 'store']);
+    // Ad metrics
+    Route::post('/ads/metrics', [AdminAdMetricController::class, 'store']);
 
-        // Countries
-        Route::get('/countries', [CountryController::class , 'index']);
+    // Countries
+    Route::get('/countries', [CountryController::class, 'index']);
 
-        // Restaurants
-        Route::group(['prefix' => 'restaurants', 'as' => 'restaurants.'], function () {
-            Route::get('/', [UserRestaurantController::class , 'index'])->name('index');
-            Route::get('/{id}', [UserRestaurantController::class , 'show'])->name('show');
-            Route::get('/country/{country}', [UserRestaurantController::class , 'byCountry'])->name('byCountry');
-        }
-        );
+    // Restaurants
+    Route::group(['prefix' => 'restaurants', 'as' => 'restaurants.'], function () {
+        Route::get('/', [UserRestaurantController::class, 'index'])->name('index');
+        Route::get('/{id}', [UserRestaurantController::class, 'show'])->name('show');
+        Route::get('/country/{country}', [UserRestaurantController::class, 'byCountry'])->name('byCountry');
+    }
+    );
 
-        // Subscription (Newsletter/Updates)
-        Route::post('/subscribe', [SubscriptionController::class , 'store']);
-        Route::get('/subscribe/{id}', [SubscriptionController::class , 'show']);
-        Route::patch('/subscribe/{id}', [SubscriptionController::class , 'update']);
+    // Subscription (Newsletter/Updates)
+    Route::post('/subscribe', [SubscriptionController::class, 'store']);
+    Route::get('/subscribe/{id}', [SubscriptionController::class, 'show']);
+    Route::patch('/subscribe/{id}', [SubscriptionController::class, 'update']);
 
-        // Metadata (Public)
-        Route::get('/categories', [CategoryController::class , 'index']);
-        Route::get('/countries', [CountryController::class , 'index']);
+    // Metadata (Public)
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/countries', [CountryController::class, 'index']);
 
-        /*
+    /*
      |--------------------------------------------------------------------------
      | Authenticated User Routes
      |--------------------------------------------------------------------------
@@ -213,33 +212,33 @@ Route::prefix('v1')->group(function () {
      |
      */
 
-        Route::middleware('auth:sanctum')->group(function () {
-            // User Info
-            Route::get('/user', [AuthController::class , 'me']);
-            Route::get('/login', [AuthController::class , 'me'])->name('login'); // Re-using me endpoint for check
-            Route::patch('/user/profile', [AuthController::class , 'updateProfile']);
-            Route::patch('/user/password', [AuthController::class , 'changePassword']);
+    Route::middleware('auth:sanctum')->group(function () {
+        // User Info
+        Route::get('/user', [AuthController::class, 'me']);
+        Route::get('/login', [AuthController::class, 'me'])->name('login'); // Re-using me endpoint for check
+        Route::patch('/user/profile', [AuthController::class, 'updateProfile']);
+        Route::patch('/user/password', [AuthController::class, 'changePassword']);
 
-            // Auth Actions
-            Route::post('/logout', [AuthController::class , 'logout']);
+        // Auth Actions
+        Route::post('/logout', [AuthController::class, 'logout']);
 
-            // Plan Subscriptions
-            Route::post('/plans/subscribe', [PlanSubscriptionController::class , 'store']);
+        // Plan Subscriptions
+        Route::post('/plans/subscribe', [PlanSubscriptionController::class, 'store']);
 
-            // OTP Routes
-            Route::post('/otp/email/send', [OTPController::class , 'sendEmailOTP']);
-            Route::post('/otp/email/verify', [OTPController::class , 'verifyEmailOTP']);
+        // OTP Routes
+        Route::post('/otp/email/send', [OTPController::class, 'sendEmailOTP']);
+        Route::post('/otp/email/verify', [OTPController::class, 'verifyEmailOTP']);
 
-            // Subscriber Routes (any authenticated user — no admin role required)
-            Route::middleware('is.verified')->prefix('subscriber')->group(function () {
-                    Route::get('/articles', [SubscriberArticleController::class , 'index']);
-                    Route::get('/articles/{id}', [SubscriberArticleController::class , 'show']);
-                }
-                );
-            }
-            );
+        // Subscriber Routes (any authenticated user — no admin role required)
+        Route::middleware('is.verified')->prefix('subscriber')->group(function () {
+            Route::get('/articles', [SubscriberArticleController::class, 'index']);
+            Route::get('/articles/{id}', [SubscriberArticleController::class, 'show']);
+        }
+        );
+    }
+    );
 
-            /*
+    /*
          |--------------------------------------------------------------------------
          | Admin Routes
          |--------------------------------------------------------------------------
@@ -248,31 +247,31 @@ Route::prefix('v1')->group(function () {
          |
          */
 
-            Route::middleware(['auth:sanctum', 'is.authenticated:admin,ceo,editor'])
-                ->prefix('admin')
-                ->name('admin.')
-                ->group(function () {
+    Route::middleware(['auth:sanctum', 'is.authenticated:admin,ceo,editor'])
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
 
             // ═══════════════════════════════════════════════════════════════
             // SHARED ROUTES (Admin, CEO & Editor)
             // ═══════════════════════════════════════════════════════════════
-    
+
             // Mailing list functionality
-            Route::get('/analytics/mailing-list', [AnalyticsController::class , 'mailingListStats']);
+            Route::get('/analytics/mailing-list', [AnalyticsController::class, 'mailingListStats']);
             Route::apiResource('mailing-list-groups', MailingListGroupController::class);
-            Route::get('subscribers', [AdminArticleController::class , 'getSubscribers']);
-            Route::post('articles/bulk-send-newsletter', [AdminArticleController::class , 'bulkSend']);
+            Route::get('subscribers', [AdminArticleController::class, 'getSubscribers']);
+            Route::post('articles/bulk-send-newsletter', [AdminArticleController::class, 'bulkSend']);
 
             // Calendar / Scheduled Publications
             Route::apiResource('article-publications', ArticlePublicationController::class);
             Route::apiResource('events', EventController::class);
 
             // Article listing & detail — accessible by Admin, CEO, and Editor
-            Route::get('articles', [AdminArticleController::class , 'index']);
-            Route::get('articles/{article}', [AdminArticleController::class , 'show']);
+            Route::get('articles', [AdminArticleController::class, 'index']);
+            Route::get('articles/{article}', [AdminArticleController::class, 'show']);
 
             // Site names — CEO needs this to select publish targets
-            Route::get('sites/names', [SiteController::class , 'names']);
+            Route::get('sites/names', [SiteController::class, 'names']);
 
             // Shared metadata resources
             Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
@@ -281,87 +280,88 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('cities', CityController::class)->only(['index', 'show']);
 
             // Article update — CEO needs PATCH to set status=rejected
-            Route::match (['put', 'patch'], 'articles/{article}', [AdminArticleController::class , 'update']);
+            Route::match(['put', 'patch'], 'articles/{article}', [AdminArticleController::class, 'update']);
 
             // ═══════════════════════════════════════════════════════════════
             // SHARED ROUTES (Admin & Editor only)
             // ═══════════════════════════════════════════════════════════════
             Route::middleware('is.authenticated:admin,editor')->group(function () {
 
-                    // Article write operations (Store)
-                    Route::post('articles', [AdminArticleController::class , 'store']);
+                // Article write operations (Store)
+                Route::post('articles', [AdminArticleController::class, 'store']);
 
-                    // Article Actions
-                    Route::patch('articles/{article}/titles', [AdminArticleController::class , 'updateTitles']);
-                    Route::patch('articles/{id}/pending', [AdminArticleController::class , 'updatePending']);
-                    Route::post('articles/move-to-db', [AdminArticleController::class , 'moveToDb']);
-                    Route::post('articles/{id}/send-newsletter', [AdminArticleController::class , 'sendToSubscribers']);
+                // Article Actions
+                Route::patch('articles/{article}/titles', [AdminArticleController::class, 'updateTitles']);
+                Route::patch('articles/{id}/pending', [AdminArticleController::class, 'updatePending']);
+                Route::post('articles/move-to-db', [AdminArticleController::class, 'moveToDb']);
+                Route::post('articles/{id}/send-newsletter', [AdminArticleController::class, 'sendToSubscribers']);
 
-                    // Upload Routes
-                    Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
+                // Upload Routes
+                Route::post('upload/image', [UploadController::class, 'uploadImage'])->name('upload.image');
 
-                    // AI Generation Routes
-                    Route::prefix('generate')->name('generate.')->group(function () {
-                        Route::post('/text', [GenerationController::class, 'text'])->name('text');
-                        Route::post('/image', [GenerationController::class, 'image'])->name('image');
-                    });
-                }
-                );
-
-                // ═══════════════════════════════════════════════════════════════
-                // SHARED ROUTES (Admin & CEO only)                                 
-                // ═══════════════════════════════════════════════════════════════  
-                Route::middleware('is.authenticated:admin,ceo')->group(function () {
-                    // CEO can approve (publish) articles
-                    Route::post('articles/{id}/publish', [AdminArticleController::class , 'publish']);
-                    Route::post('articles/bulk-publish', [AdminArticleController::class , 'bulkPublish']);
-                    Route::post('articles/bulk-unpublish', [AdminArticleController::class , 'bulkUnpublish']);
-                    Route::post('articles/bulk-reject', [AdminArticleController::class , 'bulkReject']);
-                    Route::post('articles/bulk-delete', [AdminArticleController::class , 'bulkDelete']);
-                }
-                );
-
-                // ═══════════════════════════════════════════════════════════════
-                // ADMIN ONLY ROUTES
-                // ═══════════════════════════════════════════════════════════════
-                Route::middleware('is.authenticated:admin')->group(function () {
-                    // Dashboard & Analytics
-                    Route::get('/stats', [DashboardController::class , 'getStats'])->name('stats');
-                    Route::get('/analytics', [AnalyticsController::class , 'index'])->name('analytics');
-                    Route::get('ad-metrics', [AdminAdMetricController::class , 'index']);
-                    Route::get('ad-metrics/units/{adUnit}', [AdminAdMetricController::class , 'showByAdUnit']);
-                    Route::get('ad-metrics/campaigns/{campaign}', [AdminAdMetricController::class , 'showByCampaign']);
-
-                    Route::apiResource('campaigns', AdminCampaignController::class);
-                    Route::apiResource('ad-units', AdminAdUnitController::class);
-
-                    // Article Deletion/Restoration (Admin Only)
-                    Route::delete('articles/{article}', [AdminArticleController::class , 'destroy']);
-                    Route::delete('articles/{id}/hard-delete', [AdminArticleController::class , 'hardDelete']);
-                    Route::post('articles/{id}/restore', [AdminArticleController::class , 'restore']);
-
-                    // Resource Routes
-                    Route::apiResource('sites', SiteController::class);
-
-                    Route::get('restaurants/stats', [AdminRestaurantController::class , 'stats'])->name('restaurants.stats');
-                    Route::get('restaurants/country/{country}', [AdminRestaurantController::class , 'byCountry'])->name('restaurants.byCountry');
-                    Route::post('restaurants/move-to-db', [AdminRestaurantController::class , 'moveToDb'])->name('restaurants.move-to-db');
-                    Route::apiResource('restaurants', AdminRestaurantController::class);
-
-                    // Additional Management
-                    Route::patch('sites/{id}/toggle-status', [SiteController::class , 'toggleStatus']);
-                    Route::patch('sites/{id}/refresh-key', [SiteController::class , 'refreshKey']);
-
-                    // Restaurant routes (Database Persistence)
-                    Route::post('restaurants/{id}/publish', [AdminRestaurantController::class , 'publish'])->name('restaurants.publish');
-                }
-                );
+                // AI Generation Routes
+                Route::prefix('generate')->name('generate.')->group(function () {
+                    Route::post('/text', [GenerationController::class, 'text'])->name('text');
+                    Route::post('/image', [GenerationController::class, 'image'])->name('image');
+                });
             }
-            );        });
+            );
+
+            // ═══════════════════════════════════════════════════════════════
+            // SHARED ROUTES (Admin & CEO only)
+            // ═══════════════════════════════════════════════════════════════
+            Route::middleware('is.authenticated:admin,ceo')->group(function () {
+                // CEO can approve (publish) articles
+                Route::post('articles/{id}/publish', [AdminArticleController::class, 'publish']);
+                Route::post('articles/bulk-publish', [AdminArticleController::class, 'bulkPublish']);
+                Route::post('articles/bulk-unpublish', [AdminArticleController::class, 'bulkUnpublish']);
+                Route::post('articles/bulk-reject', [AdminArticleController::class, 'bulkReject']);
+                Route::post('articles/bulk-delete', [AdminArticleController::class, 'bulkDelete']);
+            }
+            );
+
+            // ═══════════════════════════════════════════════════════════════
+            // ADMIN ONLY ROUTES
+            // ═══════════════════════════════════════════════════════════════
+            Route::middleware('is.authenticated:admin')->group(function () {
+                // Dashboard & Analytics
+                Route::get('/stats', [DashboardController::class, 'getStats'])->name('stats');
+                Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
+                Route::get('ad-metrics', [AdminAdMetricController::class, 'index']);
+                Route::get('ad-metrics/units/{adUnit}', [AdminAdMetricController::class, 'showByAdUnit']);
+                Route::get('ad-metrics/campaigns/{campaign}', [AdminAdMetricController::class, 'showByCampaign']);
+
+                Route::apiResource('campaigns', AdminCampaignController::class);
+                Route::apiResource('ad-units', AdminAdUnitController::class);
+
+                // Article Deletion/Restoration (Admin Only)
+                Route::delete('articles/{article}', [AdminArticleController::class, 'destroy']);
+                Route::delete('articles/{id}/hard-delete', [AdminArticleController::class, 'hardDelete']);
+                Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
+
+                // Resource Routes
+                Route::apiResource('sites', SiteController::class);
+
+                Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
+                Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
+                Route::post('restaurants/move-to-db', [AdminRestaurantController::class, 'moveToDb'])->name('restaurants.move-to-db');
+                Route::apiResource('restaurants', AdminRestaurantController::class);
+
+                // Additional Management
+                Route::patch('sites/{id}/toggle-status', [SiteController::class, 'toggleStatus']);
+                Route::patch('sites/{id}/refresh-key', [SiteController::class, 'refreshKey']);
+
+                // Restaurant routes (Database Persistence)
+                Route::post('restaurants/{id}/publish', [AdminRestaurantController::class, 'publish'])->name('restaurants.publish');
+            }
+            );
+        }
+        );
+});
 
 Route::prefix('v2')->middleware(['auth:sanctum', 'is.authenticated:admin'])->group(function () {
     Route::apiResource('users', UserControllerV2::class);
     Route::apiResource('roles', RoleControllerV2::class);
-    Route::get('public/user/info', [UserControllerV2::class , 'getPublicInfo'])->withoutMiddleware(['auth:sanctum', 'is.authenticated:admin']);
-    Route::put('users/{id}/role', [UserControllerV2::class , 'updateRole']);
+    Route::get('public/user/info', [UserControllerV2::class, 'getPublicInfo'])->withoutMiddleware(['auth:sanctum', 'is.authenticated:admin']);
+    Route::put('users/{id}/role', [UserControllerV2::class, 'updateRole']);
 });
