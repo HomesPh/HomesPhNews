@@ -164,8 +164,8 @@ const DraggableImage = ({
                     <ImageIcon className={cn("w-8 h-8 text-gray-200 mx-auto mb-2 transition-transform duration-200", isDraggingOver && "scale-125 text-[#1428AE]")} />
                     <span className={cn(
                         "text-xs font-bold px-3 py-1.5 rounded-full shadow-sm border transition-all duration-200 block whitespace-nowrap",
-                        isDraggingOver 
-                            ? "bg-[#1428AE] text-white border-[#1428AE] scale-110" 
+                        isDraggingOver
+                            ? "bg-[#1428AE] text-white border-[#1428AE] scale-110"
                             : "bg-white text-[#1428AE] border-gray-100"
                     )}>
                         {isDraggingOver ? "Drop Image Now" : placeholderLabel}
@@ -617,19 +617,21 @@ export default function BlockRenderer({
                 isActive && "opacity-100"
             )}>
                 <div className="p-1 px-1.5 bg-white rounded-lg shadow-sm border border-gray-100 flex flex-col gap-0.5">
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
+                    {block.type === "image" && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
 
-                            console.log("[BlockRenderer.tsx]: Generate button clicked!");
-                            onGenerate?.({ id: block.id, block });
-                        }}
-                        className="p-1.5 hover:bg-[#eef2ff] rounded-md text-gray-400 hover:text-[#1428AE]"
-                        title="Generate"
-                        disabled={isLoading}
-                    >
-                        <Sparkles className="w-3.5 h-3.5" />
-                    </button>
+                                console.log("[BlockRenderer.tsx]: Generate button clicked!");
+                                onGenerate?.({ id: block.id, block });
+                            }}
+                            className="p-1.5 hover:bg-[#eef2ff] rounded-md text-gray-400 hover:text-[#1428AE]"
+                            title="Generate"
+                            disabled={isLoading}
+                        >
+                            <Sparkles className="w-3.5 h-3.5" />
+                        </button>
+                    )}
                     <button
                         className="p-1.5 hover:bg-gray-50 rounded-md text-gray-400 hover:text-[#1428AE] cursor-grab active:cursor-grabbing"
                         title="Drag to reorder"
