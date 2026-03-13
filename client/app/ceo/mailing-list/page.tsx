@@ -31,7 +31,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { DUMMY_CITIES } from "@/components/features/admin/articles/ArticlesFilters";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -50,7 +49,11 @@ import {
     getMailingListGroups,
     getMailingListGroupDetails,
     createMailingListGroup,
-    deleteMailingListGroup
+    deleteMailingListGroup,
+    getCountries,
+    getCities,
+    type CountryResource,
+    type CityResource
 } from "@/lib/api-v2";
 import StatCard from "@/components/features/admin/shared/StatCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -78,6 +81,8 @@ export default function ManualNewsletterPage() {
     const [mailingStats, setMailingStats] = useState<MailingListStats | null>(null);
     const [groups, setGroups] = useState<MailingListGroup[]>([]);
     const [isSending, setIsSending] = useState(false);
+    const [allCountries, setAllCountries] = useState<CountryResource[]>([]);
+    const [allCities, setAllCities] = useState<CityResource[]>([]);
 
     // Broadcast detail state
     const [selectedBroadcast, setSelectedBroadcast] = useState<MailingListStats['recent_broadcasts'][number] | null>(null);
@@ -111,7 +116,21 @@ export default function ManualNewsletterPage() {
         fetchSubscribers();
         fetchMailingStats();
         fetchGroups();
+        fetchFiltersSeedData();
     }, []);
+
+    const fetchFiltersSeedData = async () => {
+        try {
+            const [countriesRes, citiesRes] = await Promise.all([
+                getCountries(),
+                getCities()
+            ]);
+            setAllCountries(countriesRes.data || []);
+            setAllCities(citiesRes.data || []);
+        } catch (error) {
+            console.error("Failed to fetch filter seed data:", error);
+        }
+    };
 
     const fetchGroups = async () => {
         setIsLoadingGroups(true);
@@ -234,23 +253,41 @@ export default function ManualNewsletterPage() {
 
     // Cascade logic for articles
     useEffect(() => {
-        if (articleCountry && DUMMY_CITIES[articleCountry]) {
-            setArticleCities(DUMMY_CITIES[articleCountry]);
+        if (articleCountry) {
+            const countryId = allCountries.find(c => c.name === articleCountry)?.id;
+            if (countryId) {
+                const filtered = allCities
+                    .filter(c => String(c.country_id) === String(countryId))
+                    .map(c => c.name)
+                    .sort();
+                setArticleCities(filtered);
+            } else {
+                setArticleCities([]);
+            }
         } else {
             setArticleCities([]);
         }
         setArticleCity('');
-    }, [articleCountry]);
+    }, [articleCountry, allCountries, allCities]);
 
     // Cascade logic for subscribers
     useEffect(() => {
-        if (subscriberCountry && DUMMY_CITIES[subscriberCountry]) {
-            setSubscriberCities(DUMMY_CITIES[subscriberCountry]);
+        if (subscriberCountry) {
+            const countryId = allCountries.find(c => c.name === subscriberCountry)?.id;
+            if (countryId) {
+                const filtered = allCities
+                    .filter(c => String(c.country_id) === String(countryId))
+                    .map(c => c.name)
+                    .sort();
+                setSubscriberCities(filtered);
+            } else {
+                setSubscriberCities([]);
+            }
         } else {
             setSubscriberCities([]);
         }
         setSubscriberCity('');
-    }, [subscriberCountry]);
+    }, [subscriberCountry, allCountries, allCities]);
 
     const filteredArticles = useMemo(() => {
         return articles.filter(a => {
