@@ -34,6 +34,7 @@ interface BlockDrawerProps {
     // props
     onGenerateTitle: OnGenerateProps,
     onGenerateSummary: OnGenerateProps
+    mode?: 'create' | 'edit';
 }
 
 function TagsInput({ tags, onChange }: { tags: string[], onChange: (tags: string[]) => void }) {
@@ -76,6 +77,7 @@ export default function BlockDrawer({
 
     onGenerateTitle,
     onGenerateSummary,
+    mode = 'create'
 }: BlockDrawerProps) {
     const [activeTab, setActiveTab] = useState<'blocks' | 'details'>('blocks');
     const [internalCategories, setInternalCategories] = useState<(string | { name: string; count: number })[]>([]);
@@ -86,21 +88,19 @@ export default function BlockDrawer({
     const [showAllPlatforms, setShowAllPlatforms] = useState(false);
 
     useEffect(() => {
-        // Fetch categories if not provided as props
-        if (!propsCategories || propsCategories.length === 0) {
-            getCategories().then(res => {
-                if (Array.isArray(res.data)) {
-                    // Map objects to names if they are objects
-                    const names = res.data.map((c: any) => typeof c === 'string' ? c : c.name);
-                    setInternalCategories(names);
-                }
-            }).catch(err => {
-                console.error("Failed to fetch categories in BlockDrawer:", err);
-                // Fallback to defaults
-                setInternalCategories(["Community", "Real Estate", "Technology", "AI", "Investment", "Lifestyle"]);
-            });
-        }
-    }, [propsCategories]);
+        // Always fetch exhaustive categories to ensure all options are available
+        getCategories().then(res => {
+            if (Array.isArray(res.data)) {
+                // Map objects to names if they are objects
+                const names = res.data.map((c: any) => typeof c === 'string' ? c : c.name);
+                setInternalCategories(names);
+            }
+        }).catch(err => {
+            console.error("Failed to fetch categories in BlockDrawer:", err);
+            // No fallback to defaults - let it be empty if it fails
+            setInternalCategories([]);
+        });
+    }, []); // Always fetch on mount
 
     // Consolidate initial data fetching
     useEffect(() => {
@@ -111,9 +111,8 @@ export default function BlockDrawer({
                 const countryData = (countryRes.data as any).data || countryRes.data;
                 if (Array.isArray(countryData)) {
                     setAllCountries(countryData);
-                    if (!propsCountries || propsCountries.length === 0) {
-                        setInternalCountries(countryData.map((c: any) => c.name));
-                    }
+                    // Always populate internal exhaustive list
+                    setInternalCountries(countryData.map((c: any) => c.name));
                 }
 
                 // Fetch Provinces
@@ -145,8 +144,9 @@ export default function BlockDrawer({
         }
     }, [propsCountries, allCountries.length]);
 
-    const finalCategories = (propsCategories && propsCategories.length > 0) ? propsCategories : internalCategories;
-    const finalCountries = (propsCountries && propsCountries.length > 0) ? propsCountries : internalCountries;
+    // Favor exhaustive internal lists over filtered props to ensure all options are available
+    const finalCategories = (internalCategories.length > 0) ? internalCategories : (propsCategories || []);
+    const finalCountries = (internalCountries.length > 0) ? internalCountries : (propsCountries || []);
 
     // Filter Logic
     const selectedCountryId = useMemo(() => {
@@ -161,23 +161,18 @@ export default function BlockDrawer({
 
     const filteredProvinces = useMemo(() => {
         if (!selectedCountryId) {
-            // If we have a country selected but haven't resolved the ID yet, show nothing
-            // rather than showing everything.
-            if (details.country) return [];
-            return internalProvinces;
+            return [];
         }
 
         const countryIdUpper = selectedCountryId.toUpperCase();
         return internalProvinces.filter(p =>
             p.country_id?.trim().toUpperCase() === countryIdUpper
         );
-    }, [selectedCountryId, details.country, internalProvinces]);
+    }, [selectedCountryId, internalProvinces]);
 
     const filteredCities = useMemo(() => {
         if (!selectedCountryId) {
-            // Same as above: prevent showing wrong cities during load or if mapping failed
-            if (details.country) return [];
-            return internalCities;
+            return [];
         }
 
         const countryIdUpper = selectedCountryId.toUpperCase();
@@ -431,10 +426,10 @@ export default function BlockDrawer({
                                 <input
                                     type="text"
                                     value={details.author}
-                                    onChange={(e) => !isEditor && onUpdateDetails({ author: e.target.value })}
-                                    disabled={isEditor}
+                                    onChange={(e) => (mode === 'create' || !isEditor) && onUpdateDetails({ author: e.target.value })}
+                                    disabled={isEditor && mode === 'edit'}
                                     placeholder="HOMESPH NEWS"
-                                    className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#1428AE]/20 transition-all font-inter ${isEditor ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
+                                    className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#1428AE]/20 transition-all font-inter ${isEditor && mode === 'edit' ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
                                 />
                             </div>
 

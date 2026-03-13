@@ -118,13 +118,13 @@ export default function AdminSidebar() {
   };
 
   const filteredSidebarItems = SidebarItems.filter(item => {
-    // If user is CEO, only show Mailing List in admin sidebar
+    // If user is CEO, only show Mailing List, Articles and Calendar
     if (user?.roles?.includes('ceo')) {
-      return item.title === "Mailing List" || item.title === "Articles";
+      return item.title === "Mailing List" || item.title === "Articles" || item.title === "Calendar";
     }
-    // If user is Editor, only show Articles and Settings
+    // If user is Editor, only show Articles, Settings and Calendar
     if (user?.roles?.includes('editor')) {
-      return item.title === "Articles" || item.title === "Settings";
+      return item.title === "Articles" || item.title === "Settings" || item.title === "Calendar";
     }
     // Default: show all for admin or other roles
     return true;
@@ -161,8 +161,14 @@ export default function AdminSidebar() {
               const isSubMenuOpen = openSubMenus.includes(item.title);
 
               let href = item.href || "";
-              if (item.title === "Articles" && user?.roles?.includes('ceo')) {
-                href = "/ceo/articles";
+              if (item.title === "Articles") {
+                if (user?.roles?.includes('ceo')) href = "/ceo/articles";
+                else if (user?.roles?.includes('editor')) href = "/editor/articles";
+              } else if (item.title === "Calendar") {
+                if (user?.roles?.includes('ceo')) href = "/ceo/calendar";
+                else if (user?.roles?.includes('editor')) href = "/editor/calendar";
+              } else if (item.title === "Settings") {
+                 if (user?.roles?.includes('editor')) href = "/editor/settings";
               }
 
               const isActive = hasSubItems

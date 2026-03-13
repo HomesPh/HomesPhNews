@@ -68,10 +68,23 @@ class AIProcessor:
             print("⚠️ GOOGLE_AI_API_KEY not found.")
             print("   💡 Please set GOOGLE_AI_API_KEY in your .env file.")
             self.text_model = None
+        
+        # Initialize OpenAI GPT for text generation fallback
+        self.openai_client = None
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if openai_key:
+            try:
+                from openai import OpenAI
+                self.openai_client = OpenAI(api_key=openai_key)
+                print("✅ OpenAI GPT initialized for text generation fallback")
+            except ImportError:
+                print("⚠️ OpenAI library not installed. Install with: pip install openai")
+            except Exception as e:
+                print(f"⚠️ OpenAI initialization failed: {str(e)[:100]}")
 
     def _init_text_model(self):
-        """Initialize the best available text model."""
-        models_to_try = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro']
+        """Initialize the best available text model (prefer Gemini 2.5 Flash)."""
+        models_to_try = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro']
         for model_name in models_to_try:
             try:
                 model = genai.GenerativeModel(model_name)
@@ -88,6 +101,46 @@ class AIProcessor:
         print("   💡 Check quota at: https://aistudio.google.com/app/apikey")
         return None
 
+    def _try_openai_gpt(self, prompt, system_instruction=None, max_tokens=2000):
+        """
+        Try OpenAI GPT models as fallback for text generation.
+        Returns generated text if successful, None otherwise.
+        """
+        if not self.openai_client:
+            return None
+        
+        # Check if OpenAI fallback is enabled (default: true if API key exists)
+        fallback_enabled = os.getenv("OPENAI_FALLBACK_ENABLED", "true").lower() == "true"
+        if not fallback_enabled:
+            return None
+        
+        # Try GPT-4o first, then GPT-4, then GPT-3.5-turbo
+        models = ["gpt-4o", "gpt-4", "gpt-3.5-turbo"]
+        
+        for model in models:
+            try:
+                messages = []
+                if system_instruction:
+                    messages.append({"role": "system", "content": system_instruction})
+                messages.append({"role": "user", "content": prompt})
+                
+                response = self.openai_client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    max_tokens=max_tokens,
+                    temperature=0.7
+                )
+                
+                generated_text = response.choices[0].message.content.strip()
+                print(f"✅ Text generated using OpenAI {model}")
+                return generated_text
+                
+            except Exception as e:
+                print(f"   ⚠️ OpenAI {model} failed: {str(e)[:100]}")
+                continue
+        
+        return None
+
     def detect_country(self, title, content):
         """Uses AI to detect the primary country mentioned in the article."""
         country_list = ", ".join(COUNTRIES.keys())
@@ -99,15 +152,28 @@ class AIProcessor:
         Title: {title}
         Content: {content[:600]}
         """
+        
+        text = None
+        
+        # Try Gemini first
         try:
-            response = self.text_model.generate_content(prompt)
-            country = response.text.strip().split('\n')[0].replace(".", "").strip()
+            if self.text_model:
+                response = self.text_model.generate_content(prompt)
+                text = response.text
+        except:
+            pass
+        
+        # Fallback to OpenAI
+        if not text:
+            text = self._try_openai_gpt(prompt, max_tokens=50)
+        
+        if text:
+            country = text.strip().split('\n')[0].replace(".", "").strip()
             # Validate against known countries
             if country in COUNTRIES:
                 return country
-            return "Global"
-        except:
-            return "Global"
+        
+        return "Global"
 
     def detect_category(self, title, content, fallback_category=None):
         """
@@ -129,17 +195,30 @@ class AIProcessor:
         Title: {title}
         Content: {content[:600]}
         """
+        
+        text = None
+        
+        # Try Gemini first
         try:
-            response = self.text_model.generate_content(prompt)
-            detected = response.text.strip().split('\n')[0].replace(".", "").strip()
+            if self.text_model:
+                response = self.text_model.generate_content(prompt)
+                text = response.text
+        except:
+            pass
+        
+        # Fallback to OpenAI
+        if not text:
+            text = self._try_openai_gpt(prompt, max_tokens=50)
+        
+        if text:
+            detected = text.strip().split('\n')[0].replace(".", "").strip()
             if detected in CATEGORIES:
                 return detected
             for cat in CATEGORIES:
                 if cat.lower() == detected.lower():
                     return cat
-            return fallback_category or CATEGORIES[0]
-        except:
-            return fallback_category or CATEGORIES[0]
+        
+        return fallback_category or CATEGORIES[0]
 
     def detect_topics(self, title, content, category):
         """
@@ -175,20 +254,28 @@ class AIProcessor:
         Return ONLY the topics as a comma-separated list. No explanation.
         Example output: AI & PropTech, Smart Homes, Investment
         """
+        text = None
+        
+        # Try Gemini first
         try:
-            response = self.text_model.generate_content(prompt)
-            topics_text = response.text.strip()
-            
+            if self.text_model:
+                response = self.text_model.generate_content(prompt)
+                text = response.text
+        except Exception as e:
+            print(f"⚠️ Gemini topic detection failed: {e}")
+        
+        # Fallback to OpenAI
+        if not text:
+            text = self._try_openai_gpt(prompt, max_tokens=100)
+        
+        if text:
+            topics_text = text.strip()
             # Parse comma-separated topics
             topics = [t.strip() for t in topics_text.split(',') if t.strip()]
-            
             if topics:
                 return topics
-            return [category]  # Fallback to main category
-            
-        except Exception as e:
-            print(f"⚠️ Topic detection failed: {e}")
-            return [category]  # Fallback to main category
+        
+        return [category]  # Fallback to main category
 
     def extract_restaurant_details(self, title, content, country, category):
         """
@@ -489,17 +576,34 @@ Be concise. English only."""
         CITATIONS:
         [1] Source Name - Title ({original_url})
         """
+        text = None
+        
+        # Step 1: Try Gemini first
         try:
-            response = self.text_model.generate_content(prompt)
-            text = response.text
-            
-            # Parse response
-            new_title = original_title
-            summary = ""
-            keywords = category
-            new_content = original_content
-            citations = []
-            
+            if self.text_model:
+                response = self.text_model.generate_content(prompt)
+                text = response.text
+        except Exception as e:
+            print(f"⚠️ Gemini rewrite failed: {str(e)[:100]}")
+            text = None
+        
+        # Step 2: Fallback to OpenAI GPT
+        if not text:
+            print("🔄 Gemini failed, trying OpenAI GPT fallback...")
+            system_instruction = f"""You are a senior investigative journalist for CNN/Semafor targeting Filipinos/OFWs globally.
+            Writing Style: {AI_WRITING_STYLE}
+            Country Focus: {country}
+            Category: {category}"""
+            text = self._try_openai_gpt(prompt, system_instruction=system_instruction, max_tokens=3000)
+        
+        # Step 3: Parse response
+        new_title = original_title
+        summary = ""
+        keywords = category
+        new_content = original_content
+        citations = []
+        
+        if text:
             if "HEADLINE:" in text:
                 parts = text.split("HEADLINE:")[1]
                 if "SUMMARY:" in parts:
@@ -527,15 +631,13 @@ Be concise. English only."""
             new_content = clean_markdown(new_content)
             summary = clean_markdown(summary)
             keywords = clean_markdown(keywords)
-            
-            return new_title, new_content, keywords, summary, citations
-            
-        except Exception as e:
-            print(f"❌ Rewrite Error: {e}")
-            if "'NoneType'" in str(e):
+        else:
+            print("❌ Both Gemini and OpenAI failed. Using original content.")
+            if not self.text_model:
                 print("   ❌ Text model is None - Model failed to initialize")
                 print("   💡 API key invalid, no billing linked, or quota exhausted")
-            return f"AI: {original_title}", original_content, category, "", []
+        
+        return new_title, new_content, keywords, summary, citations
 
     def generate_image_prompt(self, title, content, country, category):
         """Generates a visual prompt for image generation."""
@@ -558,9 +660,87 @@ Be concise. English only."""
         except:
             return f"Professional {category} scene in {country}, photojournalism style"
 
+    def _try_openai_dalle(self, visual_prompt, article_id):
+        """
+        Try OpenAI DALL-E models as fallback.
+        Returns temp file path if successful, None otherwise.
+        """
+        import os
+        api_key = os.getenv("OPENAI_API_KEY")
+        
+        if not api_key:
+            return None
+        
+        # Check if OpenAI fallback is enabled (default: true if API key exists)
+        fallback_enabled = os.getenv("OPENAI_FALLBACK_ENABLED", "true").lower() == "true"
+        if not fallback_enabled:
+            return None
+        
+        try:
+            from openai import OpenAI
+        except ImportError:
+            print("⚠️ OpenAI library not installed. Install with: pip install openai")
+            return None
+        
+        # Configuration from env or defaults
+        image_size = os.getenv("OPENAI_IMAGE_SIZE", "1024x1024")
+        image_quality = os.getenv("OPENAI_IMAGE_QUALITY", "standard")
+        
+        # Try DALL-E 3 first, then DALL-E 2
+        models = [
+            {"model": "dall-e-3", "size": image_size, "quality": image_quality},
+            {"model": "dall-e-2", "size": "1024x1024", "quality": None}  # DALL-E 2 doesn't support quality parameter
+        ]
+        
+        client = OpenAI(api_key=api_key)
+        temp_filename = f"gen_{article_id}.png"
+        temp_path = os.path.abspath(temp_filename)
+        
+        for model_config in models:
+            try:
+                model = model_config["model"]
+                size = model_config["size"]
+                quality = model_config.get("quality")
+                
+                print(f"   🔄 Trying OpenAI {model}...")
+                
+                # Prepare request parameters
+                request_params = {
+                    "model": model,
+                    "prompt": visual_prompt,
+                    "n": 1,
+                    "size": size
+                }
+                
+                # Add quality for DALL-E 3 only
+                if quality and model == "dall-e-3":
+                    request_params["quality"] = quality
+                
+                # Generate image
+                response = client.images.generate(**request_params)
+                
+                # Download image
+                image_url = response.data[0].url
+                import requests
+                img_response = requests.get(image_url)
+                img_response.raise_for_status()
+                
+                # Save to temp file
+                img = Image.open(io.BytesIO(img_response.content))
+                img.save(temp_path)
+                
+                print(f"✅ Image generated using OpenAI {model}")
+                return temp_path
+                
+            except Exception as e:
+                print(f"   ⚠️ OpenAI {model_config['model']} failed: {str(e)[:100]}")
+                continue
+        
+        return None
+
     def generate_image(self, visual_prompt, article_id, upload=True):
         """
-        Generates an image using available Gemini/Imagen models.
+        Generates an image using available Gemini/Imagen models with OpenAI DALL-E fallback.
         If upload=True, uploads to S3/GCP and returns URL.
         Otherwise returns local path.
         """
@@ -575,9 +755,11 @@ Be concise. English only."""
 
         # Use uuid if no article_id provided (for new generations)
         import uuid
+        import io
         if not article_id:
             article_id = str(uuid.uuid4())
 
+        # Step 1: Try Gemini/Imagen models
         for model_name in image_models:
             try:
                 full_model_name = f"models/{model_name}"
@@ -597,7 +779,6 @@ Be concise. English only."""
                         if hasattr(part, 'inline_data'):
                             image_bytes_data = part.inline_data.data
                             if image_bytes_data:
-                                import io
                                 img = Image.open(io.BytesIO(image_bytes_data))
                                 img.save(temp_path)
                                 image_bytes = True
@@ -609,8 +790,6 @@ Be concise. English only."""
                     if upload:
                         from storage import StorageHandler
                         storage = StorageHandler()
-                        # Upload to cloud (folder: generated)
-                        # Remove existing file if fails, but StorageHandler handles cleanup mostly
                         destination = f"generated/{temp_filename}"
                         public_url = storage.upload_image(temp_path, destination)
                         return public_url
@@ -621,6 +800,20 @@ Be concise. English only."""
                 # print(f"   Model {model_name} failed: {e}") # Verbose
                 continue
         
+        # Step 2: Fallback to OpenAI DALL-E
+        print("🔄 Gemini models failed, trying OpenAI DALL-E fallback...")
+        openai_result = self._try_openai_dalle(visual_prompt, article_id)
+        if openai_result and os.path.exists(openai_result):
+            if upload:
+                from storage import StorageHandler
+                storage = StorageHandler()
+                temp_filename = f"gen_{article_id}.png"
+                destination = f"generated/{temp_filename}"
+                public_url = storage.upload_image(openai_result, destination)
+                return public_url
+            return openai_result
+        
+        # Step 3: Placeholder
         print("⚠️ Image generation failed. Using placeholder.")
         return "https://placehold.co/800x450?text=News+Image"
 

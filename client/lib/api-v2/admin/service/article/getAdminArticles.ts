@@ -10,6 +10,7 @@ export type AdminArticleListParams = {
   search?: string;
   country?: string;
   city?: string;
+  province?: string;
   category?: string;
   topic?: string;
   topics?: string;
@@ -39,6 +40,7 @@ export interface AdminArticleStatusCounts {
 export interface AdminArticleAvailableFilters {
   categories: { name: string; count: number }[];
   countries: { name: string; count: number }[];
+  provinces: { name: string; count: number }[];
   cities: { name: string; count: number }[];
 }
 

@@ -31,10 +31,10 @@ export default function StatusBadge({ status, className }: StatusBadgeProps) {
             borderColor: '#fef08a',
         },
         being_processed: {
-            label: 'Being Processed',
-            bgColor: '#fed7aa', // Amber
-            textColor: '#9a3412',
-            borderColor: '#fdba74',
+            label: 'Pending Review',
+            bgColor: '#fef9c3', // Soft Yellow
+            textColor: '#9a3412', // Deep Orange
+            borderColor: '#fef08a',
         },
         'pending review': {
             label: 'Pending Review',

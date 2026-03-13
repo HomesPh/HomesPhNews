@@ -220,15 +220,16 @@ def send_discord_notification(results: List[Dict]):
         return
 
     try:
-        success = sum(1 for r in results if r["status"] == "success")
+        locations_ok = sum(1 for r in results if r["status"] == "success")
         errors = sum(1 for r in results if r["status"] == "error")
         total_saved = sum(r.get("saved", 0) for r in results)
         total_locations = len(results)
 
-        if errors == 0 and success > 0:
+        # Success = new restaurants actually saved (not locations count)
+        if errors == 0 and total_saved > 0:
             color = 0x00D166
             status_emoji = "✅"
-        elif errors > success:
+        elif errors > 0:
             color = 0xED4245
             status_emoji = "❌"
         else:
@@ -289,7 +290,7 @@ def send_discord_notification(results: List[Dict]):
             "fields": [
                 {
                     "name": "📊 Results Summary",
-                    "value": f"```\n✅ Success:    {success}\n❌ Errors:     {errors}\n🍴 New Saved:  {total_saved}\n```",
+                    "value": f"```\n🍴 New Saved:  {total_saved}\n📍 Locations: {locations_ok} OK\n❌ Errors:    {errors}\n```",
                     "inline": True
                 },
                 {

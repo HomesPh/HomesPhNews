@@ -44,6 +44,10 @@ const URL_FILTERS_CONFIG = {
         default: '' as const,
         resetValues: ['']
     },
+    province: {
+        default: '' as const,
+        resetValues: ['']
+    },
 };
 
 /**
@@ -84,10 +88,12 @@ export default function ArticlesPage() {
     const [availableFilters, setAvailableFilters] = useState<{
         categories: { name: string; count: number }[];
         countries: { name: string; count: number }[];
+        provinces: { name: string; count: number }[];
         cities: { name: string; count: number }[];
     }>({
         categories: [],
         countries: [],
+        provinces: [],
         cities: [],
     });
 
@@ -143,10 +149,11 @@ export default function ArticlesPage() {
                     status: statusParam,
                     category: filters.category === '' ? undefined : filters.category,
                     country: filters.country === '' ? undefined : filters.country,
+                    province: filters.province === '' ? undefined : filters.province,
                     city: filters.city === '' ? undefined : filters.city,
                     search: searchQuery || undefined,
                     page: pagination.currentPage,
-                    per_page: 5
+                    per_page: 10
                 } as any;
 
                 const response = await getAdminArticles(apiFilters);
@@ -361,10 +368,12 @@ export default function ArticlesPage() {
                     categoryFilter={filters.category}
                     setCategoryFilter={handleSetCategory}
                     countryFilter={filters.country}
+                    provinceFilter={filters.province}
                     cityFilter={filters.city}
                     setFilters={setFilters}
                     availableCategories={availableFilters.categories}
                     availableCountries={availableFilters.countries}
+                    availableProvinces={availableFilters.provinces}
                     availableCities={availableFilters.cities}
                 />
 
@@ -384,7 +393,7 @@ export default function ArticlesPage() {
                         <div className="flex items-center gap-3">
                             {moveResult !== null && (
                                 <span className="text-[14px] text-[#059669]">
-                                    {moveResult.inserted} moved to Pending Review
+                                    {moveResult.inserted} moved to Awaiting Publish
                                     {moveResult.failed > 0 && <span className="text-amber-600">, {moveResult.failed} failed</span>}
                                 </span>
                             )}

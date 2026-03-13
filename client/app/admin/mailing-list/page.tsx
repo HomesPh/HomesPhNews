@@ -48,7 +48,11 @@ import {
     getMailingListGroups,
     getMailingListGroupDetails,
     createMailingListGroup,
-    deleteMailingListGroup
+    deleteMailingListGroup,
+    getCountries,
+    getCities,
+    type CountryResource,
+    type CityResource
 } from "@/lib/api-v2";
 import StatCard from "@/components/features/admin/shared/StatCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -56,13 +60,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-// Dummy city data mapped by country name
-const DUMMY_CITIES: Record<string, string[]> = {
-    'Philippines': ['Cebu City', 'Manila', 'Davao City', 'Makati', 'Quezon City', 'Taguig'],
-    'United Arab Emirates': ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman'],
-    'Australia': ['Sydney', 'Melbourne', 'Brisbane', 'Perth'],
-    'United States': ['New York', 'Los Angeles', 'Chicago', 'Houston'],
-};
 
 type Step = 'articles' | 'recipients' | 'review';
 
@@ -84,6 +81,8 @@ export default function ManualNewsletterPage() {
     const [mailingStats, setMailingStats] = useState<MailingListStats | null>(null);
     const [groups, setGroups] = useState<MailingListGroup[]>([]);
     const [isSending, setIsSending] = useState(false);
+    const [allCountries, setAllCountries] = useState<CountryResource[]>([]);
+    const [allCities, setAllCities] = useState<CityResource[]>([]);
 
     // Broadcast detail state
     const [selectedBroadcast, setSelectedBroadcast] = useState<MailingListStats['recent_broadcasts'][number] | null>(null);
@@ -132,7 +131,21 @@ export default function ManualNewsletterPage() {
         fetchSubscribers();
         fetchMailingStats();
         fetchGroups();
+        fetchFiltersSeedData();
     }, []);
+
+    const fetchFiltersSeedData = async () => {
+        try {
+            const [countriesRes, citiesRes] = await Promise.all([
+                getCountries(),
+                getCities()
+            ]);
+            setAllCountries(countriesRes.data || []);
+            setAllCities(citiesRes.data || []);
+        } catch (error) {
+            console.error("Failed to fetch filter seed data:", error);
+        }
+    };
 
     // Dynamic Counts for Articles
     const dynamicArticleFilters = useMemo(() => {
@@ -180,23 +193,41 @@ export default function ManualNewsletterPage() {
     }, [articles, articleSearch, articleCategory, articleCountry, articleCity]);
 
     useEffect(() => {
-        if (articleCountry && DUMMY_CITIES[articleCountry]) {
-            setArticleCities(DUMMY_CITIES[articleCountry]);
+        if (articleCountry) {
+            const countryId = allCountries.find(c => c.name === articleCountry)?.id;
+            if (countryId) {
+                const filtered = allCities
+                    .filter(c => String(c.country_id) === String(countryId))
+                    .map(c => c.name)
+                    .sort();
+                setArticleCities(filtered);
+            } else {
+                setArticleCities([]);
+            }
         } else {
             setArticleCities([]);
             setArticleCity('');
         }
-    }, [articleCountry]);
+    }, [articleCountry, allCountries, allCities]);
 
     // Cascade logic for subscribers
     useEffect(() => {
-        if (subscriberCountry && DUMMY_CITIES[subscriberCountry]) {
-            setSubscriberCities(DUMMY_CITIES[subscriberCountry]);
+        if (subscriberCountry) {
+            const countryId = allCountries.find(c => c.name === subscriberCountry)?.id;
+            if (countryId) {
+                const filtered = allCities
+                    .filter(c => String(c.country_id) === String(countryId))
+                    .map(c => c.name)
+                    .sort();
+                setSubscriberCities(filtered);
+            } else {
+                setSubscriberCities([]);
+            }
         } else {
             setSubscriberCities([]);
             setSubscriberCity('');
         }
-    }, [subscriberCountry]);
+    }, [subscriberCountry, allCountries, allCities]);
 
     const fetchGroups = async () => {
         setIsLoadingGroups(true);

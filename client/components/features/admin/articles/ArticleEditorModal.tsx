@@ -153,7 +153,7 @@ export default function ArticleEditorModal({
                 category: 'All',
                 country: 'Philippines',
                 image: null,
-                tags: ['Technology', 'AI', 'Singapore'],
+                tags: [],
                 author: 'HOMESPH NEWS',
                 publishDate: new Date().toISOString().split('T')[0],
                 publishTime: '14:30',

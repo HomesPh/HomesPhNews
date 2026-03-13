@@ -64,7 +64,11 @@ const RichTextEditor = ({ content, onChange, editable = true, className, placeho
         },
         editorProps: {
             attributes: {
-                class: cn("focus:outline-none min-h-[1.5em] [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 break-words whitespace-pre-wrap", className),
+                class: cn(
+                    "tiptap focus:outline-none min-h-[1.5em] break-words",
+                    " [&_ul]:list-disc [&_ul]:list-outside [&_ul]:pl-10 [&_ol]:list-decimal [&_ol]:list-outside [&_ol]:pl-10 [&_ul]:m-0 [&_ol]:m-0 [&_p]:m-0 [&_li]:mb-1",
+                    className
+                ),
                 style: style as any
             }
         },
@@ -73,22 +77,13 @@ const RichTextEditor = ({ content, onChange, editable = true, className, placeho
 
     // Sync content if it changes externally (e.g. undo/redo)
     useEffect(() => {
-        if (editor && content !== editor.getHTML()) {
-            // Avoid loop if content is visually same but HTML differs slightly, 
-            // Tiptap handles this usually, but a basic check:
-            if (editor.getText() === "" && content === "") return; // both empty
+        if (!editor || content === editor.getHTML()) return;
 
-            // Only update if not focused to avoid cursor jumping, or use finer diffing.
-            // For undo/redo, the block key usually changes or we need to force update.
-            // Simpler approach: verify if content is significantly different.
-            // Editor.commands.setContent(content)
-
-            // The issue with useEffect sync is cursor position loss.
-            // We rely on the parent key changing to re-mount the editor for Undo/Redo often.
-            // Or we just check if focused.
-            if (!editor.isFocused) {
-                editor.commands.setContent(content);
-            }
+        if (!editor.isFocused) {
+            editor.commands.setContent(content, { emitUpdate: false }); 
+        } else if (content === "") {
+            // Special case: external clear while focused
+            editor.commands.setContent("");
         }
     }, [content, editor]);
 
@@ -103,40 +98,20 @@ const RichTextEditor = ({ content, onChange, editable = true, className, placeho
 
     // Sync styles and classes when props change
     useEffect(() => {
-        if (editor && style) {
-            // We use editor.view.dom to directly manipulate styles as setOptions/editorProps is less reliable for dynamic style updates in some Tiptap versions
-            const dom = editor.view.dom;
-            Object.assign(dom.style, style);
+        if (editor) {
+            // Update attributes only if they differ to avoid loops
+            const currentAttr = editor.options.editorProps.attributes as any || {};
+            const nextClass = cn(
+                "tiptap focus:outline-none min-h-[1.5em] break-words",
+                " [&_ul]:list-disc [&_ul]:list-outside [&_ul]:pl-10 [&_ol]:list-decimal [&_ol]:list-outside [&_ol]:pl-10 [&_ul]:m-0 [&_ol]:m-0 [&_p]:m-0 [&_li]:mb-1",
+                className
+            );
 
-            // Also update classes if needed, though usually static
-            if (className) {
-                const combinedClass = cn("focus:outline-none min-h-[1.5em] [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 break-words whitespace-pre-wrap", className);
-                if (dom.className !== combinedClass) {
-                    // CAUTION: overwriting className might remove ProseMirror class? 
-                    // Tiptap usually manages the class via attributes. 
-                    // Safer to update via editor.setOptions for attributes
-                    editor.setOptions({
-                        editorProps: {
-                            attributes: {
-                                class: combinedClass,
-                                style: style as any
-                            }
-                        }
-                    });
-                } else {
-                    // Just update attributes to be safe for Tiptap internal state
-                    editor.setOptions({
-                        editorProps: {
-                            attributes: {
-                                style: style as any
-                            }
-                        }
-                    });
-                }
-            } else {
+            if (currentAttr.class !== nextClass || JSON.stringify(currentAttr.style) !== JSON.stringify(style)) {
                 editor.setOptions({
                     editorProps: {
                         attributes: {
+                            class: nextClass,
                             style: style as any
                         }
                     }

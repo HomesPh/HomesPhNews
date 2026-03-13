@@ -95,6 +95,12 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                         router.push('/login');
                         return;
                     }
+                } else if (pathname.startsWith('/editor')) {
+                    const isEditor = roles.includes('editor');
+                    if (!isEditor && !isAdmin) {
+                        router.push('/login');
+                        return;
+                    }
                 } else if (pathname.startsWith('/blogger')) {
                     if (!isBlogger) {
                         if (isSubscriber) router.push('/subscriber');

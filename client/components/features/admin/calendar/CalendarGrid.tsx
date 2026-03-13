@@ -83,7 +83,7 @@ export default function CalendarGrid({
                     ) : (
                         <div className="space-y-4">
                             {dayEvents.map((event) => (
-                                <EventCard key={`${event.isPublicHoliday ? 'holiday' : 'event'}-${event.id}`} event={event} variant="day" onClick={() => onEventClick(event)} />
+                                <EventCard key={`${event.isPublicHoliday ? 'holiday' : 'event'}-${event.category}-${event.status || ''}-${event.id}`} event={event} variant="day" onClick={() => onEventClick(event)} />
                             ))}
                         </div>
                     )}
@@ -125,7 +125,7 @@ export default function CalendarGrid({
                                 {/* Events */}
                                 <div className="bg-white min-h-[500px] p-3 space-y-2">
                                     {dayEvents.map((event) => (
-                                        <EventCard key={`${event.isPublicHoliday ? 'holiday' : 'event'}-${event.id}`} event={event} variant="week" onClick={() => onEventClick(event)} />
+                                        <EventCard key={`${event.isPublicHoliday ? 'holiday' : 'event'}-${event.category}-${event.status || ''}-${event.id}`} event={event} variant="week" onClick={() => onEventClick(event)} />
                                     ))}
                                 </div>
                             </div>
@@ -218,7 +218,7 @@ export default function CalendarGrid({
                                 {/* Events */}
                                 <div className="space-y-1">
                                     {dayEvents.slice(0, 3).map((event) => (
-                                        <EventCard key={`${event.isPublicHoliday ? 'holiday' : 'event'}-${event.id}`} event={event} variant="month" onClick={() => onEventClick(event)} />
+                                        <EventCard key={`${event.isPublicHoliday ? 'holiday' : 'event'}-${event.category}-${event.status || ''}-${event.id}`} event={event} variant="month" onClick={() => onEventClick(event)} />
                                     ))}
                                     {dayEvents.length > 3 && (
                                         <p className="text-[10px] text-[#3b82f6] tracking-[-0.5px] pl-1">
@@ -329,7 +329,7 @@ export default function CalendarGrid({
                                 ) : (
                                     <div className="space-y-[6px]">
                                         {monthEvents.slice(0, 2).map((event) => (
-                                            <EventCard key={`${event.isPublicHoliday ? 'holiday' : 'event'}-${event.id}`} event={event} variant="year" onClick={() => onEventClick(event)} />
+                                            <EventCard key={`${event.isPublicHoliday ? 'holiday' : 'event'}-${event.category}-${event.status || ''}-${event.id}`} event={event} variant="year" onClick={() => onEventClick(event)} />
                                         ))}
                                         {monthEvents.length > 2 && (
                                             <p

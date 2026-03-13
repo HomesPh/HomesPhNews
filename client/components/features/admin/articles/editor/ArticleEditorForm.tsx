@@ -157,7 +157,7 @@ export default function ArticleEditorForm({
                 province_id: data.province_id || "",
                 city_id: data.city_id || "",
                 tags: data.tags || [],
-                author: data.author || user?.name || "HOMESPH NEWS",
+                author: data.author || (isEditor ? "HOMESPH NEWS" : (user?.name || "HOMESPH NEWS")),
                 authorTitle: "",
                 publishDate: data.publishDate || new Date().toISOString().split('T')[0],
                 publishTime: data.publishTime || "12:00",
@@ -190,6 +190,7 @@ export default function ArticleEditorForm({
         if (data.country !== editor.details.country) onDataChange('country', editor.details.country);
         if (data.province_id !== editor.details.province_id) onDataChange('province_id', editor.details.province_id);
         if (data.city_id !== editor.details.city_id) onDataChange('city_id', editor.details.city_id);
+        if (JSON.stringify(data.tags) !== JSON.stringify(editor.details.tags)) onDataChange('tags', editor.details.tags);
         if (JSON.stringify(data.publishTo) !== JSON.stringify(editor.details.platforms)) onDataChange('publishTo', editor.details.platforms);
         if (data.author !== editor.details.author) onDataChange('author', editor.details.author);
         if (data.publishDate !== editor.details.publishDate) onDataChange('publishDate', editor.details.publishDate);
@@ -322,6 +323,7 @@ export default function ArticleEditorForm({
                                 availableCountries={availableCountries}
                                 availableSites={availableSites}
                                 isEditor={isEditor}
+                                mode={mode}
                                 onGenerateTitle={{
                                     loading: editor.isGenerateTitleLoading,
                                     action: editor.generateTitle
