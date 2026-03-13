@@ -26,7 +26,7 @@ class ArticleActionRequest extends FormRequest
             'published_sites' => 'required|array',
             'published_sites.*' => 'string',
             'custom_titles' => 'nullable|array',
-            
+
             // Article Data fields (Atomic Publish support)
             'title' => 'nullable|string|max:255',
             'summary' => 'nullable|string',
@@ -44,6 +44,9 @@ class ArticleActionRequest extends FormRequest
             'slug' => 'nullable|string',
             'image_position' => 'nullable|integer',
             'image_position_x' => 'nullable|integer',
+            'province_id' => 'nullable|integer',
+            'city_id' => 'nullable|integer',
+            'original_url' => 'nullable|string|max:2000',
         ];
     }
 }

@@ -9,6 +9,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { getCountries, getCities, type CountryResource, type CityResource } from "@/lib/api-v2";
 
 interface FilterOption {
     name: string;
@@ -27,13 +28,6 @@ interface RestaurantFiltersProps {
     availableCountries?: FilterOption[];
 }
 
-// Dummy city data mapped by country name (same as in ArticlesFilters)
-const DUMMY_CITIES: Record<string, string[]> = {
-    'Philippines': ['Cebu City', 'Manila', 'Davao City', 'Makati', 'Quezon City', 'Taguig'],
-    'United Arab Emirates': ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman'],
-    'Australia': ['Sydney', 'Melbourne', 'Brisbane', 'Perth'],
-    'United States': ['New York', 'Los Angeles', 'Chicago', 'Houston'],
-};
 
 /**
  * RestaurantFilters component matching ArticlesFilters design
@@ -51,13 +45,40 @@ export default function RestaurantFilters({
 }: RestaurantFiltersProps) {
     // Get cities based on selected country
     const [cities, setCities] = useState<string[]>([]);
+    const [allCountries, setAllCountries] = useState<CountryResource[]>([]);
+    const [allCities, setAllCities] = useState<CityResource[]>([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [countriesRes, citiesRes] = await Promise.all([
+                    getCountries(),
+                    getCities()
+                ]);
+                setAllCountries(countriesRes.data || []);
+                setAllCities(citiesRes.data || []);
+            } catch (err) {
+                console.error("RestaurantFilters: Failed to fetch filter data:", err);
+            }
+        };
+        fetchData();
+    }, []);
 
     useEffect(() => {
         // Find country label from country key if necessary
         const countryLabel = Countries.find(c => c.id === countryFilter)?.label || countryFilter;
 
-        if (countryLabel && DUMMY_CITIES[countryLabel]) {
-            setCities(DUMMY_CITIES[countryLabel]);
+        if (countryLabel) {
+            const countryId = allCountries.find(c => c.name === countryLabel || c.id === countryFilter)?.id;
+            if (countryId) {
+                const filtered = allCities
+                    .filter(c => String(c.country_id) === String(countryId))
+                    .map(c => c.name)
+                    .sort();
+                setCities(filtered);
+            } else {
+                setCities([]);
+            }
         } else {
             setCities([]);
             if (cityFilter !== '') {

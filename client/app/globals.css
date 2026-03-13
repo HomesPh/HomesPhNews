@@ -225,3 +225,33 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Tiptap Editor Base Styles */
+.tiptap {
+  outline: none;
+}
+
+.tiptap ul {
+  list-style-type: disc !important;
+  list-style-position: outside !important;
+  padding-left: 2.5rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.tiptap ol {
+  list-style-type: decimal !important;
+  list-style-position: outside !important;
+  padding-left: 2.5rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.tiptap p {
+  margin: 0;
+  min-height: 1.5em;
+}
+
+.tiptap li {
+  margin-bottom: 0.25rem;
+}

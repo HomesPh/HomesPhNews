@@ -40,7 +40,7 @@ def get_currency_for_country(country):
     return COUNTRY_CURRENCIES.get(country, "USD")  # Default to USD if country not found
 
 def clean_markdown(text):
-    """Remove markdown formatting characters from text."""
+    """Remove markdown formatting characters and all asterisks from text."""
     if not text:
         return ""
     # Remove headers (###, ##, #)
@@ -50,8 +50,10 @@ def clean_markdown(text):
     text = re.sub(r'\*([^*]+)\*', r'\1', text)
     text = re.sub(r'__([^_]+)__', r'\1', text)
     text = re.sub(r'_([^_]+)_', r'\1', text)
-    # Remove any remaining asterisks at the start
-    text = re.sub(r'^\*+\s*', '', text)
+    # Remove any remaining asterisks at the start of lines
+    text = re.sub(r'^\*+\s*', '', text, flags=re.MULTILINE)
+    # Remove all standalone asterisks (bullet points, separators, etc.)
+    text = re.sub(r'\*+', '', text)
     # Clean extra whitespace
     text = re.sub(r'\s+', ' ', text).strip()
     return text
@@ -106,6 +108,38 @@ class AIProcessor:
             return "Global"
         except:
             return "Global"
+
+    def detect_category(self, title, content, fallback_category=None):
+        """
+        Uses AI to detect the correct category for an article.
+        Validates against the official CATEGORIES list.
+        Returns the best-matching category, or fallback_category if uncertain.
+        """
+        from config import CATEGORIES
+        category_list = ", ".join(CATEGORIES)
+        prompt = f"""
+        Analyze this news article and classify it into ONE of these categories:
+        {category_list}
+
+        Rules:
+        - Return ONLY the exact category name from the list above
+        - Choose the category that best matches the article's MAIN topic
+        - If unclear, pick the closest match
+
+        Title: {title}
+        Content: {content[:600]}
+        """
+        try:
+            response = self.text_model.generate_content(prompt)
+            detected = response.text.strip().split('\n')[0].replace(".", "").strip()
+            if detected in CATEGORIES:
+                return detected
+            for cat in CATEGORIES:
+                if cat.lower() == detected.lower():
+                    return cat
+            return fallback_category or CATEGORIES[0]
+        except:
+            return fallback_category or CATEGORIES[0]
 
     def detect_topics(self, title, content, category):
         """

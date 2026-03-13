@@ -37,6 +37,8 @@ class ArticleController extends Controller
         $page = $request->input('page', 1);
         $sortBy = $validated['sort_by'] ?? 'created_at';
         $sortDirection = $validated['sort_direction'] ?? 'desc';
+        $user = auth()->user();
+        $isEditorOnly = $user && $user->hasRole('editor') && !$user->hasRole('admin');
 
         // Redirect to specialized Redis fetcher if status is 'being_processed' or legacy 'pending'
         // This ensures we get the full list from the scraper/Redis (Being Processed tab)
@@ -47,14 +49,31 @@ class ArticleController extends Controller
         // Apply common filters (Search, Dates, Topics)
         $query = Article::query()
             // Filter by status if specified (except 'all' and 'deleted' which handle is_deleted)
-            // Note: 'pending' is redirected to getPendingArticlesFromRedis at line 41.
-            ->when($status === 'published', fn($q) => $q->where('status', 'published'))
+            ->when($status === 'published', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'published');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
             ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
-            ->when($status === 'rejected', fn($q) => $q->where('status', 'rejected'))
-            ->when($status === 'edited', fn($q) => $q->where('status', 'edited'))
-            ->when(!$status || $status === 'all', function ($q) {
-                // For "All", show active primary statuses
-                return $q->whereIn('status', ['published', 'pending review', 'edited']);
+            ->when($status === 'rejected', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'rejected');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when($status === 'edited', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'edited');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when(!$status || $status === 'all', function ($q) use ($isEditorOnly, $user) {
+                if ($isEditorOnly) {
+                    $q->where(function ($sub) use ($user) {
+                        $sub->where('status', 'pending review')
+                            ->orWhere(function ($sub2) use ($user) {
+                                $sub2->whereIn('status', ['published', 'edited', 'rejected'])
+                                    ->where('edited_by', $user->id);
+                            });
+                    });
+                } else {
+                    $q->whereIn('status', ['published', 'pending review', 'edited', 'rejected']);
+                }
             })
 
             // Filter by is_deleted based on status
@@ -73,7 +92,20 @@ class ArticleController extends Controller
             ->when($validated['start_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '>=', $d))
             ->when($validated['end_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '<=', $d))
             ->when($validated['category'] ?? null, fn($q, $c) => $q->where('category', $c))
-            ->when($validated['country'] ?? null, fn($q, $c) => $q->where('country', 'like', "%{$c}%"));
+            ->when($validated['country'] ?? null, fn($q, $c) => $q->where('country', 'like', "%{$c}%"))
+            ->when($validated['city'] ?? null, function ($q, $c) {
+                if ($c && $c !== 'all') {
+                    $city = \App\Models\City::where('name', 'LIKE', $c)->first();
+                    $q->where('city_id', $city ? $city->city_id : -1); // Use -1 if not found to show nothing
+                }
+            })
+            ->when($validated['province'] ?? null, function ($q, $p) {
+                if ($p && $p !== 'all') {
+                    $province = \App\Models\Province::where('name', 'LIKE', $p)->first();
+                    $q->where('province_id', $province ? $province->id : -1);
+                }
+            })
+            ->when($validated['editor_id'] ?? null, fn($q, $id) => $q->where('edited_by', $id));
 
         // Get available filter counts dynamically based on OTHER active filters
         // Logic: 
@@ -82,14 +114,36 @@ class ArticleController extends Controller
 
         // 1. Base query for Category counts (ignore current category)
         $categoryBaseQuery = Article::query()
-            ->when($status === 'published', fn($q) => $q->where('status', 'published'))
-            ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
-            ->when($status === 'rejected', fn($q) => $q->where('status', 'rejected'))
-            ->when($status === 'edited', fn($q) => $q->where('status', 'edited'))
-            ->when(!$status || $status === 'all', function ($q) {
-                return $q->whereIn('status', ['published', 'pending review', 'edited']);
+            ->when($status === 'published', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'published');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
             })
-            ->when($status === 'deleted', fn($q) => $q->where('is_deleted', true))
+            ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
+            ->when($status === 'rejected', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'rejected');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when($status === 'edited', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'edited');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when(!$status || $status === 'all', function ($q) use ($isEditorOnly, $user) {
+                if ($isEditorOnly) {
+                    $q->where(function ($sub) use ($user) {
+                        $sub->where('status', 'pending review')
+                            ->orWhere(function ($sub2) use ($user) {
+                                $sub2->whereIn('status', ['published', 'edited', 'rejected'])
+                                    ->where('edited_by', $user->id);
+                            });
+                    });
+                } else {
+                    $q->whereIn('status', ['published', 'pending review', 'edited', 'rejected']);
+                }
+            })
+            ->when($status === 'deleted', function ($q) use ($isEditorOnly, $user) {
+                $q->where('is_deleted', true);
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
             ->when($status !== 'deleted', fn($q) => $q->where('is_deleted', false))
             ->when($validated['search'] ?? null, function ($q, $s) {
                 $q->where(function ($sub) use ($s) {
@@ -102,18 +156,49 @@ class ArticleController extends Controller
             })
             ->when($validated['start_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '>=', $d))
             ->when($validated['end_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '<=', $d))
-            ->when($validated['country'] ?? null, fn($q, $c) => $q->where('country', 'like', "%{$c}%")); // Ignore city for category counts if country is fixed? Actually city belongs to country.
+            ->when($validated['country'] ?? null, fn($q, $c) => $q->where('country', 'like', "%{$c}%"))
+            ->when($validated['province'] ?? null, function ($q, $p) {
+                if ($p && $p !== 'all') {
+                    $province = \App\Models\Province::where('name', 'LIKE', $p)->first();
+                    $q->where('province_id', $province ? $province->id : -1);
+                }
+            })
+            ->when($validated['city'] ?? null, function ($q, $c) {
+                if ($c && $c !== 'all') {
+                    $city = \App\Models\City::where('name', 'LIKE', $c)->first();
+                    $q->where('city_id', $city ? $city->city_id : -1);
+                }
+            }); 
 
         $dbCategoryCounts = (clone $categoryBaseQuery)->whereNotNull('category')->groupBy('category')->selectRaw('category, count(*) as count')->pluck('count', 'category')->toArray();
 
         // 2. Base query for Country counts (ignore current country/city)
         $countryBaseQuery = Article::query()
-            ->when($status === 'published', fn($q) => $q->where('status', 'published'))
+            ->when($status === 'published', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'published');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
             ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
-            ->when($status === 'rejected', fn($q) => $q->where('status', 'rejected'))
-            ->when($status === 'edited', fn($q) => $q->where('status', 'edited'))
-            ->when(!$status || $status === 'all', function ($q) {
-                return $q->whereIn('status', ['published', 'pending review', 'edited']);
+            ->when($status === 'rejected', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'rejected');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when($status === 'edited', function ($q) use ($isEditorOnly, $user) {
+                $q->where('status', 'edited');
+                if ($isEditorOnly) $q->where('edited_by', $user->id);
+            })
+            ->when(!$status || $status === 'all', function ($q) use ($isEditorOnly, $user) {
+                if ($isEditorOnly) {
+                    $q->where(function ($sub) use ($user) {
+                        $sub->where('status', 'pending review')
+                            ->orWhere(function ($sub2) use ($user) {
+                                $sub2->whereIn('status', ['published', 'edited', 'rejected'])
+                                    ->where('edited_by', $user->id);
+                            });
+                    });
+                } else {
+                    $q->whereIn('status', ['published', 'pending review', 'edited', 'rejected']);
+                }
             })
             ->when($status === 'deleted', fn($q) => $q->where('is_deleted', true))
             ->when($status !== 'deleted', fn($q) => $q->where('is_deleted', false))
@@ -128,13 +213,86 @@ class ArticleController extends Controller
             })
             ->when($validated['start_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '>=', $d))
             ->when($validated['end_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '<=', $d))
-            ->when($validated['category'] ?? null, fn($q, $c) => $q->where('category', $c));
+            ->when($validated['category'] ?? null, fn($q, $c) => $q->where('category', $c))
+            ->when($validated['province'] ?? null, function ($q, $p) {
+                if ($p && $p !== 'all') {
+                    $province = \App\Models\Province::where('name', 'LIKE', $p)->first();
+                    $q->where('province_id', $province ? $province->id : -1);
+                }
+            });
 
         $dbCountryCounts = (clone $countryBaseQuery)->whereNotNull('country')->groupBy('country')->selectRaw('country, count(*) as count')->pluck('count', 'country')->toArray();
+
+        // 3. Base query for Province counts (only if country is selected, ignore current province/city)
+        $dbProvinceCounts = [];
+        if (!empty($validated['country'])) {
+            $countryModel = \App\Models\Country::where('name', 'like', "%{$validated['country']}%")->first();
+            if ($countryModel) {
+                $allProvincesForCountry = \App\Models\Province::where('country_id', $countryModel->id)->get();
+                foreach($allProvincesForCountry as $prov) $dbProvinceCounts[$prov->name] = 0;
+
+                $provBaseQuery = (clone $countryBaseQuery)->where('country', 'like', "%{$validated['country']}%");
+                $dbProvCountsRaw = (clone $provBaseQuery)
+                    ->whereNotNull('province_id')
+                    ->whereIn('province_id', $allProvincesForCountry->pluck('id'))
+                    ->groupBy('province_id')
+                    ->selectRaw('province_id, count(*) as count')
+                    ->pluck('count', 'province_id')
+                    ->toArray();
+
+                foreach ($dbProvCountsRaw as $provId => $count) {
+                    $prov = $allProvincesForCountry->firstWhere('id', $provId);
+                    if ($prov) $dbProvinceCounts[$prov->name] += $count;
+                }
+            }
+        }
+
+        // 4. Base query for City counts (only if country is selected, ignore current city)
+        $dbCityCounts = [];
+        if (!empty($validated['country'])) {
+            $countryModel = \App\Models\Country::where('name', 'like', "%{$validated['country']}%")->first();
+            
+            if ($countryModel) {
+                // Determine if we should further filter by province
+                $provinceId = null;
+                if (!empty($validated['province'])) {
+                    $provinceModel = \App\Models\Province::where('name', 'like', "%{$validated['province']}%")->first();
+                    if ($provinceModel) $provinceId = $provinceModel->id;
+                }
+
+                $cityQueryBuilder = \App\Models\City::where('country_id', $countryModel->id)->where('is_active', true);
+                if ($provinceId) $cityQueryBuilder->where('province_id', $provinceId);
+                
+                $allCitiesForCountry = $cityQueryBuilder->get();
+                
+                // Iterate carefully: we want to show all valid cities for this country in the filter dropdown
+                foreach ($allCitiesForCountry as $cityObj) {
+                    $dbCityCounts[$cityObj->name] = 0;
+                }
+
+                $cityBaseQuery = (clone $countryBaseQuery)->where('country', 'like', "%{$validated['country']}%");
+                $dbCityCountsRaw = (clone $cityBaseQuery)
+                    ->whereNotNull('city_id')
+                    ->whereIn('city_id', $allCitiesForCountry->pluck('city_id'))
+                    ->groupBy('city_id')
+                    ->selectRaw('city_id, count(*) as count')
+                    ->pluck('count', 'city_id')
+                    ->toArray();
+                    
+                foreach ($dbCityCountsRaw as $cityId => $count) {
+                    $city = $allCitiesForCountry->firstWhere('city_id', $cityId);
+                    if ($city) {
+                        $dbCityCounts[$city->name] += $count;
+                    }
+                }
+            }
+        }
 
         // Also merge Redis counts when fetching 'all' or 'being_processed'
         $redisCategoryCounts = [];
         $redisCountryCounts = [];
+        $redisProvinceCounts = [];
+        $redisCityCounts = [];
         if (!$status || $status === 'all' || $status === 'being_processed') {
             try {
                 // To get counts for Redis items, we should ideally ask Redis for filtered counts
@@ -149,11 +307,15 @@ class ArticleController extends Controller
                             $match = false;
                         if (!empty($validated['country']) && ($a['country'] ?? '') !== $validated['country'])
                             $match = false;
+                        if (!empty($validated['province']) && ($a['province'] ?? '') !== $validated['province'])
+                            $match = false;
+                        if (!empty($validated['city']) && ($a['city'] ?? '') !== $validated['city'])
+                            $match = false;
                         return $match;
                     })
                     ->groupBy('category')->map(fn($group) => $group->count())->toArray();
 
-                // For Country counts, apply Redis side filtering except country
+                // For Country counts, apply Redis side filtering except country and city
                 $redisCountryCounts = collect($redisArticles)
                     ->filter(function ($a) use ($validated) {
                         $match = true;
@@ -164,6 +326,45 @@ class ArticleController extends Controller
                         return $match;
                     })
                     ->groupBy('country')->map(fn($group) => $group->count())->toArray();
+                
+                // For Province counts
+                if (!empty($validated['country'])) {
+                     $redisProvinceCounts = collect($redisArticles)
+                        ->filter(function ($a) use ($validated) {
+                            $match = true;
+                            if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false)
+                                $match = false;
+                            if (!empty($validated['category']) && ($a['category'] ?? '') !== $validated['category'])
+                                $match = false;
+                            if (($a['country'] ?? '') !== $validated['country'])
+                                $match = false;
+                            return $match;
+                        })
+                        ->groupBy('province')->map(fn($group) => $group->count())->toArray();
+                }
+
+                // For City counts, apply Redis side filtering except city (only if country is matched)
+                if (!empty($validated['country'])) {
+                    $redisCityCounts = collect($redisArticles)
+                        ->filter(function ($a) use ($validated) {
+                            $match = true;
+                            if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false)
+                                $match = false;
+                            if (!empty($validated['category']) && ($a['category'] ?? '') !== $validated['category'])
+                                $match = false;
+                            if (($a['country'] ?? '') !== $validated['country'])
+                                $match = false;
+                             if (!empty($validated['province']) && ($a['province'] ?? '') !== $validated['province'])
+                                $match = false;
+                            
+                            // Important: ignore empty strings or nulls for city in redis otherwise we get counts for ''
+                            if (empty($a['city'])) 
+                                $match = false;
+
+                            return $match;
+                        })
+                        ->groupBy('city')->map(fn($group) => $group->count())->toArray();
+                }
             } catch (\Exception $e) {
                 \Log::warning('Failed to get Redis counts: ' . $e->getMessage());
             }
@@ -190,13 +391,33 @@ class ArticleController extends Controller
             ];
         }
 
+        $finalProvinceCounts = [];
+        $allProvinceNames = collect(array_merge(array_keys($dbProvinceCounts), array_keys($redisProvinceCounts)))->unique()->filter()->toArray();
+        foreach ($allProvinceNames as $prov) {
+            $finalProvinceCounts[] = [
+                'name' => $prov,
+                'count' => ($dbProvinceCounts[$prov] ?? 0) + ($redisProvinceCounts[$prov] ?? 0)
+            ];
+        }
+
+        $finalCityCounts = [];
+        $allCityNames = collect(array_merge(array_keys($dbCityCounts), array_keys($redisCityCounts)))->unique()->filter()->toArray();
+        foreach ($allCityNames as $city) {
+            $finalCityCounts[] = [
+                'name' => $city,
+                'count' => ($dbCityCounts[$city] ?? 0) + ($redisCityCounts[$city] ?? 0)
+            ];
+        }
+
         // Sort results
         usort($finalCategoryCounts, fn($a, $b) => strcmp($a['name'], $b['name']));
         usort($finalCountryCounts, fn($a, $b) => strcmp($a['name'], $b['name']));
+        usort($finalProvinceCounts, fn($a, $b) => strcmp($a['name'], $b['name']));
+        usort($finalCityCounts, fn($a, $b) => strcmp($a['name'], $b['name']));
 
         // Paginate DB results - Eager load to prevent N+1 queries
         $articles = $query
-            ->with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name'])
+            ->with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name'])
             ->select('id', 'article_id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'is_deleted', 'content_blocks', 'template', 'author', 'edited_by')
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage);
@@ -263,6 +484,8 @@ class ArticleController extends Controller
             'available_filters' => [
                 'categories' => $finalCategoryCounts,
                 'countries' => $finalCountryCounts,
+                'provinces' => $finalProvinceCounts,
+                'cities' => $finalCityCounts,
             ],
         ]);
     }
@@ -350,6 +573,10 @@ class ArticleController extends Controller
         $validated['id'] = \Illuminate\Support\Str::uuid()->toString();
         $validated['article_id'] = $validated['id'];
 
+        if (($validated['status'] ?? '') === 'published') {
+            $validated['published_at'] = now();
+        }
+
         $siteNames = $validated['published_sites'] ?? [];
         unset($validated['published_sites']);
 
@@ -394,12 +621,12 @@ class ArticleController extends Controller
     public function show($id): JsonResponse|ArticleResource
     {
         if (is_numeric($id) || !\Illuminate\Support\Str::isUuid($id)) {
-            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name'])->find($id);
+            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name'])->find($id);
             if ($article) {
                 return new ArticleResource($article);
             }
         } else {
-            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name'])->where('id', $id)->first();
+            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name'])->where('id', $id)->first();
             if ($article) {
                 return new ArticleResource($article);
             }
@@ -475,7 +702,32 @@ class ArticleController extends Controller
         unset($validated['split_images']); // Not stored in articles table
         unset($validated['date']); // Not a database column
 
-        $validated['edited_by'] = auth()->id();
+        // Determine if there are actual content changes (excluding status and non-content fields)
+        $nonContentFields = ['status', 'published_sites', 'custom_titles', 'galleryImages', 'gallery_images', 'split_images', 'date'];
+        $hasContentChanges = false;
+
+        foreach ($validated as $key => $value) {
+            if (!in_array($key, $nonContentFields)) {
+                if ($article->getAttribute($key) != $value) {
+                    $hasContentChanges = true;
+                    break;
+                }
+            }
+        }
+
+        // Also check gallery images
+        if (!$hasContentChanges && (isset($validated['galleryImages']) || isset($validated['gallery_images']))) {
+            $hasContentChanges = true;
+        }
+
+        if (isset($validated['status']) && $validated['status'] === 'published' && !$article->published_at) {
+            $validated['published_at'] = now();
+        }
+
+        if ($hasContentChanges) {
+            $validated['edited_by'] = auth()->id();
+        }
+
         $article->update($validated);
 
         return new ArticleResource($article);
@@ -531,7 +783,7 @@ class ArticleController extends Controller
         $finalData = [
             'status' => 'published',
             'is_deleted' => false,
-            'edited_by' => auth()->id(),
+            'published_at' => now(),
         ];
 
         // A. Start with Redis as fallback if available
@@ -566,6 +818,30 @@ class ArticleController extends Controller
         // C. Layer with Request Payload (Decisive authority)
         // Only include fields that were explicitly sent in the request
         $payload = array_filter($validated, fn($v) => !is_null($v));
+
+        // Determine if there are actual content changes in the payload
+        $nonContentFields = ['status', 'published_sites', 'custom_titles', 'gallery_images', 'galleryImages'];
+        $hasContentChanges = false;
+        foreach ($payload as $key => $value) {
+            if (!in_array($key, $nonContentFields)) {
+                $baseValue = $existing ? $existing->getAttribute($key) : ($redisArticle[$key] ?? null);
+                if ($baseValue != $value) {
+                    $hasContentChanges = true;
+                    break;
+                }
+            }
+        }
+
+        if (!$hasContentChanges && (isset($payload['gallery_images']) || isset($payload['galleryImages']))) {
+            $hasContentChanges = true;
+        }
+
+        if ($hasContentChanges) {
+            $finalData['edited_by'] = auth()->id();
+        } else {
+            $finalData['edited_by'] = $existing ? $existing->edited_by : null;
+        }
+
         $finalData = array_merge($finalData, $payload);
 
         // 1.5 - Force status and clear deletion flag
@@ -576,6 +852,7 @@ class ArticleController extends Controller
 
         // 2. Clean up and execute persistence
         $fillableData = collect($finalData)->only((new Article())->getFillable())->toArray();
+        $fillableData['published_at'] = now();
 
         if ($existing) {
             \Log::info("Updating existing DB record for publish: {$id}");
@@ -757,15 +1034,33 @@ class ArticleController extends Controller
      */
     protected function getStatusCounts(): array
     {
-        // Database counts for active articles
-        $counts = Article::where('is_deleted', false)
-            ->selectRaw('status, count(*) as total')
-            ->groupBy('status')
-            ->pluck('total', 'status')
-            ->toArray();
+        $user = auth()->user();
+        $isEditorOnly = $user && $user->hasRole('editor') && !$user->hasRole('admin');
 
-        // Count soft-deleted articles separately
-        $deletedCount = Article::where('is_deleted', true)->count();
+        // Database counts for active articles
+        $query = Article::where('is_deleted', false);
+
+        if ($isEditorOnly) {
+            // For editors, we filter Published, Edited, and Rejected by their ID
+            // but keep Pending Review global so they can pick up new work.
+            $counts = [
+                'published' => (clone $query)->where('status', 'published')->where('edited_by', $user->id)->count(),
+                'pending review' => (clone $query)->where('status', 'pending review')->count(),
+                'edited' => (clone $query)->where('status', 'edited')->where('edited_by', $user->id)->count(),
+                'rejected' => (clone $query)->where('status', 'rejected')->where('edited_by', $user->id)->count(),
+            ];
+            
+            // Count soft-deleted articles for this editor only?
+            $deletedCount = Article::where('is_deleted', true)->where('edited_by', $user->id)->count();
+        } else {
+            $counts = (clone $query)
+                ->selectRaw('status, count(*) as total')
+                ->groupBy('status')
+                ->pluck('total', 'status')
+                ->toArray();
+                
+            $deletedCount = Article::where('is_deleted', true)->count();
+        }
 
         // Redis count (all Redis articles are pending)
         $pendingCount = 0;
@@ -782,8 +1077,8 @@ class ArticleController extends Controller
         $editedCount = $counts['edited'] ?? 0;
         $rejectedCount = $counts['rejected'] ?? 0;
 
-        // DB Total (Published + Pending Review + Edited) - excluding soft deleted
-        $dbTotal = $publishedCount + $pendingReviewCount + $editedCount;
+        // DB Total (Published + Pending Review + Edited + Rejected) - excluding soft deleted
+        $dbTotal = $publishedCount + $pendingReviewCount + $editedCount + $rejectedCount;
 
         // All = DB Total + Redis Pending
         $allCount = $dbTotal + $pendingCount;
@@ -856,7 +1151,7 @@ class ArticleController extends Controller
                         'status' => 'pending review',
                         'views_count' => 0,
                         'is_deleted' => false,
-                        'edited_by' => auth()->id(),
+                        'edited_by' => null, // Initial move to DB for review is not an edit
                     ];
 
                     $article = Article::create($payload);
@@ -1131,7 +1426,10 @@ class ArticleController extends Controller
         foreach ($ids as $id) {
             $article = Article::find($id);
             if ($article) {
-                $article->update(['status' => 'rejected']);
+                $article->update([
+                    'status' => 'rejected',
+                    'edited_by' => $article->edited_by ?: auth()->id()
+                ]);
                 $count++;
             } else if (\Illuminate\Support\Str::isUuid($id)) {
                 $redisArticle = $this->redisService->getArticle($id);
@@ -1148,7 +1446,7 @@ class ArticleController extends Controller
                         'source' => $redisArticle['source'] ?? 'Scraper',
                         'status' => 'rejected',
                         'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? 'article-' . $id),
-                        'edited_by' => auth()->id(),
+                        'edited_by' => null, // Rejecting a raw scraper article is not an edit
                     ]);
                     $this->redisService->deleteArticle($id);
                     $count++;

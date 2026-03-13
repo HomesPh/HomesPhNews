@@ -157,12 +157,13 @@ export default function ArticleEditorForm({
                 province_id: data.province_id || "",
                 city_id: data.city_id || "",
                 tags: data.tags || [],
-                author: data.author || user?.name || "HOMESPH NEWS",
+                author: data.author || (isEditor ? "HOMESPH NEWS" : (user?.name || "HOMESPH NEWS")),
                 authorTitle: "",
                 publishDate: data.publishDate || new Date().toISOString().split('T')[0],
                 publishTime: data.publishTime || "12:00",
                 platforms: data.publishTo || [],
-                views: data.views_count || 0
+                views: data.views_count || 0,
+                original_url: data.original_url || ""
             };
 
             console.log("Loading Editor Data:", { initialBlocks, initialDetails });
@@ -189,10 +190,12 @@ export default function ArticleEditorForm({
         if (data.country !== editor.details.country) onDataChange('country', editor.details.country);
         if (data.province_id !== editor.details.province_id) onDataChange('province_id', editor.details.province_id);
         if (data.city_id !== editor.details.city_id) onDataChange('city_id', editor.details.city_id);
+        if (JSON.stringify(data.tags) !== JSON.stringify(editor.details.tags)) onDataChange('tags', editor.details.tags);
         if (JSON.stringify(data.publishTo) !== JSON.stringify(editor.details.platforms)) onDataChange('publishTo', editor.details.platforms);
         if (data.author !== editor.details.author) onDataChange('author', editor.details.author);
         if (data.publishDate !== editor.details.publishDate) onDataChange('publishDate', editor.details.publishDate);
         if (data.publishTime !== editor.details.publishTime) onDataChange('publishTime', editor.details.publishTime);
+        if (data.original_url !== editor.details.original_url) onDataChange('original_url', editor.details.original_url);
 
         // Sync Blocks & Content 
         if (JSON.stringify(data.contentBlocks) !== JSON.stringify(editor.blocks)) {
@@ -296,6 +299,7 @@ export default function ArticleEditorForm({
                                 availableCountries={availableCountries}
                                 availableSites={availableSites}
                                 isEditor={isEditor}
+                                mode={mode}
                             />
                         </div>
                     </div>

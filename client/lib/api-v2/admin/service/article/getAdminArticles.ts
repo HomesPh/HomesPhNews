@@ -10,18 +10,20 @@ export type AdminArticleListParams = {
   search?: string;
   country?: string;
   city?: string;
+  province?: string;
   category?: string;
   topic?: string;
   topics?: string;
   limit?: number;
   offset?: number;
   status?: "published" | "pending" | "rejected" | "pending review" | "being_processed" | "all" | "deleted";
-  sort_by?: "created_at" | "views_count" | "title" | "timestamp";
+  sort_by?: "created_at" | "views_count" | "title" | "timestamp" | "published_at";
   sort_direction?: "asc" | "desc";
   per_page?: number;
   page?: number;
   start_date?: string;
   end_date?: string;
+  editor_id?: string | number;
 };
 
 export interface AdminArticleStatusCounts {
@@ -38,6 +40,8 @@ export interface AdminArticleStatusCounts {
 export interface AdminArticleAvailableFilters {
   categories: { name: string; count: number }[];
   countries: { name: string; count: number }[];
+  provinces: { name: string; count: number }[];
+  cities: { name: string; count: number }[];
 }
 
 export interface PaginatorLink {

@@ -50,9 +50,20 @@ const SidebarItems = [
     ]
   },
   {
-    title: "AutoNewsConfig",
-    href: "/admin/autonews",
-    icon: Bot
+    title: "Configuration",
+    icon: Bot,
+    subItems: [
+      {
+        title: "AutoNewsConfig",
+        href: "/admin/autonews",
+        icon: Bot
+      },
+      {
+        title: "AutoRestaurantConfig",
+        href: "/admin/autorestaurant",
+        icon: Utensils
+      }
+    ]
   },
   {
     title: "Users",

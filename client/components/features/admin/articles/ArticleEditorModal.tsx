@@ -75,6 +75,9 @@ export default function ArticleEditorModal({
                 contentBlocks: initialData.content_blocks || [],
                 image_position: initialData.image_position || 0,
                 image_position_x: initialData.image_position_x || 50,
+                province_id: initialData.province_id || '',
+                city_id: initialData.city_id || '',
+                original_url: initialData.original_url || '',
                 status: initialData.status,
                 is_redis: initialData.is_redis
             };
@@ -98,7 +101,10 @@ export default function ArticleEditorModal({
             splitImages: [] as string[],
             contentBlocks: [] as ContentBlock[],
             image_position: 50,
-            image_position_x: 50
+            image_position_x: 50,
+            province_id: '',
+            city_id: '',
+            original_url: ''
         };
     };
 
@@ -129,7 +135,10 @@ export default function ArticleEditorModal({
                 splitImages: initialData.split_images || [],
                 contentBlocks: initialData.content_blocks || [],
                 image_position: initialData.image_position || 0,
-                image_position_x: initialData.image_position_x || 50
+                image_position_x: initialData.image_position_x || 50,
+                province_id: initialData.province_id || '',
+                city_id: initialData.city_id || '',
+                original_url: initialData.original_url || ''
             });
             if (initialData.template) {
                 setTemplate(initialData.template);
@@ -144,7 +153,7 @@ export default function ArticleEditorModal({
                 category: 'All',
                 country: 'Philippines',
                 image: null,
-                tags: ['Technology', 'AI', 'Singapore'],
+                tags: [],
                 author: 'HOMESPH NEWS',
                 publishDate: new Date().toISOString().split('T')[0],
                 publishTime: '14:30',
@@ -153,7 +162,10 @@ export default function ArticleEditorModal({
                 splitImages: [],
                 contentBlocks: [],
                 image_position: 0,
-                image_position_x: 50
+                image_position_x: 50,
+                province_id: '',
+                city_id: '',
+                original_url: ''
             });
             setTemplate('single');
         }
@@ -306,7 +318,9 @@ export default function ArticleEditorModal({
             contentBlocks: currentEditorData.contentBlocks,
             author: currentEditorData.author,
             publishDate: currentEditorData.publishDate,
-            publishTime: currentEditorData.publishTime
+            publishTime: currentEditorData.publishTime,
+            province_id: currentEditorData.province_id,
+            city_id: currentEditorData.city_id
         } : articleData;
 
         // Validation Logic - Check before processing
@@ -443,6 +457,8 @@ export default function ArticleEditorModal({
                 content: finalHtmlContent,
                 category: workingData.category,
                 country: workingData.country,
+                province_id: workingData.province_id,
+                city_id: workingData.city_id,
                 image: effectiveFinalImage,
                 published_sites: isEditor ? workingData.publishTo.filter((s: string) => s === "Main News Portal") : workingData.publishTo,
                 status: isPublish
@@ -454,12 +470,14 @@ export default function ArticleEditorModal({
                 topics: workingData.tags,
                 author: workingData.author || 'HOMESPH NEWS',
                 date: workingData.publishDate,
+                published_at: isPublish ? new Date().toISOString() : (mode === 'edit' ? initialData?.published_at : null),
                 gallery_images: finalGalleryImages,
                 split_images: finalSplitImages,
                 content_blocks: finalContentBlocks,
                 template: template,
                 image_position: workingData.image_position,
-                image_position_x: workingData.image_position_x
+                image_position_x: workingData.image_position_x,
+                original_url: workingData.original_url || ''
             };
 
             // Use the is_redis flag from our Resource to determine the save path

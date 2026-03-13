@@ -16,6 +16,7 @@ const URL_FILTERS_CONFIG = {
     category: { default: '' as const, resetValues: [''] },
     country: { default: '' as const, resetValues: [''] },
     city: { default: '' as const, resetValues: [''] },
+    province: { default: '' as const, resetValues: [''] },
     search: { default: '' as const, resetValues: [''] },
 };
 
@@ -105,6 +106,7 @@ export default function BloggerBlogsPage() {
                     categoryFilter={filters.category}
                     setCategoryFilter={(cat: string) => setFilter('category', cat)}
                     countryFilter={filters.country}
+                    provinceFilter={filters.province}
                     cityFilter={filters.city}
                     setFilters={setFilters}
                     availableCategories={availableCategories}

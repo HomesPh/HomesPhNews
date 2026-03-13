@@ -71,4 +71,35 @@ class FileService
             'filename' => $filename,
         ];
     }
+
+    /**
+     * Upload raw binary image data to the specified disk.
+     *
+     * @param  string  $imageData  The raw binary image data.
+     * @param  string  $directory  Directory path (e.g. 'homes-ph-news/avatars')
+     * @param  string  $disk  The storage disk to use ('public', 's3', etc.)
+     * @param  string  $extension  File extension (e.g. 'png', 'webp')
+     * @return array Returns an array containing the path, URL, and filename of the uploaded file.
+     *
+     * @throws \Exception
+     */
+    public function uploadRawImage(string $imageData, string $directory, string $disk = 'public', string $extension = 'webp', string $filenamePrefix = ''): array
+    {
+        $filename = $filenamePrefix . Str::uuid().'.'.$extension;
+        $path = trim($directory, '/').'/'.$filename;
+
+        $success = Storage::disk($disk)->put($path, $imageData, 'public');
+
+        if (! $success) {
+            throw new \Exception("Failed to upload raw image to {$disk} disk.");
+        }
+
+        $url = Storage::disk($disk)->url($path);
+
+        return [
+            'path' => $path,
+            'url' => $url,
+            'filename' => $filename,
+        ];
+    }
 }

@@ -37,6 +37,10 @@ const URL_FILTERS_CONFIG = {
         default: "" as const,
         resetValues: [""],
     },
+    province: {
+        default: "" as const,
+        resetValues: [""],
+    },
 };
 
 type CEOTab = "all" | "edited" | "published_articles" | "pending_review" | "rejected";
@@ -60,7 +64,9 @@ export default function CEOArticlesPage() {
     const [availableFilters, setAvailableFilters] = useState<{
         categories: { name: string; count: number }[];
         countries: { name: string; count: number }[];
-    }>({ categories: [], countries: [] });
+        provinces: { name: string; count: number }[];
+        cities: { name: string; count: number }[];
+    }>({ categories: [], countries: [], provinces: [], cities: [] });
 
     const [counts, setCounts] = useState({
         all: 0,
@@ -105,6 +111,7 @@ export default function CEOArticlesPage() {
                     status: statusParam,
                     category: filters.category === "" ? undefined : filters.category,
                     country: filters.country === "" ? undefined : filters.country,
+                    province: filters.province === "" ? undefined : filters.province,
                     city: filters.city === "" ? undefined : filters.city,
                     search: searchQuery || undefined,
                     page: pagination.currentPage,
@@ -435,10 +442,13 @@ export default function CEOArticlesPage() {
                     categoryFilter={filters.category}
                     setCategoryFilter={(cat) => setFilter("category", cat)}
                     countryFilter={filters.country}
+                    provinceFilter={filters.province}
                     cityFilter={filters.city}
                     setFilters={setFilters}
                     availableCategories={availableFilters.categories}
                     availableCountries={availableFilters.countries}
+                    availableProvinces={availableFilters.provinces}
+                    availableCities={availableFilters.cities}
                 />
 
                 {/* Bulk Actions Bar */}

@@ -5,6 +5,7 @@ import { Calendar, Eye, MapPin } from 'lucide-react';
 import { cn, sanitizeImageUrl, decodeHtml, calculateReadTime, stripHtml } from "@/lib/utils";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 import ShareButtons from "@/components/shared/ShareButtons";
+import { useAuth } from "@/hooks/useAuth";
 
 interface BaseArticleCardProps {
     article: {
@@ -30,6 +31,9 @@ interface BaseArticleCardProps {
         published_sites?: string | string[]; // New API field
         image_position?: number;
         image_position_x?: number;
+        editor_first_name?: string | null;
+        editor_last_name?: string | null;
+        edited_by?: number;
     };
     variant?: 'compact' | 'list';
     onClick?: () => void;
@@ -74,6 +78,12 @@ export default function BaseArticleCard({
     selection,
     actions,
 }: BaseArticleCardProps) {
+    const { user } = useAuth();
+    const showEditorAttribution = useMemo(() => {
+        if (!user) return false;
+        return user.roles.includes('admin');
+    }, [user]);
+
     const isCompact = variant === 'compact';
 
     // Normalize field names (support both new and legacy)
@@ -182,7 +192,9 @@ export default function BaseArticleCard({
                         />
                     </div>
                 )}
-                {!hideStatus && <StatusBadge status={(article.is_redis ? 'being_processed' : article.status) as any} />}
+                <div className="flex items-center gap-1">
+                    {!hideStatus && <StatusBadge status={(article.is_redis ? 'being_processed' : article.status) as any} />}
+                </div>
             </div>
 
             <div className="flex gap-[13px] w-full items-start">
@@ -219,7 +231,7 @@ export default function BaseArticleCard({
                                 {location}
                             </span>
                         </div>
-                        <div className="hidden sm:block">
+                        <div className="hidden sm:flex items-center gap-2">
                             {!hideStatus && <StatusBadge status={(article.is_redis ? 'being_processed' : article.status) as any} />}
                         </div>
                     </div>
@@ -244,6 +256,14 @@ export default function BaseArticleCard({
                         <span className="leading-none sm:leading-[20px]">{viewsStr}</span>
                         <span className="text-[16px]">•</span>
                         <span className="leading-none sm:leading-[20px]">{calculateReadTime(article.content || description)}</span>
+                        {article.editor_first_name && showEditorAttribution && (
+                            <>
+                                <span className="text-[16px] mx-1 font-bold">•</span>
+                                <span className="text-[#1428AE] font-semibold whitespace-nowrap">
+                                    Edited by {article.editor_first_name} {article.editor_last_name}
+                                </span>
+                            </>
+                        )}
                         {article.status === 'published' && (
                             <div className="flex items-center">
                                 <span className="text-[16px] mx-1">•</span>

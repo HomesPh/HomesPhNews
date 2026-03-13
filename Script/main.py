@@ -19,12 +19,11 @@ from apscheduler.triggers.cron import CronTrigger
 
 # Local imports
 from database import ping_redis, get_total_articles, get_country_count
-from models import HealthResponse, UnifiedStatus
+from models import HealthResponse, JobStatus
 from config import COUNTRIES
 from routes import router as article_router
 from scheduler import (
     run_hourly_job, get_job_status, update_next_run,
-    run_restaurant_job, get_restaurant_job_status, update_restaurant_next_run,
     run_targeted_job, request_job_cancel
 )
 from scheduler_control import set_scheduler, turn_off as scheduler_turn_off, turn_on as scheduler_turn_on, is_enabled as scheduler_is_enabled
@@ -56,16 +55,6 @@ async def lifespan(app: FastAPI):
         replace_existing=True
     )
     
-    # 2. Schedule Restaurants: Run twice a day (06:00 and 18:00)
-    # This runs in parallel with the news task via APScheduler
-    scheduler.add_job(
-        run_restaurant_job,
-        CronTrigger(hour="6,18", minute=0), 
-        id='restaurant_job',
-        name='HomesPh Restaurant Scraper (Twice Daily)',
-        replace_existing=True
-    )
-    
     scheduler.start()
     set_scheduler(scheduler)
     
@@ -74,14 +63,9 @@ async def lifespan(app: FastAPI):
     if news_job:
         update_next_run(news_job.next_run_time.isoformat())
         
-    # Update next run for Restaurants
-    rest_job = scheduler.get_job('restaurant_job')
-    if rest_job:
-        update_restaurant_next_run(rest_job.next_run_time.isoformat())
-    
     # Startup message
     from scheduler_control import is_enabled as scheduler_is_enabled
-    sched_status = "ON (hourly + twice daily)" if scheduler_is_enabled() else "OFF (paused – use POST /scheduler/on to resume)"
+    sched_status = "ON (hourly)" if scheduler_is_enabled() else "OFF (paused – use POST /scheduler/on to resume)"
     print("")
     print("=" * 60)
     print("🚀 HOMESPH UNIFIED ENGINE STARTED")
@@ -152,13 +136,10 @@ async def health_check():
     }
 
 
-@app.get("/status", response_model=UnifiedStatus, tags=["Scheduler"])
+@app.get("/status", response_model=JobStatus, tags=["Scheduler"])
 async def status():
-    """Get unified scheduler and job status for both news and restaurants."""
-    return {
-        "news": get_job_status(),
-        "restaurants": get_restaurant_job_status()
-    }
+    """Get scheduler and job status for news."""
+    return get_job_status()
 
 
 @app.post("/trigger", tags=["Scheduler"])
@@ -169,16 +150,6 @@ async def trigger_news_job(background_tasks: BackgroundTasks):
         raise HTTPException(status_code=409, detail="News job already running")
     background_tasks.add_task(run_hourly_job)
     return {"message": "News job triggered", "status": "running"}
-
-
-@app.post("/trigger/restaurants", tags=["Scheduler"])
-async def trigger_restaurant_job_manual(background_tasks: BackgroundTasks):
-    """Manually trigger the restaurant job."""
-    status = get_restaurant_job_status()
-    if status["is_running"]:
-        raise HTTPException(status_code=409, detail="Restaurant job already running")
-    background_tasks.add_task(run_restaurant_job)
-    return {"message": "Restaurant job triggered", "status": "running"}
 
 
 class TargetedTriggerRequest(BaseModel):
@@ -212,7 +183,7 @@ async def trigger_targeted_job(req: TargetedTriggerRequest):
 
 @app.post("/scheduler/off", tags=["Scheduler"])
 async def scheduler_off():
-    """Turn off automatic scraper schedule (hourly news + twice-daily restaurants). Manual trigger still works."""
+    """Turn off automatic scraper schedule (hourly news). Manual trigger still works."""
     if not scheduler_turn_off():
         raise HTTPException(status_code=500, detail="Scheduler not initialized")
     return {"message": "Automatic scraper schedule turned off. Manual 'Run scraper now' still works.", "scheduler_enabled": False}
@@ -237,7 +208,6 @@ async def stats():
     """Get database and scheduler statistics."""
     from database import check_mysql_connection
     news_status = get_job_status()
-    restaurant_status = get_restaurant_job_status()
     
     return {
         "database": {
@@ -252,13 +222,6 @@ async def stats():
                 "last_run": news_status["last_run"],
                 "next_run": news_status["next_run"],
                 "is_running": news_status["is_running"]
-            },
-            "restaurants": {
-                "total_runs": restaurant_status["total_runs"],
-                "total_success": restaurant_status["total_success"],
-                "last_run": restaurant_status["last_run"],
-                "next_run": restaurant_status["next_run"],
-                "is_running": restaurant_status["is_running"]
             }
         }
     }

@@ -30,6 +30,10 @@ const URL_FILTERS_CONFIG = {
         default: '' as const,
         resetValues: ['']
     },
+    province: {
+        default: '' as const,
+        resetValues: ['']
+    },
 };
 
 type SiteStatus = 'all' | 'on-site' | 'not-on-site';
@@ -113,6 +117,7 @@ export default function SubscriberArticlesPage() {
                     status: 'published',
                     category: filters.category === '' ? undefined : filters.category,
                     country: filters.country === '' ? undefined : filters.country,
+                    province: filters.province === '' ? undefined : filters.province,
                     city: filters.city === '' ? undefined : filters.city,
                     allowed_categories: subscriberPrefs?.categories,
                     allowed_countries: subscriberPrefs?.countries,
@@ -220,6 +225,7 @@ export default function SubscriberArticlesPage() {
                     categoryFilter={filters.category}
                     setCategoryFilter={(cat: string) => setFilter('category', cat)}
                     countryFilter={filters.country}
+                    provinceFilter={filters.province}
                     cityFilter={filters.city}
                     setFilters={setFilters}
                     availableCategories={filteredFilters.categories}

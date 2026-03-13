@@ -7,7 +7,7 @@ This change addresses the issue where the daily newsletter was resending the sam
 The `newsletter:send` command and the `newsletter:test` command have been updated to filter articles based on their publication timestamp.
 
 ### Changes in `SendDailyNewsletter` Command
-The query for fetching articles now includes a constraint to only retrieve articles published within the last 24 hours. 
+The query for fetching articles now includes a constraint to only retrieve articles published within the last 24 hours.
 
 ```php
 // app/Console/Commands/SendDailyNewsletter.php

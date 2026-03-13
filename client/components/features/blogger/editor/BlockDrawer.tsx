@@ -21,6 +21,7 @@ interface BlockDrawerProps {
     availableCountries?: (string | { name: string; count: number })[];
     availableSites?: string[];
     isEditor?: boolean;
+    mode?: 'create' | 'edit';
 }
 
 function TagsInput({ tags, onChange }: { tags: string[], onChange: (tags: string[]) => void }) {
@@ -59,77 +60,118 @@ export default function BlockDrawer({
     availableCategories: propsCategories,
     availableCountries: propsCountries,
     availableSites,
-    isEditor
+    isEditor,
+    mode = 'create'
 }: BlockDrawerProps) {
     const [activeTab, setActiveTab] = useState<'blocks' | 'details'>('blocks');
     const [internalCategories, setInternalCategories] = useState<(string | { name: string; count: number })[]>([]);
     const [internalCountries, setInternalCountries] = useState<(string | { name: string; count: number })[]>([]);
     const [internalProvinces, setInternalProvinces] = useState<any[]>([]);
     const [internalCities, setInternalCities] = useState<any[]>([]);
+    const [allCountries, setAllCountries] = useState<any[]>([]);
     const [showAllPlatforms, setShowAllPlatforms] = useState(false);
 
     useEffect(() => {
-        // Fetch categories if not provided as props
-        if (!propsCategories || propsCategories.length === 0) {
-            getCategories().then(res => {
-                if (Array.isArray(res.data)) {
-                    // Map objects to names if they are objects
-                    const names = res.data.map((c: any) => typeof c === 'string' ? c : c.name);
-                    setInternalCategories(names);
-                }
-            }).catch(err => {
-                console.error("Failed to fetch categories in BlockDrawer:", err);
-                // Fallback to defaults
-                setInternalCategories(["Community", "Real Estate", "Technology", "AI", "Investment", "Lifestyle"]);
-            });
-        }
-    }, [propsCategories]);
-
-    useEffect(() => {
-        // Fetch countries if not provided as props
-        if (!propsCountries || propsCountries.length === 0) {
-            getCountries().then(res => {
-                const data = (res.data as any).data || res.data;
-                if (Array.isArray(data)) {
-                    const names = data.map((c: any) => typeof c === 'string' ? c : c.name);
-                    setInternalCountries(names);
-                }
-            }).catch(err => {
-                console.error("Failed to fetch countries in BlockDrawer:", err);
-                // Fallback to defaults
-                setInternalCountries(["PHILIPPINES", "AUSTRALIA", "SINGAPORE", "USA", "UAE"]);
-            });
-        }
-    }, [propsCountries]);
-
-    useEffect(() => {
-        getProvinces().then(res => {
-            const data = (res.data as any).data || res.data;
-            console.log("BlockDrawer: Fetched provinces:", data);
-            if (Array.isArray(data)) {
-                setInternalProvinces(data);
+        // Always fetch exhaustive categories to ensure all options are available
+        getCategories().then(res => {
+            if (Array.isArray(res.data)) {
+                // Map objects to names if they are objects
+                const names = res.data.map((c: any) => typeof c === 'string' ? c : c.name);
+                setInternalCategories(names);
             }
         }).catch(err => {
-            console.error("Failed to fetch provinces in BlockDrawer:", err);
-            setInternalProvinces([]);
+            console.error("Failed to fetch categories in BlockDrawer:", err);
+            // No fallback to defaults - let it be empty if it fails
+            setInternalCategories([]);
         });
-    }, []);
+    }, []); // Always fetch on mount
 
+    // Consolidate initial data fetching
     useEffect(() => {
-        getCities().then(res => {
-            const data = (res.data as any).data || res.data;
-            console.log("BlockDrawer: Fetched cities:", data);
-            if (Array.isArray(data)) {
-                setInternalCities(data);
-            }
-        }).catch(err => {
-            console.error("Failed to fetch cities in BlockDrawer:", err);
-            setInternalCities([]);
-        });
-    }, []);
+        const fetchInitialData = async () => {
+            try {
+                // Fetch Countries
+                const countryRes = await getCountries();
+                const countryData = (countryRes.data as any).data || countryRes.data;
+                if (Array.isArray(countryData)) {
+                    setAllCountries(countryData);
+                    // Always populate internal exhaustive list
+                    setInternalCountries(countryData.map((c: any) => c.name));
+                }
 
-    const finalCategories = (propsCategories && propsCategories.length > 0) ? propsCategories : internalCategories;
-    const finalCountries = (propsCountries && propsCountries.length > 0) ? propsCountries : internalCountries;
+                // Fetch Provinces
+                const provinceRes = await getProvinces();
+                const provinceData = (provinceRes.data as any).data || provinceRes.data;
+                if (Array.isArray(provinceData)) {
+                    setInternalProvinces(provinceData);
+                }
+
+                // Fetch Cities
+                const cityRes = await getCities();
+                const cityData = (cityRes.data as any).data || cityRes.data;
+                if (Array.isArray(cityData)) {
+                    setInternalCities(cityData);
+                }
+            } catch (err) {
+                console.error("BlockDrawer: Failed to fetch initial location data:", err);
+            }
+        };
+
+        fetchInitialData();
+    }, []); // Only fetch once on mount
+
+    // Update internal countries if props change later (e.g. parent filter loads)
+    useEffect(() => {
+        if (propsCountries && propsCountries.length > 0 && allCountries.length > 0) {
+            // No action needed as finalCountries handle it, but we keep this effect hook 
+            // available if we need to sync specific state later.
+        }
+    }, [propsCountries, allCountries.length]);
+
+    // Favor exhaustive internal lists over filtered props to ensure all options are available
+    const finalCategories = (internalCategories.length > 0) ? internalCategories : (propsCategories || []);
+    const finalCountries = (internalCountries.length > 0) ? internalCountries : (propsCountries || []);
+
+    // Filter Logic
+    const selectedCountryId = useMemo(() => {
+        if (!details.country || !allCountries.length) return null;
+        const normalizedInput = details.country.trim().toUpperCase();
+        const countryObj = allCountries.find(c =>
+            c.name?.trim().toUpperCase() === normalizedInput ||
+            c.id?.trim().toUpperCase() === normalizedInput
+        );
+        return countryObj?.id || null;
+    }, [details.country, allCountries]);
+
+    const filteredProvinces = useMemo(() => {
+        if (!selectedCountryId) {
+            return [];
+        }
+
+        const countryIdUpper = selectedCountryId.toUpperCase();
+        return internalProvinces.filter(p =>
+            p.country_id?.trim().toUpperCase() === countryIdUpper
+        );
+    }, [selectedCountryId, internalProvinces]);
+
+    const filteredCities = useMemo(() => {
+        if (!selectedCountryId) {
+            return [];
+        }
+
+        const countryIdUpper = selectedCountryId.toUpperCase();
+        let filtered = internalCities.filter(c =>
+            c.country_id?.trim().toUpperCase() === countryIdUpper
+        );
+
+        // Only sub-filter by province if one is actually selected
+        if (details.province_id && details.province_id !== "" && details.province_id !== "0") {
+            const provinceIdStr = String(details.province_id);
+            filtered = filtered.filter(c => String(c.province_id) === provinceIdStr);
+        }
+
+        return filtered;
+    }, [selectedCountryId, details.province_id, internalCities]);
 
     const getOptionData = (opt: string | { name: string; count: number }) => {
         if (typeof opt === 'string') return { value: opt, label: opt };
@@ -264,6 +306,16 @@ export default function BlockDrawer({
                                     />
                                 </div>
                                 <div>
+                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Original Source (URL)</label>
+                                    <input
+                                        type="text"
+                                        value={details.original_url || ""}
+                                        onChange={(e) => onUpdateDetails({ original_url: e.target.value })}
+                                        placeholder="e.g. https://example.com/article"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none transition-all font-inter text-gray-800"
+                                    />
+                                </div>
+                                <div>
                                     <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Topics</label>
                                     <TagsInput
                                         tags={details.tags}
@@ -288,7 +340,7 @@ export default function BlockDrawer({
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
                                         <option value="">Select Category</option>
-                                        {finalCategories.map(c => {
+                                        {finalCategories.map((c: any) => {
                                             const data = getOptionData(c);
                                             return <option key={data.value} value={data.value}>{data.label}</option>;
                                         })}
@@ -302,7 +354,7 @@ export default function BlockDrawer({
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
                                         <option value="">Select Country</option>
-                                        {finalCountries.map(c => {
+                                        {finalCountries.map((c: any) => {
                                             const data = getOptionData(c);
                                             return <option key={data.value} value={data.value}>{data.label}</option>;
                                         })}
@@ -319,7 +371,7 @@ export default function BlockDrawer({
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
                                         <option value="">Select Province</option>
-                                        {internalProvinces.map((p: any) => (
+                                        {filteredProvinces.map((p: any) => (
                                             <option key={p.id} value={p.id}>{p.name}</option>
                                         ))}
                                     </select>
@@ -332,7 +384,7 @@ export default function BlockDrawer({
                                         className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold"
                                     >
                                         <option value="">Select City</option>
-                                        {internalCities.map((c: any) => (
+                                        {filteredCities.map((c: any) => (
                                             <option key={c.city_id} value={c.city_id}>{c.name}</option>
                                         ))}
                                     </select>
@@ -344,10 +396,10 @@ export default function BlockDrawer({
                                 <input
                                     type="text"
                                     value={details.author}
-                                    onChange={(e) => !isEditor && onUpdateDetails({ author: e.target.value })}
-                                    disabled={isEditor}
+                                    onChange={(e) => (mode === 'create' || !isEditor) && onUpdateDetails({ author: e.target.value })}
+                                    disabled={isEditor && mode === 'edit'}
                                     placeholder="HOMESPH NEWS"
-                                    className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#1428AE]/20 transition-all font-inter ${isEditor ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
+                                    className={`w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#1428AE]/20 transition-all font-inter ${isEditor && mode === 'edit' ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
                                 />
                             </div>
 

@@ -32,6 +32,10 @@ const URL_FILTERS_CONFIG = {
         default: '' as const,
         resetValues: ['']
     },
+    province: {
+        default: '' as const,
+        resetValues: ['']
+    },
 };
 
 export default function EditorArticlesPage() {
@@ -46,9 +50,13 @@ export default function EditorArticlesPage() {
     const [availableFilters, setAvailableFilters] = useState<{
         categories: { name: string; count: number }[];
         countries: { name: string; count: number }[];
+        provinces: { name: string; count: number }[];
+        cities: { name: string; count: number }[];
     }>({
         categories: [],
         countries: [],
+        provinces: [],
+        cities: [],
     });
 
     const [counts, setCounts] = useState({
@@ -76,6 +84,7 @@ export default function EditorArticlesPage() {
                     status: statusMapping[filters.status] || filters.status,
                     category: filters.category === '' ? undefined : filters.category,
                     country: filters.country === '' ? undefined : filters.country,
+                    province: filters.province === '' ? undefined : filters.province,
                     city: filters.city === '' ? undefined : filters.city,
                     search: searchQuery || undefined,
                     page: pagination.currentPage,
@@ -146,10 +155,13 @@ export default function EditorArticlesPage() {
                     categoryFilter={filters.category}
                     setCategoryFilter={(cat: string) => setFilter('category', cat)}
                     countryFilter={filters.country}
+                    provinceFilter={filters.province}
                     cityFilter={filters.city}
                     setFilters={setFilters}
                     availableCategories={availableFilters.categories}
                     availableCountries={availableFilters.countries}
+                    availableProvinces={availableFilters.provinces}
+                    availableCities={availableFilters.cities}
                 />
 
                 <div className="flex flex-col">

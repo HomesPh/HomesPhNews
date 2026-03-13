@@ -67,6 +67,8 @@ export * from "./admin/service/campaigns";
 export * from "./admin/service/scraper";
 export * from "./admin/service/cities";
 export * from "./admin/service/users/createUser";
+export * from "./admin/service/users/getUsers";
+export * from "./admin/service/users/getAdminUser";
 
 
 /**
