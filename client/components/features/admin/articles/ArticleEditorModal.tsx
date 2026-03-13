@@ -77,6 +77,7 @@ export default function ArticleEditorModal({
                 image_position_x: initialData.image_position_x || 50,
                 province_id: initialData.province_id || '',
                 city_id: initialData.city_id || '',
+                original_url: initialData.original_url || '',
                 status: initialData.status,
                 is_redis: initialData.is_redis
             };
@@ -102,7 +103,8 @@ export default function ArticleEditorModal({
             image_position: 50,
             image_position_x: 50,
             province_id: '',
-            city_id: ''
+            city_id: '',
+            original_url: ''
         };
     };
 
@@ -135,7 +137,8 @@ export default function ArticleEditorModal({
                 image_position: initialData.image_position || 0,
                 image_position_x: initialData.image_position_x || 50,
                 province_id: initialData.province_id || '',
-                city_id: initialData.city_id || ''
+                city_id: initialData.city_id || '',
+                original_url: initialData.original_url || ''
             });
             if (initialData.template) {
                 setTemplate(initialData.template);
@@ -161,7 +164,8 @@ export default function ArticleEditorModal({
                 image_position: 0,
                 image_position_x: 50,
                 province_id: '',
-                city_id: ''
+                city_id: '',
+                original_url: ''
             });
             setTemplate('single');
         }
@@ -472,7 +476,8 @@ export default function ArticleEditorModal({
                 content_blocks: finalContentBlocks,
                 template: template,
                 image_position: workingData.image_position,
-                image_position_x: workingData.image_position_x
+                image_position_x: workingData.image_position_x,
+                original_url: workingData.original_url || ''
             };
 
             // Use the is_redis flag from our Resource to determine the save path

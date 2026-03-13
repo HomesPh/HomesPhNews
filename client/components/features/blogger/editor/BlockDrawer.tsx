@@ -311,6 +311,16 @@ export default function BlockDrawer({
                                     />
                                 </div>
                                 <div>
+                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Original Source (URL)</label>
+                                    <input
+                                        type="text"
+                                        value={details.original_url || ""}
+                                        onChange={(e) => onUpdateDetails({ original_url: e.target.value })}
+                                        placeholder="e.g. https://example.com/article"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none transition-all font-inter text-gray-800"
+                                    />
+                                </div>
+                                <div>
                                     <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Topics</label>
                                     <TagsInput
                                         tags={details.tags}

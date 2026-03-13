@@ -162,7 +162,8 @@ export default function ArticleEditorForm({
                 publishDate: data.publishDate || new Date().toISOString().split('T')[0],
                 publishTime: data.publishTime || "12:00",
                 platforms: data.publishTo || [],
-                views: data.views_count || 0
+                views: data.views_count || 0,
+                original_url: data.original_url || ""
             };
 
             console.log("Loading Editor Data:", { initialBlocks, initialDetails });
@@ -193,6 +194,7 @@ export default function ArticleEditorForm({
         if (data.author !== editor.details.author) onDataChange('author', editor.details.author);
         if (data.publishDate !== editor.details.publishDate) onDataChange('publishDate', editor.details.publishDate);
         if (data.publishTime !== editor.details.publishTime) onDataChange('publishTime', editor.details.publishTime);
+        if (data.original_url !== editor.details.original_url) onDataChange('original_url', editor.details.original_url);
 
         // Sync Blocks & Content 
         if (JSON.stringify(data.contentBlocks) !== JSON.stringify(editor.blocks)) {
