@@ -92,9 +92,15 @@ const AutoResizeTextarea = ({ value, onChange, className, placeholder, style, ro
 };
 
 interface CanvasProps {
+    // state
     blocks: Block[];
     details: BlogDetails;
     activeBlockId: string | null;
+    zoom: number;
+    viewMode: 'desktop' | 'tablet' | 'mobile';
+    loadingByBlockId?: Record<string, boolean>;
+
+    // callbacks
     onSelectBlock: (id: string | null) => void;
     onUpdateBlock: (id: string, content: any) => void;
     onRemoveBlock: (id: string) => void;
@@ -103,14 +109,14 @@ interface CanvasProps {
     onUpdateDetails: (updates: Partial<BlogDetails>) => void;
     onAddBlockAt: (index: number, type: BlockType) => void;
     onUpdateBlockSettings: (id: string, settings: any) => void;
-    zoom: number;
-    viewMode: 'desktop' | 'tablet' | 'mobile';
+    onGenerate?: (args: { id: string; block: Block; index: number }) => void;
 }
 
 export default function Canvas({
     blocks,
     details,
     activeBlockId,
+    loadingByBlockId,
     onSelectBlock,
     onUpdateBlock,
     onRemoveBlock,
@@ -119,6 +125,7 @@ export default function Canvas({
     onUpdateDetails,
     onAddBlockAt,
     onUpdateBlockSettings,
+    onGenerate,
     zoom,
     viewMode
 }: CanvasProps) {
@@ -255,6 +262,8 @@ export default function Canvas({
                             onMove={onMoveBlock}
                             onReorder={onReorder}
                             onUpdateSettings={onUpdateBlockSettings}
+                            onGenerate={onGenerate}
+                            isLoading={!!loadingByBlockId?.[block.id]}
                         />
 
                         {/* Bottom Block Separator (Add Below) */}

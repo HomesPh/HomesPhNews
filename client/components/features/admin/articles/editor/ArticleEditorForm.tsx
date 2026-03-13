@@ -248,6 +248,28 @@ export default function ArticleEditorForm({
         if (onPublish) onPublish(latestData);
     }
 
+    /**
+     * Generate text or image callback that uses 
+     * title and summary of article as context.
+     */
+    const handleGenerate = ({ block, id, index }: { id: string; block: Block; index: number; }) => {
+        console.log("[ArticleEditorForm.tsx]: Generate button clicked!");
+
+        const article = editor.details;
+
+        /* Do not uncomment this, I still have no idea where to get context for generating text.
+        if (block.type === 'text') {
+            editor.generateText({ blockId: id, prompt: "ecchi koto suru desu ka? romaji ni hanashite kudasai" });
+        }*/
+        if (block.type === 'image') {
+            const prompt = `Generate an image for an article titled 
+                "${article.title}". ${article.summary ?
+                    `The article is about: ${article.summary}` : ''}`.trim();
+
+            editor.generateImages({ blockId: id, prompt });
+        }
+    }
+
     if (!isLoaded) return <div className="flex items-center justify-center h-full"><Loader2 className="animate-spin" /></div>;
 
     return (
@@ -332,6 +354,8 @@ export default function ArticleEditorForm({
                             onUpdateBlockSettings={editor.updateBlockSettings}
                             zoom={zoom}
                             viewMode={viewMode}
+                            loadingByBlockId={editor.loadingByBlockId}
+                            onGenerate={handleGenerate}
                         />
                     </div>
                 </div>
