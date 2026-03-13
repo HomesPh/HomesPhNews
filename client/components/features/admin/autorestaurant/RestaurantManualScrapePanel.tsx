@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Zap, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { Info } from 'lucide-react';
 
-const SCRAPER_API_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:8001';
+const SCRAPER_API_URL = process.env.NEXT_PUBLIC_RESTAURANTS_SERVICE_URL || 'http://localhost:8012';
 
 interface ScrapeResult {
     status: string;
@@ -26,23 +26,35 @@ export default function RestaurantManualScrapePanel() {
         setResult(null);
         setError(null);
         try {
+            // Create an AbortController for timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60 * 60 * 1000); // 60 minutes timeout
+
             const response = await fetch(`${SCRAPER_API_URL}/trigger/restaurants`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal,
             });
-            
+
+            clearTimeout(timeoutId);
+
             if (response.status === 409) {
                 throw new Error("Restaurant scraper is already running. Please wait for it to complete.");
             }
-            
+
             if (!response.ok) {
-                throw new Error("Failed to trigger restaurant scraper");
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || "Failed to trigger restaurant scraper");
             }
-            
+
             const data = await response.json();
             setResult(data);
         } catch (err: any) {
-            setError(err.message || 'Scrape failed');
+            if (err.name === 'AbortError') {
+                setError('Request timed out. The scraper may still be running in the background.');
+            } else {
+                setError(err.message || 'Scrape failed');
+            }
         } finally {
             setIsScraping(false);
         }
@@ -61,16 +73,16 @@ export default function RestaurantManualScrapePanel() {
                     <button
                         onClick={handleScrape}
                         disabled={isScraping}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[#C10007] text-white text-sm font-semibold rounded-lg hover:bg-[#A00006] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-[#1428AE] text-white text-sm font-semibold rounded-lg hover:bg-[#000785] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isScraping ? (
                             <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <Loader2 className="w-4 h-4 animate-spin text-[#F4AA1D]" />
                                 <span>Scraping...</span>
                             </>
                         ) : (
                             <>
-                                <Zap className="w-4 h-4" />
+                                <Zap className="w-4 h-4 text-[#F4AA1D]" />
                                 <span>Run Scraper</span>
                             </>
                         )}

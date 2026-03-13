@@ -13,8 +13,8 @@ interface ArticlesTabsProps {
 }
 
 /**
- * ArticlesTabs component exactly matching Create Sign In Page design
- * Being Processed = Redis only (not in DB yet). Pending Review = in DB, awaiting publish.
+ * Imported (Pending) = Redis only (not in DB yet). 
+ * Pending Review = in DB, awaiting publish.
  */
 export default function ArticlesTabs({ activeTab, setActiveTab, counts }: ArticlesTabsProps) {
     const { user } = useAuth();
@@ -26,7 +26,7 @@ export default function ArticlesTabs({ activeTab, setActiveTab, counts }: Articl
         { id: 'pending_review' as ArticleTab, label: 'Pending Review' },
         { id: 'edited' as ArticleTab, label: 'Edited' },
         { id: 'rejected' as ArticleTab, label: 'Rejected' },
-        { id: 'being_processed' as ArticleTab, label: 'Being Processed' },
+        { id: 'being_processed' as ArticleTab, label: 'Imported (Pending)' },
         ...(isEditor ? [] : [{ id: 'deleted' as ArticleTab, label: 'Deleted' }]),
     ];
 

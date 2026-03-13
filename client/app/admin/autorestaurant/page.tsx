@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tag, Zap, Utensils } from "lucide-react";
 import RestaurantCategoryList from "@/components/features/admin/autorestaurant/RestaurantCategoryList";
 import RestaurantManualScrapePanel from "@/components/features/admin/autorestaurant/RestaurantManualScrapePanel";
+import RestaurantTargetedManualScrapePanel from "@/components/features/admin/autorestaurant/RestaurantTargetedManualScrapePanel";
 import RestaurantScraperControlPanel from "@/components/features/admin/autorestaurant/RestaurantScraperControlPanel";
 
 export default function AutoRestaurantPage() {
@@ -35,7 +36,7 @@ export default function AutoRestaurantPage() {
                             </TabsTrigger>
                             <TabsTrigger
                                 value="manual-scrape"
-                                className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-[#C10007] data-[state=active]:text-white"
+                                className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-[#1428AE] data-[state=active]:text-white"
                             >
                                 <Zap className="w-4 h-4" />
                                 <span>Manual Scrape</span>
@@ -48,7 +49,7 @@ export default function AutoRestaurantPage() {
                     </TabsContent>
 
                     <TabsContent value="manual-scrape" className="mt-0 border-none p-0 outline-none">
-                        <RestaurantManualScrapePanel />
+                        <RestaurantTargetedManualScrapePanel />
                     </TabsContent>
                 </Tabs>
             </div>

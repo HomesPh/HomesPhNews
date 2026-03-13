@@ -3,32 +3,34 @@
 
 import {
     Trash2, Type, Image as ImageIcon,
-    Grid, Plus, GripVertical, Move, Check, X as XIcon
+    Grid, Plus, GripVertical, Move, Check, X as XIcon, Sparkles
 } from "lucide-react";
 import { Block, BlockType } from "@/hooks/useBlockEditor";
 import { cn, formatParagraphs } from "@/lib/utils";
 import { useDrag, useDrop } from 'react-dnd';
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useMemo } from 'react';
 import RichTextEditor from "./RichTextEditor";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface BlockRendererProps {
     index: number;
     block: Block;
     isActive: boolean;
     viewMode?: 'desktop' | 'tablet' | 'mobile';
+    isLoading?: boolean;
     onSelect: () => void;
     onUpdate: (id: string, content: any) => void;
     onRemove: (id: string) => void;
     onMove: (id: string, direction: 'up' | 'down') => void;
     onReorder: (dragIndex: number, hoverIndex: number) => void;
-    // New prop to update settings directly
+    onGenerate?: (args: { id: string; block: Block; }) => void;
     onUpdateSettings?: (id: string, settings: any) => void;
 }
 
 // --- Reusable Draggable Image Component ---
 interface DraggableImageProps {
     src: string;
-    onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onUpload: (file: File) => void;
     imagePosition?: { x: number; y: number };
     onPositionChange?: (pos: { x: number; y: number }) => void;
     className?: string;
@@ -51,6 +53,7 @@ const DraggableImage = ({
     autoHeight = false
 }: DraggableImageProps) => {
     const [isRepositioning, setIsRepositioning] = useState(false);
+    const [isDraggingOver, setIsDraggingOver] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const isDragging = useRef(false);
     const lastMousePos = useRef({ x: 0, y: 0 });
@@ -95,41 +98,92 @@ const DraggableImage = ({
         isDragging.current = false;
     };
 
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.dataTransfer.types.includes('Files')) {
+            setIsDraggingOver(true);
+        }
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDraggingOver(false);
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDraggingOver(false);
+
+        const file = e.dataTransfer.files?.[0];
+        if (file && file.type.startsWith('image/')) {
+            onUpload(file);
+        }
+    };
+
+    const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            onUpload(file);
+        }
+    };
+
     return (
         <div
             ref={containerRef}
             className={cn(
-                "bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 group/img relative overflow-hidden shadow-inner",
+                "bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 group/img relative overflow-hidden shadow-inner transition-all duration-200",
                 isRepositioning && "ring-2 ring-[#1428AE] ring-offset-2 cursor-move",
-                !src && "min-h-[200px]", // Force min-height for placeholder
+                isDraggingOver && "ring-2 ring-[#1428AE] bg-blue-50/50 scale-[1.01] shadow-lg border-blue-200",
+                !src && "min-h-[200px]",
                 className
             )}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
         >
             {src ? (
                 <img
                     src={src}
                     className={cn(
-                        "w-full object-cover",
+                        "w-full object-cover transition-opacity duration-200",
                         autoHeight ? "h-auto" : "h-full",
-                        isRepositioning && "pointer-events-none"
+                        isRepositioning && "pointer-events-none",
+                        isDraggingOver && "opacity-40"
                     )}
                     style={{ objectPosition: getObjectPosition() }}
                 />
             ) : (
                 <label className="text-center cursor-pointer w-full h-full flex flex-col items-center justify-center p-4 hover:bg-gray-100 transition-colors">
-                    <ImageIcon className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                    <span className="text-xs font-bold text-[#1428AE] bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-100 block whitespace-nowrap">
-                        {placeholderLabel}
+                    <ImageIcon className={cn("w-8 h-8 text-gray-200 mx-auto mb-2 transition-transform duration-200", isDraggingOver && "scale-125 text-[#1428AE]")} />
+                    <span className={cn(
+                        "text-xs font-bold px-3 py-1.5 rounded-full shadow-sm border transition-all duration-200 block whitespace-nowrap",
+                        isDraggingOver
+                            ? "bg-[#1428AE] text-white border-[#1428AE] scale-110"
+                            : "bg-white text-[#1428AE] border-gray-100"
+                    )}>
+                        {isDraggingOver ? "Drop Image Now" : placeholderLabel}
                     </span>
-                    <input type="file" className="hidden" accept="image/*" onChange={onUpload} />
+                    <input type="file" className="hidden" accept="image/*" onChange={handleFileInput} />
                 </label>
             )}
 
-            {src && !isRepositioning && (
+            {/* Drag Overlay for filled state */}
+            {src && isDraggingOver && (
+                <div className="absolute inset-0 bg-blue-50/20 backdrop-blur-[2px] flex items-center justify-center pointer-events-none animate-in fade-in zoom-in duration-200">
+                    <div className="bg-[#1428AE] text-white px-4 py-2 rounded-full text-xs font-bold shadow-xl flex items-center gap-2">
+                        <Plus className="w-4 h-4" /> Drop to Replace
+                    </div>
+                </div>
+            )}
+
+            {src && !isRepositioning && !isDraggingOver && (
                 <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     {onPositionChange && !autoHeight && (
                         <button
@@ -141,7 +195,7 @@ const DraggableImage = ({
                     )}
                     <label className="cursor-pointer bg-white/10 backdrop-blur-sm text-white text-xs font-medium hover:bg-white/20 px-2 py-1 rounded transition-colors">
                         Change
-                        <input type="file" className="hidden" accept="image/*" onChange={onUpload} />
+                        <input type="file" className="hidden" accept="image/*" onChange={handleFileInput} />
                     </label>
                     {allowRemove && onRemove && (
                         <button
@@ -220,11 +274,13 @@ export default function BlockRenderer({
     block,
     isActive,
     viewMode = 'desktop',
+    isLoading = false,
     onSelect,
     onUpdate,
     onRemove,
     onMove,
     onReorder,
+    onGenerate,
     onUpdateSettings
 }: BlockRendererProps) {
     const ref = useRef<HTMLDivElement>(null);
@@ -263,15 +319,15 @@ export default function BlockRenderer({
 
     const settings = block.settings || {};
     const baseFontSize = settings.fontSize || '18px';
-    const style: React.CSSProperties = {
-        textAlign: settings.textAlign || 'left',
+    const style: React.CSSProperties = useMemo(() => ({
+        textAlign: settings.textAlign || 'left' as any,
         fontSize: isActualMobile ? (parseFloat(baseFontSize) * 0.9 + 'px') : baseFontSize,
         fontWeight: settings.fontWeight || '400',
         fontStyle: settings.isItalic ? 'italic' : 'normal',
         textDecoration: settings.isUnderline ? 'underline' : 'none',
         color: settings.color || 'inherit',
         fontFamily: settings.fontFamily || 'inherit',
-    };
+    }), [settings.textAlign, settings.fontSize, isActualMobile, settings.fontWeight, settings.isItalic, settings.isUnderline, settings.color, settings.fontFamily]);
 
     const handleUpdateImagePosition = (pos: { x: number, y: number }, key?: string) => {
         if (key && block.type === 'grid') {
@@ -284,32 +340,83 @@ export default function BlockRenderer({
         }
     };
 
+    const renderSkeleton = () => {
+        // Text block skeleton
+        if (block.type === "text") {
+            return (
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-5/6" />
+                    <Skeleton className="h-4 w-2/3" />
+                </div>
+            );
+        }
+
+        // Image-like blocks
+        if (
+            block.type === "image" ||
+            block.type === "centered-image" ||
+            block.type === "left-image" ||
+            block.type === "right-image" ||
+            block.type === "split-left" ||
+            block.type === "split-right"
+        ) {
+            return (
+                <div className="space-y-3">
+                    <Skeleton className="w-full aspect-video rounded-xl" />
+                    {(block.type === "image" || block.type === "centered-image") && (
+                        <Skeleton className="h-4 w-1/3" />
+                    )}
+                </div>
+            );
+        }
+
+        // Grid block skeleton
+        if (block.type === "grid") {
+            return (
+                <div className="grid grid-cols-2 gap-4">
+                    <Skeleton className="aspect-square rounded-xl" />
+                    <Skeleton className="aspect-square rounded-xl" />
+                </div>
+            );
+        }
+
+        // Dynamic images skeleton
+        if (block.type === "dynamic-images") {
+            return (
+                <div className="space-y-4">
+                    <Skeleton className="w-full aspect-video rounded-xl" />
+                    <Skeleton className="w-full aspect-video rounded-xl" />
+                </div>
+            );
+        }
+
+        // Fallback
+        return (
+            <div className="space-y-2">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-4 w-1/3" />
+            </div>
+        );
+    };
+
     const renderBlockContent = () => {
-        const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
-            const file = e.target.files?.[0];
+        const handleFileUpload = (file: File, callback: (url: string) => void) => {
             if (file) {
                 const url = URL.createObjectURL(file);
                 callback(url);
             }
         };
 
-        // Text Block with List Support
         if (block.type === 'text') {
-            const ListWrapper = settings.listType === 'number' ? 'ol' : settings.listType === 'bullet' ? 'ul' : 'div';
-            const listClass = settings.listType === 'number' ? 'list-decimal list-inside' : settings.listType === 'bullet' ? 'list-disc list-inside' : '';
-
             return (
-                <ListWrapper className={listClass}>
-                    <li className={settings.listType ? 'marker:text-[#1428AE]' : ''}>
-                        <RichTextEditor
-                            content={formatParagraphs(block.content.text)}
-                            onChange={(val) => onUpdate(block.id, { text: val })}
-                            placeholder={settings.listType ? "List item..." : "Start typing..."}
-                            style={style}
-                            blockId={block.id}
-                        />
-                    </li>
-                </ListWrapper>
+                <RichTextEditor
+                    content={block.content.text}
+                    onChange={(val) => onUpdate(block.id, { text: val })}
+                    placeholder={settings.listType ? "List item..." : "Start typing..."}
+                    style={style}
+                    blockId={block.id}
+                />
             );
         }
 
@@ -328,7 +435,7 @@ export default function BlockRenderer({
                     <div className={cn("space-y-3", block.type === 'centered-image' && (isActualMobile ? "max-w-full mx-auto" : "max-w-[400px] mx-auto"))}>
                         <DraggableImage
                             src={block.content.src}
-                            onUpload={(e) => handleFileSelect(e, (url) => onUpdate(block.id, { src: url }))}
+                            onUpload={(file) => handleFileUpload(file, (url) => onUpdate(block.id, { src: url }))}
                             imagePosition={settings.imagePosition}
                             onPositionChange={handleUpdateImagePosition}
                             autoHeight={true}
@@ -357,7 +464,7 @@ export default function BlockRenderer({
                         <div className={cn("w-full shrink-0", !isActualMobile && "md:w-[180px]")}>
                             <DraggableImage
                                 src={block.content.image || block.content.src}
-                                onUpload={(e) => handleFileSelect(e, (url) => onUpdate(block.id, { image: url }))}
+                                onUpload={(file) => handleFileUpload(file, (url) => onUpdate(block.id, { image: url }))}
                                 imagePosition={settings.imagePosition}
                                 onPositionChange={handleUpdateImagePosition}
                                 className="aspect-square"
@@ -365,7 +472,7 @@ export default function BlockRenderer({
                         </div>
                         <div className="flex-1 w-full min-w-0">
                             <RichTextEditor
-                                content={formatParagraphs(block.content.text || "")}
+                                content={block.content.text || ""}
                                 onChange={(val) => onUpdate(block.id, { text: val })}
                                 placeholder="Enter text alongside image..."
                                 style={style}
@@ -390,7 +497,7 @@ export default function BlockRenderer({
                                 <DraggableImage
                                     key={idx}
                                     src={img}
-                                    onUpload={(e) => handleFileSelect(e, (url) => {
+                                    onUpload={(file) => handleFileUpload(file, (url) => {
                                         const newImages = [...images];
                                         newImages[idx] = url;
                                         onUpdate(block.id, { images: newImages });
@@ -436,7 +543,7 @@ export default function BlockRenderer({
                         <div className="flex-1 min-h-[300px] h-full">
                             <DraggableImage
                                 src={block.content.image || block.content.src}
-                                onUpload={(e) => handleFileSelect(e, (url) => onUpdate(block.id, { image: url }))}
+                                onUpload={(file) => handleFileUpload(file, (url) => onUpdate(block.id, { image: url }))}
                                 imagePosition={settings.imagePosition}
                                 onPositionChange={handleUpdateImagePosition}
                                 className="rounded-none h-full border-0"
@@ -444,7 +551,7 @@ export default function BlockRenderer({
                         </div>
                         <div className="flex-1 min-w-0 p-8 md:p-12 flex flex-col justify-center">
                             <RichTextEditor
-                                content={formatParagraphs(block.content.text || "")}
+                                content={block.content.text || ""}
                                 onChange={(val) => onUpdate(block.id, { text: val })}
                                 placeholder="Enter featured text here..."
                                 style={{ ...style, fontSize: '20px', fontWeight: '500' }}
@@ -461,7 +568,7 @@ export default function BlockRenderer({
                             <div key={idx} className="space-y-2">
                                 <DraggableImage
                                     src={img}
-                                    onUpload={(e) => handleFileSelect(e, (url) => {
+                                    onUpload={(file) => handleFileUpload(file, (url) => {
                                         const newImgs = [...dynImgs];
                                         newImgs[idx] = url;
                                         onUpdate(block.id, { images: newImgs });
@@ -510,6 +617,21 @@ export default function BlockRenderer({
                 isActive && "opacity-100"
             )}>
                 <div className="p-1 px-1.5 bg-white rounded-lg shadow-sm border border-gray-100 flex flex-col gap-0.5">
+                    {block.type === "image" && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+
+                                console.log("[BlockRenderer.tsx]: Generate button clicked!");
+                                onGenerate?.({ id: block.id, block });
+                            }}
+                            className="p-1.5 hover:bg-[#eef2ff] rounded-md text-gray-400 hover:text-[#1428AE]"
+                            title="Generate"
+                            disabled={isLoading}
+                        >
+                            <Sparkles className="w-3.5 h-3.5" />
+                        </button>
+                    )}
                     <button
                         className="p-1.5 hover:bg-gray-50 rounded-md text-gray-400 hover:text-[#1428AE] cursor-grab active:cursor-grabbing"
                         title="Drag to reorder"
@@ -535,7 +657,7 @@ export default function BlockRenderer({
 
             {/* Main Content Padding */}
             <div className="p-4">
-                {renderBlockContent()}
+                {isLoading ? renderSkeleton() : renderBlockContent()}
             </div>
         </div>
     );

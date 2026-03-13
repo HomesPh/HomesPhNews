@@ -116,7 +116,7 @@ export default function CountryList() {
                 <h2 className="text-lg font-semibold text-[#111827]">Active News Regions</h2>
                 <button
                     onClick={handleCreate}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#1428AE] text-white rounded-lg hover:bg-[#000785] transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#1428AE] text-white rounded-lg hover:bg-[#000785] transition-colors shadow-sm"
                 >
                     <Plus className="w-4 h-4" />
                     <span>Add Region</span>
@@ -157,8 +157,8 @@ export default function CountryList() {
                                             onClick={() => handleToggleActive(country)}
                                             disabled={togglingId === country.id}
                                             className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold uppercase border transition-colors disabled:opacity-60 ${country.is_active
-                                                    ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
-                                                    : 'bg-gray-100 border-gray-200 text-gray-600 hover:bg-gray-200'
+                                                ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
+                                                : 'bg-gray-100 border-gray-200 text-gray-600 hover:bg-gray-200'
                                                 }`}
                                         >
                                             {togglingId === country.id ? (

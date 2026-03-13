@@ -358,12 +358,11 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                                                         <div
                                                                             style={blockStyle}
                                                                             className={cn(
-                                                                                "whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&_p]:min-h-[1.5em]",
+                                                                                "whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] tiptap [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&_p]:min-h-[1.5em] [&_ul]:list-disc [&_ul]:pl-10 [&_ol]:list-decimal [&_ol]:pl-10 [&_li]:mb-1",
                                                                                 settings?.listType === 'bullet' && "list-disc ml-6",
                                                                                 settings?.listType === 'number' && "list-decimal ml-6"
                                                                             )}
-                                                                            dangerouslySetInnerHTML={{ __html: formatParagraphs(content?.text || content || '') }}
-
+                                                                            dangerouslySetInnerHTML={{ __html: decodeHtml(content?.text || content || '') }}
                                                                         />
                                                                     )}
 
@@ -402,7 +401,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                                                             <div
                                                                                 style={blockStyle}
                                                                                 className="flex-1 text-[18px] text-[#374151] leading-[32px]"
-                                                                                dangerouslySetInnerHTML={{ __html: formatParagraphs(decodeHtml(content?.text || content || '')) }}
+                                                                                dangerouslySetInnerHTML={{ __html: decodeHtml(content?.text || content || '') }}
                                                                             />
                                                                         </div>
                                                                     )}
@@ -436,7 +435,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                                                             <div
                                                                                 style={blockStyle}
                                                                                 className="flex-1 p-8 md:p-12 flex items-center text-[20px] text-[#111827] leading-[1.4] font-medium"
-                                                                                dangerouslySetInnerHTML={{ __html: formatParagraphs(decodeHtml(content?.text || content || '')) }}
+                                                                                dangerouslySetInnerHTML={{ __html: decodeHtml(content?.text || content || '') }}
                                                                             />
                                                                         </div>
                                                                     )}
@@ -458,7 +457,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                                     </div>
                                                 ) : (
                                                     <div
-                                                        className="whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>li]:mb-1 [&>a]:text-blue-600 [&>a]:underline first-letter:text-[72px] first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-5px] first-letter:leading-[0.8] first-letter:text-[#0c0c0c] [&_p]:min-h-[1.5em]"
+                                                        className="whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] tiptap [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&_ul]:list-disc [&_ul]:pl-10 [&_ol]:list-decimal [&_ol]:pl-10 [&_li]:mb-1 [&>li]:mb-1 [&>a]:text-blue-600 [&>a]:underline first-letter:text-[72px] first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-5px] first-letter:leading-[0.8] first-letter:text-[#0c0c0c] [&_p]:min-h-[1.5em]"
                                                         dangerouslySetInnerHTML={{ __html: formatParagraphs(content) }}
                                                     />
                                                 )}
@@ -533,7 +532,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                 </div>
                                 {article.is_redis && (
                                     <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-[12px] text-amber-700 leading-relaxed font-medium">
-                                        This article is <strong>Being Processed</strong> (in Redis only) and is not yet in the database. Move it to DB from the Being Processed tab, or click Publish here to save and publish in one step.
+                                        This article is <strong>Pending Review</strong> (Imported) and is not yet in the database. Move it to DB from the Pending Review tab, or click Publish here to save and publish in one step.
                                     </div>
                                 )}
                                 <div className="flex gap-3">
@@ -642,7 +641,10 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                         Send to Subscribers
                                     </button>
                                 )}
-                                {!isEditor && (
+                                {isEditor ? (
+                                    // Editors shouldn't see delete/restore in detail view usually, or if they do, it's restricted
+                                    null
+                                ) : (
                                     article.is_deleted || article.status === 'deleted' ? (
                                         <div className="space-y-3">
                                             <button

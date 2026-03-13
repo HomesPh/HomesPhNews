@@ -32,7 +32,7 @@ class StoreArticleRequest extends FormRequest
             'image' => 'nullable|string|max:2000',
             'published_sites' => 'nullable|array',
             'published_sites.*' => 'string',
-            'status' => 'nullable|string|in:published,pending review,deleted',
+            'status' => 'nullable|string|in:published,pending review,deleted,edited',
             'topics' => 'nullable|array',
             // Extra fields from editor (not stored in articles table but accepted)
             'gallery_images' => 'nullable|array',
@@ -42,6 +42,7 @@ class StoreArticleRequest extends FormRequest
             'author' => 'nullable|string',
             'date' => 'nullable|string',
             'slug' => 'nullable|string',
+            'original_url' => 'nullable|string|max:2000',
         ];
     }
 }

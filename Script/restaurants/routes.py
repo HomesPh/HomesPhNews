@@ -7,8 +7,10 @@ This is the restaurants-only router. For the unified service, use root routes.py
 
 import json
 import time
-from typing import List
+from typing import List, Optional
+
 from fastapi import APIRouter, HTTPException, Query, Depends
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from models import (
@@ -24,6 +26,19 @@ from database import redis_client, PREFIX, get_db
 # ═══════════════════════════════════════════════════════════════
 
 router = APIRouter()
+
+
+class LocationPair(BaseModel):
+    """One (country, city) pair for targeted scrape."""
+    country_name: str = ""
+    city_name: str = ""
+
+
+class TargetedRestaurantRequest(BaseModel):
+    """Request payload for targeted restaurant scraping."""
+    countries: List[str] = []
+    cities: List[str] = []
+    locations: Optional[List[LocationPair]] = None
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -158,20 +173,120 @@ async def clear_all_restaurants():
 
 @router.post("/trigger/restaurants", tags=["Admin"])
 async def trigger_restaurant_job():
-    """Manually trigger the restaurant scraper job."""
-    from scheduler import run_restaurant_job
-
+    """
+    Manually trigger the restaurant scraper job.
+    SYNCHRONOUS: Waits for job to complete before returning.
+    """
+    from scheduler import run_restaurant_job, get_restaurant_job_status
+    import time
+    
+    # Check if already running
+    status = get_restaurant_job_status()
+    if status["is_running"]:
+        raise HTTPException(status_code=409, detail="Job is already running. Please wait for it to complete.")
+    
     start_time = time.time()
     results = await run_restaurant_job()
     duration = round(time.time() - start_time, 2)
 
     success = sum(1 for r in (results or []) if r.get("status") == "success")
+    errors = sum(1 for r in (results or []) if r.get("status") == "error")
 
     return {
         "status": "completed",
         "message": f"Restaurant Job completed in {duration}s. {success} restaurants found.",
         "duration_seconds": duration,
         "success_count": success,
+        "error_count": errors,
+        "results": results,
+        "timestamp": str(__import__('datetime').datetime.now())
+    }
+
+
+@router.get("/locations", tags=["Admin"])
+async def get_scraper_locations():
+    """
+    Return the list of (country, city) locations used by the scraper.
+    Use this to build country/city pickers for targeted manual scrape.
+    """
+    from places_client import fetch_locations
+    locations = fetch_locations()
+    return [{"country_name": loc.get("country_name"), "city_name": loc.get("city_name")} for loc in locations]
+
+
+@router.post("/trigger/restaurants/targeted", tags=["Admin"])
+async def trigger_restaurant_job_targeted(payload: TargetedRestaurantRequest):
+    """
+    Manually trigger a targeted restaurant scraper job.
+
+    - If payload.locations is provided and non-empty: run only for those exact
+      (country_name, city_name) pairs (city is scoped to that country).
+    - Otherwise: run for locations matching payload.countries (any city) and/or
+      payload.cities (any country). A location matches if it matches either.
+    """
+    from places_client import fetch_locations
+    from scheduler import run_restaurant_job_for_locations, get_restaurant_job_status
+    import time
+
+    # Prevent overlap with the main job
+    status = get_restaurant_job_status()
+    if status["is_running"]:
+        raise HTTPException(status_code=409, detail="Job is already running. Please wait for it to complete.")
+
+    all_locations = fetch_locations()
+    if not all_locations:
+        raise HTTPException(status_code=500, detail="No locations available for restaurant scraping.")
+
+    filtered_locations = []
+
+    if payload.locations:
+        # Explicit (country, city) pairs: city is specific to that country
+        pair_set = {
+            ((p.country_name or "").strip(), (p.city_name or "").strip())
+            for p in payload.locations
+            if (p.country_name or "").strip() or (p.city_name or "").strip()
+        }
+        if not pair_set:
+            raise HTTPException(status_code=400, detail="locations must contain at least one (country_name, city_name) pair.")
+        for loc in all_locations:
+            key = ((loc.get("country_name") or "").strip(), (loc.get("city_name") or "").strip())
+            if key in pair_set:
+                filtered_locations.append(loc)
+    else:
+        selected_countries = {c.strip() for c in (payload.countries or []) if c.strip()}
+        selected_cities = {c.strip() for c in (payload.cities or []) if c.strip()}
+        if not selected_countries and not selected_cities:
+            raise HTTPException(status_code=400, detail="Please provide at least one country, city, or locations.")
+
+        def matches(loc: dict) -> bool:
+            country_name = (loc.get("country_name") or "").strip()
+            city_name = (loc.get("city_name") or "").strip()
+            country_match = selected_countries and country_name in selected_countries
+            city_match = selected_cities and city_name in selected_cities
+            return country_match or city_match
+
+        filtered_locations = [loc for loc in all_locations if matches(loc)]
+
+    if not filtered_locations:
+        raise HTTPException(
+            status_code=404,
+            detail="No locations matched the selected countries/cities."
+        )
+
+    start_time = time.time()
+    results = await run_restaurant_job_for_locations(filtered_locations)
+    duration = round(time.time() - start_time, 2)
+
+    success = sum(1 for r in (results or []) if r.get("status") == "success")
+    errors = sum(1 for r in (results or []) if r.get("status") == "error")
+
+    return {
+        "status": "completed",
+        "message": f"Targeted Restaurant Job completed in {duration}s. "
+                   f"{success} locations processed, {sum(r.get('saved', 0) for r in (results or []))} new restaurants saved.",
+        "duration_seconds": duration,
+        "success_count": success,
+        "error_count": errors,
         "results": results,
         "timestamp": str(__import__('datetime').datetime.now())
     }
@@ -181,11 +296,13 @@ async def trigger_restaurant_job():
 async def get_restaurant_status():
     """Get current restaurant job status and statistics."""
     from scheduler import get_restaurant_job_status
+    from scheduler_control import is_enabled as scheduler_is_enabled
     status = get_restaurant_job_status()
 
     return {
         "is_running": status["is_running"],
         "cancel_requested": status.get("cancel_requested", False),
+        "scheduler_enabled": scheduler_is_enabled(),
         "total_runs": status["total_runs"],
         "total_success": status["total_success"],
         "total_errors": status["total_errors"],

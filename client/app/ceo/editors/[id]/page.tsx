@@ -33,6 +33,10 @@ const URL_FILTERS_CONFIG = {
         default: "" as const,
         resetValues: [""],
     },
+    province: {
+        default: "" as const,
+        resetValues: [""],
+    },
 };
 
 type ProfileTab = "all" | "published" | "edited" | "rejected";
@@ -64,8 +68,9 @@ export default function EditorLogsPage() {
     const [availableFilters, setAvailableFilters] = useState<{
         categories: { name: string; count: number }[];
         countries: { name: string; count: number }[];
+        provinces: { name: string; count: number }[];
         cities: { name: string; count: number }[];
-    }>({ categories: [], countries: [], cities: [] });
+    }>({ categories: [], countries: [], provinces: [], cities: [] });
 
     const fetchEditor = useCallback(async () => {
         setIsUserLoading(true);
@@ -121,6 +126,7 @@ export default function EditorLogsPage() {
                 status: statusParam === "all" ? "all" : statusParam,
                 category: filters.category === "" ? undefined : filters.category,
                 country: filters.country === "" ? undefined : filters.country,
+                province: filters.province === "" ? undefined : filters.province,
                 city: filters.city === "" ? undefined : filters.city,
                 search: searchQuery || undefined,
                 page: pagination.currentPage,
@@ -299,10 +305,12 @@ export default function EditorLogsPage() {
                     categoryFilter={filters.category}
                     setCategoryFilter={(cat) => setFilter("category", cat)}
                     countryFilter={filters.country}
+                    provinceFilter={filters.province}
                     cityFilter={filters.city}
                     setFilters={setFilters}
                     availableCategories={availableFilters.categories}
                     availableCountries={availableFilters.countries}
+                    availableProvinces={availableFilters.provinces}
                     availableCities={availableFilters.cities}
                 />
 
