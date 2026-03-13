@@ -23,7 +23,7 @@ interface BlockRendererProps {
     onRemove: (id: string) => void;
     onMove: (id: string, direction: 'up' | 'down') => void;
     onReorder: (dragIndex: number, hoverIndex: number) => void;
-    onGenerate?: (args: { id: string; block: Block; index: number }) => void;
+    onGenerate?: (args: { id: string; block: Block; }) => void;
     onUpdateSettings?: (id: string, settings: any) => void;
 }
 
@@ -579,7 +579,7 @@ export default function BlockRenderer({
                             e.stopPropagation();
 
                             console.log("[BlockRenderer.tsx]: Generate button clicked!");
-                            onGenerate?.({ id: block.id, block, index });
+                            onGenerate?.({ id: block.id, block });
                         }}
                         className="p-1.5 hover:bg-[#eef2ff] rounded-md text-gray-400 hover:text-[#1428AE]"
                         title="Generate"

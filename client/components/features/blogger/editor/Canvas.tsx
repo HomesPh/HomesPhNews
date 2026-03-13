@@ -109,7 +109,7 @@ interface CanvasProps {
     onUpdateDetails: (updates: Partial<BlogDetails>) => void;
     onAddBlockAt: (index: number, type: BlockType) => void;
     onUpdateBlockSettings: (id: string, settings: any) => void;
-    onGenerate?: (args: { id: string; block: Block; index: number }) => void;
+    onGenerate?: (args: { id: string; block: Block; }) => void;
 }
 
 export default function Canvas({
