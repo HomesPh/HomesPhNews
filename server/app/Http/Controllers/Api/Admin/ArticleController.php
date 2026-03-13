@@ -99,6 +99,12 @@ class ArticleController extends Controller
                     $q->where('city_id', $city ? $city->city_id : -1); // Use -1 if not found to show nothing
                 }
             })
+            ->when($validated['province'] ?? null, function ($q, $p) {
+                if ($p && $p !== 'all') {
+                    $province = \App\Models\Province::where('name', 'LIKE', $p)->first();
+                    $q->where('province_id', $province ? $province->id : -1);
+                }
+            })
             ->when($validated['editor_id'] ?? null, fn($q, $id) => $q->where('edited_by', $id));
 
         // Get available filter counts dynamically based on OTHER active filters
@@ -151,6 +157,12 @@ class ArticleController extends Controller
             ->when($validated['start_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '>=', $d))
             ->when($validated['end_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '<=', $d))
             ->when($validated['country'] ?? null, fn($q, $c) => $q->where('country', 'like', "%{$c}%"))
+            ->when($validated['province'] ?? null, function ($q, $p) {
+                if ($p && $p !== 'all') {
+                    $province = \App\Models\Province::where('name', 'LIKE', $p)->first();
+                    $q->where('province_id', $province ? $province->id : -1);
+                }
+            })
             ->when($validated['city'] ?? null, function ($q, $c) {
                 if ($c && $c !== 'all') {
                     $city = \App\Models\City::where('name', 'LIKE', $c)->first();
@@ -201,17 +213,57 @@ class ArticleController extends Controller
             })
             ->when($validated['start_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '>=', $d))
             ->when($validated['end_date'] ?? null, fn($q, $d) => $q->whereDate('created_at', '<=', $d))
-            ->when($validated['category'] ?? null, fn($q, $c) => $q->where('category', $c));
+            ->when($validated['category'] ?? null, fn($q, $c) => $q->where('category', $c))
+            ->when($validated['province'] ?? null, function ($q, $p) {
+                if ($p && $p !== 'all') {
+                    $province = \App\Models\Province::where('name', 'LIKE', $p)->first();
+                    $q->where('province_id', $province ? $province->id : -1);
+                }
+            });
 
         $dbCountryCounts = (clone $countryBaseQuery)->whereNotNull('country')->groupBy('country')->selectRaw('country, count(*) as count')->pluck('count', 'country')->toArray();
 
-        // 3. Base query for City counts (only if country is selected, ignore current city)
+        // 3. Base query for Province counts (only if country is selected, ignore current province/city)
+        $dbProvinceCounts = [];
+        if (!empty($validated['country'])) {
+            $countryModel = \App\Models\Country::where('name', 'like', "%{$validated['country']}%")->first();
+            if ($countryModel) {
+                $allProvincesForCountry = \App\Models\Province::where('country_id', $countryModel->id)->get();
+                foreach($allProvincesForCountry as $prov) $dbProvinceCounts[$prov->name] = 0;
+
+                $provBaseQuery = (clone $countryBaseQuery)->where('country', 'like', "%{$validated['country']}%");
+                $dbProvCountsRaw = (clone $provBaseQuery)
+                    ->whereNotNull('province_id')
+                    ->whereIn('province_id', $allProvincesForCountry->pluck('id'))
+                    ->groupBy('province_id')
+                    ->selectRaw('province_id, count(*) as count')
+                    ->pluck('count', 'province_id')
+                    ->toArray();
+
+                foreach ($dbProvCountsRaw as $provId => $count) {
+                    $prov = $allProvincesForCountry->firstWhere('id', $provId);
+                    if ($prov) $dbProvinceCounts[$prov->name] += $count;
+                }
+            }
+        }
+
+        // 4. Base query for City counts (only if country is selected, ignore current city)
         $dbCityCounts = [];
         if (!empty($validated['country'])) {
             $countryModel = \App\Models\Country::where('name', 'like', "%{$validated['country']}%")->first();
             
             if ($countryModel) {
-                $allCitiesForCountry = \App\Models\City::where('country_id', $countryModel->id)->where('is_active', true)->get();
+                // Determine if we should further filter by province
+                $provinceId = null;
+                if (!empty($validated['province'])) {
+                    $provinceModel = \App\Models\Province::where('name', 'like', "%{$validated['province']}%")->first();
+                    if ($provinceModel) $provinceId = $provinceModel->id;
+                }
+
+                $cityQueryBuilder = \App\Models\City::where('country_id', $countryModel->id)->where('is_active', true);
+                if ($provinceId) $cityQueryBuilder->where('province_id', $provinceId);
+                
+                $allCitiesForCountry = $cityQueryBuilder->get();
                 
                 // Iterate carefully: we want to show all valid cities for this country in the filter dropdown
                 foreach ($allCitiesForCountry as $cityObj) {
@@ -239,6 +291,7 @@ class ArticleController extends Controller
         // Also merge Redis counts when fetching 'all' or 'being_processed'
         $redisCategoryCounts = [];
         $redisCountryCounts = [];
+        $redisProvinceCounts = [];
         $redisCityCounts = [];
         if (!$status || $status === 'all' || $status === 'being_processed') {
             try {
@@ -253,6 +306,8 @@ class ArticleController extends Controller
                         if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false)
                             $match = false;
                         if (!empty($validated['country']) && ($a['country'] ?? '') !== $validated['country'])
+                            $match = false;
+                        if (!empty($validated['province']) && ($a['province'] ?? '') !== $validated['province'])
                             $match = false;
                         if (!empty($validated['city']) && ($a['city'] ?? '') !== $validated['city'])
                             $match = false;
@@ -272,6 +327,22 @@ class ArticleController extends Controller
                     })
                     ->groupBy('country')->map(fn($group) => $group->count())->toArray();
                 
+                // For Province counts
+                if (!empty($validated['country'])) {
+                     $redisProvinceCounts = collect($redisArticles)
+                        ->filter(function ($a) use ($validated) {
+                            $match = true;
+                            if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false)
+                                $match = false;
+                            if (!empty($validated['category']) && ($a['category'] ?? '') !== $validated['category'])
+                                $match = false;
+                            if (($a['country'] ?? '') !== $validated['country'])
+                                $match = false;
+                            return $match;
+                        })
+                        ->groupBy('province')->map(fn($group) => $group->count())->toArray();
+                }
+
                 // For City counts, apply Redis side filtering except city (only if country is matched)
                 if (!empty($validated['country'])) {
                     $redisCityCounts = collect($redisArticles)
@@ -282,6 +353,8 @@ class ArticleController extends Controller
                             if (!empty($validated['category']) && ($a['category'] ?? '') !== $validated['category'])
                                 $match = false;
                             if (($a['country'] ?? '') !== $validated['country'])
+                                $match = false;
+                             if (!empty($validated['province']) && ($a['province'] ?? '') !== $validated['province'])
                                 $match = false;
                             
                             // Important: ignore empty strings or nulls for city in redis otherwise we get counts for ''
@@ -318,6 +391,15 @@ class ArticleController extends Controller
             ];
         }
 
+        $finalProvinceCounts = [];
+        $allProvinceNames = collect(array_merge(array_keys($dbProvinceCounts), array_keys($redisProvinceCounts)))->unique()->filter()->toArray();
+        foreach ($allProvinceNames as $prov) {
+            $finalProvinceCounts[] = [
+                'name' => $prov,
+                'count' => ($dbProvinceCounts[$prov] ?? 0) + ($redisProvinceCounts[$prov] ?? 0)
+            ];
+        }
+
         $finalCityCounts = [];
         $allCityNames = collect(array_merge(array_keys($dbCityCounts), array_keys($redisCityCounts)))->unique()->filter()->toArray();
         foreach ($allCityNames as $city) {
@@ -330,6 +412,7 @@ class ArticleController extends Controller
         // Sort results
         usort($finalCategoryCounts, fn($a, $b) => strcmp($a['name'], $b['name']));
         usort($finalCountryCounts, fn($a, $b) => strcmp($a['name'], $b['name']));
+        usort($finalProvinceCounts, fn($a, $b) => strcmp($a['name'], $b['name']));
         usort($finalCityCounts, fn($a, $b) => strcmp($a['name'], $b['name']));
 
         // Paginate DB results - Eager load to prevent N+1 queries
@@ -401,6 +484,7 @@ class ArticleController extends Controller
             'available_filters' => [
                 'categories' => $finalCategoryCounts,
                 'countries' => $finalCountryCounts,
+                'provinces' => $finalProvinceCounts,
                 'cities' => $finalCityCounts,
             ],
         ]);
