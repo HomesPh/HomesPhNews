@@ -77,7 +77,7 @@ class GenerationService
             Log::info("AI Image generation started with prompt: {$prompt}", ['options' => $options]);
 
             $count = $options['count'] ?? 1;
-            $disk = $options['disk'] ?? 'public';
+            $disk = $options['disk'] ?? config('filesystems.default', 's3');
             $directory = $options['directory'] ?? 'homestv/generated';
             $urls = [];
 
