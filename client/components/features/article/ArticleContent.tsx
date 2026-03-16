@@ -14,6 +14,7 @@ interface ArticleContentProps {
 export default function ArticleContent({ content, contentBlocks, topics, originalUrl, forceLight = false }: ArticleContentProps) {
   const darkClass = (cls: string) => !forceLight ? cls : '';
   const hasContentBlocks = Array.isArray(contentBlocks) && contentBlocks.length > 0;
+  const firstTextBlockIndex = hasContentBlocks ? contentBlocks.findIndex((b: any) => b.type === 'text') : -1;
 
   return (
     <article className="my-8">
@@ -68,19 +69,27 @@ export default function ArticleContent({ content, contentBlocks, topics, origina
                         className={cn(
                           "whitespace-pre-wrap text-[18px] leading-[32px] tracking-[-0.5px] tiptap [&>h1]:text-3xl [&>h1]:font-bold [&>h1]:mb-6 [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:mb-4 [&_p]:min-h-[1.5em] [&_ul]:list-disc [&_ul]:pl-10 [&_ol]:list-decimal [&_ol]:pl-10 [&_li]:mb-1",
                           darkClass("text-[#0c0c0c] dark:text-gray-100"),
-                          idx === 0 && "drop-cap"
+                          idx === firstTextBlockIndex && "drop-cap"
                         )}
                         dangerouslySetInnerHTML={{ __html: decodeHtml(bContent?.text || bContent || '') }}
                       />
                     )}
 
                     {/* 2. IMAGES */}
-                    {(type === 'image' || type === 'centered-image') && (
-                      <figure className={cn("my-10", type === 'centered-image' && "max-w-[90%] mx-auto")}>
+                    {(type === "image" || type === "centered-image") && (
+                      <figure
+                        className={cn(
+                          "my-8",
+                          type === "centered-image" && "max-w-[80%] mx-auto text-center"
+                        )}
+                      >
                         <img
                           src={bContent?.src || block.image}
                           alt={bContent?.caption || block.caption || ""}
-                          className="w-full rounded-2xl shadow-lg border border-gray-100/10"
+                          className={cn(
+                            "w-full rounded-xl shadow-sm border border-gray-100",
+                            type === "centered-image" ? "max-h-[600px] object-cover" : "h-auto"
+                          )}
                         />
                         {(bContent?.caption || block.caption) && (
                           <figcaption className={cn("text-sm text-center mt-4 italic", darkClass("text-gray-500 dark:text-gray-400"))}>

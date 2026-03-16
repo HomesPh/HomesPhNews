@@ -37,7 +37,6 @@ class ArticleResource extends JsonResource
         };
 
         // Handle sites (robust)
-        // If it's a model, check for the relation FIRST to avoid accessor interference
         $sites = [];
         if ($isModel) {
             if ($res->relationLoaded('publishedSites')) {
@@ -46,8 +45,7 @@ class ArticleResource extends JsonResource
                     ? $rel->pluck('site_name')->toArray()
                     : (is_array($rel) ? $rel : []);
             } else {
-                // Use the accessor if relation not loaded, ensuring we treat it as an array
-                $attr = $res->published_sites; // Accessor returns array
+                $attr = $res->published_sites;
                 $sites = is_array($attr) ? $attr : [];
             }
         } else {
@@ -55,19 +53,13 @@ class ArticleResource extends JsonResource
             $sites = is_array($sitesData) ? $sitesData : [];
         }
 
-        // Filter sites for external API: Only show the authenticated site
-        // This prevents exposing other sites that also published the same article
         if ($request->attributes->has('site')) {
             $authenticatedSite = $request->attributes->get('site');
             $authenticatedSiteName = $authenticatedSite->site_name ?? null;
-
             if ($authenticatedSiteName) {
-                // Filter to only include the authenticated site
-                $sites = array_filter($sites, function ($siteName) use ($authenticatedSiteName) {
+                $sites = array_values(array_filter($sites, function ($siteName) use ($authenticatedSiteName) {
                     return strval($siteName) === strval($authenticatedSiteName);
-                });
-                // Re-index array to ensure sequential keys
-                $sites = array_values($sites);
+                }));
             }
         }
 
@@ -79,15 +71,13 @@ class ArticleResource extends JsonResource
                 $images = ($rel instanceof \Illuminate\Support\Collection)
                     ? $rel->pluck('image_path')->toArray()
                     : (is_array($rel) ? $rel : []);
-            } else {
-                $images = []; // Not loaded
             }
         } else {
             $imgs = $get('galleryImages', []) ?? $get('gallery_images', []) ?? [];
             $images = is_array($imgs) ? $imgs : [];
         }
 
-        // Date logic (Redis uses 'timestamp', DB uses 'created_at')
+        // Date logic
         $date = $get('created_at', null);
         if (empty($date) && isset($data['timestamp'])) {
             $ts = $data['timestamp'];
@@ -103,21 +93,18 @@ class ArticleResource extends JsonResource
 
         $isDeleted = (bool) $get('is_deleted', false);
         $status = (string) $get('status', 'pending');
-
-        // Get content values - Use raw content (HTML) for all consumers
-        // User requested "pure HTML" so external consumers don't have to manually adjust paragraphs
         $content = (string) $get('content', '');
         $summary = (string) $get('summary', $content);
         $description = (string) $get('summary', $content);
 
-        // Resolve primary image values once so we can reuse them and dedupe blocks against them
+        // Resolve primary image
         $rawImageUrl = $data['image_url'] ?? $data['image'] ?? '';
         $rawImage = $data['image'] ?? $data['image_url'] ?? '';
         $primaryImageUrl = $this->sanitizeImageUrl($rawImageUrl);
         $primaryImage = $this->sanitizeImageUrl($rawImage);
         $heroImage = $primaryImageUrl !== '' ? $primaryImageUrl : $primaryImage;
 
-        // Decode content blocks and remove any image blocks that duplicate the hero image URL
+        // Content blocks
         $rawBlocks = $get('content_blocks', []);
         if (is_string($rawBlocks)) {
             $decodedBlocks = json_decode($rawBlocks, true);
@@ -128,23 +115,7 @@ class ArticleResource extends JsonResource
             $contentBlocks = [];
         }
 
-        if ($heroImage && is_array($contentBlocks)) {
-            $contentBlocks = array_values(array_filter($contentBlocks, function ($block) use ($heroImage) {
-                if (!is_array($block)) {
-                    return true;
-                }
-                if (($block['type'] ?? '') !== 'image') {
-                    return true;
-                }
-                $src = $block['content']['src'] ?? null;
-                if (!$src) {
-                    return true;
-                }
-                return (string) $src !== (string) $heroImage;
-            }));
-        }
-
-        return [
+        $result = [
             'id' => (string) $get('id', ''),
             'slug' => (string) $get('slug', ''),
             'article_id' => (string) $get('article_id', $get('id', '')),
@@ -170,40 +141,19 @@ class ArticleResource extends JsonResource
             'source' => (string) $get('source', ''),
             'original_url' => (string) $get('original_url', ''),
             'is_deleted' => $isDeleted,
-            'is_redis' => !$isModel,
             'content_blocks' => $contentBlocks,
             'template' => (string) $get('template', ''),
             'author' => (string) $get('author', ''),
-
-            // Restaurant Meta
-            'clickbait_hook' => $get('clickbait_hook'),
-            'city' => $get('city'),
-            'province_id' => $get('province_id'),
-            'city_id' => $get('city_id'),
-            'cuisine_type' => $get('cuisine_type'),
-            'rating' => $get('rating'),
-            'is_filipino_owned' => (bool) $get('is_filipino_owned', false),
-            'price_range' => $get('price_range'),
-            'avg_meal_cost' => $get('avg_meal_cost'),
-            'budget_category' => $get('budget_category'),
-            'specialty_dish' => $get('specialty_dish'),
-            'contact_info' => $get('contact_info'),
-            'why_filipinos_love_it' => $get('why_filipinos_love_it'),
-            'menu_highlights' => $get('menu_highlights'),
-            'google_maps_url' => $get('google_maps_url'),
-            'address' => $get('address'),
-            'website' => $get('website'),
-            'social_media' => $get('social_media'),
-            'opening_hours' => $get('opening_hours'),
-            'brand_story' => $get('brand_story'),
-            'tags' => $get('tags', []),
-            'features' => $get('features', []),
-            'edited_by' => !in_array(strtolower($status), ['pending', 'pending review']) ? (int)$get('edited_by', 0) : null,
-            'editor_name' => !in_array(strtolower($status), ['pending', 'pending review']) && $isModel && $res->relationLoaded('editor') ? $res->editor?->name : null,
-            'editor_first_name' => !in_array(strtolower($status), ['pending', 'pending review']) && $isModel && $res->relationLoaded('editor') ? $res->editor?->first_name : null,
-            'editor_last_name' => !in_array(strtolower($status), ['pending', 'pending review']) && $isModel && $res->relationLoaded('editor') ? $res->editor?->last_name : null,
             'published_at' => (string) $get('published_at', ''),
+            'editor' => $isModel && $res->relationLoaded('editor') ? [
+                'id' => $res->editor?->id,
+                'name' => $res->editor?->name,
+                'first_name' => $res->editor?->first_name,
+                'last_name' => $res->editor?->last_name,
+            ] : null,
         ];
+
+        return $result;
     }
 
     /**
