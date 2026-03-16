@@ -152,7 +152,10 @@ export default function BlogPreviewModal({ blocks, details, onClose }: BlogPrevi
                                         <div className="rounded-2xl overflow-hidden shadow-lg bg-gray-50 flex justify-center">
                                             <img
                                                 src={block.content.src || "https://images.unsplash.com/photo-1516156008625-3a9d6067fab5?w=1200"}
-                                                className="w-full max-h-[600px] object-cover"
+                                                className={cn(
+                                                    "w-full rounded-xl",
+                                                    block.type === 'centered-image' ? "max-h-[600px] object-cover" : "h-auto"
+                                                )}
                                                 style={imageStyle}
                                             />
                                         </div>

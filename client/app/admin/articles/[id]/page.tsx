@@ -330,9 +330,21 @@ function ArticleDetailsContent() {
                                     // We skip it if the content already starts with an image figure (legacy HTML)
                                     // OR if the first block is an image that matches (blocks)
                                     const shouldShowFeatureImage = article.image && !isDuplicateImage;
+                                    let textBlockCount = 0;
 
                                     return (
                                         <>
+                                            <style jsx global>{`
+                                                .drop-cap::first-letter {
+                                                    float: left;
+                                                    font-size: 72px;
+                                                    line-height: 64px;
+                                                    margin-right: 12px;
+                                                    margin-top: 4px;
+                                                    font-weight: bold;
+                                                    color: #0c0c0c;
+                                                }
+                                            `}</style>
                                             {/* Feature Image - only if not redundant */}
                                             {shouldShowFeatureImage && (
                                                 <figure className="mb-8">
@@ -367,28 +379,34 @@ function ArticleDetailsContent() {
                                                             } as React.CSSProperties;
 
                                                             return (
-                                                                <div key={block.id || idx} className="mb-8">
-                                                                    {/* 1. TEXT BLOCKS */}
-                                                                    {type === 'text' && (
-                                                                        <div
-                                                                            style={blockStyle}
-                                                                            className={cn(
-                                                                                "whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&_p]:min-h-[1.5em]",
-                                                                                settings?.listType === 'bullet' && "list-disc ml-6",
-                                                                                settings?.listType === 'number' && "list-decimal ml-6"
-                                                                            )}
-                                                                            dangerouslySetInnerHTML={{ __html: formatParagraphs(content?.text || content || '') }}
-
-                                                                        />
-                                                                    )}
+                                                                <div key={block.id || idx} className="mb-8">                                                                    {/* 1. TEXT BLOCKS */}
+                                                                    {type === 'text' && (() => {
+                                                                        const isFirstText = textBlockCount === 0;
+                                                                        textBlockCount++;
+                                                                        return (
+                                                                            <div
+                                                                                style={blockStyle}
+                                                                                className={cn(
+                                                                                    "whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] tiptap [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&_p]:min-h-[1.5em]",
+                                                                                    settings?.listType === 'bullet' && "list-disc ml-6",
+                                                                                    settings?.listType === 'number' && "list-decimal ml-6",
+                                                                                    isFirstText && "drop-cap"
+                                                                                )}
+                                                                                dangerouslySetInnerHTML={{ __html: decodeHtml(content?.text || content || '') }}
+                                                                            />
+                                                                        );
+                                                                    })()}
 
                                                                     {/* 2. STANDARD IMAGE BLOCKS */}
                                                                     {(type === 'image' || type === 'centered-image') && (
-                                                                        <figure className={cn("my-8", type === 'centered-image' && "max-w-[80%;] mx-auto text-center")}>
+                                                                        <figure className={cn("my-8", type === 'centered-image' && "max-w-[80%] mx-auto text-center")}>
                                                                             <img
-                                                                                src={content?.src || block.image}
+                                                                                src={typeof content === 'string' ? content : (content?.src || content?.image || block.image)}
                                                                                 alt={content?.caption || block.caption || ""}
-                                                                                className="w-full rounded-xl shadow-sm border border-gray-100"
+                                                                                className={cn(
+                                                                                    "w-full rounded-xl shadow-sm border border-gray-100",
+                                                                                    type === 'centered-image' ? "max-h-[600px] object-cover" : "h-auto"
+                                                                                )}
                                                                             />
                                                                             {(content?.caption || block.caption) && (
                                                                                 <figcaption className="text-sm text-center text-gray-400 mt-3 italic">
@@ -406,7 +424,7 @@ function ArticleDetailsContent() {
                                                                         )}>
                                                                             <div className="w-full md:w-[200px] shrink-0">
                                                                                 <img
-                                                                                    src={content?.image || content?.src || block.image}
+                                                                                    src={typeof content === 'string' ? content : (content?.image || content?.src || block.image)}
                                                                                     alt=""
                                                                                     className="w-full aspect-square object-cover rounded-xl shadow-sm"
                                                                                 />
@@ -448,7 +466,7 @@ function ArticleDetailsContent() {
                                                                         )}>
                                                                             <div className="flex-1 min-h-[300px]">
                                                                                 <img
-                                                                                    src={content?.image || block.image}
+                                                                                    src={typeof content === 'string' ? content : (content?.image || content?.src || block.image)}
                                                                                     className="w-full h-full object-cover"
                                                                                 />
                                                                             </div>
@@ -478,7 +496,7 @@ function ArticleDetailsContent() {
                                                     </div>
                                                 ) : (
                                                     <div
-                                                        className="whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>li]:mb-1 [&>a]:text-blue-600 [&>a]:underline first-letter:text-[72px] first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-5px] first-letter:leading-[0.8] first-letter:text-[#0c0c0c] [&_p]:min-h-[1.5em]"
+                                                        className="whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] tiptap [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>li]:mb-1 [&>a]:text-blue-600 [&>a]:underline first-letter:text-[72px] first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-5px] first-letter:leading-[0.8] first-letter:text-[#0c0c0c] [&_p]:min-h-[1.5em] drop-cap"
                                                         dangerouslySetInnerHTML={{ __html: formatParagraphs(decodedContent) }}
                                                     />
 
