@@ -59,7 +59,7 @@ export default function AutoNewsPage() {
                             </TabsTrigger>
                             <TabsTrigger
                                 value="manual-scrape"
-                                className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-[#C10007] data-[state=active]:text-white"
+                                className="flex items-center gap-2 px-6 py-2.5 data-[state=active]:bg-[#1428AE] data-[state=active]:text-white"
                             >
                                 <Zap className="w-4 h-4" />
                                 <span>Manual Scrape</span>

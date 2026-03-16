@@ -96,7 +96,7 @@ export default function ManualScrapePanel() {
                     <button
                         onClick={handleScrape}
                         disabled={isScraping || selectedCountries.size === 0 || selectedCategories.size === 0}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[#C10007] text-white text-sm font-semibold rounded-lg hover:bg-[#A00006] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-[#1428AE] text-white text-sm font-semibold rounded-lg hover:bg-[#000785] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isScraping
                             ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -169,13 +169,12 @@ export default function ManualScrapePanel() {
                                                 <td className="px-4 py-2.5 font-medium text-[#111827]">{r.country || '—'}</td>
                                                 <td className="px-4 py-2.5 text-[#6b7280]">{r.category || '—'}</td>
                                                 <td className="px-4 py-2.5">
-                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold uppercase ${
-                                                        r.status === 'success'
-                                                            ? 'bg-emerald-100 text-emerald-700'
-                                                            : r.status === 'error'
-                                                                ? 'bg-red-100 text-red-700'
-                                                                : 'bg-gray-100 text-gray-600'
-                                                    }`}>
+                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold uppercase ${r.status === 'success'
+                                                        ? 'bg-emerald-100 text-emerald-700'
+                                                        : r.status === 'error'
+                                                            ? 'bg-red-100 text-red-700'
+                                                            : 'bg-gray-100 text-gray-600'
+                                                        }`}>
                                                         {r.status}
                                                     </span>
                                                 </td>
@@ -201,7 +200,7 @@ export default function ManualScrapePanel() {
                         <div className="border border-[#e5e7eb] rounded-xl overflow-hidden">
                             <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-[#e5e7eb]">
                                 <span className="text-sm font-semibold text-[#111827]">
-                                    Countries <span className="text-[#C10007]">({selectedCountries.size}/{countries.length})</span>
+                                    Countries <span className="text-[#1428AE]">({selectedCountries.size}/{countries.length})</span>
                                 </span>
                                 <div className="flex gap-2">
                                     <button onClick={selectAllCountries} className="text-xs text-[#3b82f6] hover:underline">All</button>
@@ -219,15 +218,14 @@ export default function ManualScrapePanel() {
                                             type="checkbox"
                                             checked={selectedCountries.has(country.name)}
                                             onChange={() => toggleCountry(country.name)}
-                                            className="w-4 h-4 accent-[#C10007] rounded"
+                                            className="w-4 h-4 accent-[#1428AE] rounded"
                                         />
                                         <div className="flex items-center gap-2 flex-1 min-w-0">
-                                            <span className="text-xs font-mono font-bold text-[#C10007] w-6 shrink-0">{country.id}</span>
+                                            <span className="text-xs font-mono font-bold text-[#1428AE] w-6 shrink-0">{country.id}</span>
                                             <span className="text-sm text-[#111827] truncate">{country.name}</span>
                                         </div>
-                                        <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                                            country.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                                        }`}>
+                                        <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${country.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                                            }`}>
                                             {country.is_active ? 'On' : 'Off'}
                                         </span>
                                     </label>
@@ -239,7 +237,7 @@ export default function ManualScrapePanel() {
                         <div className="border border-[#e5e7eb] rounded-xl overflow-hidden">
                             <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-[#e5e7eb]">
                                 <span className="text-sm font-semibold text-[#111827]">
-                                    Categories <span className="text-[#C10007]">({selectedCategories.size}/{categories.length})</span>
+                                    Categories <span className="text-[#1428AE]">({selectedCategories.size}/{categories.length})</span>
                                 </span>
                                 <div className="flex gap-2">
                                     <button onClick={selectAllCategories} className="text-xs text-[#3b82f6] hover:underline">All</button>
@@ -257,12 +255,11 @@ export default function ManualScrapePanel() {
                                             type="checkbox"
                                             checked={selectedCategories.has(category.name)}
                                             onChange={() => toggleCategory(category.name)}
-                                            className="w-4 h-4 accent-[#C10007] rounded"
+                                            className="w-4 h-4 accent-[#1428AE] rounded"
                                         />
                                         <span className="text-sm text-[#111827] flex-1">{category.name}</span>
-                                        <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                                            category.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                                        }`}>
+                                        <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${category.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                                            }`}>
                                             {category.is_active ? 'On' : 'Off'}
                                         </span>
                                     </label>

@@ -72,7 +72,7 @@ export default function CityList() {
                 <h2 className="text-lg font-semibold text-[#111827]">Managed Cities</h2>
                 <button
                     onClick={handleCreate}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#1428AE] text-white rounded-lg hover:bg-[#000785] transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#1428AE] text-white rounded-lg hover:bg-[#000785] transition-colors shadow-sm"
                 >
                     <Plus className="w-4 h-4" />
                     <span>Add City</span>

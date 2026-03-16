@@ -30,8 +30,8 @@ export default function RestaurantCategoryList() {
                 <Info className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
                 <div className="text-sm text-blue-800">
                     <p className="font-semibold mb-1">Note:</p>
-                    <p>Restaurant categories are currently configured in the Python scraper configuration file (config.py). 
-                    To modify these categories, update the RESTAURANT_CATEGORIES list in the scraper configuration.</p>
+                    <p>Restaurant categories are currently configured in the Python scraper configuration file (config.py).
+                        To modify these categories, update the RESTAURANT_CATEGORIES list in the scraper configuration.</p>
                 </div>
             </div>
 
@@ -44,8 +44,14 @@ export default function RestaurantCategoryList() {
                             </div>
                             <div>
                                 <h3 className="font-bold text-[#111827]">{category}</h3>
-                                <p className="text-xs text-[#6b7280] mt-1">Used for scraping</p>
+                                <div className="flex items-center gap-1.5 mt-1">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                    <span className="text-[10px] font-bold uppercase text-green-600">Active</span>
+                                </div>
                             </div>
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-gray-50">
+                            <p className="text-xs text-[#6b7280]">Used for automated restaurant scraping</p>
                         </div>
                     </div>
                 ))}

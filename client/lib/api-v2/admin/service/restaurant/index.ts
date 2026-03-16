@@ -6,3 +6,4 @@ export * from './publishRestaurant';
 export * from './getAdminRestaurantById';
 export * from './getAdminRestaurants';
 export * from './getAdminRestaurantStats';
+export * from './triggerRestaurantScraper';
