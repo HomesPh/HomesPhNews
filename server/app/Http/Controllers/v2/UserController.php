@@ -87,7 +87,7 @@ class UserController extends Controller
         // Send welcome email (Common for both new and existing-retry)
         try {
             $clientUrl = env('APP_URL_CLIENT', 'http://localhost:3000');
-            $loginUrl = $clientUrl . '/admin/login?email=' . urlencode($user->email);
+            $loginUrl = $clientUrl . '/login?email=' . urlencode($user->email);
 
             \Log::info("Sending welcome email to: " . $user->email);
 
