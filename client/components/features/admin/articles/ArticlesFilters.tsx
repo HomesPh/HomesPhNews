@@ -247,7 +247,6 @@ export default function ArticlesFilters({
 
             {/* Province Filter - Fixed width on desktop, flexible on mobile */}
             <div className="w-[calc(50%-6px)] sm:w-[150px] flex-none order-4 lg:order-4 group relative">
-                <MapIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] z-10 pointer-events-none group-focus-within:text-[#1428AE] transition-colors" />
                 <Select
                     value={provinceFilter || "all"}
                     onValueChange={(val) => setFilters({ province: val === "all" ? "" : val, city: '' })}
