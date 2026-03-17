@@ -14,7 +14,7 @@ class CampaignController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $campaigns = Campaign::with('adUnits')
+        $campaigns = Campaign::with(['adUnits', 'banners'])
             ->latest()
             ->paginate($request->input('per_page', 10));
 
@@ -46,7 +46,35 @@ class CampaignController extends Controller
             $campaign->adUnits()->sync($request->input('ad_units'));
         }
 
-        return response()->json($campaign->load('adUnits'), 201);
+        if (is_array($request->input('banner_image_urls'))) {
+            $banners = array_map(function ($url) {
+                // Fetch image dimensions
+                $width = null;
+                $height = null;
+                $resolution = null;
+
+                try {
+                    $size = @getimagesize($url);
+                    if ($size !== false) {
+                        $width = $size[0];
+                        $height = $size[1];
+                        $resolution = "{$width}x{$height}";
+                    }
+                } catch (\Exception $e) {
+                    // Log or ignore if the image URL is inaccessible
+                }
+
+                return [
+                    'image_url' => $url,
+                    'width' => $width,
+                    'height' => $height,
+                    'resolution' => $resolution,
+                ];
+            }, $request->input('banner_image_urls'));
+            $campaign->banners()->createMany($banners);
+        }
+
+        return response()->json($campaign->load(['adUnits', 'banners']), 201);
     }
 
     /**
@@ -54,7 +82,7 @@ class CampaignController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $campaign = Campaign::with('adUnits')->findOrFail($id);
+        $campaign = Campaign::with(['adUnits', 'banners'])->findOrFail($id);
 
         return response()->json($campaign);
     }
@@ -86,7 +114,37 @@ class CampaignController extends Controller
             $campaign->adUnits()->sync($request->input('ad_units'));
         }
 
-        return response()->json($campaign->load('adUnits'));
+        if ($request->has('banner_image_urls')) {
+            $campaign->banners()->delete();
+            if (is_array($request->input('banner_image_urls'))) {
+                $banners = array_map(function ($url) {
+                    $width = null;
+                    $height = null;
+                    $resolution = null;
+
+                    try {
+                        $size = @getimagesize($url);
+                        if ($size !== false) {
+                            $width = $size[0];
+                            $height = $size[1];
+                            $resolution = "{$width}x{$height}";
+                        }
+                    } catch (\Exception $e) {
+                        // Log or ignore if the image URL is inaccessible
+                    }
+
+                    return [
+                        'image_url' => $url,
+                        'width' => $width,
+                        'height' => $height,
+                        'resolution' => $resolution,
+                    ];
+                }, $request->input('banner_image_urls'));
+                $campaign->banners()->createMany($banners);
+            }
+        }
+
+        return response()->json($campaign->load(['adUnits', 'banners']));
     }
 
     /**

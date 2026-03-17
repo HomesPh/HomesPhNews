@@ -1,5 +1,12 @@
 export type RotationType = "random" | "sequential";
 
+export type CampaignBanner = {
+  id: number;
+  image_url: string;
+  width: number | null;
+  height: number | null;
+  resolution: string | null;
+}
 
 export type Campaign = {
   id: string;
@@ -10,7 +17,7 @@ export type Campaign = {
   image_url: string | null;
   target_url: string;
   headline: string | null;
-  banner_image_urls: string[] | null;
+  banners?: CampaignBanner[];
   created_at: string;
   updated_at: string;
   ad_units?: AdUnit[];
