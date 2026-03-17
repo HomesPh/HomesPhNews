@@ -100,4 +100,40 @@ class UploadController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Proxy external images to bypass CORS for canvas.
+     */
+    public function proxyImage(Request $request)
+    {
+        $url = $request->query('url');
+        if (!$url) return response()->json(['message' => 'No URL provided'], 400);
+
+        try {
+            // Use a more robust fetching method to handle SSL and timeouts
+            $ctx = stream_context_create([
+                'http' => ['timeout' => 15],
+                'ssl' => ['verify_peer' => false, 'verify_peer_name' => false] // Allow self-signed or cert issues for S3
+            ]);
+
+            $contents = @file_get_contents($url, false, $ctx);
+            
+            if ($contents === false) {
+                return response()->json([
+                    'message' => 'Failed to fetch image from S3/external source',
+                    'url' => $url
+                ], 404);
+            }
+
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->buffer($contents);
+
+            return response($contents)
+                ->header('Content-Type', $mimeType)
+                ->header('Access-Control-Allow-Origin', '*')
+                ->header('Cache-Control', 'public, max-age=86400');
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Proxy failed', 'error' => $e->getMessage()], 500);
+        }
+    }
 }

@@ -22,6 +22,8 @@ import { updateArticle } from "@/lib/api-v2/admin/service/article/updateArticle"
 import { getSiteNames } from "@/lib/api-v2/admin/service/sites/getSiteNames";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 import ArticleBreadcrumb from "@/components/features/article/ArticleBreadcrumb";
+import TemplateGenerator from "@/components/features/admin/articles/TemplateGenerator";
+import { ImageIcon } from "lucide-react";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -51,6 +53,7 @@ function CEOArticleDetailContent() {
     const [showRejectDialog, setShowRejectDialog] = useState(false);
     const [isApproving, setIsApproving] = useState(false);
     const [isRejecting, setIsRejecting] = useState(false);
+    const [isTemplateGeneratorOpen, setIsTemplateGeneratorOpen] = useState(false);
 
     useEffect(() => {
         const fetchArticle = async () => {
@@ -384,80 +387,113 @@ function CEOArticleDetailContent() {
                         })()}
                     </div>
 
-                    <aside className="w-full lg:w-[320px] flex-shrink-0 space-y-6 order-1 lg:order-2">
-                        <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-5 sm:p-6 shadow-sm lg:sticky lg:top-8">
-                            <h3 className="text-[16px] font-semibold text-[#111827] mb-2 tracking-[-0.5px]">
-                                CEO Review Panel
-                            </h3>
-                            <p className="text-[13px] text-[#6b7280] mb-5 leading-relaxed">
-                                Review this article and decide whether to publish it or reject it back to the editor.
-                            </p>
+                    <aside className="w-full lg:w-[320px] flex-shrink-0 order-1 lg:order-2">
+                        <div className="lg:sticky lg:top-8 space-y-6">
+                            <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-5 sm:p-6 shadow-sm">
+                                <h3 className="text-[16px] font-semibold text-[#111827] mb-2 tracking-[-0.5px]">
+                                    CEO Review Panel
+                                </h3>
+                                <p className="text-[13px] text-[#6b7280] mb-5 leading-relaxed">
+                                    Review this article and decide whether to publish it or reject it back to the editor.
+                                </p>
 
-                            {(isEdited || isPending) && (
-                                <>
-                                    <h4 className="text-[13px] font-semibold text-[#374151] mb-3 tracking-[-0.5px]">
-                                        Select websites for publication:
-                                    </h4>
-                                    <div className="space-y-2 mb-6">
-                                        {availableSites.map((site) => (
-                                            <label key={site} className="flex items-center gap-3 cursor-pointer group">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={publishToSites.includes(site)}
-                                                    onChange={() => toggleSite(site)}
-                                                    className="w-4 h-4 rounded border-[#d1d5db] text-[#1428AE] focus:ring-[#1428AE]"
-                                                />
-                                                <span className="text-[13px] text-[#374151] group-hover:text-[#1428AE] transition-colors">
-                                                    {site}
-                                                </span>
-                                            </label>
-                                        ))}
-                                    </div>
+                                {(isEdited || isPending) && (
+                                    <>
+                                        <h4 className="text-[13px] font-semibold text-[#374151] mb-3 tracking-[-0.5px]">
+                                            Select websites for publication:
+                                        </h4>
+                                        <div className="space-y-2 mb-6">
+                                            {availableSites.map((site) => (
+                                                <label key={site} className="flex items-center gap-3 cursor-pointer group">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={publishToSites.includes(site)}
+                                                        onChange={() => toggleSite(site)}
+                                                        className="w-4 h-4 rounded border-[#d1d5db] text-[#1428AE] focus:ring-[#1428AE]"
+                                                    />
+                                                    <span className="text-[13px] text-[#374151] group-hover:text-[#1428AE] transition-colors">
+                                                        {site}
+                                                    </span>
+                                                </label>
+                                            ))}
+                                        </div>
 
-                                    <div className="flex flex-col gap-3">
-                                        <button
-                                            onClick={() => setShowApproveDialog(true)}
-                                            disabled={isApproving}
-                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#1428AE] text-white rounded-[8px] text-[14px] font-semibold hover:bg-[#000785] transition-all active:scale-95 shadow-sm disabled:opacity-50"
-                                        >
-                                            {isApproving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                                            Publish Article
-                                        </button>
-                                        {isEdited && (
+                                        <div className="flex flex-col gap-3">
                                             <button
-                                                onClick={() => setShowRejectDialog(true)}
-                                                disabled={isRejecting}
-                                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-red-200 text-red-600 rounded-[8px] text-[14px] font-semibold hover:bg-red-50 transition-all active:scale-95 disabled:opacity-50"
+                                                onClick={() => setShowApproveDialog(true)}
+                                                disabled={isApproving}
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#1428AE] text-white rounded-[8px] text-[14px] font-semibold hover:bg-[#000785] transition-all active:scale-95 shadow-sm disabled:opacity-50"
                                             >
-                                                {isRejecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                                                Reject Article
+                                                {isApproving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                                                Publish Article
                                             </button>
-                                        )}
-                                    </div>
-                                </>
-                            )}
+                                            {isEdited && (
+                                                <button
+                                                    onClick={() => setShowRejectDialog(true)}
+                                                    disabled={isRejecting}
+                                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-red-200 text-red-600 rounded-[8px] text-[14px] font-semibold hover:bg-red-50 transition-all active:scale-95 disabled:opacity-50"
+                                                >
+                                                    {isRejecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                                                    Reject Article
+                                                </button>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
 
-                            {(!isEdited && !isPending) && (
-                                <div className={cn(
-                                    "p-4 rounded-lg flex items-start gap-3",
-                                    isPublished ? "bg-emerald-50 text-emerald-700 border border-emerald-100" :
-                                        isRejected ? "bg-red-50 text-red-700 border border-red-100" :
-                                            "bg-amber-50 text-amber-700 border border-amber-100"
-                                )}>
-                                    {isPublished ? <CheckCircle2 className="w-5 h-5 flex-shrink-0" /> :
-                                        isRejected ? <XCircle className="w-5 h-5 flex-shrink-0" /> :
-                                            <Clock className="w-5 h-5 flex-shrink-0 text-amber-600" />}
-                                    <div>
-                                        <p className="text-[13px] font-bold mb-1">
-                                            {isPublished ? 'Article Published' :
-                                                isRejected ? 'Article Rejected' :
-                                                    'State Unknown'}
-                                        </p>
-                                        <p className="text-[12px] opacity-90 leading-relaxed">
-                                            {isPublished ? 'This article has already been approved and published.' :
-                                                isRejected ? 'This article has been rejected and sent back to the editor.' :
-                                                    'This article is in an unknown or unexpected state.'}
-                                        </p>
+                                {isPublished && (
+                                    <div className="mt-6 border-t border-gray-100 pt-6 mb-6">
+                                        <h4 className="text-[13px] font-semibold text-[#374151] mb-3 tracking-[-0.5px]">
+                                            Published to:
+                                        </h4>
+                                        <div className="space-y-2">
+                                            {(Array.isArray(article.published_sites) ? article.published_sites : [article.published_sites]).map((site) => (
+                                                <div key={String(site)} className="flex items-center gap-3">
+                                                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                                    <span className="text-[13px] text-[#374151]">{String(site)}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {(!isEdited && !isPending) && (
+                                    <div className={cn(
+                                        "p-4 rounded-lg flex items-start gap-3",
+                                        isPublished ? "bg-emerald-50 text-emerald-700 border border-emerald-100" :
+                                            isRejected ? "bg-red-50 text-red-700 border border-red-100" :
+                                                "bg-amber-50 text-amber-700 border border-amber-100"
+                                    )}>
+                                        {isPublished ? <CheckCircle2 className="w-5 h-5 flex-shrink-0" /> :
+                                            isRejected ? <XCircle className="w-5 h-5 flex-shrink-0" /> :
+                                                <Clock className="w-5 h-5 flex-shrink-0 text-amber-600" />}
+                                        <div>
+                                            <p className="text-[13px] font-bold mb-1">
+                                                {isPublished ? 'Article Published' :
+                                                    isRejected ? 'Article Rejected' :
+                                                        'State Unknown'}
+                                            </p>
+                                            <p className="text-[12px] opacity-90 leading-relaxed">
+                                                {isPublished ? 'This article has already been approved and published.' :
+                                                    isRejected ? 'This article has been rejected and sent back to the editor.' :
+                                                        'This article is in an unknown or unexpected state.'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {isPublished && (
+                                <div className="bg-white rounded-[12px] border border-[#e5e7eb] p-6 shadow-sm">
+                                    <h3 className="text-[16px] font-semibold text-[#111827] mb-4 tracking-[-0.5px]">Quick Actions</h3>
+                                    <div className="space-y-4">
+                                        <button
+                                            onClick={() => setIsTemplateGeneratorOpen(true)}
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-[#1428AE] text-[#1428AE] rounded-[8px] text-[14px] font-semibold hover:bg-blue-50 transition-all active:scale-95 shadow-sm"
+                                        >
+                                            <ImageIcon className="w-4 h-4" />
+                                            Generate Template
+                                        </button>
                                     </div>
                                 </div>
                             )}
@@ -496,6 +532,13 @@ function CEOArticleDetailContent() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+            {article && (
+                <TemplateGenerator
+                    isOpen={isTemplateGeneratorOpen}
+                    onClose={() => setIsTemplateGeneratorOpen(false)}
+                    article={article}
+                />
+            )}
         </div>
     );
 }
