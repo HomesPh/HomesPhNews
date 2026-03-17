@@ -20,6 +20,7 @@ interface BaseArticleCardProps {
         summary?: string;
         content?: string;         // New field for read time
         description?: string;     // Legacy fallback
+        published_at?: string | null;
         created_at?: string | null;
         date?: string;            // Legacy fallback
         views_count?: number;
@@ -90,7 +91,7 @@ export default function BaseArticleCard({
     const imageUrl = sanitizeImageUrl(article.image_url || article.image || 'https://placehold.co/800x450?text=No+Image');
     const location = article.country || article.location || 'Unknown';
     const description = article.summary || article.description || '';
-    const dateStr = article.created_at || article.date || null;
+    const dateStr = article.published_at || article.created_at || article.date || null;
     const viewsStr = article.views ?? formatViews(article.views_count);
 
     // Handle published_sites which can be string or string[]
