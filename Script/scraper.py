@@ -90,8 +90,14 @@ class NewsScraper:
     def build_rss_url(self, keyword, country_code):
         """Builds a Google News RSS URL for a specific country and keyword."""
         config = COUNTRIES.get(country_code, {"gl": "US", "hl": "en", "ceid": "US:en"})
+        
+        # Mapping "Sports" to "Pickleball" as per user request
+        search_keyword = keyword
+        if keyword.lower() == "sports":
+            search_keyword = "Pickleball"
+            
         # Added "breaking" to ensure fresher results in Google News
-        query = f"Filipino {keyword} {country_code} breaking news"
+        query = f"Filipino {search_keyword} {country_code} breaking news"
         encoded_query = urllib.parse.quote(query)
         return f"https://news.google.com/rss/search?q={encoded_query}&hl={config['hl']}&gl={config['gl']}&ceid={config['ceid']}"
 
