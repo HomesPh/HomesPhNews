@@ -63,7 +63,22 @@ class UploadController extends Controller
                 $file = $request->file('image');
                 $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
 
-                // Store in S3 bucket under homestv/articles directory
+                if ($request->input('type') === 'partner_logo') {
+                    // Store in S3 bucket under homestv/partner_logos directory
+                    $path = $file->storeAs('homestv/partner_logos', $filename, 's3');
+                    
+                    // Construct the full S3 URL
+                    $url = Storage::disk('s3')->url($path);
+                    
+                    return response()->json([
+                        'message' => 'Image uploaded successfully',
+                        'url' => $url,
+                        'filename' => $filename,
+                        'path' => $path,
+                    ], 200);
+                }
+
+                // Default behavior: Store in S3 bucket under homestv/articles directory
                 $path = $file->storeAs('homestv/articles', $filename, 's3');
 
                 // Construct the full S3 URL
