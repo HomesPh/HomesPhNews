@@ -19,6 +19,8 @@ import CustomizeTitlesModal from "@/components/features/admin/articles/Customize
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 import SendNewsletterModal from "@/components/features/admin/articles/SendNewsletterModal";
 import ArticleBreadcrumb from "@/components/features/article/ArticleBreadcrumb";
+import TemplateGenerator from "@/components/features/admin/articles/TemplateGenerator";
+import { ImageIcon } from "lucide-react";
 import { Categories, Countries } from "@/app/data";
 import {
     AlertDialog,
@@ -68,6 +70,7 @@ function ArticleDetailsContent() {
     const [publishToSites, setPublishToSites] = useState<string[]>([]);
     const [isSendingNewsletter, setIsSendingNewsletter] = useState(false);
     const [isNewsletterModalOpen, setIsNewsletterModalOpen] = useState(false);
+    const [isTemplateGeneratorOpen, setIsTemplateGeneratorOpen] = useState(false);
 
     const [availableFilters, setAvailableFilters] = useState<{
         categories: { name: string; count: number }[];
@@ -669,13 +672,20 @@ function ArticleDetailsContent() {
                                 )}
                                 {article.status === 'published' && !article.is_deleted && !isEditor && (
                                     <button
-                                        onClick={handleSendNewsletter}
-                                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-[#1428AE] text-[#1428AE] rounded-[8px] text-[14px] font-medium hover:bg-blue-50 transition-all active:scale-95 tracking-[-0.5px]"
-                                    >
-                                        <Send className="w-4 h-4" />
-                                        Send to Subscribers
+                                        onClick={() => setIsNewsletterModalOpen(true)} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-[#1428AE] text-[#1428AE] rounded-[8px] text-[14px] font-medium hover:bg-blue-50 transition-all active:scale-95 tracking-[-0.5px]">
+                                        <Send className="w-4 h-4" /> Send to Subscribers
                                     </button>
                                 )}
+                                {article.status === 'published' && (
+                                    <button
+                                        onClick={() => setIsTemplateGeneratorOpen(true)}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-[#1428AE] text-[#1428AE] rounded-[8px] text-[14px] font-medium hover:bg-blue-50 transition-all active:scale-95 tracking-[-0.5px]"
+                                    >
+                                        <ImageIcon className="w-4 h-4" />
+                                        Generate Template
+                                    </button>
+                                )}
+
                                 {!isEditor && (
                                     article.is_deleted || article.status === 'deleted' ? (
                                         <div className="space-y-3">
@@ -799,12 +809,14 @@ function ArticleDetailsContent() {
                 <SendNewsletterModal
                     isOpen={isNewsletterModalOpen}
                     onClose={() => setIsNewsletterModalOpen(false)}
-                    articles={[{
-                        id: article.id,
-                        title: article.title,
-                        category: article.category,
-                        country: article.country
-                    }]}
+                    articles={[article]}
+                />
+            )}
+            {article && (
+                <TemplateGenerator
+                    isOpen={isTemplateGeneratorOpen}
+                    onClose={() => setIsTemplateGeneratorOpen(false)}
+                    article={article}
                 />
             )}
         </div>
