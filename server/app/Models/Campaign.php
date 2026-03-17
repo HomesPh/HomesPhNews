@@ -23,9 +23,6 @@ class Campaign extends Model
         'target_url',
         'headline',             // for text type campaigns
 
-        // banner creatives
-        'banner_image_urls',    // array of image urls
-
         // stats
         'impressions',
         'clicks',
@@ -36,12 +33,13 @@ class Campaign extends Model
         'end_date' => 'date',
         'impressions' => 'integer',
         'clicks' => 'integer',
-        'banner_image_urls' => 'array',
     ];
 
     // Statuses
     public const STATUS_ACTIVE = 'active';
+
     public const STATUS_PAUSED = 'paused';
+
     public const STATUS_ARCHIVED = 'archived';
 
     public static function getStatuses(): array
@@ -53,23 +51,21 @@ class Campaign extends Model
         ];
     }
 
-
-
     /**
      * Scope a query to only include active campaigns.
      */
     public function scopeActive($query)
     {
         $today = now()->format('Y-m-d');
-        
+
         return $query->where('status', self::STATUS_ACTIVE)
-                     ->where(function ($q) use ($today) {
-                         $q->whereNull('start_date')
-                           ->orWhere('start_date', '<=', $today);
-                     })->where(function ($q) use ($today) {
-                         $q->whereNull('end_date')
-                           ->orWhere('end_date', '>=', $today);
-                     });
+            ->where(function ($q) use ($today) {
+                $q->whereNull('start_date')
+                    ->orWhere('start_date', '<=', $today);
+            })->where(function ($q) use ($today) {
+                $q->whereNull('end_date')
+                    ->orWhere('end_date', '>=', $today);
+            });
     }
 
     /**
@@ -100,5 +96,10 @@ class Campaign extends Model
     {
         return $this->belongsToMany(AdUnit::class, 'ad_unit_campaign')
             ->withTimestamps();
+    }
+
+    public function banners()
+    {
+        return $this->hasMany(CampaignBanner::class);
     }
 }

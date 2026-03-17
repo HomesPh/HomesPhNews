@@ -74,7 +74,7 @@ export default function CampaignForm({
         image_url: initialData.image_url || null,
         target_url: initialData.target_url,
         headline: initialData.headline || "",
-        banner_image_urls: initialData.banner_image_urls || [],
+        banner_image_urls: initialData.banners ? initialData.banners.map((b) => b.image_url) : [],
       });
     } else {
       form.reset({

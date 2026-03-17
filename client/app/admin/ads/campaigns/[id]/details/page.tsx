@@ -129,13 +129,13 @@ export default function CampaignDetailsPage({ params }: { params: Promise<{ id: 
                     </div>
                   </div>
                 )}
-                {campaign.banner_image_urls && campaign.banner_image_urls.length > 0 && (
+                {campaign.banners && campaign.banners.length > 0 && (
                   <div className="space-y-2">
-                    <span className="text-xs text-gray-500 uppercase tracking-wider">Banners ({campaign.banner_image_urls.length})</span>
+                    <span className="text-xs text-gray-500 uppercase tracking-wider">Banners ({campaign.banners.length})</span>
                     <div className="grid grid-cols-2 gap-2">
-                      {campaign.banner_image_urls.map((url, idx) => (
+                      {campaign.banners.map((banner, idx) => (
                         <div key={idx} className="aspect-video bg-gray-100 rounded-md overflow-hidden border border-gray-200">
-                          <img src={url} alt={`Banner ${idx + 1}`} className="w-full h-full object-cover" />
+                          <img src={banner.image_url} alt={`Banner ${idx + 1}`} className="w-full h-full object-cover" />
                         </div>
                       ))}
                     </div>
