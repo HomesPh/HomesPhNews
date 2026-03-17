@@ -273,7 +273,7 @@ export default function ArticleEditorPreview({ data, template, onDataChange }: A
                                                 {(block.type === 'image' || block.type === 'image-caption') && (
                                                     <div className="-mx-8 md:-mx-12">
                                                         {block.image ? (
-                                                            <img src={block.image} alt="" className="w-full h-[500px] object-cover shadow-sm" />
+                                                            <img src={block.image} alt="" className="w-full h-auto object-cover shadow-sm" />
                                                         ) : (
                                                             <div className="w-full h-[300px] bg-gray-100 flex items-center justify-center border-y-2 border-dashed border-gray-200">
                                                                 <ImageIcon className="w-10 h-10 text-gray-300" />

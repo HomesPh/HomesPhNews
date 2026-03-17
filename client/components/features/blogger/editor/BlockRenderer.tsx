@@ -434,7 +434,7 @@ export default function BlockRenderer({
                 return (
                     <div className={cn("space-y-3", block.type === 'centered-image' && (isActualMobile ? "max-w-full mx-auto" : "max-w-[400px] mx-auto"))}>
                         <DraggableImage
-                            src={block.content.src}
+                            src={typeof block.content === 'string' ? block.content : (block.content.src || block.content.image || block.image)}
                             onUpload={(file) => handleFileUpload(file, (url) => onUpdate(block.id, { src: url }))}
                             imagePosition={settings.imagePosition}
                             onPositionChange={handleUpdateImagePosition}
@@ -463,7 +463,7 @@ export default function BlockRenderer({
                     )}>
                         <div className={cn("w-full shrink-0", !isActualMobile && "md:w-[180px]")}>
                             <DraggableImage
-                                src={block.content.image || block.content.src}
+                                src={typeof block.content === 'string' ? block.content : (block.content.image || block.content.src || block.image)}
                                 onUpload={(file) => handleFileUpload(file, (url) => onUpdate(block.id, { image: url }))}
                                 imagePosition={settings.imagePosition}
                                 onPositionChange={handleUpdateImagePosition}
@@ -541,13 +541,13 @@ export default function BlockRenderer({
                         (!isSplitLeft && !isActualMobile) && "md:flex-row-reverse"
                     )}>
                         <div className="flex-1 min-h-[300px] h-full">
-                            <DraggableImage
-                                src={block.content.image || block.content.src}
-                                onUpload={(file) => handleFileUpload(file, (url) => onUpdate(block.id, { image: url }))}
-                                imagePosition={settings.imagePosition}
-                                onPositionChange={handleUpdateImagePosition}
-                                className="rounded-none h-full border-0"
-                            />
+                                <DraggableImage
+                                    src={typeof block.content === 'string' ? block.content : (block.content.src || block.content.image || block.image)}
+                                    onUpload={(file) => handleFileUpload(file, (url) => onUpdate(block.id, { image: url }))}
+                                    imagePosition={settings.imagePosition}
+                                    onPositionChange={handleUpdateImagePosition}
+                                    className="h-full"
+                                />
                         </div>
                         <div className="flex-1 min-w-0 p-8 md:p-12 flex flex-col justify-center">
                             <RichTextEditor
