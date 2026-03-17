@@ -41,23 +41,26 @@ function BlogsPageContent() {
     const authorFilter = searchParams.get('author');
 
     const { filters, setFilter, setFilters } = useUrlFilters(URL_FILTERS_CONFIG);
+    const pagination = usePagination();
     const [searchQuery, setSearchQuery] = useState(authorFilter || filters.search || '');
 
     // Sync search query with URL
     useEffect(() => {
+        // Avoid infinite loop by only triggering if the value actually changed
+        if (searchQuery === (filters.search || '')) return;
+
         const timer = setTimeout(() => {
             setFilter('search', searchQuery);
+            pagination.handlePageChange(1); // Reset to first page on search
         }, 300);
         return () => clearTimeout(timer);
-    }, [searchQuery, setFilter]);
+    }, [searchQuery, setFilter, filters.search, pagination]);
 
     useEffect(() => {
         if (authorFilter && searchQuery !== authorFilter) {
             setSearchQuery(authorFilter);
         }
-    }, [authorFilter]);
-
-    const pagination = usePagination();
+    }, [authorFilter, searchQuery]);
 
     const filteredBlogs = useMemo(() => {
         return mockBlogs.filter(blog => {

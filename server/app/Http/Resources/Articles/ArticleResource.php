@@ -134,7 +134,7 @@ class ArticleResource extends JsonResource
             }));
         }
 
-        return [
+        $result = [
             'id' => (string) $get('id', ''),
             'slug' => (string) $get('slug', ''),
             'article_id' => (string) $get('article_id', $get('id', '')),
@@ -148,8 +148,6 @@ class ArticleResource extends JsonResource
             'views_count' => (int) $get('views_count', 0),
             'image_url' => $primaryImageUrl,
             'image' => $primaryImage,
-            'image_url' => $primaryImageUrl,
-            'image' => $primaryImage,
             'location' => (string) $get('country', $get('location', 'Global')),
             'description' => $description,
             'date' => (string) $date,
@@ -158,7 +156,7 @@ class ArticleResource extends JsonResource
             'sites' => array_map('strval', $sites),
             'topics' => array_map('strval', is_array($topics) ? $topics : []),
             'galleryImages' => array_map('strval', $images),
-            'keywords' => is_array($get('keywords')) ? implode(', ', $get('keywords')) : (string) $get('keywords', ''),
+            'keywords' => is_array($get('keywords', [])) ? implode(', ', $get('keywords', [])) : (string) $get('keywords', ''),
             'source' => (string) $get('source', ''),
             'original_url' => (string) $get('original_url', ''),
             'is_deleted' => $isDeleted,
@@ -166,6 +164,7 @@ class ArticleResource extends JsonResource
             'content_blocks' => $contentBlocks,
             'template' => (string) $get('template', ''),
             'author' => (string) $get('author', ''),
+        ];
 
         // For external API consumers (e.g. /api/external/articles), avoid duplicate images.
         // 1) If image and image_url are the same, drop image (keep image_url as primary).
