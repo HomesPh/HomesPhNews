@@ -122,11 +122,7 @@ export default function CEOArticlesPage() {
                 const { data, current_page, last_page, status_counts, available_filters } =
                     response.data;
 
-                // Hide being_processed (Redis) and deleted articles from CEO view
-                const filteredData = (data ?? []).filter(
-                    (a: ArticleResource) => !a.is_redis && a.status !== "being_processed" && a.status !== "deleted"
-                );
-                setArticles(filteredData);
+                setArticles(data ?? []);
 
                 pagination.handlePageChange(current_page ?? 1);
                 pagination.setTotalPages(last_page ?? 1);
@@ -138,7 +134,7 @@ export default function CEOArticlesPage() {
                     const deletedCount = Number(status_counts.deleted ?? 0);
 
                     setCounts({
-                        all: rawAll - beingProcessedCount - deletedCount,
+                        all: rawAll,
                         published: Number(status_counts.published ?? 0),
                         pending: Number(status_counts.pending ?? 0),
                         edited: Number(status_counts.edited ?? 0),
