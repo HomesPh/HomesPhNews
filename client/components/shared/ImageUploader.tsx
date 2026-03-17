@@ -14,6 +14,7 @@ interface ImageUploaderProps {
   label?: string;
   className?: string;
   uploadType?: string;
+  hideUrlInput?: boolean;
 }
 
 export function ImageUploader({
@@ -23,6 +24,7 @@ export function ImageUploader({
   label,
   className,
   uploadType,
+  hideUrlInput = false,
 }: ImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -198,16 +200,18 @@ export function ImageUploader({
       )}
 
       {/* Optional: URL Input Fallback */}
-      <div className="flex gap-2">
-        <Input
-          placeholder="Or enter image URL directly..."
-          value={!multiple && typeof value === 'string' ? value : ''}
-          onChange={(e) => {
-            if (!multiple) onChange(e.target.value);
-          }}
-          className="flex-1"
-        />
-      </div>
+      {!hideUrlInput && (
+        <div className="flex gap-2">
+          <Input
+            placeholder="Or enter image URL directly..."
+            value={!multiple && typeof value === 'string' ? value : ''}
+            onChange={(e) => {
+              if (!multiple) onChange(e.target.value);
+            }}
+            className="flex-1"
+          />
+        </div>
+      )}
     </div>
   );
 }

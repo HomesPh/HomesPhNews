@@ -253,7 +253,7 @@ export default function ArticlesPage() {
                 country: filters.country === '' ? undefined : filters.country,
                 search: searchQuery || undefined,
                 page: pagination.currentPage,
-                per_page: 5,
+                per_page: 10,
             } as any);
             const { data, status_counts: sc } = response.data;
             setFilteredArticles(data ?? []);
@@ -483,7 +483,7 @@ export default function ArticlesPage() {
                     {isLoading ? (
                         <ArticlesSkeleton />
                     ) : filteredArticles.length > 0 ? (
-                        filteredArticles.slice(0, 5).map((article) => (
+                        filteredArticles.map((article) => (
                             <ArticleListItem
                                 key={article.id}
                                 article={article}

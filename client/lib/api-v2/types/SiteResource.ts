@@ -5,6 +5,9 @@ export interface SiteResource {
   apiKey?: string; // Missing in previous definition
   status: string;
   image: string | null;
+  original_logo?: string | null;
+  dark_logo?: string | null;
+  light_logo?: string | null;
   contact_name: string | null;
   contact_email: string | null;
   contact?: string | null; // Composite field from server
