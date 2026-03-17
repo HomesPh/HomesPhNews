@@ -93,18 +93,21 @@ class ArticleResource extends JsonResource
 
         $isDeleted = (bool) $get('is_deleted', false);
         $status = (string) $get('status', 'pending');
+
+        // Get content values - Use raw content (HTML) for all consumers
+        // User requested "pure HTML" so external consumers don't have to manually adjust paragraphs
         $content = (string) $get('content', '');
         $summary = (string) $get('summary', $content);
         $description = (string) $get('summary', $content);
 
-        // Resolve primary image
+        // Resolve primary image values once so we can reuse them and dedupe blocks against them
         $rawImageUrl = $data['image_url'] ?? $data['image'] ?? '';
         $rawImage = $data['image'] ?? $data['image_url'] ?? '';
         $primaryImageUrl = $this->sanitizeImageUrl($rawImageUrl);
         $primaryImage = $this->sanitizeImageUrl($rawImage);
         $heroImage = $primaryImageUrl !== '' ? $primaryImageUrl : $primaryImage;
 
-        // Content blocks
+        // Decode content blocks and remove any image blocks that duplicate the hero image URL
         $rawBlocks = $get('content_blocks', []);
         if (is_string($rawBlocks)) {
             $decodedBlocks = json_decode($rawBlocks, true);
@@ -113,6 +116,22 @@ class ArticleResource extends JsonResource
             $contentBlocks = $rawBlocks;
         } else {
             $contentBlocks = [];
+        }
+
+        if ($heroImage && is_array($contentBlocks)) {
+            $contentBlocks = array_values(array_filter($contentBlocks, function ($block) use ($heroImage) {
+                if (!is_array($block)) {
+                    return true;
+                }
+                if (($block['type'] ?? '') !== 'image') {
+                    return true;
+                }
+                $src = $block['content']['src'] ?? null;
+                if (!$src) {
+                    return true;
+                }
+                return (string) $src !== (string) $heroImage;
+            }));
         }
 
         $result = [
@@ -137,21 +156,67 @@ class ArticleResource extends JsonResource
             'sites' => array_map('strval', $sites),
             'topics' => array_map('strval', is_array($topics) ? $topics : []),
             'galleryImages' => array_map('strval', $images),
-            'keywords' => is_array($get('keywords')) ? implode(', ', $get('keywords')) : (string) $get('keywords', ''),
+            'keywords' => is_array($get('keywords', [])) ? implode(', ', $get('keywords', [])) : (string) $get('keywords', ''),
             'source' => (string) $get('source', ''),
             'original_url' => (string) $get('original_url', ''),
             'is_deleted' => $isDeleted,
+            'is_redis' => !$isModel,
             'content_blocks' => $contentBlocks,
             'template' => (string) $get('template', ''),
             'author' => (string) $get('author', ''),
-            'published_at' => (string) $get('published_at', ''),
-            'editor' => $isModel && $res->relationLoaded('editor') ? [
-                'id' => $res->editor?->id,
-                'name' => $res->editor?->name,
-                'first_name' => $res->editor?->first_name,
-                'last_name' => $res->editor?->last_name,
-            ] : null,
         ];
+
+        // For external API consumers (e.g. /api/external/articles), avoid duplicate images.
+        // 1) If image and image_url are the same, drop image (keep image_url as primary).
+        // 2) If the first content_blocks image matches image_url, drop that first image block
+        //    so external frontends that render a hero image + content_blocks won't show it twice.
+        // 3) If the HTML content starts with a <figure> that uses the same hero image URL,
+        //    strip that leading figure so the hero image is only shown once.
+        if ($request->is('api/external/*')) {
+            $imgUrl = (string) ($result['image_url'] ?? '');
+            $img = (string) ($result['image'] ?? '');
+
+            if ($imgUrl !== '' && $img !== '' && $imgUrl === $img) {
+                unset($result['image']);
+            }
+
+            // Remove duplicate hero image in content_blocks
+            if (
+                $imgUrl !== '' &&
+                isset($result['content_blocks'][0]) &&
+                is_array($result['content_blocks'][0]) &&
+                ($result['content_blocks'][0]['type'] ?? null) === 'image'
+            ) {
+                $firstBlock = $result['content_blocks'][0];
+                $firstSrc = $firstBlock['content']['src'] ?? null;
+
+                if (is_string($firstSrc) && $firstSrc === $imgUrl) {
+                    // Drop the first image block and reindex the array
+                    array_shift($result['content_blocks']);
+                    $result['content_blocks'] = array_values($result['content_blocks']);
+                }
+            }
+
+            // Remove leading <figure> wrapper in HTML content if it uses the same hero image URL
+            if ($imgUrl !== '' && !empty($result['content'])) {
+                $contentHtml = $result['content'];
+                $trimmed = ltrim($contentHtml);
+
+                if (str_starts_with($trimmed, '<figure')) {
+                    // Only attempt removal if this figure actually references the hero image URL
+                    if (strpos($trimmed, $imgUrl) !== false) {
+                        $closingPos = stripos($trimmed, '</figure>');
+                        if ($closingPos !== false) {
+                            $afterFigure = substr($trimmed, $closingPos + strlen('</figure>'));
+                            // Preserve original leading whitespace before <figure>
+                            $leadingWhitespaceLen = strlen($contentHtml) - strlen(ltrim($contentHtml, " \t\n\r\0\x0B"));
+                            $leadingWhitespace = substr($contentHtml, 0, $leadingWhitespaceLen);
+                            $result['content'] = $leadingWhitespace . ltrim($afterFigure);
+                        }
+                    }
+                }
+            }
+        }
 
         return $result;
     }

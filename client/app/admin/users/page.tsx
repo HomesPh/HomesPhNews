@@ -30,15 +30,6 @@ export default function UsersPage() {
     const { showAlert, showConfirm } = useAlert();
     const { filters, setFilter } = useUrlFilters(URL_FILTERS_CONFIG);
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
-
-    // Sync search query with URL
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setFilter('search', searchQuery);
-        }, 300);
-        return () => clearTimeout(timer);
-    }, [searchQuery, setFilter]);
-
     // Modal states
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [selectedUserForView, setSelectedUserForView] = useState<AdminUser | null>(null);
@@ -58,7 +49,20 @@ export default function UsersPage() {
         unsuspendUser
     } = useUserManagement();
 
+    // Pagination (must be before sync useEffect)
     const pagination = usePagination();
+
+    // Sync search query with URL
+    useEffect(() => {
+        // Avoid infinite loop by only triggering if the value actually changed
+        if (searchQuery === (filters.search || '')) return;
+
+        const timer = setTimeout(() => {
+            setFilter('search', searchQuery);
+            pagination.handlePageChange(1); // Reset to first page on search
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery, setFilter, filters.search, pagination]);
 
     const filteredUsers = useMemo(() => {
         return users.filter(user => {
