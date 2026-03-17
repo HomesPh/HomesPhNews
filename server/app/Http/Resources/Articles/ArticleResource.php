@@ -153,6 +153,58 @@ class ArticleResource extends JsonResource
             ] : null,
         ];
 
+        // For external API consumers (e.g. /api/external/articles), avoid duplicate images.
+        // 1) If image and image_url are the same, drop image (keep image_url as primary).
+        // 2) If the first content_blocks image matches image_url, drop that first image block
+        //    so external frontends that render a hero image + content_blocks won't show it twice.
+        // 3) If the HTML content starts with a <figure> that uses the same hero image URL,
+        //    strip that leading figure so the hero image is only shown once.
+        if ($request->is('api/external/*')) {
+            $imgUrl = (string) ($result['image_url'] ?? '');
+            $img = (string) ($result['image'] ?? '');
+
+            if ($imgUrl !== '' && $img !== '' && $imgUrl === $img) {
+                unset($result['image']);
+            }
+
+            // Remove duplicate hero image in content_blocks
+            if (
+                $imgUrl !== '' &&
+                isset($result['content_blocks'][0]) &&
+                is_array($result['content_blocks'][0]) &&
+                ($result['content_blocks'][0]['type'] ?? null) === 'image'
+            ) {
+                $firstBlock = $result['content_blocks'][0];
+                $firstSrc = $firstBlock['content']['src'] ?? null;
+
+                if (is_string($firstSrc) && $firstSrc === $imgUrl) {
+                    // Drop the first image block and reindex the array
+                    array_shift($result['content_blocks']);
+                    $result['content_blocks'] = array_values($result['content_blocks']);
+                }
+            }
+
+            // Remove leading <figure> wrapper in HTML content if it uses the same hero image URL
+            if ($imgUrl !== '' && !empty($result['content'])) {
+                $contentHtml = $result['content'];
+                $trimmed = ltrim($contentHtml);
+
+                if (str_starts_with($trimmed, '<figure')) {
+                    // Only attempt removal if this figure actually references the hero image URL
+                    if (strpos($trimmed, $imgUrl) !== false) {
+                        $closingPos = stripos($trimmed, '</figure>');
+                        if ($closingPos !== false) {
+                            $afterFigure = substr($trimmed, $closingPos + strlen('</figure>'));
+                            // Preserve original leading whitespace before <figure>
+                            $leadingWhitespaceLen = strlen($contentHtml) - strlen(ltrim($contentHtml, " \t\n\r\0\x0B"));
+                            $leadingWhitespace = substr($contentHtml, 0, $leadingWhitespaceLen);
+                            $result['content'] = $leadingWhitespace . ltrim($afterFigure);
+                        }
+                    }
+                }
+            }
+        }
+
         return $result;
     }
 
