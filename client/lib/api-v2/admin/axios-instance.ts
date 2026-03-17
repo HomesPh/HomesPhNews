@@ -4,7 +4,7 @@ import axios, { AxiosInstance } from "axios";
 import { useAuth } from "./store";
 import { handleAxiosError } from "../utils/errorHandler";
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
 const AXIOS_INSTANCE_ADMIN: AxiosInstance = axios.create({
   baseURL,
