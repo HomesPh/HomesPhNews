@@ -88,7 +88,7 @@ class SiteController extends Controller
         $site = Site::create([
             'site_name' => $validated['name'],
             'site_url' => $validated['domain'],
-            'site_logo' => $validated['image'] ?? null,
+            'original_logo' => $validated['image'] ?? null,
             'site_description' => $validated['description'] ?? null,
             'site_keywords' => $validated['categories'] ?? [],
             'site_status' => 'active',
@@ -124,7 +124,7 @@ class SiteController extends Controller
         $site->update([
             'site_name' => $validated['name'] ?? $site->site_name,
             'site_url' => $validated['domain'] ?? $site->site_url,
-            'site_logo' => $validated['image'] ?? $site->site_logo,
+            'original_logo' => $validated['image'] ?? $site->original_logo,
             'site_description' => $validated['description'] ?? $site->site_description,
             'site_keywords' => $validated['categories'] ?? $site->site_keywords,
             'site_status' => $validated['status'] ?? $site->site_status,
