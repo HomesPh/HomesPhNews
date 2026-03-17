@@ -16,6 +16,7 @@ class SiteContentController extends Controller
         $site = $request->attributes->get('site');
 
         $restaurants = Restaurant::where('status', 'published')
+            ->whereJsonContains('published_sites', $site->site_name)
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 

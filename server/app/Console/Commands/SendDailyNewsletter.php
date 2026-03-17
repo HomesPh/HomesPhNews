@@ -68,9 +68,14 @@ class SendDailyNewsletter extends Command
             }
 
             // Find articles matching subscriber preferences from the last 24 hours
+            // AND restrict to articles published to the Main News Portal
             $articles = Article::whereIn('category', $subscriber->category)
                 ->whereIn('country', $subscriber->country)
                 ->where('status', 'published')
+                ->where('is_deleted', false)
+                ->whereHas('publishedSites', function ($q) {
+                    $q->where('site_name', 'Main News Portal');
+                })
                 ->where('published_at', '>=', now()->subDay())
                 ->latest('published_at')
                 ->limit(5)
