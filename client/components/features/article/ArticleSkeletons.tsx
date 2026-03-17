@@ -36,7 +36,7 @@ export function ArticleHeaderSkeleton() {
 export function ArticleContentSkeleton() {
   return (
     <div className="space-y-8">
-      <Skeleton className="h-[400px] w-full rounded-xl" />
+      <Skeleton className="aspect-video w-full rounded-xl" />
       <div className="space-y-4">
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-full" />

@@ -37,7 +37,6 @@ class ArticleResource extends JsonResource
         };
 
         // Handle sites (robust)
-        // If it's a model, check for the relation FIRST to avoid accessor interference
         $sites = [];
         if ($isModel) {
             if ($res->relationLoaded('publishedSites')) {
@@ -46,8 +45,7 @@ class ArticleResource extends JsonResource
                     ? $rel->pluck('site_name')->toArray()
                     : (is_array($rel) ? $rel : []);
             } else {
-                // Use the accessor if relation not loaded, ensuring we treat it as an array
-                $attr = $res->published_sites; // Accessor returns array
+                $attr = $res->published_sites;
                 $sites = is_array($attr) ? $attr : [];
             }
         } else {
@@ -55,19 +53,13 @@ class ArticleResource extends JsonResource
             $sites = is_array($sitesData) ? $sitesData : [];
         }
 
-        // Filter sites for external API: Only show the authenticated site
-        // This prevents exposing other sites that also published the same article
         if ($request->attributes->has('site')) {
             $authenticatedSite = $request->attributes->get('site');
             $authenticatedSiteName = $authenticatedSite->site_name ?? null;
-
             if ($authenticatedSiteName) {
-                // Filter to only include the authenticated site
-                $sites = array_filter($sites, function ($siteName) use ($authenticatedSiteName) {
+                $sites = array_values(array_filter($sites, function ($siteName) use ($authenticatedSiteName) {
                     return strval($siteName) === strval($authenticatedSiteName);
-                });
-                // Re-index array to ensure sequential keys
-                $sites = array_values($sites);
+                }));
             }
         }
 
@@ -79,15 +71,13 @@ class ArticleResource extends JsonResource
                 $images = ($rel instanceof \Illuminate\Support\Collection)
                     ? $rel->pluck('image_path')->toArray()
                     : (is_array($rel) ? $rel : []);
-            } else {
-                $images = []; // Not loaded
             }
         } else {
             $imgs = $get('galleryImages', []) ?? $get('gallery_images', []) ?? [];
             $images = is_array($imgs) ? $imgs : [];
         }
 
-        // Date logic (Redis uses 'timestamp', DB uses 'created_at')
+        // Date logic
         $date = $get('created_at', null);
         if (empty($date) && isset($data['timestamp'])) {
             $ts = $data['timestamp'];
@@ -156,6 +146,8 @@ class ArticleResource extends JsonResource
             'status' => $isDeleted ? 'deleted' : $status,
             'created_at' => (string) $date,
             'views_count' => (int) $get('views_count', 0),
+            'image_url' => $primaryImageUrl,
+            'image' => $primaryImage,
             'image_url' => $primaryImageUrl,
             'image' => $primaryImage,
             'location' => (string) $get('country', $get('location', 'Global')),
