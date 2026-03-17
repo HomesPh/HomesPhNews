@@ -165,7 +165,7 @@ class AIProcessor:
         Example topics for Technology: AI & ML, Fintech, Blockchain, Cybersecurity, 
         Cloud Computing, IoT, Robotics, 5G, Software, Hardware
         
-        Example topics for Sports: Basketball, Football, PBA, NBA, Olympics, 
+        Example topics for Sports: Pickleball, Basketball, Football, PBA, NBA, Olympics, 
         Boxing, Esports, Sports Development, Athletes, Training
         
         Title: {title}

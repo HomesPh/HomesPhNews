@@ -175,35 +175,59 @@ class ArticleResource extends JsonResource
             'template' => (string) $get('template', ''),
             'author' => (string) $get('author', ''),
 
-            // Restaurant Meta
-            'clickbait_hook' => $get('clickbait_hook'),
-            'city' => $get('city'),
-            'province_id' => $get('province_id'),
-            'city_id' => $get('city_id'),
-            'cuisine_type' => $get('cuisine_type'),
-            'rating' => $get('rating'),
-            'is_filipino_owned' => (bool) $get('is_filipino_owned', false),
-            'price_range' => $get('price_range'),
-            'avg_meal_cost' => $get('avg_meal_cost'),
-            'budget_category' => $get('budget_category'),
-            'specialty_dish' => $get('specialty_dish'),
-            'contact_info' => $get('contact_info'),
-            'why_filipinos_love_it' => $get('why_filipinos_love_it'),
-            'menu_highlights' => $get('menu_highlights'),
-            'google_maps_url' => $get('google_maps_url'),
-            'address' => $get('address'),
-            'website' => $get('website'),
-            'social_media' => $get('social_media'),
-            'opening_hours' => $get('opening_hours'),
-            'brand_story' => $get('brand_story'),
-            'tags' => $get('tags', []),
-            'features' => $get('features', []),
-            'edited_by' => !in_array(strtolower($status), ['pending', 'pending review']) ? (int)$get('edited_by', 0) : null,
-            'editor_name' => !in_array(strtolower($status), ['pending', 'pending review']) && $isModel && $res->relationLoaded('editor') ? $res->editor?->name : null,
-            'editor_first_name' => !in_array(strtolower($status), ['pending', 'pending review']) && $isModel && $res->relationLoaded('editor') ? $res->editor?->first_name : null,
-            'editor_last_name' => !in_array(strtolower($status), ['pending', 'pending review']) && $isModel && $res->relationLoaded('editor') ? $res->editor?->last_name : null,
-            'published_at' => (string) $get('published_at', ''),
-        ];
+        // For external API consumers (e.g. /api/external/articles), avoid duplicate images.
+        // 1) If image and image_url are the same, drop image (keep image_url as primary).
+        // 2) If the first content_blocks image matches image_url, drop that first image block
+        //    so external frontends that render a hero image + content_blocks won't show it twice.
+        // 3) If the HTML content starts with a <figure> that uses the same hero image URL,
+        //    strip that leading figure so the hero image is only shown once.
+        if ($request->is('api/external/*')) {
+            $imgUrl = (string) ($result['image_url'] ?? '');
+            $img = (string) ($result['image'] ?? '');
+
+            if ($imgUrl !== '' && $img !== '' && $imgUrl === $img) {
+                unset($result['image']);
+            }
+
+            // Remove duplicate hero image in content_blocks
+            if (
+                $imgUrl !== '' &&
+                isset($result['content_blocks'][0]) &&
+                is_array($result['content_blocks'][0]) &&
+                ($result['content_blocks'][0]['type'] ?? null) === 'image'
+            ) {
+                $firstBlock = $result['content_blocks'][0];
+                $firstSrc = $firstBlock['content']['src'] ?? null;
+
+                if (is_string($firstSrc) && $firstSrc === $imgUrl) {
+                    // Drop the first image block and reindex the array
+                    array_shift($result['content_blocks']);
+                    $result['content_blocks'] = array_values($result['content_blocks']);
+                }
+            }
+
+            // Remove leading <figure> wrapper in HTML content if it uses the same hero image URL
+            if ($imgUrl !== '' && !empty($result['content'])) {
+                $contentHtml = $result['content'];
+                $trimmed = ltrim($contentHtml);
+
+                if (str_starts_with($trimmed, '<figure')) {
+                    // Only attempt removal if this figure actually references the hero image URL
+                    if (strpos($trimmed, $imgUrl) !== false) {
+                        $closingPos = stripos($trimmed, '</figure>');
+                        if ($closingPos !== false) {
+                            $afterFigure = substr($trimmed, $closingPos + strlen('</figure>'));
+                            // Preserve original leading whitespace before <figure>
+                            $leadingWhitespaceLen = strlen($contentHtml) - strlen(ltrim($contentHtml, " \t\n\r\0\x0B"));
+                            $leadingWhitespace = substr($contentHtml, 0, $leadingWhitespaceLen);
+                            $result['content'] = $leadingWhitespace . ltrim($afterFigure);
+                        }
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 
     /**
