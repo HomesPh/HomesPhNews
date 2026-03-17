@@ -83,12 +83,17 @@ class SiteController extends Controller
             'description' => 'nullable|string',
             'categories' => 'nullable|array',
             'image' => 'nullable|string',
+            'original_logo' => 'nullable|string',
+            'dark_logo' => 'nullable|string',
+            'light_logo' => 'nullable|string',
         ]);
 
         $site = Site::create([
             'site_name' => $validated['name'],
             'site_url' => $validated['domain'],
-            'original_logo' => $validated['image'] ?? null,
+            'original_logo' => $validated['original_logo'] ?? $validated['image'] ?? null,
+            'dark_logo' => $validated['dark_logo'] ?? null,
+            'light_logo' => $validated['light_logo'] ?? null,
             'site_description' => $validated['description'] ?? null,
             'site_keywords' => $validated['categories'] ?? [],
             'site_status' => 'active',
@@ -118,13 +123,18 @@ class SiteController extends Controller
             'description' => 'nullable|string',
             'categories' => 'nullable|array',
             'image' => 'nullable|string',
+            'original_logo' => 'nullable|string',
+            'dark_logo' => 'nullable|string',
+            'light_logo' => 'nullable|string',
             'status' => 'sometimes|in:active,suspended',
         ]);
 
         $site->update([
             'site_name' => $validated['name'] ?? $site->site_name,
             'site_url' => $validated['domain'] ?? $site->site_url,
-            'original_logo' => $validated['image'] ?? $site->original_logo,
+            'original_logo' => array_key_exists('original_logo', $validated) ? $validated['original_logo'] : (array_key_exists('image', $validated) ? $validated['image'] : $site->original_logo),
+            'dark_logo' => array_key_exists('dark_logo', $validated) ? $validated['dark_logo'] : $site->dark_logo,
+            'light_logo' => array_key_exists('light_logo', $validated) ? $validated['light_logo'] : $site->light_logo,
             'site_description' => $validated['description'] ?? $site->site_description,
             'site_keywords' => $validated['categories'] ?? $site->site_keywords,
             'site_status' => $validated['status'] ?? $site->site_status,
