@@ -141,7 +141,7 @@ function BlogsPageContent() {
                 />
 
                 <BlogsList
-                    blogs={filteredBlogs.slice((pagination.currentPage - 1) * 5, pagination.currentPage * 5)}
+                    blogs={filteredBlogs.slice((pagination.currentPage - 1) * 10, pagination.currentPage * 10)}
                     onView={handleViewBlog}
                     onDelete={handleDeleteBlog}
                 />
@@ -150,7 +150,7 @@ function BlogsPageContent() {
             <div className="mt-8">
                 <Pagination
                     currentPage={pagination.currentPage}
-                    totalPages={Math.ceil(filteredBlogs.length / 5) || 1}
+                    totalPages={Math.ceil(filteredBlogs.length / 10) || 1}
                     onPageChange={pagination.handlePageChange}
                 />
             </div>
