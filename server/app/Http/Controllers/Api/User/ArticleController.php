@@ -40,10 +40,13 @@ class ArticleController extends Controller
         $perPage = min(100, max(1, (int)($validated['per_page'] ?? $validated['limit'] ?? 10)));
         $page = $validated['page'] ?? (isset($validated['offset']) ? (int)($validated['offset'] / $perPage) + 1 : 1);
 
-        $query = Article::query();
-
         // Always filter by published status for public feed
-        $query->where('status', 'published')->where('is_deleted', false);
+        // AND restrict to articles published to the Main News Portal
+        $query = Article::where('status', 'published')
+            ->where('is_deleted', false)
+            ->whereHas('publishedSites', function ($q) {
+                $q->where('site_name', 'Main News Portal');
+            });
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -100,7 +103,11 @@ class ArticleController extends Controller
         $country = $validated['country'] ?? null;
         $category = $validated['category'] ?? null;
 
-        $baseQuery = Article::where('status', 'published')->where('is_deleted', false);
+        $baseQuery = Article::where('status', 'published')
+            ->where('is_deleted', false)
+            ->whereHas('publishedSites', function ($q) {
+                $q->where('site_name', 'Main News Portal');
+            });
 
         if ($country) {
             $baseQuery->where('country', $country);
@@ -130,7 +137,8 @@ class ArticleController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $categoryCounts = Article::groupBy('category')
+        $categoryCounts = (clone $baseQuery)
+            ->groupBy('category')
             ->selectRaw('category, count(*) as count')
             ->pluck('count', 'category');
 
@@ -149,7 +157,11 @@ class ArticleController extends Controller
     {
         // 1. Check Database for main articles
         $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])
+            ->where('status', 'published')
             ->where('is_deleted', false)
+            ->whereHas('publishedSites', function ($q) {
+                $q->where('site_name', 'Main News Portal');
+            })
             ->where(function ($query) use ($id) {
             $query->where('id', $id)
                 ->orWhere('slug', $id);
@@ -163,6 +175,7 @@ class ArticleController extends Controller
         // 2. Fallback to Published Restaurants in DB
         $restaurant = \App\Models\Restaurant::where('status', 'published')
             ->where('id', $id)
+            ->whereJsonContains('published_sites', 'Main News Portal')
             ->first();
 
         if ($restaurant) {
