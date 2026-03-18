@@ -164,6 +164,10 @@ class ArticleResource extends JsonResource
             'content_blocks' => $contentBlocks,
             'template' => (string) $get('template', ''),
             'author' => (string) $get('author', ''),
+            'province_id' => $get('province_id'),
+            'city_id' => $get('city_id'),
+            'province_name' => $isModel ? ($this->province->name ?? null) : null,
+            'city_name' => $isModel ? ($this->city->name ?? null) : null,
         ];
 
         // For external API consumers (e.g. /api/external/articles), avoid duplicate images.
