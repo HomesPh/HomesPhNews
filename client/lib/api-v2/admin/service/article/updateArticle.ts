@@ -24,6 +24,8 @@ export interface UpdateArticleRequest {
   split_images?: any[];
   content_blocks?: any[];
   template?: string;
+  province_id?: string | number | null;
+  city_id?: string | number | null;
 }
 
 export interface UpdateArticleResponse {
