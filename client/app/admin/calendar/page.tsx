@@ -43,7 +43,8 @@ export default function CalendarPage() {
     // View state from URL
     const viewMode = filters.view as ViewMode;
     const selectedCountry = filters.country;
-    const currentDate = new Date(filters.date);
+    const [y, m, d] = filters.date.split('-').map(Number);
+    const currentDate = new Date(y, m - 1, d);
 
     const [selectedYear, setSelectedYearState] = useState(currentDate.getFullYear());
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -172,7 +173,8 @@ export default function CalendarPage() {
     const setViewMode = (mode: ViewMode) => setFilter('view', mode);
     const setSelectedCountry = (country: string) => setFilter('country', country);
     const setCurrentDate = (date: Date) => {
-        setFilter('date', date.toISOString().split('T')[0]);
+        const localDateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        setFilter('date', localDateStr);
         if (date.getFullYear() !== selectedYear) {
             setSelectedYearState(date.getFullYear());
         }
@@ -182,7 +184,8 @@ export default function CalendarPage() {
         setSelectedYearState(year);
         const newDate = new Date(currentDate);
         newDate.setFullYear(year);
-        setFilter('date', newDate.toISOString().split('T')[0]);
+        const localDateStr = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}-${String(newDate.getDate()).padStart(2, '0')}`;
+        setFilter('date', localDateStr);
     };
 
     const navigateDate = (direction: 'prev' | 'next') => {
@@ -203,18 +206,26 @@ export default function CalendarPage() {
     };
 
     const handleDateClick = (date: Date) => {
-        setCurrentDate(date);
+        const localDateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
         if (viewMode === 'year') {
-            setViewMode('day');
+            setFilters({ date: localDateStr, view: 'day' });
         } else {
+            setFilter('date', localDateStr);
+            if (date.getFullYear() !== selectedYear) setSelectedYearState(date.getFullYear());
             setShowCreateModal(true);
         }
     };
 
+    const handleDateNumberClick = (date: Date) => {
+        const localDateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        if (date.getFullYear() !== selectedYear) setSelectedYearState(date.getFullYear());
+        setFilters({ date: localDateStr, view: 'day' });
+    };
+
     const handleMonthClick = (year: number, month: number) => {
         const newDate = new Date(year, month, 1);
-        setCurrentDate(newDate);
-        setViewMode('month');
+        const localDateStr = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}-${String(newDate.getDate()).padStart(2, '0')}`;
+        setFilters({ date: localDateStr, view: 'month' });
     };
 
     const handleCreateEvent = async (newEvent: any) => {
@@ -235,7 +246,8 @@ export default function CalendarPage() {
             await createEvent(payload);
             alert("Event created successfully");
             fetchData();
-            setCurrentDate(new Date(newEvent.date));
+            const [ey, em, ed] = newEvent.date.split('-').map(Number);
+            setCurrentDate(new Date(ey, em - 1, ed));
         } catch (error) {
             console.error("Failed to create event", error);
             alert("Failed to create event");
@@ -323,6 +335,7 @@ export default function CalendarPage() {
                         selectedCountry={selectedCountry}
                         onEventClick={handleEventClick}
                         onDateClick={handleDateClick}
+                        onDateNumberClick={handleDateNumberClick}
                         onMonthClick={handleMonthClick}
                     />
                 </div>

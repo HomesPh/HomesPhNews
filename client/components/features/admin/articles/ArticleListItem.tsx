@@ -16,12 +16,17 @@ interface ArticleListItemProps {
  * ArticleListItem component for displaying a single article in the management list
  */
 export default function ArticleListItem({ article, onClick, selection }: ArticleListItemProps) {
+    const isRedis = article.is_redis === true;
+    const isDeleted = article.status === 'deleted';
+    const enableInlineEdit = !isRedis && !isDeleted;
+
     return (
         <BaseArticleCard
             article={article}
             variant="list"
             onClick={onClick}
             selection={selection}
+            enableInlineEdit={enableInlineEdit}
         />
     );
 }
