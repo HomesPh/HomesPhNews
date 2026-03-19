@@ -349,6 +349,10 @@ Route::prefix('v1')->group(function () {
                 Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
                 Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
                 Route::post('restaurants/move-to-db', [AdminRestaurantController::class, 'moveToDb'])->name('restaurants.move-to-db');
+                Route::post('restaurants/bulk-publish', [AdminRestaurantController::class, 'bulkPublish'])->name('restaurants.bulk-publish');
+                Route::post('restaurants/bulk-unpublish', [AdminRestaurantController::class, 'bulkUnpublish'])->name('restaurants.bulk-unpublish');
+                Route::post('restaurants/bulk-reject', [AdminRestaurantController::class, 'bulkReject'])->name('restaurants.bulk-reject');
+                Route::post('restaurants/bulk-delete', [AdminRestaurantController::class, 'bulkDelete'])->name('restaurants.bulk-delete');
                 Route::apiResource('restaurants', AdminRestaurantController::class);
 
                 // Additional Management
