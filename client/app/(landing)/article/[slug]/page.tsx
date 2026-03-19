@@ -12,16 +12,25 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ArticleDetailContent from "@/components/features/article/ArticleDetailContent";
 import RelatedArticlesSidebar from "@/components/features/article/RelatedArticlesSidebar";
 import ArticleBreadcrumbContainer from "@/components/features/article/ArticleBreadcrumbContainer";
+import ArticlePreviewContent from "@/components/features/article/ArticlePreviewContent";
 
 import type { Metadata } from "next";
 import { getArticleById } from "@/lib/api-v2";
 
 interface Props {
     params: Promise<{ slug: string }>;
+    searchParams: Promise<{ preview?: string }>;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
     const { slug } = await params;
+    const { preview } = await searchParams;
+
+    if (preview === 'true') {
+        return {
+            title: "Preview Article",
+        };
+    }
 
     // The slug parameter might be an ID or a slug, depending on how it's called, 
     // but in this route it effectively serves as the identifier.
@@ -72,8 +81,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 }
 
-export default async function Article({ params }: Props) {
+export default async function Article({ params, searchParams }: Props) {
     const { slug } = await params;
+    const { preview } = await searchParams;
+    const isPreview = preview === 'true';
     const articleId = slug;
 
     if (!articleId) {
@@ -91,7 +102,7 @@ export default async function Article({ params }: Props) {
                     {/* Main Content Component Area */}
                     <div className="flex-1 min-w-0 space-y-8">
                         <Suspense fallback={<BreadcrumbSkeleton />}>
-                            <ArticleBreadcrumbContainer id={articleId} />
+                            {!isPreview && <ArticleBreadcrumbContainer id={articleId} />}
                         </Suspense>
 
                         <Suspense fallback={
@@ -100,7 +111,11 @@ export default async function Article({ params }: Props) {
                                 <ArticleContentSkeleton />
                             </div>
                         }>
-                            <ArticleDetailContent id={articleId} />
+                            {isPreview ? (
+                                <ArticlePreviewContent id={articleId} />
+                            ) : (
+                                <ArticleDetailContent id={articleId} />
+                            )}
                         </Suspense>
                     </div>
 
