@@ -29,7 +29,7 @@ from database import redis_client, PREFIX
 # CONFIGURATION
 # ═══════════════════════════════════════════════════════════════
 
-MAX_WORKERS = 4
+MAX_WORKERS = 8
 ARTICLES_PER_COUNTRY = 1
 DEDUP_TTL_DAYS = 30  # Keep URLs for 30 days
 
@@ -422,21 +422,14 @@ async def run_hourly_job():
     print(f"🔍 Dedup: {dedup_stats['urls_tracked']} URLs | {dedup_stats['titles_tracked']} titles tracked")
     print("-" * 70)
 
-    BATCH_SIZE = 5
     results = []
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        for i in range(0, len(countries), BATCH_SIZE):
-            if job_status.get("cancel_requested"):
-                print("\n🛑 Cancel requested. Stopping after current batch...")
-                break
-            batch = countries[i: i + BATCH_SIZE]
-            futures = [
-                loop.run_in_executor(executor, process_single_country, country)
-                for country in batch
-            ]
-            batch_results = await asyncio.gather(*futures)
-            results.extend(batch_results)
+        futures = [
+            loop.run_in_executor(executor, process_single_country, country)
+            for country in countries
+        ]
+        results = list(await asyncio.gather(*futures))
 
     cancelled = job_status.get("cancel_requested", False)
     if cancelled:
@@ -496,7 +489,7 @@ async def run_targeted_job(countries: list, categories: list) -> dict:
     print(f"\n🎯 TARGETED SCRAPE: {len(countries)} countries × {len(categories)} categories = {len(pairs)} combinations")
 
     results = []
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = [
             loop.run_in_executor(executor, process_single_country, country, category)
@@ -539,7 +532,7 @@ async def run_sports_job():
     all_countries = list(COUNTRIES.keys())
     countries = all_countries
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = [
             loop.run_in_executor(executor, process_single_country, country, "Sports")
