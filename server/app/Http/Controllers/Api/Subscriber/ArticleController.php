@@ -34,6 +34,9 @@ class ArticleController extends Controller
         $query = Article::query()
             ->where('status', 'published')
             ->where('is_deleted', false)
+            ->whereHas('publishedSites', function ($q) {
+                $q->where('site_name', 'Main News Portal');
+            })
             ->when($search, function ($q, $s) {
                 $q->where(function ($sub) use ($s) {
                     $sub->where('title', 'LIKE', "%{$s}%")
@@ -53,6 +56,9 @@ class ArticleController extends Controller
         $baseCountQuery = Article::query()
             ->where('status', 'published')
             ->where('is_deleted', false)
+            ->whereHas('publishedSites', function ($q) {
+                $q->where('site_name', 'Main News Portal');
+            })
             ->when($search, function ($q, $s) {
                 $q->where(function ($sub) use ($s) {
                     $sub->where('title', 'LIKE', "%{$s}%")
@@ -113,7 +119,11 @@ class ArticleController extends Controller
     public function show(string $id): JsonResponse|ArticleResource
     {
         $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])
+            ->where('status', 'published')
             ->where('is_deleted', false)
+            ->whereHas('publishedSites', function ($q) {
+                $q->where('site_name', 'Main News Portal');
+            })
             ->where(function ($q) use ($id) {
                 $q->where('id', $id)->orWhere('slug', $id);
             })

@@ -9,6 +9,8 @@ export interface ArticleResource {
   country: string;
   province_id?: string | number;
   city_id?: string | number;
+  province_name?: string | null;
+  city_name?: string | null;
   status: string | "deleted";
   created_at: string;
   views_count: number;

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X, Upload } from 'lucide-react';
 import { FormInput, FormTextarea, FormSelect, FormMultiSelect } from "@/components/features/admin/shared/FormFields";
+import { ImageUploader } from "@/components/shared/ImageUploader";
 import { SiteResource } from "@/lib/api-v2/types/SiteResource";
 import { Countries, Categories } from "@/app/data";
 
@@ -23,7 +24,9 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
         description: initialData?.description || '',
         categories: initialData?.categories || [],
         country: initialData?.country || ['Philippines'],
-        logoUrl: initialData?.image || '',
+        logoUrl: initialData?.original_logo || initialData?.image || '',
+        darkLogoUrl: initialData?.dark_logo || '',
+        lightLogoUrl: initialData?.light_logo || '',
     });
 
     useEffect(() => {
@@ -36,7 +39,9 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
                 description: initialData.description || '',
                 categories: initialData.categories || [],
                 country: initialData.country || ['Philippines'],
-                logoUrl: initialData.image || '',
+                logoUrl: initialData.original_logo || initialData.image || '',
+                darkLogoUrl: initialData.dark_logo || '',
+                lightLogoUrl: initialData.light_logo || '',
             });
         } else if (isOpen && mode === 'create') {
             setFormData({
@@ -48,6 +53,8 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
                 categories: [],
                 country: ['Philippines'],
                 logoUrl: '',
+                darkLogoUrl: '',
+                lightLogoUrl: '',
             });
         }
     }, [isOpen, initialData, mode]);
@@ -64,6 +71,9 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
             categories: formData.categories,
             country: formData.country,
             image: formData.logoUrl || "/images/HomesLogo.png",
+            original_logo: formData.logoUrl || "/images/HomesLogo.png",
+            dark_logo: formData.darkLogoUrl,
+            light_logo: formData.lightLogoUrl,
             // Remove legacy fields if not in request type, or keep if harmless? 
             // Better to match request type. Status is handled by updateSite but mainly via toggle?
             // UpdateSiteRequest supports status.
@@ -157,34 +167,28 @@ export default function SiteEditorModal({ isOpen, onClose, mode, initialData, on
                             allLabel="All Categories"
                         />
 
-                        {/* Logo Upload */}
-                        <div>
-                            <label className="flex items-center gap-1 text-[14px] font-bold text-[#111827] mb-3 tracking-[-0.5px]">
-                                Logo
-                                {mode === 'create' && <span className="text-[#ef4444]">*</span>}
-                            </label>
-                            <div className="border-2 border-dashed border-[#d1d5db] rounded-[12px] bg-[#f9fafb] py-8 px-6 text-center">
-                                <Upload className="w-12 h-12 text-[#9ca3af] mx-auto mb-3" />
-                                <p className="text-[16px] text-[#374151] mb-1 tracking-[-0.5px]">
-                                    Drag image here or click to browse
-                                </p>
-                                <p className="text-[14px] text-[#6b7280] tracking-[-0.5px]">
-                                    Recommended: 300×250, max 5MB
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Or enter logo URL */}
-                        <div>
-                            <label className="block text-[14px] font-light text-[#111827] mb-2 tracking-[-0.5px]">
-                                Or enter logo URL:
-                            </label>
-                            <input
-                                type="text"
-                                value={formData.logoUrl}
-                                onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
-                                placeholder="https://example.com/logo.jpg"
-                                className="w-full px-4 py-3 border border-[#d1d5db] rounded-[8px] text-[14px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#1428AE]/20 focus:border-[#1428AE] tracking-[-0.5px]"
+                        {/* Logo Uploads */}
+                        <div className="space-y-4">
+                            <ImageUploader
+                                label="Original Logo"
+                                value={formData.logoUrl || null}
+                                onChange={(url) => setFormData({ ...formData, logoUrl: (url as string) || '' })}
+                                uploadType="partner_logo"
+                                hideUrlInput={true}
+                            />
+                            <ImageUploader
+                                label="Dark Logo (optional)"
+                                value={formData.darkLogoUrl || null}
+                                onChange={(url) => setFormData({ ...formData, darkLogoUrl: (url as string) || '' })}
+                                uploadType="partner_logo"
+                                hideUrlInput={true}
+                            />
+                            <ImageUploader
+                                label="Light Logo (optional)"
+                                value={formData.lightLogoUrl || null}
+                                onChange={(url) => setFormData({ ...formData, lightLogoUrl: (url as string) || '' })}
+                                uploadType="partner_logo"
+                                hideUrlInput={true}
                             />
                         </div>
                     </div>

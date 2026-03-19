@@ -58,7 +58,7 @@ export default function CreateEventPage() {
             setIsLoading(true);
             try {
                 const response = await getAdminArticles({
-                    status: 'pending',
+                    status: 'pending review',
                     search: searchQuery || undefined,
                     category: categoryFilter || undefined,
                     country: countryFilter || undefined,

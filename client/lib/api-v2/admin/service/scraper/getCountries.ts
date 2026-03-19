@@ -4,6 +4,15 @@ import AXIOS_INSTANCE_ADMIN from "../../axios-instance";
 import type { AxiosResponse } from "axios";
 import type { CountryResource } from "../../../types/CountryResource";
 
-export async function getCountries(): Promise<AxiosResponse<CountryResource[]>> {
-    return AXIOS_INSTANCE_ADMIN.get<CountryResource[]>("/v1/admin/countries");
+let countriesCache: Promise<AxiosResponse<CountryResource[]>> | null = null;
+
+export async function getCountries(forceRefresh = false): Promise<AxiosResponse<CountryResource[]>> {
+    if (!countriesCache || forceRefresh) {
+        countriesCache = AXIOS_INSTANCE_ADMIN.get<CountryResource[]>("/v1/admin/countries");
+    }
+    return countriesCache;
+}
+
+export function clearCountriesCache() {
+    countriesCache = null;
 }

@@ -80,17 +80,28 @@ class SubscriptionController extends Controller
             ], now()->addDays(30));
 
             // Fetch matching articles based on NEW preferences
+            // AND restrict to articles published to the Main News Portal
             $matchingArticles = \App\Models\Article::whereIn('category', $request->categories)
                 ->whereIn('country', $request->countries)
                 ->where('status', 'published')
+                ->where('is_deleted', false)
+                ->whereHas('publishedSites', function ($q) {
+                    $q->where('site_name', 'Main News Portal');
+                })
                 ->latest()
                 ->limit(3)
                 ->get();
 
             if ($matchingArticles->isEmpty()) {
-                $matchingArticles = \App\Models\Article::whereIn('category', $request->categories)
-                    ->orWhereIn('country', $request->countries)
+                $matchingArticles = \App\Models\Article::where(function ($query) use ($request) {
+                        $query->whereIn('category', $request->categories)
+                            ->orWhereIn('country', $request->countries);
+                    })
                     ->where('status', 'published')
+                    ->where('is_deleted', false)
+                    ->whereHas('publishedSites', function ($q) {
+                        $q->where('site_name', 'Main News Portal');
+                    })
                     ->latest()
                     ->limit(3)
                     ->get();
@@ -221,17 +232,28 @@ class SubscriptionController extends Controller
             ], now()->addDays(30));
 
             // Fetch matching articles
+            // AND restrict to articles published to the Main News Portal
             $matchingArticles = \App\Models\Article::whereIn('category', $request->categories)
                 ->whereIn('country', $request->countries)
                 ->where('status', 'published')
+                ->where('is_deleted', false)
+                ->whereHas('publishedSites', function ($q) {
+                    $q->where('site_name', 'Main News Portal');
+                })
                 ->latest()
                 ->limit(3)
                 ->get();
 
             if ($matchingArticles->isEmpty()) {
-                $matchingArticles = \App\Models\Article::whereIn('category', $request->categories)
-                    ->orWhereIn('country', $request->countries)
+                $matchingArticles = \App\Models\Article::where(function ($query) use ($request) {
+                        $query->whereIn('category', $request->categories)
+                            ->orWhereIn('country', $request->countries);
+                    })
                     ->where('status', 'published')
+                    ->where('is_deleted', false)
+                    ->whereHas('publishedSites', function ($q) {
+                        $q->where('site_name', 'Main News Portal');
+                    })
                     ->latest()
                     ->limit(3)
                     ->get();

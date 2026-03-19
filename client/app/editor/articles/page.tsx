@@ -94,11 +94,7 @@ export default function EditorArticlesPage() {
                 const response = await getAdminArticles(apiFilters);
                 const { data, current_page, last_page, status_counts, available_filters } = response.data;
 
-                // Exclude Redis articles from Editor's view
-                const visibleArticles = (data ?? []).filter((a: ArticleResource) =>
-                    a.status !== 'being_processed' && !a.is_redis
-                );
-                setArticles(visibleArticles);
+                setArticles(data ?? []);
 
                 pagination.handlePageChange(current_page ?? 1);
                 pagination.setTotalPages(last_page ?? 1);

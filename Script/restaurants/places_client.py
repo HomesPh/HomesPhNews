@@ -7,6 +7,7 @@ Fetches countries/cities from MySQL (or fallback from config). Uses Geocode → 
 import os
 import time
 import uuid
+import threading
 import requests
 from typing import List, Dict, Optional, Tuple
 from dotenv import load_dotenv
@@ -32,6 +33,27 @@ FILIPINO_KEYWORDS = [
 ]
 # Optional: use Gemini to fill description, specialty_dish, menu_highlights, clickbait_hook, why_filipinos_love_it
 RESTAURANT_ENRICH_AI = os.getenv("RESTAURANT_ENRICH_AI", "true").lower() in ("1", "true", "yes")
+
+# Shared AIProcessor singleton — initialized once, reused across all threads
+_ai_processor_lock = threading.Lock()
+_shared_ai_processor = None
+
+
+def _get_ai_processor():
+    """Return a shared AIProcessor instance, initializing it only once."""
+    global _shared_ai_processor
+    if _shared_ai_processor is not None:
+        return _shared_ai_processor
+    with _ai_processor_lock:
+        if _shared_ai_processor is None:
+            try:
+                from ai_service import AIProcessor
+                proc = AIProcessor()
+                _shared_ai_processor = proc if proc.text_model else None
+            except Exception:
+                _shared_ai_processor = None
+    return _shared_ai_processor
+
 
 # When MySQL has no cities, use one default city per country (from config.COUNTRIES)
 DEFAULT_CITY_PER_COUNTRY = {
@@ -472,15 +494,7 @@ def fetch_restaurants_for_location(
         return []
 
     restaurants = []
-    ai_processor = None
-    if RESTAURANT_ENRICH_AI:
-        try:
-            from ai_service import AIProcessor
-            ai_processor = AIProcessor()
-            if not ai_processor.text_model:
-                ai_processor = None
-        except Exception:
-            ai_processor = None
+    ai_processor = _get_ai_processor() if RESTAURANT_ENRICH_AI else None
 
     for place in results:
         place_id = place.get("place_id")

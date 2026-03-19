@@ -18,6 +18,8 @@ export interface Block {
     id: string;
     type: BlockType;
     content: any;
+    image?: string; // Fallback source field
+    caption?: string;
     settings?: {
         fontSize?: string;
         fontWeight?: string;

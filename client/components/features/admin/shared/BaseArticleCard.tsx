@@ -1,11 +1,17 @@
 "use client";
 
-import { useMemo } from 'react';
-import { Calendar, Eye, MapPin } from 'lucide-react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
+import { Calendar, Eye, MapPin, Loader2, ChevronDown } from 'lucide-react';
 import { cn, sanitizeImageUrl, decodeHtml, calculateReadTime, stripHtml } from "@/lib/utils";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 import ShareButtons from "@/components/shared/ShareButtons";
 import { useAuth } from "@/hooks/useAuth";
+import { getCategories } from "@/lib/api-v2/admin/service/scraper/getCategories";
+import { getCountries } from "@/lib/api-v2/admin/service/scraper/getCountries";
+import { getProvinces } from "@/lib/api-v2/admin/service/scraper/getProvinces";
+import { getCities } from "@/lib/api-v2/admin/service/cities/getCities";
+import { updateArticle } from "@/lib/api-v2/admin/service/article/updateArticle";
+import { useAlert } from "@/hooks/useAlert";
 
 interface BaseArticleCardProps {
     article: {
@@ -20,6 +26,7 @@ interface BaseArticleCardProps {
         summary?: string;
         content?: string;         // New field for read time
         description?: string;     // Legacy fallback
+        published_at?: string | null;
         created_at?: string | null;
         date?: string;            // Legacy fallback
         views_count?: number;
@@ -34,6 +41,10 @@ interface BaseArticleCardProps {
         editor_first_name?: string | null;
         editor_last_name?: string | null;
         edited_by?: number;
+        province_id?: string | number | null;
+        city_id?: string | number | null;
+        province_name?: string | null;
+        city_name?: string | null;
     };
     variant?: 'compact' | 'list';
     onClick?: () => void;
@@ -44,6 +55,7 @@ interface BaseArticleCardProps {
     };
     className?: string;
     hideStatus?: boolean;
+    enableInlineEdit?: boolean;
 }
 
 // Helper function to format date
@@ -77,12 +89,125 @@ export default function BaseArticleCard({
     hideStatus = false,
     selection,
     actions,
+    enableInlineEdit = false,
 }: BaseArticleCardProps) {
     const { user } = useAuth();
+    const { showAlert } = useAlert();
     const showEditorAttribution = useMemo(() => {
         if (!user) return false;
         return user.roles.includes('admin');
     }, [user]);
+
+    // Inline Edit State
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [categories, setCategories] = useState<string[]>([]);
+    const [countries, setCountries] = useState<any[]>([]);
+    const [provinces, setProvinces] = useState<any[]>([]);
+    const [cities, setCities] = useState<any[]>([]);
+
+    const [selectedCategory, setSelectedCategory] = useState(article.category || "");
+    const [selectedCountry, setSelectedCountry] = useState(article.country || "");
+    const [selectedProvinceId, setSelectedProvinceId] = useState(String(article.province_id || ""));
+    const [selectedCityId, setSelectedCityId] = useState(String(article.city_id || ""));
+
+    // Fetch initial data for dropdowns
+    useEffect(() => {
+        if (!enableInlineEdit) return;
+
+        const fetchData = async () => {
+            try {
+                // Fetch all in parallel for speed
+                const [catRes, countryRes, provRes, cityRes] = await Promise.all([
+                    getCategories().catch(() => ({ data: [] })),
+                    getCountries().catch(() => ({ data: [] })),
+                    getProvinces().catch(() => ({ data: [] })),
+                    getCities().catch(() => ({ data: [] }))
+                ]);
+
+                if (Array.isArray(catRes.data)) {
+                    setCategories(catRes.data.map((c: any) => typeof c === 'string' ? c : c.name));
+                }
+                
+                const countryData = (countryRes.data as any).data || countryRes.data;
+                if (Array.isArray(countryData)) setCountries(countryData);
+
+                const provData = (provRes.data as any).data || provRes.data;
+                if (Array.isArray(provData)) setProvinces(provData);
+
+                const cityData = (cityRes.data as any).data || cityRes.data;
+                if (Array.isArray(cityData)) setCities(cityData);
+
+            } catch (err) {
+                console.error("Failed to fetch dropdown data:", err);
+            }
+        };
+
+        fetchData();
+    }, [enableInlineEdit]);
+
+    // Filtered data for dependent dropdowns
+    const selectedCountryId = useMemo(() => {
+        if (!selectedCountry || !countries.length) return null;
+        const normalizedInput = selectedCountry.trim().toUpperCase();
+        const countryObj = countries.find(c =>
+            c.name?.trim().toUpperCase() === normalizedInput ||
+            c.id?.trim().toUpperCase() === normalizedInput
+        );
+        return countryObj?.id || null;
+    }, [selectedCountry, countries]);
+
+    const filteredProvinces = useMemo(() => {
+        if (!selectedCountryId) return [];
+        const countryIdUpper = selectedCountryId.toUpperCase();
+        return provinces.filter(p => p.country_id?.trim().toUpperCase() === countryIdUpper);
+    }, [selectedCountryId, provinces]);
+
+    const filteredCities = useMemo(() => {
+        if (!selectedCountryId) return [];
+        const countryIdUpper = String(selectedCountryId).toUpperCase();
+        let filtered = cities.filter(c => String(c.country_id || "").toUpperCase() === countryIdUpper);
+        if (selectedProvinceId && selectedProvinceId !== "0" && selectedProvinceId !== "") {
+            const provIdStr = String(selectedProvinceId);
+            filtered = filtered.filter(c => String(c.province_id) === provIdStr);
+        }
+        return filtered;
+    }, [selectedCountryId, selectedProvinceId, cities]);
+
+    const handleUpdate = async (field: string, value: any) => {
+        if (!article.id) return;
+
+        setIsUpdating(true);
+        try {
+            const payload: any = { [field]: value };
+            
+            // If country changes, reset province and city
+            if (field === 'country') {
+                payload.province_id = "";
+                payload.city_id = "";
+                setSelectedProvinceId("");
+                setSelectedCityId("");
+            }
+            // If province changes, reset city
+            if (field === 'province_id') {
+                payload.city_id = "";
+                setSelectedCityId("");
+            }
+
+            await updateArticle(article.id, payload);
+            
+            // Update local state if needed (mostly for UI feedback before refresh)
+            if (field === 'category') setSelectedCategory(value);
+            if (field === 'country') setSelectedCountry(value);
+            if (field === 'province_id') setSelectedProvinceId(value);
+            if (field === 'city_id') setSelectedCityId(value);
+
+        } catch (err: any) {
+            console.error("Failed to update article field:", err);
+            showAlert("Error", "Failed to update article. Please try again.");
+        } finally {
+            setIsUpdating(false);
+        }
+    };
 
     const isCompact = variant === 'compact';
 
@@ -90,7 +215,7 @@ export default function BaseArticleCard({
     const imageUrl = sanitizeImageUrl(article.image_url || article.image || 'https://placehold.co/800x450?text=No+Image');
     const location = article.country || article.location || 'Unknown';
     const description = article.summary || article.description || '';
-    const dateStr = article.created_at || article.date || null;
+    const dateStr = article.published_at || article.created_at || article.date || null;
     const viewsStr = article.views ?? formatViews(article.views_count);
 
     // Handle published_sites which can be string or string[]
@@ -222,14 +347,87 @@ export default function BaseArticleCard({
                 <div className="flex-1 flex flex-col justify-between min-h-[80px] sm:min-h-[106px]">
                     {/* Category, Location, and Status */}
                     <div className="flex items-center justify-between mb-1 sm:mb-2">
-                        <div className="flex items-center gap-2">
-                            <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-white border border-[#e5e7eb] rounded-[4px] text-[10px] sm:text-[12px] font-semibold text-[#111827] tracking-[-0.5px] uppercase">
-                                {article.category}
-                            </span>
-                            <span className="text-[12px] sm:text-[14px] text-[#111827]">|</span>
-                            <span className="text-[10px] sm:text-[12px] font-semibold text-[#111827] tracking-[-0.5px] uppercase">
-                                {location}
-                            </span>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                            {enableInlineEdit ? (
+                                <div className="relative group/select">
+                                    <select
+                                        disabled={isUpdating}
+                                        value={selectedCategory}
+                                        onChange={(e) => handleUpdate('category', e.target.value)}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="appearance-none pl-2 sm:pl-3 pr-5 sm:pr-6 py-0.5 bg-transparent border border-transparent rounded-[4px] text-[10px] sm:text-[11px] font-bold text-[#111827] tracking-tight uppercase focus:outline-none cursor-pointer hover:bg-gray-100/50 focus:bg-white focus:border-gray-200 transition-all disabled:opacity-50"
+                                    >
+                                        <option value="">{article.category || "CATEGORY"}</option>
+                                        {categories.map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 w-2.5 h-2.5 text-gray-400 pointer-events-none group-hover/select:text-[#1428AE] transition-colors" />
+                                </div>
+                            ) : (
+                                <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-white border border-[#e5e7eb] rounded-[4px] text-[10px] sm:text-[11px] font-bold text-[#111827] tracking-tight uppercase">
+                                    {article.category}
+                                </span>
+                            )}
+                            
+                            <span className="text-[12px] sm:text-[14px] text-gray-300">|</span>
+                            
+                            {enableInlineEdit ? (
+                                <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+                                    <div className="relative group/loc">
+                                        <select
+                                            disabled={isUpdating}
+                                            value={selectedCountry}
+                                            onChange={(e) => handleUpdate('country', e.target.value)}
+                                            className="appearance-none pl-1 pr-3.5 bg-transparent text-[10px] sm:text-[11px] font-bold text-gray-500 tracking-tight uppercase focus:outline-none cursor-pointer hover:text-[#1428AE] hover:bg-gray-100/30 rounded transition-all disabled:opacity-50 min-w-[70px]"
+                                        >
+                                            <option value="">{article.country || "SELECT COUNTRY"}</option>
+                                            {countries.map(c => (
+                                                <option key={c.id || c.name} value={c.name}>{c.name}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 text-gray-300 pointer-events-none group-hover/loc:text-[#1428AE]" />
+                                    </div>
+                                    
+                                    <span className="text-[10px] sm:text-[11px] text-gray-300">/</span>
+                                    <div className="relative group/loc">
+                                        <select
+                                            disabled={isUpdating}
+                                            value={selectedProvinceId}
+                                            onChange={(e) => handleUpdate('province_id', e.target.value)}
+                                            className="appearance-none pl-1 pr-3.5 bg-transparent text-[10px] sm:text-[11px] font-bold text-gray-400 tracking-tight uppercase focus:outline-none cursor-pointer hover:text-[#1428AE] hover:bg-gray-100/30 rounded transition-all disabled:opacity-50 min-w-[50px] max-w-[100px] truncate"
+                                        >
+                                            <option value="">{article.province_name || "SELECT PROVINCE"}</option>
+                                            {filteredProvinces.map(p => (
+                                                <option key={p.id} value={p.id}>{p.name}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 text-gray-300 pointer-events-none group-hover/loc:text-[#1428AE]" />
+                                    </div>
+
+                                    <span className="text-[10px] sm:text-[11px] text-gray-300">/</span>
+                                    <div className="relative group/loc">
+                                        <select
+                                            disabled={isUpdating}
+                                            value={selectedCityId}
+                                            onChange={(e) => handleUpdate('city_id', e.target.value)}
+                                            className="appearance-none pl-1 pr-3.5 bg-transparent text-[10px] sm:text-[11px] font-bold text-gray-400 tracking-tight uppercase focus:outline-none cursor-pointer hover:text-[#1428AE] hover:bg-gray-100/30 rounded transition-all disabled:opacity-50 min-w-[50px] max-w-[100px] truncate"
+                                        >
+                                            <option value="">{article.city_name || "SELECT CITY"}</option>
+                                            {filteredCities.map(c => (
+                                                <option key={c.city_id} value={c.city_id}>{c.name}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 text-gray-300 pointer-events-none group-hover/loc:text-[#1428AE]" />
+                                    </div>
+
+                                    {isUpdating && <Loader2 className="w-3 h-3 animate-spin text-[#1428AE] ml-1" />}
+                                </div>
+                            ) : (
+                                <span className="text-[10px] sm:text-[11px] font-bold text-gray-500 tracking-tight uppercase">
+                                    {location}
+                                </span>
+                            )}
                         </div>
                         <div className="hidden sm:flex items-center gap-2">
                             {!hideStatus && <StatusBadge status={(article.is_redis ? 'being_processed' : article.status) as any} />}

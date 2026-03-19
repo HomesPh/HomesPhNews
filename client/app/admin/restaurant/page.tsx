@@ -98,7 +98,7 @@ export default function RestaurantPage() {
             const response = await getAdminRestaurants({
                 status: 'being_processed',
                 page: pagination.currentPage,
-                per_page: 5,
+                per_page: 10,
             } as any);
             const resData = response.data as any;
             setFilteredRestaurants(resData?.data ?? []);
@@ -134,7 +134,7 @@ export default function RestaurantPage() {
                 city: filters.city === '' ? undefined : filters.city,
                 search: searchQuery || undefined,
                 page: pagination.currentPage,
-                per_page: 5
+                per_page: 10
             } as any;
 
             const response = await getAdminRestaurants(apiFilters);
@@ -291,7 +291,7 @@ export default function RestaurantPage() {
                             ))}
                         </div>
                     ) : filteredRestaurants.length > 0 ? (
-                        filteredRestaurants.slice(0, 5).map((restaurant) => (
+                        filteredRestaurants.map((restaurant) => (
                             <RestaurantListItem
                                 key={restaurant.id}
                                 restaurant={restaurant}

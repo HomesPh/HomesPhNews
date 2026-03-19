@@ -202,6 +202,7 @@ Route::prefix('v1')->group(function () {
     // Metadata (Public)
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::get('/countries', [CountryController::class, 'index']);
+    Route::get('/upload/proxy', [UploadController::class, 'proxyImage'])->name('upload.proxy');
 
     /*
      |--------------------------------------------------------------------------
@@ -270,8 +271,9 @@ Route::prefix('v1')->group(function () {
             Route::get('articles', [AdminArticleController::class, 'index']);
             Route::get('articles/{article}', [AdminArticleController::class, 'show']);
 
-            // Site names — CEO needs this to select publish targets
+            // Sites — Needed for editors/CEOs to select publish targets and get logos for templates
             Route::get('sites/names', [SiteController::class, 'names']);
+            Route::apiResource('sites', SiteController::class)->only(['index', 'show']);
 
             // Shared metadata resources
             Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
@@ -340,7 +342,9 @@ Route::prefix('v1')->group(function () {
                 Route::post('articles/{id}/restore', [AdminArticleController::class, 'restore']);
 
                 // Resource Routes
-                Route::apiResource('sites', SiteController::class);
+                Route::apiResource('sites', SiteController::class)->except(['index', 'show']);
+                Route::apiResource('provinces', ProvinceController::class)->except(['index', 'show']);
+                Route::apiResource('cities', CityController::class)->except(['index', 'show']);
 
                 Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
                 Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');

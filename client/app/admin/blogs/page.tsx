@@ -41,23 +41,26 @@ function BlogsPageContent() {
     const authorFilter = searchParams.get('author');
 
     const { filters, setFilter, setFilters } = useUrlFilters(URL_FILTERS_CONFIG);
+    const pagination = usePagination();
     const [searchQuery, setSearchQuery] = useState(authorFilter || filters.search || '');
 
     // Sync search query with URL
     useEffect(() => {
+        // Avoid infinite loop by only triggering if the value actually changed
+        if (searchQuery === (filters.search || '')) return;
+
         const timer = setTimeout(() => {
             setFilter('search', searchQuery);
+            pagination.handlePageChange(1); // Reset to first page on search
         }, 300);
         return () => clearTimeout(timer);
-    }, [searchQuery, setFilter]);
+    }, [searchQuery, setFilter, filters.search, pagination]);
 
     useEffect(() => {
         if (authorFilter && searchQuery !== authorFilter) {
             setSearchQuery(authorFilter);
         }
-    }, [authorFilter]);
-
-    const pagination = usePagination();
+    }, [authorFilter, searchQuery]);
 
     const filteredBlogs = useMemo(() => {
         return mockBlogs.filter(blog => {
@@ -141,7 +144,7 @@ function BlogsPageContent() {
                 />
 
                 <BlogsList
-                    blogs={filteredBlogs.slice((pagination.currentPage - 1) * 5, pagination.currentPage * 5)}
+                    blogs={filteredBlogs.slice((pagination.currentPage - 1) * 10, pagination.currentPage * 10)}
                     onView={handleViewBlog}
                     onDelete={handleDeleteBlog}
                 />
@@ -150,7 +153,7 @@ function BlogsPageContent() {
             <div className="mt-8">
                 <Pagination
                     currentPage={pagination.currentPage}
-                    totalPages={Math.ceil(filteredBlogs.length / 5) || 1}
+                    totalPages={Math.ceil(filteredBlogs.length / 10) || 1}
                     onPageChange={pagination.handlePageChange}
                 />
             </div>

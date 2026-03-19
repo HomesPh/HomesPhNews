@@ -18,11 +18,11 @@ export default function ProvinceList() {
         setIsLoading(true);
         try {
             const [provincesRes, countriesRes] = await Promise.all([
-                getProvinces().catch(err => {
+                getProvinces(true).catch(err => {
                     console.error("Failed to fetch provinces:", err);
                     return { data: [] };
                 }),
-                getCountries().catch(err => {
+                getCountries(true).catch(err => {
                     console.error("Failed to fetch countries:", err);
                     return { data: [] };
                 })

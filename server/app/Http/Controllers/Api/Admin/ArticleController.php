@@ -417,8 +417,8 @@ class ArticleController extends Controller
 
         // Paginate DB results - Eager load to prevent N+1 queries
         $articles = $query
-            ->with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name'])
-            ->select('id', 'article_id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'is_deleted', 'content_blocks', 'template', 'author', 'edited_by')
+            ->with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name', 'city', 'province'])
+            ->select('id', 'article_id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'is_deleted', 'content_blocks', 'template', 'author', 'edited_by', 'province_id', 'city_id')
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage);
 
@@ -621,12 +621,12 @@ class ArticleController extends Controller
     public function show($id): JsonResponse|ArticleResource
     {
         if (is_numeric($id) || !\Illuminate\Support\Str::isUuid($id)) {
-            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name'])->find($id);
+            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name', 'city', 'province'])->find($id);
             if ($article) {
                 return new ArticleResource($article);
             }
         } else {
-            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name'])->where('id', $id)->first();
+            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name', 'city', 'province'])->where('id', $id)->first();
             if ($article) {
                 return new ArticleResource($article);
             }
