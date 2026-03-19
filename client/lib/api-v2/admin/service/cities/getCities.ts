@@ -2,6 +2,15 @@ import AXIOS_INSTANCE_ADMIN from "../../axios-instance";
 import type { AxiosResponse } from "axios";
 import type { CityResource } from "../../../types/CityResource";
 
-export async function getCities(): Promise<AxiosResponse<CityResource[]>> {
-    return AXIOS_INSTANCE_ADMIN.get<CityResource[]>("/v1/admin/cities");
+let citiesCache: Promise<AxiosResponse<CityResource[]>> | null = null;
+
+export async function getCities(forceRefresh = false): Promise<AxiosResponse<CityResource[]>> {
+    if (!citiesCache || forceRefresh) {
+        citiesCache = AXIOS_INSTANCE_ADMIN.get<CityResource[]>("/v1/admin/cities");
+    }
+    return citiesCache;
+}
+
+export function clearCitiesCache() {
+    citiesCache = null;
 }

@@ -18,8 +18,8 @@ export default function CityList() {
         setIsLoading(true);
         try {
             const [citiesRes, countriesRes] = await Promise.all([
-                getCities(),
-                getCountries()
+                getCities(true),
+                getCountries(true)
             ]);
 
             // Handle Laravel Resource Collection wrapping if present

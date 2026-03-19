@@ -111,4 +111,20 @@ class Article extends Model
     {
         return $this->belongsTo(User::class, 'edited_by');
     }
+
+    /**
+     * Relationship: The city associated with this article
+     */
+    public function city()
+    {
+        return $this->belongsTo(City::class, 'city_id', 'city_id');
+    }
+
+    /**
+     * Relationship: The province associated with this article
+     */
+    public function province()
+    {
+        return $this->belongsTo(Province::class, 'province_id', 'id');
+    }
 }

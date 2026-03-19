@@ -322,97 +322,20 @@
             <div class="ad-badge">Ad</div>
 
             @if($adUnit->type === 'image')
-                @php
-                    $banners = $campaign->banner_image_urls ?? [];
-                    if (empty($banners) && !empty($campaign->image_url)) {
-                        $banners = [$campaign->image_url];
-                    }
-                @endphp
-
                 <div class="image-ad" id="dynamic-ad-container">
-                    <div class="empty-state" style="border:none; background:transparent;">Loading ad...</div>
+                    @if($bannerUrl)
+                        <img src="{{ $bannerUrl }}" alt="{{ $campaign->name ?? '' }}">
+                    @else
+                        <!-- Unfilled impression behavior -->
+                        <div class="empty-state" style="border:none; background:transparent; display: none;"></div>
+                        <script>document.body.style.display = 'none';</script>
+                    @endif
                 </div>
-
-                <script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        var banners = @json($banners);
-                        var container = document.getElementById('dynamic-ad-container');
-                        
-                        if (!banners || banners.length === 0) {
-                            container.innerHTML = '<div class="empty-state">No Image Available</div>';
-                            return;
-                        }
-
-                        if (banners.length === 1) {
-                            container.innerHTML = '<img src="' + banners[0] + '" alt="{{ $campaign->name ?? '' }}">';
-                            return;
-                        }
-
-                        // Check explicit size from URL (?size=728x90)
-                        var urlParams = new URLSearchParams(window.location.search);
-                        var sizeParam = urlParams.get('size');
-                        var targetWidth = window.innerWidth;
-                        var targetHeight = window.innerHeight;
-
-                        if (sizeParam && sizeParam !== 'responsive' && sizeParam.includes('x')) {
-                            var parts = sizeParam.split('x');
-                            targetWidth = parseInt(parts[0], 10) || targetWidth;
-                            targetHeight = parseInt(parts[1], 10) || targetHeight;
-                        }
-
-                        var loadedCount = 0;
-                        var matched = false;
-
-                        // AdSense Behavior: If a specific size is requested but not available in the campaign's assets,
-                        // AdSense will NOT show a stretched/incorrectly sized banner. Instead, it results in an "unfilled" impression (shows nothing or collapses).
-                        
-                        banners.forEach(function(url) {
-                            var img = new Image();
-                            img.onload = function() {
-                                loadedCount++;
-                                if (matched) return; // Stop if we already found the perfect match
-
-                                var wDiff = Math.abs(this.width - targetWidth);
-                                var hDiff = Math.abs(this.height - targetHeight);
-
-                                // If dimensions match closely
-                                if (wDiff <= 10 && hDiff <= 10) {
-                                    matched = true;
-                                    container.innerHTML = '<img src="' + url + '" alt="{{ $campaign->name ?? '' }}">';
-                                } else if (loadedCount === banners.length && !matched) {
-                                    // AdSense Behavior: If we checked all images and none match the specific requested ?size=
-                                    if (sizeParam && sizeParam !== 'responsive') {
-                                        // Specific size requested but not found: Collapse or show empty state (Unfilled Impression)
-                                        container.innerHTML = '';
-                                        // Optional: Hide the entire ad container wrapper if nothing is shown
-                                        document.body.style.display = 'none'; 
-                                    } else {
-                                        // Responsive/Auto request: Just show the first available banner as fallback
-                                        container.innerHTML = '<img src="' + banners[0] + '" alt="{{ $campaign->name ?? '' }}">';
-                                    }
-                                }
-                            };
-                            img.onerror = function() {
-                                loadedCount++;
-                                if (loadedCount === banners.length && !matched) {
-                                     if (sizeParam && sizeParam !== 'responsive') {
-                                        container.innerHTML = '';
-                                        document.body.style.display = 'none';
-                                    } else {
-                                        container.innerHTML = '<img src="' + banners[0] + '" alt="{{ $campaign->name ?? '' }}">';
-                                    }
-                                }
-                            };
-                            img.src = url;
-                        });
-                    });
-                </script>
-
             @elseif($adUnit->type === 'text')
                 <!-- Text Ad — image as full background -->
                 <div class="text-ad">
-                    @if($campaign->image_url)
-                        <img class="text-ad-bg" src="{{ $campaign->image_url }}" alt="{{ $campaign->headline ?? $campaign->name }}">
+                    @if($bannerUrl)
+                        <img class="text-ad-bg" src="{{ $bannerUrl }}" alt="{{ $campaign->headline ?? $campaign->name }}">
                     @endif
                     <div class="text-ad-overlay"></div>
                     <div class="text-ad-content">

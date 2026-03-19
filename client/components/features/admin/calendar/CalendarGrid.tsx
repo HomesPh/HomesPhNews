@@ -12,6 +12,7 @@ interface CalendarGridProps {
     selectedCountry: string;
     onEventClick: (event: CalendarEvent) => void;
     onDateClick: (date: Date) => void;
+    onDateNumberClick: (date: Date) => void;
     onMonthClick: (year: number, month: number) => void;
 }
 
@@ -23,6 +24,7 @@ export default function CalendarGrid({
     selectedCountry,
     onEventClick,
     onDateClick,
+    onDateNumberClick,
     onMonthClick
 }: CalendarGridProps) {
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -110,6 +112,8 @@ export default function CalendarGrid({
                     {weekDays.map((date, idx) => {
                         const dayEvents = getEventsForDate(date);
                         const isToday = date.toDateString() === new Date().toDateString();
+                        const today = new Date(); today.setHours(0, 0, 0, 0);
+                        const isPast = date < today;
 
                         return (
                             <div key={idx} className="border-r border-[#e5e7eb] last:border-r-0">
@@ -118,7 +122,17 @@ export default function CalendarGrid({
                                     <p className="text-[11px] font-semibold text-[#6b7280] tracking-[-0.5px] uppercase mb-1">
                                         {dayNamesShort[idx]}
                                     </p>
-                                    <p className={`text-[24px] font-bold tracking-[-0.5px] ${isToday ? 'text-[#1428AE]' : 'text-[#111827]'}`}>
+                                    <p
+                                        onClick={isPast ? undefined : (e) => { e.stopPropagation(); onDateNumberClick(date); }}
+                                        className={`text-[24px] font-bold tracking-[-0.5px] inline-flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
+                                            isToday
+                                                ? 'bg-[#1428AE] text-white hover:bg-[#000785] cursor-pointer'
+                                                : isPast
+                                                    ? 'text-[#d1d5db] cursor-not-allowed'
+                                                    : 'text-[#111827] hover:bg-[#e5e7eb] cursor-pointer'
+                                        }`}
+                                        title={isPast ? 'Past date' : 'View day'}
+                                    >
                                         {date.getDate()}
                                     </p>
                                 </div>
@@ -191,25 +205,45 @@ export default function CalendarGrid({
                     {calendarDays.map((day, idx) => {
                         const dayEvents = getEventsForDate(day.date);
                         const isToday = day.date.toDateString() === new Date().toDateString();
+                        const today = new Date(); today.setHours(0, 0, 0, 0);
+                        const isPast = day.date < today;
 
                         return (
                             <div
                                 key={idx}
-                                onClick={() => onDateClick(day.date)}
-                                className={`min-h-[120px] p-3 border-r border-b border-[#e5e7eb] last:border-r-0 cursor-pointer hover:bg-[#f9fafb] transition-colors ${!day.isCurrentMonth ? 'bg-[#fafafa]' : ''
-                                    }`}
+                                onClick={isPast ? undefined : () => onDateClick(day.date)}
+                                className={`min-h-[120px] p-3 border-r border-b border-[#e5e7eb] last:border-r-0 transition-colors ${
+                                    isPast
+                                        ? 'bg-[#f9fafb] cursor-not-allowed opacity-60'
+                                        : !day.isCurrentMonth
+                                            ? 'bg-[#fafafa] cursor-pointer hover:bg-[#f3f4f6]'
+                                            : 'cursor-pointer hover:bg-[#f9fafb]'
+                                }`}
                             >
-                                {/* Date Number */}
+                                {/* Date Number — click navigates to Day view */}
                                 <div className="mb-2">
                                     {isToday ? (
-                                        <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#1428AE] text-white">
+                                        <div
+                                            onClick={(e) => { e.stopPropagation(); onDateNumberClick(day.date); }}
+                                            className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#1428AE] text-white hover:bg-[#000785] transition-colors cursor-pointer"
+                                            title="View day"
+                                        >
                                             <p className="text-[14px] font-semibold tracking-[-0.5px]">
                                                 {day.date.getDate()}
                                             </p>
                                         </div>
                                     ) : (
-                                        <p className={`text-[14px] font-semibold tracking-[-0.5px] ${!day.isCurrentMonth ? 'text-[#9ca3af]' : 'text-[#111827]'
-                                            }`}>
+                                        <p
+                                            onClick={isPast ? undefined : (e) => { e.stopPropagation(); onDateNumberClick(day.date); }}
+                                            className={`text-[14px] font-semibold tracking-[-0.5px] inline-flex items-center justify-center w-7 h-7 rounded-full transition-colors ${
+                                                isPast
+                                                    ? 'text-[#9ca3af] cursor-not-allowed'
+                                                    : !day.isCurrentMonth
+                                                        ? 'text-[#9ca3af] cursor-pointer hover:ring-2 hover:ring-[#1428AE] hover:ring-offset-1'
+                                                        : 'text-[#111827] cursor-pointer hover:ring-2 hover:ring-[#1428AE] hover:ring-offset-1'
+                                            }`}
+                                            title={isPast ? 'Past date' : 'View day'}
+                                        >
                                             {day.date.getDate()}
                                         </p>
                                     )}

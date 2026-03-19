@@ -25,6 +25,6 @@ class Event extends Model
 
     protected $casts = [
         'is_public_holiday' => 'boolean',
-        'date' => 'date',
+        'date' => 'date:Y-m-d',
     ];
 }

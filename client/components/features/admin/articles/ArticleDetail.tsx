@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { cn, decodeHtml, formatParagraphs } from "@/lib/utils";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "@/lib/api-v2";
-import { Calendar, Eye, Edit, ChevronLeft, Loader2, ExternalLink } from 'lucide-react';
+import { Calendar, Eye, Edit, ChevronLeft, Loader2, ExternalLink, Image as ImageIcon } from 'lucide-react';
 
 import { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
 import { getAdminArticleById } from "@/lib/api-v2/admin/service/article/getAdminArticleById";
@@ -20,6 +20,7 @@ import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 import SendNewsletterModal from "@/components/features/admin/articles/SendNewsletterModal";
 import ArticleBreadcrumb from "@/components/features/article/ArticleBreadcrumb";
 import ShareButtons from "@/components/shared/ShareButtons";
+import TemplateGenerator from "@/components/features/admin/articles/TemplateGenerator";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -68,6 +69,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
     const [availableSites, setAvailableSites] = useState<string[]>([]);
     const [publishToSites, setPublishToSites] = useState<string[]>([]);
     const [isNewsletterModalOpen, setIsNewsletterModalOpen] = useState(false);
+    const [isTemplateGeneratorOpen, setIsTemplateGeneratorOpen] = useState(false);
 
     const [availableFilters, setAvailableFilters] = useState<{
         categories: { name: string; count: number }[];
@@ -672,6 +674,15 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                         Send to Subscribers
                                     </button>
                                 )}
+                                {article.status === 'published' && (
+                                    <button
+                                        onClick={() => setIsTemplateGeneratorOpen(true)}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-[#1428AE] text-[#1428AE] rounded-[8px] text-[14px] font-medium hover:bg-blue-50 transition-all active:scale-95 tracking-[-0.5px]"
+                                    >
+                                        <ImageIcon className="w-4 h-4" />
+                                        Generate Template
+                                    </button>
+                                )}
                                 {isEditor ? (
                                     // Editors shouldn't see delete/restore in detail view usually, or if they do, it's restricted
                                     null
@@ -798,12 +809,14 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                 <SendNewsletterModal
                     isOpen={isNewsletterModalOpen}
                     onClose={() => setIsNewsletterModalOpen(false)}
-                    articles={[{
-                        id: article.id,
-                        title: article.title,
-                        category: article.category,
-                        country: article.country
-                    }]}
+                    articles={[article]}
+                />
+            )}
+            {article && (
+                <TemplateGenerator
+                    isOpen={isTemplateGeneratorOpen}
+                    onClose={() => setIsTemplateGeneratorOpen(false)}
+                    article={article}
                 />
             )}
         </div>

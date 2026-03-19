@@ -12,6 +12,9 @@ export interface CreateSiteRequest {
   description?: string | null;
   categories?: string[] | null;
   image?: string | null;
+  original_logo?: string | null;
+  dark_logo?: string | null;
+  light_logo?: string | null;
 }
 
 export interface CreateSiteResponse {

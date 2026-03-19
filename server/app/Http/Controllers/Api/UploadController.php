@@ -63,7 +63,22 @@ class UploadController extends Controller
                 $file = $request->file('image');
                 $filename = Str::uuid().'.'.$file->getClientOriginalExtension();
 
-                // Store in S3 bucket under homestv/articles directory
+                if ($request->input('type') === 'partner_logo') {
+                    // Store in S3 bucket under homestv/partner_logos directory
+                    $path = $file->storeAs('homestv/partner_logos', $filename, 's3');
+                    
+                    // Construct the full S3 URL
+                    $url = Storage::disk('s3')->url($path);
+                    
+                    return response()->json([
+                        'message' => 'Image uploaded successfully',
+                        'url' => $url,
+                        'filename' => $filename,
+                        'path' => $path,
+                    ], 200);
+                }
+
+                // Default behavior: Store in S3 bucket under homestv/articles directory
                 $path = $file->storeAs('homestv/articles', $filename, 's3');
 
                 // Construct the full S3 URL
@@ -83,6 +98,42 @@ class UploadController extends Controller
                 'message' => 'Upload failed',
                 'error' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * Proxy external images to bypass CORS for canvas.
+     */
+    public function proxyImage(Request $request)
+    {
+        $url = $request->query('url');
+        if (!$url) return response()->json(['message' => 'No URL provided'], 400);
+
+        try {
+            // Use a more robust fetching method to handle SSL and timeouts
+            $ctx = stream_context_create([
+                'http' => ['timeout' => 15],
+                'ssl' => ['verify_peer' => false, 'verify_peer_name' => false] // Allow self-signed or cert issues for S3
+            ]);
+
+            $contents = @file_get_contents($url, false, $ctx);
+            
+            if ($contents === false) {
+                return response()->json([
+                    'message' => 'Failed to fetch image from S3/external source',
+                    'url' => $url
+                ], 404);
+            }
+
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->buffer($contents);
+
+            return response($contents)
+                ->header('Content-Type', $mimeType)
+                ->header('Access-Control-Allow-Origin', '*')
+                ->header('Cache-Control', 'public, max-age=86400');
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Proxy failed', 'error' => $e->getMessage()], 500);
         }
     }
 }

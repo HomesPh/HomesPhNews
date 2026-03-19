@@ -37,17 +37,9 @@ const URL_FILTERS_CONFIG = {
 export default function SitesPage() {
     // URL-synced filters
     const { filters, setFilter } = useUrlFilters(URL_FILTERS_CONFIG);
+
+    // State
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
-
-    // Sync search query with URL
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setFilter('search', searchQuery);
-        }, 300);
-        return () => clearTimeout(timer);
-    }, [searchQuery, setFilter]);
-
-    // Local state
     const [isLoading, setIsLoading] = useState(true);
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [editingSite, setEditingSite] = useState<Site | undefined>(undefined);
@@ -56,6 +48,18 @@ export default function SitesPage() {
 
     // Pagination
     const pagination = usePagination({ totalPages: 1 });
+
+    // Sync search query with URL
+    useEffect(() => {
+        // Avoid infinite loop by only triggering if the value actually changed
+        if (searchQuery === (filters.search || '')) return;
+
+        const timer = setTimeout(() => {
+            setFilter('search', searchQuery);
+            pagination.handlePageChange(1); // Reset to first page on search
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery, setFilter, filters.search, pagination]);
 
     // Fetch Data
     const fetchData = useCallback(async () => {
