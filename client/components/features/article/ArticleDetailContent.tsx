@@ -1,12 +1,6 @@
 import { getArticleById } from "@/lib/api-v2";
-import ArticleHeader from "./ArticleHeader";
-import ArticleFeaturedImage from "./ArticleFeaturedImage";
-import ArticleContent from "./ArticleContent";
-import RestaurantDetails from "./RestaurantDetails";
-import ArticleShareBox from "./ArticleShareBox";
-import { stripHtml } from "@/lib/utils";
-import { Categories, Countries } from "@/app/data";
 import { notFound } from "next/navigation";
+import ArticleDetailView from "./ArticleDetailView";
 
 interface ArticleDetailContentProps {
   id: string;
@@ -26,76 +20,5 @@ export default async function ArticleDetailContent({ id }: ArticleDetailContentP
     notFound();
   }
 
-  const getCategoryLabel = (cat: string) =>
-    Categories.find(
-      (c) =>
-        c.id.toLowerCase() === cat.toLowerCase() ||
-        c.label.toLowerCase() === cat.toLowerCase()
-    )?.label || cat;
-
-  const getCountryLabel = (country: string) =>
-    Countries.find(
-      (c) =>
-        c.id.toLowerCase() === country.toLowerCase() ||
-        c.label.toLowerCase() === country.toLowerCase()
-    )?.label || country;
-
-  // Deduplication logic: If the first content block is an image and is the same as the featured image,
-  // we skip the featured image to avoid visual duplication.
-  const firstBlock = article.content_blocks?.[0];
-  const firstBlockImage = firstBlock
-    ? (firstBlock.content?.src || firstBlock.content?.image || firstBlock.image)
-    : null;
-
-  const isSelfDuplicating = article.image && firstBlockImage && article.image === firstBlockImage;
-
-  return (
-    <section>
-      <ArticleHeader
-        category={getCategoryLabel(article.category)}
-        categoryId={article.category}
-        location={getCountryLabel(article.country)}
-        countryId={article.country}
-        title={article.title}
-        subtitle={
-          article.summary || (stripHtml(article.content).substring(0, 160) + "...")
-        }
-        author={{ name: article.author || "HOMESPH NEWS" }}
-        date={new Date(article.created_at || Date.now()).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })}
-        views={article.views_count}
-      />
-
-      {article.image && !isSelfDuplicating && (
-        <ArticleFeaturedImage
-          src={article.image}
-          alt={article.title}
-          caption=""
-          image_position={article.image_position}
-          image_position_x={article.image_position_x}
-        />
-      )}
-
-      {article.category === "Restaurant" ? (
-        <RestaurantDetails restaurant={article} />
-      ) : (
-        <ArticleContent
-          content={article.content}
-          contentBlocks={article.content_blocks}
-          topics={
-            Array.isArray((article as any).topics) ? (article as any).topics :
-              Array.isArray((article as any).tags) ? (article as any).tags :
-                typeof (article as any).topics === 'string' ? (article as any).topics.split(",").map((t: string) => t.trim()) :
-                  typeof (article as any).keywords === 'string' ? (article as any).keywords.split(",").map((t: string) => t.trim()) :
-                    []
-          }
-          originalUrl={article.original_url}
-        />
-      )}
-      <ArticleShareBox />
-    </section>
-  );
+  return <ArticleDetailView article={article} />;
 }
