@@ -378,7 +378,7 @@ export default function RestaurantPage() {
                                     {filters.status === 'deleted' ? 'PERMANENT DELETE' : 'GROUP DELETE'}
                                 </button>
 
-                                {filters.status !== 'rejected' && filters.status !== 'deleted' && (
+                                {filters.status !== 'deleted' && (
                                     filters.status === 'published' ? (
                                         <button
                                             onClick={handleBulkUnpublish}
