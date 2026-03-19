@@ -14,7 +14,7 @@ Administrators can now select specific destination sites for each scheduled publ
 ### 2. Automated Publishing Engine
 A robust background system has been implemented to handle the actual publishing logic without manual intervention.
 - **Artisan Command**: `php artisan articles:publish-scheduled`
-- **Source Flexibility**: Can resolve article data from both the **Database** (drafts) and **Redis** (Python scraper source).
+- **Source Flexibility**: Primarily fetches from the **Database** (status: `pending review`) for reliability and handles **Redis** (Python scraper source) as a secondary source during publication.
 - **Cleanup**: Automatically removes temporary data from Redis once publication is successful to optimize storage.
 
 ### 3. Production Readiness
@@ -28,10 +28,11 @@ A robust background system has been implemented to handle the actual publishing 
 A new column `target_sites` (JSON) has been added to the `article_publications` table to persist site IDs.
 
 ### Backend Workflow
-1. **Selection**: Admin selects articles, date, time, and target sites in the frontend.
+1. **Selection**: Admin selects articles from the **Pending Review** list (Database), date, time, and target sites.
 2. **Scheduling**: Data is sent to `POST /admin/article-publications` and stored with a `pending` status.
 3. **Execution**: The `articles:publish-scheduled` command runs via the Laravel scheduler.
 4. **Completion**: The command updates article statuses to `published` in the main `articles` table, syncs the site relationships, and updates the publication log to `published`.
+5. **Date Accuracy**: Strict date casting (`date:Y-m-d`) in the `Event` model ensures events are displayed on the correct day regardless of timezone.
 
 ### Frontend Deduplication
 The system includes logic to prevent duplicate display of public holidays and recurring events on the calendar, ensuring a clean and accurate schedule view.
@@ -45,4 +46,4 @@ The system includes logic to prevent duplicate display of public holidays and re
 6. Click **Schedule Articles**.
 
 ---
-*Last Updated: 2026-03-13*
+*Last Updated: 2026-03-18*

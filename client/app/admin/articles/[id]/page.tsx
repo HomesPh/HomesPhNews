@@ -660,7 +660,7 @@ function ArticleDetailsContent() {
                             <h3 className="text-[16px] font-semibold text-[#111827] mb-4 tracking-[-0.5px]">Quick Actions</h3>
                             <div className="space-y-3">
                                 <button
-                                    onClick={() => window.open(`/article/${article.slug || article.id}`, '_blank')}
+                                    onClick={() => window.open(`/article/${article.id}?preview=true`, '_blank')}
                                     className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#d1d5db] bg-gray-50 rounded-[8px] text-[14px] font-medium text-[#111827] hover:bg-gray-100 transition-all active:scale-95 tracking-[-0.5px]"
                                 >
                                     <Eye className="w-4 h-4" /> Preview
