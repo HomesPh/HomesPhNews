@@ -236,7 +236,6 @@ class RestaurantController extends Controller
         $data['id'] = $data['id'] ?? (string) \Illuminate\Support\Str::uuid();
         $data['status'] = $data['status'] ?? 'published';
         $data['is_featured'] = $request->boolean('is_featured', false);
-        $data['is _featured'] = $request->boolean('is_featured', false);
 
         $restaurant = \App\Models\Restaurant::create($data);
         
@@ -255,7 +254,6 @@ class RestaurantController extends Controller
         $data = $request->all();
         if ($request->has('is_featured')) {
             $data['is_featured'] = $request->boolean('is_featured');
-            $data['is _featured'] = $request->boolean('is_featured');
         }
 
         if ($restaurant) {
@@ -332,7 +330,6 @@ class RestaurantController extends Controller
                 'original_url' => $r['original_url'] ?? '',
                 'clickbait_hook' => $r['clickbait_hook'] ?? '',
                 'is_featured' => $r['is_featured'] ?? false,
-                'is _featured' => $r['is_featured'] ?? false,
                 'status' => 'published',
                 'timestamp' => $r['timestamp'] ?? time(),
                 'tags' => $r['tags'] ?? [],
@@ -415,7 +412,6 @@ class RestaurantController extends Controller
                         'tags' => $r['tags'] ?? [],
                         'features' => $r['features'] ?? [],
                         'is_featured' => $r['is_featured'] ?? false,
-                        'is _featured' => $r['is _featured'] ?? false,
                     ]);
                     Redis::del("{$this->prefix}restaurant:{$id}");
                     Redis::srem("{$this->prefix}all_restaurants", $id);
@@ -496,5 +492,142 @@ class RestaurantController extends Controller
         Redis::srem("{$this->prefix}all_restaurants", $id);
 
         return response()->json(['message' => 'Restaurant deleted from all storage']);
+    }
+
+    /**
+     * Bulk publish multiple restaurants.
+     */
+    public function bulkPublish(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $ids = $request->input('ids', []);
+        $publishedSites = $request->input('published_sites', []);
+
+        if (empty($ids)) {
+            return response()->json(['message' => 'No restaurants selected.'], 400);
+        }
+
+        if (empty($publishedSites)) {
+            return response()->json(['message' => 'No sites selected for publishing.'], 400);
+        }
+
+        $results = [
+            'success' => [],
+            'failed' => []
+        ];
+
+        foreach ($ids as $id) {
+            try {
+                // Reuse the existing publish logic by creating a dummy request
+                $publishRequest = new Request();
+                $publishRequest->merge(['published_sites' => $publishedSites]);
+                
+                $response = $this->publish($publishRequest, $id);
+                
+                if ($response->getStatusCode() === 200) {
+                    $results['success'][] = $id;
+                } else {
+                    $results['failed'][] = ['id' => $id, 'reason' => 'Failed to publish'];
+                }
+            } catch (\Exception $e) {
+                $results['failed'][] = ['id' => $id, 'reason' => $e->getMessage()];
+            }
+        }
+
+        return response()->json([
+            'message' => count($results['success']) . ' restaurants published, ' . count($results['failed']) . ' failed.',
+            'results' => $results
+        ]);
+    }
+
+    /**
+     * Bulk unpublish multiple restaurants.
+     */
+    public function bulkUnpublish(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return response()->json(['message' => 'No restaurants selected.'], 400);
+        }
+
+        $count = \App\Models\Restaurant::whereIn('id', $ids)
+            ->where('status', 'published')
+            ->update(['status' => 'draft']);
+
+        return response()->json(['message' => "{$count} restaurants unpublished successfully."]);
+    }
+
+    /**
+     * Bulk reject multiple restaurants.
+     */
+    public function bulkReject(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return response()->json(['message' => 'No restaurants selected.'], 400);
+        }
+
+        $count = 0;
+        foreach ($ids as $id) {
+            $restaurant = \App\Models\Restaurant::find($id);
+            if ($restaurant) {
+                $restaurant->update(['status' => 'rejected']);
+                $count++;
+            } else {
+                $redisData = Redis::get("{$this->prefix}restaurant:{$id}");
+                if ($redisData) {
+                    $r = json_decode($redisData, true);
+                    \App\Models\Restaurant::create([
+                        'id' => $id,
+                        'name' => $r['name'] ?? 'Unknown',
+                        'status' => 'rejected',
+                        'country' => $r['country'] ?? '',
+                        'city' => $r['city'] ?? '',
+                        'cuisine_type' => $r['cuisine_type'] ?? '',
+                        'timestamp' => $r['timestamp'] ?? time(),
+                    ]);
+                    Redis::del("{$this->prefix}restaurant:{$id}");
+                    Redis::srem("{$this->prefix}all_restaurants", $id);
+                    $count++;
+                }
+            }
+        }
+
+        return response()->json(['message' => "{$count} restaurants rejected successfully."]);
+    }
+
+    /**
+     * Bulk delete multiple restaurants.
+     */
+    public function bulkDelete(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $ids = $request->input('ids', []);
+        $hardDelete = $request->input('hard_delete', false);
+
+        if (empty($ids)) {
+            return response()->json(['message' => 'No restaurants selected.'], 400);
+        }
+
+        $count = 0;
+        foreach ($ids as $id) {
+            try {
+                if ($hardDelete) {
+                    $restaurant = \App\Models\Restaurant::find($id);
+                    if ($restaurant) {
+                        $restaurant->delete();
+                    }
+                    Redis::del("{$this->prefix}restaurant:{$id}");
+                    Redis::srem("{$this->prefix}all_restaurants", $id);
+                } else {
+                    $this->destroy($id);
+                }
+                $count++;
+            } catch (\Exception $e) {
+                \Log::warning("Bulk delete failed for {$id}: " . $e->getMessage());
+            }
+        }
+
+        return response()->json(['message' => "{$count} restaurants deleted successfully."]);
     }
 }

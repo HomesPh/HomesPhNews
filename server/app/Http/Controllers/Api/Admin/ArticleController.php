@@ -620,23 +620,27 @@ class ArticleController extends Controller
      */
     public function show($id): JsonResponse|ArticleResource
     {
-        if (is_numeric($id) || !\Illuminate\Support\Str::isUuid($id)) {
+        // 1. Try to find in Database by ID (UUID or numeric)
+        if (is_numeric($id) || \Illuminate\Support\Str::isUuid($id)) {
             $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name', 'city', 'province'])->find($id);
-            if ($article) {
-                return new ArticleResource($article);
-            }
-        } else {
-            $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name', 'city', 'province'])->where('id', $id)->first();
             if ($article) {
                 return new ArticleResource($article);
             }
         }
 
-        if (\Illuminate\Support\Str::isUuid($id)) {
-            $redisArticle = $this->redisService->getArticle($id);
-            if ($redisArticle) {
-                return new ArticleResource($redisArticle);
-            }
+        // 2. Try to find in Database by slug
+        $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name', 'city', 'province'])
+            ->where('slug', $id)
+            ->first();
+        if ($article) {
+            return new ArticleResource($article);
+        }
+
+        // 3. Fallback to Redis (Check by ID)
+        // Some Redis IDs might not be UUIDs (e.g., scraper-specific IDs)
+        $redisArticle = $this->redisService->getArticle($id);
+        if ($redisArticle) {
+            return new ArticleResource($redisArticle);
         }
 
         return response()->json(['message' => 'Article not found'], 404);
