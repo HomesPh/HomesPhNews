@@ -4,9 +4,13 @@ import type { CityResource } from "../../../types/CityResource";
 
 let citiesCache: Promise<AxiosResponse<CityResource[]>> | null = null;
 
-export async function getCities(): Promise<AxiosResponse<CityResource[]>> {
-    if (!citiesCache) {
+export async function getCities(forceRefresh = false): Promise<AxiosResponse<CityResource[]>> {
+    if (!citiesCache || forceRefresh) {
         citiesCache = AXIOS_INSTANCE_ADMIN.get<CityResource[]>("/v1/admin/cities");
     }
     return citiesCache;
+}
+
+export function clearCitiesCache() {
+    citiesCache = null;
 }
