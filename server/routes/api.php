@@ -343,6 +343,8 @@ Route::prefix('v1')->group(function () {
 
                 // Resource Routes
                 Route::apiResource('sites', SiteController::class)->except(['index', 'show']);
+                Route::apiResource('provinces', ProvinceController::class)->except(['index', 'show']);
+                Route::apiResource('cities', CityController::class)->except(['index', 'show']);
 
                 Route::get('restaurants/stats', [AdminRestaurantController::class, 'stats'])->name('restaurants.stats');
                 Route::get('restaurants/country/{country}', [AdminRestaurantController::class, 'byCountry'])->name('restaurants.byCountry');
