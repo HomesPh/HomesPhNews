@@ -357,7 +357,7 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4 lg:p-8 animate-in fade-in duration-300">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
                     <div className="flex items-center gap-3">
@@ -557,27 +557,29 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                     </div>
 
                     {/* Preview Area */}
-                    <div className="flex-1 bg-gray-100/50 p-6 lg:p-10 flex items-center justify-center overflow-auto ring-inner ring-gray-100">
-                        <div className="relative group max-w-full">
-                            <div className="bg-white p-2 rounded-xl shadow-2xl ring-1 ring-black/5">
-                                <canvas 
-                                    ref={canvasRef}
-                                    className="max-w-full h-auto rounded-lg shadow-inner bg-gray-200"
-                                    style={{ maxHeight: '60vh' }}
-                                />
-                                {isGenerating && (
-                                    <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-xl backdrop-blur-[2px]">
-                                        <div className="flex flex-col items-center gap-3">
-                                            <RefreshCw className="w-8 h-8 text-[#1428AE] animate-spin" />
-                                            <p className="text-sm font-bold text-[#1428AE] animate-pulse">Generating Preview...</p>
+                    <div className="flex-1 bg-gray-100/50 overflow-auto ring-inner ring-gray-100">
+                        <div className="min-h-full p-6 lg:p-10 flex flex-col items-center justify-center">
+                            <div className="relative group max-w-full">
+                                <div className="bg-white p-2 rounded-xl shadow-2xl ring-1 ring-black/5">
+                                    <canvas 
+                                        ref={canvasRef}
+                                        className="max-w-full h-auto rounded-lg shadow-inner bg-gray-200"
+                                        style={{ maxHeight: '60vh' }}
+                                    />
+                                    {isGenerating && (
+                                        <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-xl backdrop-blur-[2px]">
+                                            <div className="flex flex-col items-center gap-3">
+                                                <RefreshCw className="w-8 h-8 text-[#1428AE] animate-spin" />
+                                                <p className="text-sm font-bold text-[#1428AE] animate-pulse">Generating Preview...</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
+                                
+                                <p className="mt-4 text-center text-xs text-gray-400 font-medium">
+                                    Preview shows how the exported image will look
+                                </p>
                             </div>
-                            
-                            <p className="mt-4 text-center text-xs text-gray-400 font-medium">
-                                Preview shows how the exported image will look
-                            </p>
                         </div>
                     </div>
                 </div>
