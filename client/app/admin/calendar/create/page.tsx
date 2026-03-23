@@ -150,7 +150,7 @@ export default function CreateEventPage() {
                     summary: article.summary,
                     source: article.source
                 })),
-                sites: selectedSites.map(String)
+                sites: selectedSites
             });
 
             setSuccessData({
