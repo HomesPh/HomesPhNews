@@ -15,7 +15,7 @@ export interface CreateArticlePublicationRequest {
         summary?: string | null;
         source?: string | null;
     }[];
-    sites?: string[]; // IDs of selected sites
+    sites?: number[]; // IDs of selected sites
 }
 
 export interface ArticlePublication {

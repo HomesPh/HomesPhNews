@@ -24,7 +24,7 @@ interface BlockDrawerProps {
     details: BlogDetails;
     availableCategories?: (string | { name: string; count: number })[];
     availableCountries?: (string | { name: string; count: number })[];
-    availableSites?: string[];
+    availableSites?: any[];
     isEditor?: boolean;
 
     // callbacks
@@ -222,10 +222,14 @@ export default function BlockDrawer({
     ];
 
     const sortedPlatforms = useMemo(() => {
-        const list = availableSites !== undefined
+        const list = (availableSites && availableSites.length > 0)
             ? availableSites
             : ["Apply Na", "Bayanihan", "Faceofmind", "FilipinoHomes", "globalreality", "Homes", "Main News Portal", "PicklePlay"];
-        return [...list].sort((a, b) => a.localeCompare(b));
+        return [...list].sort((a, b) => {
+            const nameA = typeof a === 'object' ? a.name : a;
+            const nameB = typeof b === 'object' ? b.name : b;
+            return nameA.localeCompare(nameB);
+        });
     }, [availableSites]);
 
     const displayedPlatforms = showAllPlatforms ? sortedPlatforms : sortedPlatforms.slice(0, 5);
@@ -433,74 +437,86 @@ export default function BlockDrawer({
                                 />
                             </div>
 
-                            {!isEditor && (
-                                <div className="grid grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Publish Date</label>
-                                        <input
-                                            type="date"
-                                            value={details.publishDate}
-                                            onChange={(e) => onUpdateDetails({ publishDate: e.target.value })}
-                                            className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold text-gray-700"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Publish Time</label>
-                                        <input
-                                            type="time"
-                                            value={details.publishTime}
-                                            onChange={(e) => onUpdateDetails({ publishTime: e.target.value })}
-                                            className="w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold text-gray-700"
-                                        />
-                                    </div>
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Publish Date</label>
+                                    <input
+                                        type="date"
+                                        disabled={isEditor}
+                                        value={details.publishDate}
+                                        onChange={(e) => onUpdateDetails({ publishDate: e.target.value })}
+                                        className={cn(
+                                            "w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold text-gray-700",
+                                            isEditor && "opacity-50 cursor-not-allowed"
+                                        )}
+                                    />
                                 </div>
-                            )}
+                                <div>
+                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Publish Time</label>
+                                    <input
+                                        type="time"
+                                        disabled={isEditor}
+                                        value={details.publishTime}
+                                        onChange={(e) => onUpdateDetails({ publishTime: e.target.value })}
+                                        className={cn(
+                                            "w-full px-3 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none font-bold text-gray-700",
+                                            isEditor && "opacity-50 cursor-not-allowed"
+                                        )}
+                                    />
+                                </div>
+                            </div>
                         </section>
 
-                        {!isEditor && (
-                            <section className="pt-6 border-t border-gray-100">
-                                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-6 flex items-center gap-2">
-                                    <div className="w-1 h-1 rounded-full bg-[#1428AE]" />
-                                    Target Platforms
-                                </h3>
-                                <div className="grid grid-cols-1 gap-2">
-                                    {displayedPlatforms.map(platform => (
-                                        <label key={platform} className={`flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-transparent transition-all group ${isEditor && platform !== "Main News Portal" ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-white hover:border-gray-100'}`}>
-                                            <span className={`text-[12px] font-bold ${isEditor && platform !== "Main News Portal" ? 'text-gray-400' : 'text-gray-600 group-hover:text-gray-900'}`}>{platform}</span>
+                        <section className="pt-6 border-t border-gray-100">
+                            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[2px] mb-6 flex items-center gap-2">
+                                <div className="w-1 h-1 rounded-full bg-[#1428AE]" />
+                                Target Platforms
+                            </h3>
+                            <div className="grid grid-cols-1 gap-2">
+                                {sortedPlatforms.map(platform => {
+                                    const isObject = typeof platform === 'object' && platform !== null;
+                                    const platformName = isObject ? platform.name : platform;
+                                    // Use name for consistent state with articleData.publishTo (strings)
+                                    // Mapping to ID happens at the API call level in ArticleEditorModal
+                                    const isChecked = details.platforms.includes(platformName);
+
+                                    return (
+                                        <label key={platformName} className={`flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-transparent transition-all group ${isEditor && platformName !== "Main News Portal" ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-white hover:border-gray-100'}`}>
+                                            <span className={`text-[12px] font-bold ${isEditor && platformName !== "Main News Portal" ? 'text-gray-400' : 'text-gray-600 group-hover:text-gray-900'}`}>{platformName}</span>
                                             <input
                                                 type="checkbox"
-                                                disabled={isEditor && platform !== "Main News Portal"}
-                                                checked={details.platforms.includes(platform)}
+                                                disabled={isEditor && platformName !== "Main News Portal"}
+                                                checked={isChecked}
                                                 onChange={(e) => {
                                                     const newPlatforms = e.target.checked
-                                                        ? [...details.platforms, platform]
-                                                        : details.platforms.filter(p => p !== platform);
+                                                        ? [...details.platforms, platformName]
+                                                        : details.platforms.filter((p: string) => p !== platformName);
                                                     onUpdateDetails({ platforms: newPlatforms });
                                                 }}
                                                 className="w-4 h-4 rounded border-gray-300 text-[#F4AA1D] focus:ring-[#F4AA1D] disabled:opacity-50"
                                             />
                                         </label>
-                                    ))}
-                                </div>
+                                    );
+                                })}
+                            </div>
 
-                                {sortedPlatforms.length > 5 && (
-                                    <button
-                                        onClick={() => setShowAllPlatforms(!showAllPlatforms)}
-                                        className="w-full mt-3 py-2 flex items-center justify-center gap-2 text-[11px] font-black text-[#1428AE] bg-[#1428AE]/5 rounded-xl hover:bg-[#1428AE]/10 transition-all uppercase tracking-widest"
-                                    >
-                                        {showAllPlatforms ? (
-                                            <>
-                                                Show Less <ChevronUp className="w-3.5 h-3.5" />
-                                            </>
-                                        ) : (
-                                            <>
-                                                Show All ({sortedPlatforms.length}) <ChevronDown className="w-3.5 h-3.5" />
-                                            </>
-                                        )}
-                                    </button>
-                                )}
-                            </section>
-                        )}
+                            {sortedPlatforms.length > 5 && (
+                                <button
+                                    onClick={() => setShowAllPlatforms(!showAllPlatforms)}
+                                    className="w-full mt-3 py-2 flex items-center justify-center gap-2 text-[11px] font-black text-[#1428AE] bg-[#1428AE]/5 rounded-xl hover:bg-[#1428AE]/10 transition-all uppercase tracking-widest"
+                                >
+                                    {showAllPlatforms ? (
+                                        <>
+                                            Show Less <ChevronUp className="w-3.5 h-3.5" />
+                                        </>
+                                    ) : (
+                                        <>
+                                            Show All ({sortedPlatforms.length}) <ChevronDown className="w-3.5 h-3.5" />
+                                        </>
+                                    )}
+                                </button>
+                            )}
+                        </section>
                     </div>
                 )}
             </div>

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { X, ArrowLeft, Save, Send } from 'lucide-react';
-import { getSiteNames, updatePendingArticle, createArticle, updateArticle, publishArticle, uploadArticleImage, useAuth } from "@/lib/api-v2";
+import { getAdminSites, updatePendingArticle, createArticle, updateArticle, publishArticle, uploadArticleImage, useAuth, scheduleArticles } from "@/lib/api-v2";
+import type { SiteResource } from "@/lib/api-v2/types/SiteResource";
 import { useAlert } from "@/hooks/useAlert";
 import { blocksToHtml } from "@/lib/converter/blocksToHtml";
 import ArticleEditorForm from "./editor/ArticleEditorForm";
@@ -47,7 +48,7 @@ export default function ArticleEditorModal({
     availableCountries = []
 }: ArticleEditorModalProps) {
     const [template, setTemplate] = useState<TemplateType>('single');
-    const [availableSites, setAvailableSites] = useState<string[]>([]);
+    const [availableSites, setAvailableSites] = useState<SiteResource[] | undefined>(undefined);
     const [showPublishDialog, setShowPublishDialog] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const { showAlert } = useAlert();
@@ -111,7 +112,12 @@ export default function ArticleEditorModal({
     const [articleData, setArticleData] = useState(getInitialArticleData());
 
     useEffect(() => {
-        getSiteNames().then(res => setAvailableSites(res.data as string[])).catch(console.error);
+        getAdminSites({ status: 'active' }).then(res => {
+            setAvailableSites(res.data.data);
+        }).catch(error => {
+            console.error("Failed to fetch sites:", error);
+            // Don't set state to fallback here, let BlockDrawer handle undefined/empty via its own useMemo fallback
+        });
     }, []);
 
     useEffect(() => {
@@ -501,12 +507,28 @@ export default function ArticleEditorModal({
             } else if (mode === 'edit' && isFromRedis) {
                 // For Redis articles, we now have an atomic publish that handles the migration
                 if (isPublish) {
-                    await publishArticle(initialData.id, {
-                        ...payload,
-                        published_sites: payload.published_sites,
-                    } as any);
+                    // Map names back to IDs for the scheduler
+                    const scheduledSiteIds = workingData.publishTo.map((name: string) => {
+                        const site = availableSites?.find(s => s.name === name || s.id.toString() === name);
+                        return site?.id;
+                    }).filter((id: number | undefined) => id !== undefined) as number[];
+
+                    await scheduleArticles({
+                        date: workingData.publishDate,
+                        time: workingData.publishTime,
+                        articles: [{
+                            id: initialData.id,
+                            title: workingData.title,
+                            image: effectiveFinalImage || undefined,
+                            category: workingData.category,
+                            country: workingData.country,
+                            summary: workingData.summary,
+                            source: workingData.original_url
+                        }],
+                        sites: scheduledSiteIds
+                    });
                     setShowPublishDialog(false);
-                    await showAlert('Success!', 'Article migrated and published successfully!');
+                    await showAlert('Success!', 'Article scheduled for publication successfully!');
                 } else {
                     // Just update Redis
                     await updatePendingArticle(initialData.id, payload);
@@ -514,7 +536,31 @@ export default function ArticleEditorModal({
                 }
             } else if (mode === 'edit') {
                 // DB articles
-                if (isPublish) {
+                if (isPublish && initialData?.status === 'pending review') {
+                    // For Pending Review articles, use scheduling
+                    // Map names back to IDs for the scheduler
+                    const scheduledSiteIds = workingData.publishTo.map((name: string) => {
+                        const site = availableSites?.find(s => s.name === name || s.id.toString() === name);
+                        return site?.id;
+                    }).filter((id: number | undefined) => id !== undefined) as number[];
+
+                    await scheduleArticles({
+                        date: workingData.publishDate,
+                        time: workingData.publishTime,
+                        articles: [{
+                            id: initialData.id,
+                            title: workingData.title,
+                            image: effectiveFinalImage || undefined,
+                            category: workingData.category,
+                            country: workingData.country,
+                            summary: workingData.summary,
+                            source: workingData.original_url
+                        }],
+                        sites: scheduledSiteIds
+                    });
+                    setShowPublishDialog(false);
+                    await showAlert('Success!', 'Article scheduled for publication successfully!');
+                } else if (isPublish) {
                     // Atomic publish: saves data and updates status in one go with the new inclusive backend
                     await publishArticle(initialData.id, {
                         ...payload,
