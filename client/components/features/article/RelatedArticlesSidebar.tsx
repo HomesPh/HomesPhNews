@@ -8,22 +8,22 @@ interface RelatedArticlesSidebarProps {
 }
 
 export default async function RelatedArticlesSidebar({ id }: RelatedArticlesSidebarProps) {
-  let article;
+  let article = null;
   try {
     const response = await getArticleById(id);
     article = response;
   } catch (error) {
-    return null;
+    // Article not found in public API (likely unpublished preview)
+    // We'll continue with article=null so we can still show latest articles
+    console.log(`RelatedArticlesSidebar: Article ${id} not found in public API, showing generic related content.`);
   }
-
-  if (!article) return null;
 
   // Fetch related articles (same category)
   let relatedArticles: { id: string; title: string; views: number; imageUrl: string; timeAgo: string; }[] = [];
   try {
     const listResponse = await getArticlesList({
       mode: "list",
-      category: article.category,
+      category: article?.category,
       limit: 5,
     });
 
