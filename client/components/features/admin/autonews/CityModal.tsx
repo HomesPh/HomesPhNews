@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { X, Loader2, Building2 } from 'lucide-react';
 import { createCity, updateCity, ApiError } from '@/lib/api-v2';
-import type { CityResource, CountryResource } from '@/lib/api-v2';
+import type { CityResource, CountryResource, ProvinceResource } from '@/lib/api-v2';
 import { FormInput, FormSelect, FormCheckbox } from "@/components/features/admin/shared/FormFields";
 
 interface CityModalProps {
@@ -12,12 +12,14 @@ interface CityModalProps {
     onSuccess: () => void;
     initialData: CityResource | null;
     countries: CountryResource[];
+    provinces: ProvinceResource[];
 }
 
-export function CityModal({ isOpen, onClose, onSuccess, initialData, countries }: CityModalProps) {
+export function CityModal({ isOpen, onClose, onSuccess, initialData, countries, provinces }: CityModalProps) {
     const [formData, setFormData] = useState({
         name: '',
         country_id: '',
+        province_id: '',
         is_active: true
     });
     const [isSaving, setIsSaving] = useState(false);
@@ -28,12 +30,14 @@ export function CityModal({ isOpen, onClose, onSuccess, initialData, countries }
             setFormData({
                 name: initialData.name,
                 country_id: initialData.country_id,
+                province_id: initialData.province_id?.toString() || '',
                 is_active: initialData.is_active
             });
         } else if (isOpen) {
             setFormData({
                 name: '',
                 country_id: countries.length > 0 ? countries[0].id : '',
+                province_id: '',
                 is_active: true
             });
         }
@@ -92,6 +96,20 @@ export function CityModal({ isOpen, onClose, onSuccess, initialData, countries }
                             ...countries.map(c => ({ value: c.id, label: `${c.name} (${c.id})` }))
                         ]}
                         error={errors?.country_id?.[0]}
+                    />
+
+                    <FormSelect
+                        label="Province"
+                        required
+                        value={formData.province_id}
+                        onChange={(e) => setFormData({ ...formData, province_id: e.target.value })}
+                        options={[
+                            { value: '', label: 'Select a province' },
+                            ...provinces
+                                .filter(p => !formData.country_id || p.country_id === formData.country_id)
+                                .map(p => ({ value: p.id.toString(), label: p.name }))
+                        ]}
+                        error={errors?.province_id?.[0]}
                     />
 
                     <FormInput
