@@ -21,6 +21,7 @@ class CityResource extends JsonResource
             'name' => $this->name,
             'is_active' => $this->is_active,
             'country' => new JsonResource($this->whenLoaded('country')),
+            'province' => new ProvinceResource($this->whenLoaded('province')),
         ];
     }
 }
