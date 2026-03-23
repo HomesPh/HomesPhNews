@@ -1,4 +1,5 @@
 import { CountryResource } from "./CountryResource";
+import { ProvinceResource } from "./ProvinceResource";
 
 export interface CityResource {
     city_id: number;
@@ -7,4 +8,5 @@ export interface CityResource {
     name: string;
     is_active: boolean;
     country?: CountryResource;
+    province?: ProvinceResource;
 }
