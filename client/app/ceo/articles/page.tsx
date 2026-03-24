@@ -106,6 +106,7 @@ export default function CEOArticlesPage() {
                 let statusParam = filters.status || "all";
                 if (statusParam === "pending_review") statusParam = "pending review";
                 if (statusParam === "published_articles") statusParam = "published";
+                if (statusParam === "edited") statusParam = "edited";
 
                 const apiFilters = {
                     status: statusParam,
