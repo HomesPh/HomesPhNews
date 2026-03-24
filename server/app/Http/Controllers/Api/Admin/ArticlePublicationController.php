@@ -42,14 +42,33 @@ class ArticlePublicationController extends Controller
             'sites' => 'nullable|array',
         ]);
 
+        // Pre-process sites: convert names to IDs if passed as strings
+        $rawSites = $validated['sites'] ?? [];
+        $siteIds = [];
+        $namesToLookup = [];
+        
+        foreach ($rawSites as $site) {
+            if (is_numeric($site)) {
+                $siteIds[] = (int)$site;
+            } else if (is_string($site)) {
+                $namesToLookup[] = $site;
+            }
+        }
+        
+        if (!empty($namesToLookup)) {
+            $lookupIds = \App\Models\Site::whereIn('site_name', $namesToLookup)->pluck('id')->toArray();
+            $siteIds = array_merge($siteIds, $lookupIds);
+        }
+        $siteIds = array_values(array_unique($siteIds));
+
         $scheduledAt = $validated['date'] . ' ' . $validated['time'];
         $publications = [];
 
-        DB::transaction(function () use ($validated, $scheduledAt, &$publications) {
+        DB::transaction(function () use ($validated, $scheduledAt, $siteIds, &$publications) {
             foreach ($validated['articles'] as $articleData) {
                 $publications[] = ArticlePublication::create([
                     'article_id' => $articleData['id'],
-                    'target_sites' => $validated['sites'] ?? [],
+                    'target_sites' => $siteIds,
                     'title' => $articleData['title'],
                     'summary' => $articleData['summary'] ?? null,
                     'image_url' => $articleData['image'] ?? null,
