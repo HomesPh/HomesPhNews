@@ -77,8 +77,8 @@ class ArticleResource extends JsonResource
             $images = is_array($imgs) ? $imgs : [];
         }
 
-        // Date logic
-        $date = $get('created_at', null);
+        // Date logic: Prioritize published_at, fallback to created_at
+        $date = $get('published_at') ?? $get('created_at', null);
         if (empty($date) && isset($data['timestamp'])) {
             $ts = $data['timestamp'];
             $date = is_numeric($ts) ? date('Y-m-d H:i:s', (int) $ts) : (string) $ts;
@@ -168,6 +168,9 @@ class ArticleResource extends JsonResource
             'city_id' => $get('city_id'),
             'province_name' => $isModel ? ($this->province->name ?? null) : null,
             'city_name' => $isModel ? ($this->city->name ?? null) : null,
+            'editor_first_name' => $isModel ? ($this->editor->first_name ?? null) : null,
+            'editor_last_name' => $isModel ? ($this->editor->last_name ?? null) : null,
+            'editor_name' => $isModel ? ($this->editor->name ?? null) : null,
         ];
 
         // For external API consumers (e.g. /api/external/articles), avoid duplicate images.

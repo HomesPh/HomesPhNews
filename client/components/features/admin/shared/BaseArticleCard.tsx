@@ -40,6 +40,7 @@ interface BaseArticleCardProps {
         image_position_x?: number;
         editor_first_name?: string | null;
         editor_last_name?: string | null;
+        editor_name?: string | null;
         edited_by?: number;
         province_id?: string | number | null;
         city_id?: string | number | null;
@@ -94,9 +95,19 @@ export default function BaseArticleCard({
     const { user } = useAuth();
     const { showAlert } = useAlert();
     const showEditorAttribution = useMemo(() => {
-        if (!user) return false;
-        return user.roles.includes('admin');
-    }, [user]);
+        if (!user || !user.roles || !Array.isArray(user.roles)) return false;
+        
+        // Only CEO (and Super Admin) can see who edited it
+        const isCeo = user.roles.some(role => 
+            typeof role === 'string' && ['ceo', 'super-admin', 'super admin'].includes(role.toLowerCase())
+        );
+
+        if (!isCeo) return false;
+
+        // Only show if the article is pending approval
+        const status = (article.status || '').toLowerCase();
+        return status === 'pending' || status === 'pending review' || status === 'edited';
+    }, [user, article.status]);
 
     // Inline Edit State
     const [isUpdating, setIsUpdating] = useState(false);
@@ -278,13 +289,21 @@ export default function BaseArticleCard({
                         </div>
 
                         {/* Article Metadata */}
-                        <div className="flex items-center gap-2 text-[14px] text-[#6b7280] tracking-[-0.5px]">
+                        <div className="flex flex-wrap items-center gap-2 text-[14px] text-[#6b7280] tracking-[-0.5px]">
                             <Calendar className="w-[12px] h-[13.333px]" />
                             <span>{formatDate(dateStr)}</span>
                             <span>•</span>
                             <span>{viewsStr}</span>
                             <span>•</span>
                             <span>{calculateReadTime(article.content || description)}</span>
+                            {(article.editor_first_name || article.editor_name) && showEditorAttribution && (
+                                <>
+                                    <span>•</span>
+                                    <span className="text-[#1428AE] font-semibold whitespace-nowrap">
+                                        Edited by {article.editor_name || `${article.editor_first_name} ${article.editor_last_name || ''}`.trim()}
+                                    </span>
+                                </>
+                            )}
                         </div>
                     </div>
                     {actions && (
@@ -454,11 +473,11 @@ export default function BaseArticleCard({
                         <span className="leading-none sm:leading-[20px]">{viewsStr}</span>
                         <span className="text-[16px]">•</span>
                         <span className="leading-none sm:leading-[20px]">{calculateReadTime(article.content || description)}</span>
-                        {article.editor_first_name && showEditorAttribution && (
+                        {(article.editor_first_name || article.editor_name) && showEditorAttribution && (
                             <>
-                                <span className="text-[16px] mx-1 font-bold">•</span>
-                                <span className="text-[#1428AE] font-semibold whitespace-nowrap">
-                                    Edited by {article.editor_first_name} {article.editor_last_name}
+                                <span className="text-[16px]">•</span>
+                                <span className="text-[#1428AE] font-semibold whitespace-nowrap ml-1">
+                                    Edited by {article.editor_name || `${article.editor_first_name} ${article.editor_last_name || ''}`.trim()}
                                 </span>
                             </>
                         )}
