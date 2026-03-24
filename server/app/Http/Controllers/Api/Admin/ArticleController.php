@@ -1116,8 +1116,8 @@ class ArticleController extends Controller
             'all' => $allCount,
             'published' => $publishedCount,
             'being_processed' => $pendingCount,
-            'pending' => $pendingReviewCount,
-            'edited' => $editedCount,
+            'pending' => $pendingReviewCount + $editedCount,
+            'edited' => 0,
             'rejected' => $rejectedCount,
             'deleted' => $deletedCount,
         ];
