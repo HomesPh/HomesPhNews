@@ -50,7 +50,7 @@ class ArticleController extends Controller
         }
 
         $perPage = $validated['per_page'] ?? 10;
-        $articles = $query->latest()->paginate($perPage);
+        $articles = $query->orderBy('published_at', 'desc')->paginate($perPage);
 
         return response()->json($articles);
     }

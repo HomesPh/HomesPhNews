@@ -162,7 +162,7 @@ function CEOArticleDetailContent() {
         );
 
     const isEdited = article.status === "edited";
-    const isPending = article.status === "pending" || article.status === "pending review";
+    const isPending = article.status === "pending" || article.status === "pending review" || article.status === "edited";
     const isPublished = article.status === "published";
     const isRejected = article.status === "rejected";
 
@@ -214,7 +214,7 @@ function CEOArticleDetailContent() {
                                     <span className="font-medium text-[#111827]">
                                         By {article.author || "HOMESPH NEWS"}
                                     </span>
-                                    {article.editor_first_name && (
+                                    {article.editor_first_name && isPending && (
                                         <>
                                             <span className="text-[#e5e7eb]">|</span>
                                             <span className="font-semibold text-[#1428AE]">

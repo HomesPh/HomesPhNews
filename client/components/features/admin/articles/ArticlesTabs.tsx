@@ -24,7 +24,6 @@ export default function ArticlesTabs({ activeTab, setActiveTab, counts }: Articl
         { id: 'all' as ArticleTab, label: 'All Articles' },
         { id: 'published' as ArticleTab, label: 'Published' },
         { id: 'pending_review' as ArticleTab, label: 'Pending Review' },
-        { id: 'edited' as ArticleTab, label: 'Edited' },
         { id: 'rejected' as ArticleTab, label: 'Rejected' },
         { id: 'being_processed' as ArticleTab, label: 'Imported (Pending)' },
         ...(isEditor ? [] : [{ id: 'deleted' as ArticleTab, label: 'Deleted' }]),
@@ -50,12 +49,7 @@ export default function ArticlesTabs({ activeTab, setActiveTab, counts }: Articl
                                     <path d="M12.916 3.667a.833.833 0 00-1.167 0L4.916 10.5 2.25 7.833a.833.833 0 10-1.167 1.167l3.25 3.25a.833.833 0 001.167 0l7.417-7.417a.833.833 0 000-1.167z" fill={isActive ? '#1428AE' : '#4B5563'} />
                                 </svg>
                             )}
-                            {index === 2 && (
-                                <svg className="w-[16px] h-[16px]" fill="none" viewBox="0 0 16 16">
-                                    <path d="M8 1.333A6.667 6.667 0 1014.667 8 6.667 6.667 0 008 1.333zm0 12A5.333 5.333 0 1113.333 8 5.333 5.333 0 018 13.333zM8.333 4h-1v4.667h4v-1h-3V4z" fill={isActive ? '#1428AE' : '#4B5563'} />
-                                </svg>
-                            )}
-                            {index === 3 && (
+                            {tab.id === 'pending_review' && (
                                 <svg className="w-[16px] h-[16px]" fill="none" viewBox="0 0 16 16">
                                     <path d="M8 1.333A6.667 6.667 0 1014.667 8 6.667 6.667 0 008 1.333zm0 12A5.333 5.333 0 1113.333 8 5.333 5.333 0 018 13.333zM8.333 4h-1v4.667h4v-1h-3V4z" fill={isActive ? '#1428AE' : '#4B5563'} />
                                 </svg>
