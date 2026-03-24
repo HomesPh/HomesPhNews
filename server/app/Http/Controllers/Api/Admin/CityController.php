@@ -14,7 +14,7 @@ class CityController extends Controller
      */
     public function index()
     {
-        $cities = City::with('country')->get();
+        $cities = City::with(['country', 'province'])->get();
         return CityResource::collection($cities);
     }
 
@@ -25,6 +25,7 @@ class CityController extends Controller
     {
         $validated = $request->validate([
             'country_id' => 'required|string|exists:countries,id',
+            'province_id' => 'nullable|integer|exists:provinces,id',
             'name' => 'required|string|max:255',
             'is_active' => 'boolean',
         ]);
@@ -55,6 +56,7 @@ class CityController extends Controller
 
         $validated = $request->validate([
             'country_id' => 'sometimes|required|string|exists:countries,id',
+            'province_id' => 'nullable|integer|exists:provinces,id',
             'name' => 'sometimes|required|string|max:255',
             'is_active' => 'boolean',
         ]);

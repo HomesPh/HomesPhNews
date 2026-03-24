@@ -2,14 +2,15 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash2, MapPin, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
-import { getCities, deleteCity, getCountries } from '@/lib/api-v2';
-import type { CityResource, CountryResource } from '@/lib/api-v2';
+import { getCities, deleteCity, getCountries, getProvinces } from '@/lib/api-v2';
+import type { CityResource, CountryResource, ProvinceResource } from '@/lib/api-v2';
 import { Skeleton } from "@/components/ui/skeleton";
 import { CityModal } from './CityModal';
 
 export default function CityList() {
     const [cities, setCities] = useState<CityResource[]>([]);
     const [countries, setCountries] = useState<CountryResource[]>([]);
+    const [provinces, setProvinces] = useState<ProvinceResource[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCity, setEditingCity] = useState<CityResource | null>(null);
@@ -17,17 +18,20 @@ export default function CityList() {
     const fetchData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const [citiesRes, countriesRes] = await Promise.all([
+            const [citiesRes, countriesRes, provincesRes] = await Promise.all([
                 getCities(true),
-                getCountries(true)
+                getCountries(true),
+                getProvinces(true).catch(() => ({ data: [] }))
             ]);
 
             // Handle Laravel Resource Collection wrapping if present
             const citiesData = (citiesRes.data as any).data || citiesRes.data;
             const countriesData = (countriesRes.data as any).data || countriesRes.data;
+            const provincesData = (provincesRes.data as any).data || provincesRes.data;
 
             setCities(Array.isArray(citiesData) ? citiesData : []);
             setCountries(Array.isArray(countriesData) ? countriesData : []);
+            setProvinces(Array.isArray(provincesData) ? provincesData : []);
         } catch (error) {
             console.error("Failed to fetch data:", error);
         } finally {
@@ -95,7 +99,9 @@ export default function CityList() {
                                         </div>
                                         <div>
                                             <h3 className="text-lg font-bold text-[#111827]">{city.name}</h3>
-                                            <p className="text-sm text-gray-500">{city.country_id}</p>
+                                            <p className="text-sm text-gray-500">
+                                                {city.province?.name ? `${city.province.name}, ` : ''}{city.country_id}
+                                            </p>
                                             <div className="flex items-center gap-1.5 mt-1">
                                                 {city.is_active ? (
                                                     <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
@@ -142,6 +148,7 @@ export default function CityList() {
                 onSuccess={handleSaveSuccess}
                 initialData={editingCity}
                 countries={countries}
+                provinces={provinces}
             />
         </div>
     );
