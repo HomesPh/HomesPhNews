@@ -55,12 +55,16 @@ class ArticleController extends Controller
                 $q->where('edited_by', $user->id);
         })
             ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
-            ->when($status === 'edited', fn($q) => $q->where('status', 'edited'))
+            ->when($status === 'edited', function ($q) use ($isEditorOnly, $user) {
+            $q->where('status', 'edited');
+            if ($isEditorOnly)
+                $q->where('edited_by', $user->id);
+        })
             ->when($status === 'rejected', function ($q) use ($isEditorOnly, $user) {
-                $q->where('status', 'rejected');
-                if ($isEditorOnly)
-                    $q->where('edited_by', $user->id);
-            })
+            $q->where('status', 'rejected');
+            if ($isEditorOnly)
+                $q->where('edited_by', $user->id);
+        })
             ->when(!$status || $status === 'all', function ($q) use ($isEditorOnly, $user) {
             if ($isEditorOnly) {
                 $q->where(function ($sub) use ($user) {
@@ -125,10 +129,10 @@ class ArticleController extends Controller
             ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
             ->when($status === 'edited', fn($q) => $q->where('status', 'edited'))
             ->when($status === 'rejected', function ($q) use ($isEditorOnly, $user) {
-                $q->where('status', 'rejected');
-                if ($isEditorOnly)
-                    $q->where('edited_by', $user->id);
-            })
+            $q->where('status', 'rejected');
+            if ($isEditorOnly)
+                $q->where('edited_by', $user->id);
+        })
             ->when(!$status || $status === 'all', function ($q) use ($isEditorOnly, $user) {
             if ($isEditorOnly) {
                 $q->where(function ($sub) use ($user) {
@@ -189,10 +193,10 @@ class ArticleController extends Controller
             ->when($status === 'pending review', fn($q) => $q->where('status', 'pending review'))
             ->when($status === 'edited', fn($q) => $q->where('status', 'edited'))
             ->when($status === 'rejected', function ($q) use ($isEditorOnly, $user) {
-                $q->where('status', 'rejected');
-                if ($isEditorOnly)
-                    $q->where('edited_by', $user->id);
-            })
+            $q->where('status', 'rejected');
+            if ($isEditorOnly)
+                $q->where('edited_by', $user->id);
+        })
             ->when(!$status || $status === 'all', function ($q) use ($isEditorOnly, $user) {
             if ($isEditorOnly) {
                 $q->where(function ($sub) use ($user) {
@@ -1116,8 +1120,8 @@ class ArticleController extends Controller
             'all' => $allCount,
             'published' => $publishedCount,
             'being_processed' => $pendingCount,
-            'pending' => $pendingReviewCount + $editedCount,
-            'edited' => 0,
+            'pending' => $pendingReviewCount,
+            'edited' => $editedCount,
             'rejected' => $rejectedCount,
             'deleted' => $deletedCount,
         ];
