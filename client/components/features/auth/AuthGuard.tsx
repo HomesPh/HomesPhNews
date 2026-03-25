@@ -64,63 +64,50 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                 const userRes = await getUser();
                 const user = userRes.data.data;
                 const roles = (user?.roles || []).map(r => r.toLowerCase());
+
+                // Determine strict primary role for this session to prevent crossover
+                const isCEO = roles.includes('ceo');
+                const isEditor = roles.includes('editor');
                 const isAdmin = roles.some(r => ['admin', 'super-admin'].includes(r));
                 const isBlogger = roles.includes('blogger');
                 const isSubscriber = roles.includes('subscriber');
 
+                // Order of precedence if user has multiple roles in the database
+                const primaryRole = isCEO ? 'ceo' : (isEditor ? 'editor' : (isAdmin ? 'admin' : (isBlogger ? 'blogger' : (isSubscriber ? 'subscriber' : 'guest'))));
+
+                // Helper to redirect to correct dashboard
+                const redirectHome = () => {
+                    if (primaryRole === 'ceo') router.push('/ceo/articles');
+                    else if (primaryRole === 'editor') router.push('/editor/articles');
+                    else if (primaryRole === 'admin') router.push('/admin/articles');
+                    else if (primaryRole === 'blogger') router.push('/blogger/dashboard');
+                    else if (primaryRole === 'subscriber') router.push('/subscriber/articles');
+                    else router.push('/login');
+                };
+
                 if (pathname.startsWith('/admin') && !pathname.includes('/login')) {
-                    const isAdmin = roles.some(r => ['admin', 'super-admin'].includes(r));
-                    const isCEO = roles.includes('ceo');
-                    const isEditor = roles.includes('editor');
-
-                    if (!isAdmin && !isCEO && !isEditor) {
-                        router.push('/blogger/dashboard');
+                    if (primaryRole !== 'admin') {
+                        redirectHome();
                         return;
-                    }
-
-                    // If CEO tries to access anything other than allowed admin paths, redirect them
-                    if (isCEO && !isAdmin) {
-                        router.push('/ceo/articles');
-                        return;
-                    }
-
-                    // If Editor tries to access admin paths, redirect them
-                    if (isEditor && !isAdmin) {
-                        router.push('/editor/articles');
-                        return;
-                    }
-                    //If Editor tries to a access admin/settings
-                    if (isEditor && !isAdmin && pathname.startsWith('/admin/settings')) {
-                        router.push('/editor/articles');
-                        return;
-                        //If Editor tries to access admin/users
-                        if (isEditor && !isAdmin && pathname.startsWith('/admin/users')) {
-                            router.push('/editor/articles');
-                            return;
-                        }
                     }
                 } else if (pathname.startsWith('/ceo')) {
-                    const isCEO = roles.includes('ceo');
-                    if (!isCEO && !isAdmin) {
-                        router.push('/login');
+                    if (primaryRole !== 'ceo') {
+                        redirectHome();
                         return;
                     }
                 } else if (pathname.startsWith('/editor')) {
-                    const isEditor = roles.includes('editor');
-                    if (!isEditor && !isAdmin) {
-                        router.push('/login');
+                    if (primaryRole !== 'editor') {
+                        redirectHome();
                         return;
                     }
                 } else if (pathname.startsWith('/blogger')) {
-                    if (!isBlogger) {
-                        if (isSubscriber) router.push('/subscriber');
-                        else if (isAdmin) router.push('/admin');
-                        else router.push('/login');
+                    if (primaryRole !== 'blogger') {
+                        redirectHome();
                         return;
                     }
                 } else if (pathname.startsWith('/subscriber')) {
-                    if (!isSubscriber) {
-                        router.push('/login');
+                    if (primaryRole !== 'subscriber') {
+                        redirectHome();
                         return;
                     }
 
@@ -139,10 +126,10 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
                 setIsLoading(false);
             }
-        };
+            };
 
-        run();
-    }, [token, _hasHydrated, pathname, router]);
+            run();
+        }, [token, _hasHydrated, pathname, router]);
 
     // Show nothing while checking auth (or a loading spinner)
     const publicRoutes = ["/login", "/register"];
