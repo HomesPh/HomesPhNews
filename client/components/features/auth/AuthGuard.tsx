@@ -84,10 +84,20 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                         return;
                     }
 
-                    // If Editor tries to access anything other than articles or settings, redirect
-                    if (isEditor && !isAdmin && !pathname.startsWith('/admin/articles') && !pathname.startsWith('/admin/settings')) {
-                        router.push('/admin/articles');
+                    // If Editor tries to access admin paths, redirect them
+                    if (isEditor && !isAdmin) {
+                        router.push('/editor/articles');
                         return;
+                    }
+                    //If Editor tries to a access admin/settings
+                    if (isEditor && !isAdmin && pathname.startsWith('/admin/settings')) {
+                        router.push('/editor/articles');
+                        return;
+                        //If Editor tries to access admin/users
+                        if (isEditor && !isAdmin && pathname.startsWith('/admin/users')) {
+                            router.push('/editor/articles');
+                            return;
+                        }
                     }
                 } else if (pathname.startsWith('/ceo')) {
                     const isCEO = roles.includes('ceo');
