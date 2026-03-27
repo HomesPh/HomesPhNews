@@ -12,10 +12,19 @@ class CityController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $cities = City::with(['country', 'province'])->get();
-        return CityResource::collection($cities);
+        $query = City::with(['country', 'province']);
+
+        if ($request->has('province_id')) {
+            $query->where('province_id', $request->province_id);
+        }
+
+        if ($request->has('country_id')) {
+            $query->where('country_id', $request->country_id);
+        }
+
+        return CityResource::collection($query->get());
     }
 
     /**

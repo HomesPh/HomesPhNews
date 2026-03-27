@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 
 use App\Http\Resources\Articles\ArticleCollection;
 use App\Http\Resources\Restaurants\RestaurantCollection;
+use App\Models\City;
+use App\Models\Province;
 use App\Models\Restaurant;
 
 class SiteContentController extends Controller
@@ -35,12 +37,34 @@ class SiteContentController extends Controller
         // The site is already resolved by the Middleware
         $site = $request->attributes->get('site');
 
-        // Fetch articles with eager loading to prevent N+1
-        $articles = $site->articles()
+        $category = $request->query('category');
+        $country  = $request->query('country');
+        $province = $request->query('province');
+        $city     = $request->query('city');
+
+        $query = $site->articles()
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->where('status', 'published')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->where('status', 'published');
+
+        if ($category) {
+            $query->where('category', $category);
+        }
+
+        if ($country) {
+            $query->where('country', $country);
+        }
+
+        if ($province) {
+            $provinceModel = Province::where('name', 'LIKE', $province)->first();
+            $query->where('province_id', $provinceModel ? $provinceModel->id : -1);
+        }
+
+        if ($city) {
+            $cityModel = City::where('name', 'LIKE', $city)->first();
+            $query->where('city_id', $cityModel ? $cityModel->city_id : -1);
+        }
+
+        $articles = $query->orderBy('created_at', 'desc')->paginate(20);
 
         return response()->json([
             'site' => [

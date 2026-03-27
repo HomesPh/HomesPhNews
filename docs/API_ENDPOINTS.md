@@ -88,7 +88,7 @@ Client API layer: [client/lib/api-v2/](../client/lib/api-v2/)
 
 | Method | Endpoint | Use Case | Parameters | Client File | Client Function |
 |---|---|---|---|---|---|
-| `GET` | `/api/external/articles` | Pull published articles into partner site | — | Integration demo in [client/app/admin/sites/integration/page.tsx](../client/app/admin/sites/integration/page.tsx) | Inline fetch with `X-Site-Key` |
+| `GET` | `/api/external/articles` | Pull published articles into partner site | `category` (string), `country` (string), `province` (string, exact name), `city` (string, exact name) | Integration demo in [client/app/admin/sites/integration/page.tsx](../client/app/admin/sites/integration/page.tsx) | Inline fetch with `X-Site-Key` |
 | `GET` | `/api/external/restaurants` | Pull published restaurants into partner site | — | — | — |
 | `POST` | `/api/external/subscribe` | Register user subscription from partner site widget | `email`, `categories[]`, `countries[]`, `company_name`, `features`, `time`, `logo` | [client/app/admin/sites/integration/page.tsx:72](../client/app/admin/sites/integration/page.tsx) | Inline axios POST |
 
@@ -116,9 +116,9 @@ Client API layer: [client/lib/api-v2/](../client/lib/api-v2/)
 
 | Method | Endpoint | Use Case | Parameters | Client File | Client Function |
 |---|---|---|---|---|---|
-| `GET` | `/api/v1/articles` | List/search published articles | `search`/`q`, `country`, `category`, `topic`, `per_page`, `page`, `sort_by`, `sort_direction`, `start_date`, `end_date` | [client/lib/api-v2/public/services/article/getArticlesList.ts:41](../client/lib/api-v2/public/services/article/getArticlesList.ts) | `getArticlesList(params?)` |
+| `GET` | `/api/v1/articles` | List/search published articles | `search`/`q`, `country`, `province`, `city`, `category`, `topic`, `per_page`, `page`, `sort_by`, `sort_direction`, `start_date`, `end_date` | [client/lib/api-v2/public/services/article/getArticlesList.ts:41](../client/lib/api-v2/public/services/article/getArticlesList.ts) | `getArticlesList(params?)` |
 | `GET` | `/api/v1/article` | Alias — backward compat | Same as above | Same file | Same function |
-| `GET` | `/api/v1/articles/feed` | Homepage curated feed (trending, most-read, latest, counts) | `country`, `category` | [client/lib/api-v2/public/services/article/getArticlesFeed.ts:34](../client/lib/api-v2/public/services/article/getArticlesFeed.ts) | `getArticlesFeed(params?)` |
+| `GET` | `/api/v1/articles/feed` | Homepage curated feed (trending, most-read, latest, counts) | `country`, `province`, `city`, `category` | [client/lib/api-v2/public/services/article/getArticlesFeed.ts:34](../client/lib/api-v2/public/services/article/getArticlesFeed.ts) | `getArticlesFeed(params?)` |
 | `GET` | `/api/v1/articles/{id}` | Fetch single article detail | `id` (path) | [client/lib/api-v2/public/services/article/getArticleById.ts:121](../client/lib/api-v2/public/services/article/getArticleById.ts) | `getArticleById(id)` |
 | `POST` | `/api/v1/articles/{id}/view` | Increment article view count on page load | `id` (path) | [client/lib/api-v2/public/services/article/incrementArticleViews.ts:7](../client/lib/api-v2/public/services/article/incrementArticleViews.ts) | `incrementArticleViews(id)` |
 | `GET` | `/api/v1/stats` | Fetch Redis-cached total stats (articles, countries, categories) | — | [client/lib/api-v2/public/services/article/getStats.ts:17](../client/lib/api-v2/public/services/article/getStats.ts) | `getStats()` |
