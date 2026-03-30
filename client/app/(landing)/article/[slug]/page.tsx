@@ -51,8 +51,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
             };
         }
 
-        const description = article.content
-            ? article.content.replace(/<[^>]*>/g, "").substring(0, 160) + "..."
+        const description = article.summary
+            ? article.summary.substring(0, 160) + "..."
             : "";
 
         return {

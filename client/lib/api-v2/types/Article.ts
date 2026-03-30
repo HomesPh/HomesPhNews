@@ -1,10 +1,7 @@
 export interface Article {
   id: string;
-  article_id: string | null;
   title: string;
-  original_title: string | null;
   summary: string | null;
-  content: string | null;
   image: unknown[] | null;
   category: string | null;
   country: string | null;
@@ -14,19 +11,12 @@ export interface Article {
   topics: unknown[] | null;
   slug: string | null;
   status: string;
-  is_featured: number | null;
-  is_deleted: boolean;
-  is_live: number | null;
   published_sites: string | null;
   content_blocks: string | null;
-  template: string | null;
   author: string | null;
-  custom_titles: unknown[] | null;
   published_at: string | null;
   views_count: number;
   created_at: string | null;
   updated_at: string | null;
-  site_id: number | null;
-  citations: string | null;
   image_url: string;
 }

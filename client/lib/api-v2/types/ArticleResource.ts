@@ -1,10 +1,9 @@
 export interface ArticleResource {
   id: string;
   slug: string;
-  article_id: string;
   title: string;
   summary: string;
-  content: string;
+  content?: string;
   category: string;
   country: string;
   province_id?: string | number;
@@ -20,19 +19,17 @@ export interface ArticleResource {
   description?: string;
   date?: string;
   views?: string;
-  published_sites: string | string[];
-  sites: string[];
-  topics: string[];
-  galleryImages: string[];
+  published_sites?: string | string[];
+  sites?: string[];
+  topics?: string[];
+  galleryImages?: string[];
   keywords: string;
   source: string;
   original_url: string;
-  is_deleted: boolean;
   is_redis: boolean;
   image_position?: number;
   image_position_x?: number;
   content_blocks?: any[];
-  template?: string;
   author?: string;
   read_time?: string;
   edited_by?: number;

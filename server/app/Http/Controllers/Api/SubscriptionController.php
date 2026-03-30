@@ -84,7 +84,6 @@ class SubscriptionController extends Controller
             $matchingArticles = \App\Models\Article::whereIn('category', $request->categories)
                 ->whereIn('country', $request->countries)
                 ->where('status', 'published')
-                ->where('is_deleted', false)
                 ->whereHas('publishedSites', function ($q) {
                     $q->where('site_name', 'Main News Portal');
                 })
@@ -98,7 +97,6 @@ class SubscriptionController extends Controller
                             ->orWhereIn('country', $request->countries);
                     })
                     ->where('status', 'published')
-                    ->where('is_deleted', false)
                     ->whereHas('publishedSites', function ($q) {
                         $q->where('site_name', 'Main News Portal');
                     })
@@ -236,7 +234,6 @@ class SubscriptionController extends Controller
             $matchingArticles = \App\Models\Article::whereIn('category', $request->categories)
                 ->whereIn('country', $request->countries)
                 ->where('status', 'published')
-                ->where('is_deleted', false)
                 ->whereHas('publishedSites', function ($q) {
                     $q->where('site_name', 'Main News Portal');
                 })
@@ -250,7 +247,6 @@ class SubscriptionController extends Controller
                             ->orWhereIn('country', $request->countries);
                     })
                     ->where('status', 'published')
-                    ->where('is_deleted', false)
                     ->whereHas('publishedSites', function ($q) {
                         $q->where('site_name', 'Main News Portal');
                     })

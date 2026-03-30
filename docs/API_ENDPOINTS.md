@@ -88,8 +88,14 @@ Client API layer: [client/lib/api-v2/](../client/lib/api-v2/)
 
 | Method | Endpoint | Use Case | Parameters | Client File | Client Function |
 |---|---|---|---|---|---|
-| `GET` | `/api/external/articles` | Pull published articles into partner site | `category` (string), `country` (string), `province` (string, exact name), `city` (string, exact name) | Integration demo in [client/app/admin/sites/integration/page.tsx](../client/app/admin/sites/integration/page.tsx) | Inline fetch with `X-Site-Key` |
+| `GET` | `/api/external/articles` | Pull published articles into partner site | `category` (string), `country` (string), `province` (string, exact name), `city` (string, exact name) | Integration demo in [client/app/admin/sites/integration/page.tsx](../client/app/admin/sites/integration/page.tsx) | Inline fetch with `X-Site-Key` or `X-Site-Api-Key` |
 | `GET` | `/api/external/restaurants` | Pull published restaurants into partner site | — | — | — |
+
+> **Note on Article Response Transformation**:
+> - Includes `published_at` (formatted string) as the primary timestamp.
+> - **Hidden Fields (Public/Partner Consumption)**: `created_at`, `date`, `source`, `original_url`, `is_deleted`, and `is_redis` are automatically removed for all non-admin requests to provide a clean content payload.
+
+
 | `POST` | `/api/external/subscribe` | Register user subscription from partner site widget | `email`, `categories[]`, `countries[]`, `company_name`, `features`, `time`, `logo` | [client/app/admin/sites/integration/page.tsx:72](../client/app/admin/sites/integration/page.tsx) | Inline axios POST |
 
 ---

@@ -23,8 +23,6 @@ interface ArticleEditorFormProps {
     availableCategories?: (string | { name: string; count: number })[];
     availableCountries?: (string | { name: string; count: number })[];
     onDataChange: (field: string, value: any) => void;
-    template: any;
-    onTemplateChange: (template: any) => void;
     onSave?: (currentData?: any) => void;
     onPublish?: (currentData?: any) => void;
     onClose?: () => void;
@@ -37,8 +35,6 @@ export default function ArticleEditorForm({
     availableCategories = [],
     availableCountries = [],
     onDataChange,
-    template,
-    onTemplateChange,
     onSave,
     onPublish,
     onClose,

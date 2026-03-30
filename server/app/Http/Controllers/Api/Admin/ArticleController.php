@@ -82,15 +82,14 @@ class ArticleController extends Controller
             }
         })
 
-            // Filter by is_deleted based on status
-            ->when($status === 'deleted', fn($q) => $q->where('is_deleted', true))
-            ->when($status !== 'deleted', fn($q) => $q->where('is_deleted', false))
+            // Filter by status if specified
+            ->when($status === 'deleted', fn($q) => $q->where('status', 'deleted'))
+            ->when($status !== 'deleted', fn($q) => $q->where('status', '!=', 'deleted'))
 
             ->when($validated['search'] ?? null, function ($q, $s) {
             $q->where(function ($sub) use ($s) {
                     $sub->where('title', 'LIKE', "%{$s}%")
                         ->orWhere('summary', 'LIKE', "%{$s}%")
-                        ->orWhere('content', 'LIKE', "%{$s}%")
                         ->orWhere('keywords', 'LIKE', "%{$s}%")
                         ->orWhere('topics', 'LIKE', "%{$s}%");
                 }
@@ -150,16 +149,15 @@ class ArticleController extends Controller
             }
         })
             ->when($status === 'deleted', function ($q) use ($isEditorOnly, $user) {
-            $q->where('is_deleted', true);
+            $q->where('status', 'deleted');
             if ($isEditorOnly)
                 $q->where('edited_by', $user->id);
         })
-            ->when($status !== 'deleted', fn($q) => $q->where('is_deleted', false))
+            ->when($status !== 'deleted', fn($q) => $q->where('status', '!=', 'deleted'))
             ->when($validated['search'] ?? null, function ($q, $s) {
             $q->where(function ($sub) use ($s) {
                     $sub->where('title', 'LIKE', "%{$s}%")
                         ->orWhere('summary', 'LIKE', "%{$s}%")
-                        ->orWhere('content', 'LIKE', "%{$s}%")
                         ->orWhere('keywords', 'LIKE', "%{$s}%")
                         ->orWhere('topics', 'LIKE', "%{$s}%");
                 }
@@ -213,13 +211,12 @@ class ArticleController extends Controller
                 $q->whereIn('status', ['published', 'pending review', 'edited', 'rejected']);
             }
         })
-            ->when($status === 'deleted', fn($q) => $q->where('is_deleted', true))
-            ->when($status !== 'deleted', fn($q) => $q->where('is_deleted', false))
+            ->when($status === 'deleted', fn($q) => $q->where('status', 'deleted'))
+            ->when($status !== 'deleted', fn($q) => $q->where('status', '!=', 'deleted'))
             ->when($validated['search'] ?? null, function ($q, $s) {
             $q->where(function ($sub) use ($s) {
                     $sub->where('title', 'LIKE', "%{$s}%")
                         ->orWhere('summary', 'LIKE', "%{$s}%")
-                        ->orWhere('content', 'LIKE', "%{$s}%")
                         ->orWhere('keywords', 'LIKE', "%{$s}%")
                         ->orWhere('topics', 'LIKE', "%{$s}%");
                 }
@@ -321,7 +318,7 @@ class ArticleController extends Controller
                 $redisCategoryCounts = collect($redisArticles)
                     ->filter(function ($a) use ($validated) {
                     $match = true;
-                    if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false)
+                    if (!empty($validated['search']) && stripos(($a['title'] ?? ''), $validated['search']) === false)
                         $match = false;
                     if (!empty($validated['country']) && ($a['country'] ?? '') !== $validated['country'])
                         $match = false;
@@ -337,7 +334,7 @@ class ArticleController extends Controller
                 $redisCountryCounts = collect($redisArticles)
                     ->filter(function ($a) use ($validated) {
                     $match = true;
-                    if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false)
+                    if (!empty($validated['search']) && stripos(($a['title'] ?? ''), $validated['search']) === false)
                         $match = false;
                     if (!empty($validated['category']) && ($a['category'] ?? '') !== $validated['category'])
                         $match = false;
@@ -350,7 +347,7 @@ class ArticleController extends Controller
                     $redisProvinceCounts = collect($redisArticles)
                         ->filter(function ($a) use ($validated) {
                         $match = true;
-                        if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false)
+                        if (!empty($validated['search']) && stripos(($a['title'] ?? ''), $validated['search']) === false)
                             $match = false;
                         if (!empty($validated['category']) && ($a['category'] ?? '') !== $validated['category'])
                             $match = false;
@@ -366,7 +363,7 @@ class ArticleController extends Controller
                     $redisCityCounts = collect($redisArticles)
                         ->filter(function ($a) use ($validated) {
                         $match = true;
-                        if (!empty($validated['search']) && stripos(($a['title'] ?? '') . ($a['content'] ?? ''), $validated['search']) === false)
+                        if (!empty($validated['search']) && stripos(($a['title'] ?? ''), $validated['search']) === false)
                             $match = false;
                         if (!empty($validated['category']) && ($a['category'] ?? '') !== $validated['category'])
                             $match = false;
@@ -437,7 +434,7 @@ class ArticleController extends Controller
         // Paginate DB results - Eager load to prevent N+1 queries
         $articles = $query
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name', 'city', 'province'])
-            ->select('id', 'article_id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'is_deleted', 'content_blocks', 'template', 'author', 'edited_by', 'province_id', 'city_id')
+            ->select('id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'content_blocks', 'author', 'edited_by', 'province_id', 'city_id')
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage);
 
@@ -455,8 +452,7 @@ class ArticleController extends Controller
                     return [
                     'id' => (string)($a['id'] ?? ''),
                     'title' => $a['title'] ?? 'Untitled',
-                    'summary' => isset($a['content']) ? substr($a['content'], 0, 150) . '...' : '',
-                    'content' => $a['content'] ?? '',
+                    'summary' => $a['summary'] ?? (isset($a['content']) ? substr($a['content'], 0, 150) . '...' : ''),
                     'image' => $a['image_url'] ?? null,
                     'image_url' => $a['image_url'] ?? null,
                     'category' => $a['category'] ?? 'General',
@@ -470,20 +466,7 @@ class ArticleController extends Controller
                     ];
                 })->filter(fn($a) => !empty($a['id']));
 
-                // Deduplicate: Don't show Redis items if they already exist in our DB
-                // Check by both ID and Title to catch manual drafts of scraper items
-                $redisIds = $redisItems->pluck('id')->toArray();
-                $redisTitles = $redisItems->pluck('title')->toArray();
-
-                $existingInDb = Article::whereIn('id', $redisIds)
-                    ->orWhereIn('title', $redisTitles)
-                    ->pluck('id', 'title')
-                    ->toArray();
-
-                $redisItems = $redisItems->filter(function ($a) use ($existingInDb) {
-                    return !in_array($a['id'], $existingInDb) && !isset($existingInDb[$a['title']]);
-                });
-
+                // Deduplication logic removed per objective.
                 $merged = $redisItems->merge($articles->getCollection());
                 $articles->setCollection($merged);
             }
@@ -598,7 +581,6 @@ class ArticleController extends Controller
         }
 
         $siteNames = $validated['published_sites'] ?? [];
-        unset($validated['published_sites']);
 
         // Remove fields that don't exist in the articles table
         unset($validated['gallery_images']);
@@ -612,7 +594,6 @@ class ArticleController extends Controller
             $validated['slug'] = \Illuminate\Support\Str::slug($validated['slug']);
         }
 
-        $validated['is_deleted'] = false;
         $validated['edited_by'] = auth()->id();
         $article = Article::create($validated);
 
@@ -678,10 +659,6 @@ class ArticleController extends Controller
 
         $payload = $request->validated();
 
-        if (!isset($payload['content']) && isset($payload['summary'])) {
-            $payload['content'] = $payload['summary'];
-        }
-
         $updated = $this->redisService->updateArticle($id, $payload);
 
         if (!$updated) {
@@ -702,7 +679,6 @@ class ArticleController extends Controller
             $siteNames = $validated['published_sites'];
             $siteIds = \App\Models\Site::whereIn('site_name', $siteNames)->pluck('id');
             $article->publishedSites()->sync($siteIds);
-            unset($validated['published_sites']);
         }
 
         // Handle Gallery Images Sync (support both field names for compatibility)
@@ -728,7 +704,7 @@ class ArticleController extends Controller
         unset($validated['date']); // Not a database column
 
         // Determine if there are actual content changes (excluding status and non-content fields)
-        $nonContentFields = ['status', 'published_sites', 'custom_titles', 'galleryImages', 'gallery_images', 'split_images', 'date'];
+        $nonContentFields = ['status', 'published_sites', 'galleryImages', 'gallery_images', 'split_images', 'date'];
         $hasContentChanges = false;
 
         foreach ($validated as $key => $value) {
@@ -762,7 +738,6 @@ class ArticleController extends Controller
     {
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
-            'custom_titles' => 'nullable|array',
         ]);
 
         $article->update($validated);
@@ -808,7 +783,6 @@ class ArticleController extends Controller
 
         $finalData = [
             'status' => 'published',
-            'is_deleted' => false,
             'published_at' => now(),
         ];
 
@@ -816,9 +790,7 @@ class ArticleController extends Controller
         if ($redisArticle) {
             $finalData = array_merge($finalData, [
                 'title' => $redisArticle['title'] ?? '',
-                'original_title' => $redisArticle['title'] ?? '',
-                'summary' => $redisArticle['summary'] ?? substr($redisArticle['content'] ?? '', 0, 500),
-                'content' => $redisArticle['content'] ?? '',
+                'summary' => $redisArticle['summary'] ?? '',
                 'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? '',
                 'category' => $redisArticle['category'] ?? '',
                 'country' => $redisArticle['country'] ?? '',
@@ -827,7 +799,6 @@ class ArticleController extends Controller
                 'keywords' => $redisArticle['keywords'] ?? '',
                 'topics' => $redisArticle['topics'] ?? [],
                 'content_blocks' => $redisArticle['content_blocks'] ?? [],
-                'template' => $redisArticle['template'] ?? '',
                 'author' => $redisArticle['author'] ?? '',
                 'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
             ]);
@@ -846,7 +817,7 @@ class ArticleController extends Controller
         $payload = array_filter($validated, fn($v) => !is_null($v));
 
         // Determine if there are actual content changes in the payload
-        $nonContentFields = ['status', 'published_sites', 'custom_titles', 'gallery_images', 'galleryImages'];
+        $nonContentFields = ['status', 'published_sites', 'gallery_images', 'galleryImages'];
         $hasContentChanges = false;
         foreach ($payload as $key => $value) {
             if (!in_array($key, $nonContentFields)) {
@@ -875,7 +846,6 @@ class ArticleController extends Controller
         // Since this is the PUBLISH method, we must ensure these are correct
         // regardless of what was in Redis or DB drafts.
         $finalData['status'] = 'published';
-        $finalData['is_deleted'] = false;
 
         // 2. Clean up and execute persistence
         $fillableData = collect($finalData)->only((new Article())->getFillable())->toArray();
@@ -891,7 +861,7 @@ class ArticleController extends Controller
             if (empty($fillableData['title'])) {
                 throw new \Exception("Article not found and no title provided for creation.");
             }
-            $article = Article::create(array_merge(['id' => $id, 'article_id' => $id], $fillableData));
+            $article = Article::create(array_merge(['id' => $id], $fillableData));
         }
 
         // 3. Sync Platform Connections
@@ -901,10 +871,7 @@ class ArticleController extends Controller
             $article->publishedSites()->sync($siteIds);
         }
 
-        // 4. Handle Site-Specific Customizations
-        if (isset($validated['custom_titles'])) {
-            $article->update(['custom_titles' => $validated['custom_titles']]);
-        }
+        // 4. Handle Site-Specific Customizations (removed custom_titles)
 
         // 5. Sync Media Assets (ArticleImage relationship)
         // Priority: Payload Gallery > Redis Gallery
@@ -943,7 +910,7 @@ class ArticleController extends Controller
         // 1. Try to find in Database
         $article = Article::find($id);
         if ($article) {
-            $article->update(['is_deleted' => true]);
+            $article->update(['status' => 'deleted']);
             $deletedFromDb = true;
         }
 
@@ -955,16 +922,14 @@ class ArticleController extends Controller
                     // Move to DB as soft-deleted article
                     Article::create([
                         'id' => $id,
-                        'article_id' => $id,
                         'title' => $redisArticle['title'] ?? '',
-                        'summary' => $redisArticle['summary'] ?? substr($redisArticle['content'] ?? '', 0, 500),
-                        'content' => $redisArticle['content'] ?? '',
+                        'summary' => $redisArticle['summary'] ?? '',
                         'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? '',
                         'category' => $redisArticle['category'] ?? '',
                         'country' => $redisArticle['country'] ?? '',
                         'source' => $redisArticle['source'] ?? '',
                         'status' => 'pending review',
-                        'is_deleted' => true,
+                        'status' => 'deleted',
                         'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
                     ]);
 
@@ -999,12 +964,11 @@ class ArticleController extends Controller
             return response()->json(['message' => 'Article not found'], 404);
         }
 
-        if (!$article->is_deleted) {
+        if ($article->status !== 'deleted') {
             return response()->json(['message' => 'Article is not deleted'], 400);
         }
 
         $article->update([
-            'is_deleted' => false,
             'status' => 'pending review'
         ]);
 
@@ -1069,7 +1033,7 @@ class ArticleController extends Controller
         $isEditorOnly = $user && $user->hasRole('editor') && !$user->hasRole('admin');
 
         // Database counts for active articles
-        $query = Article::where('is_deleted', false);
+        $query = Article::where('status', '!=', 'deleted');
 
         if ($isEditorOnly) {
             // For editors, we filter Published, Edited, and Rejected by their ID
@@ -1082,7 +1046,7 @@ class ArticleController extends Controller
             ];
 
             // Count soft-deleted articles for this editor only?
-            $deletedCount = Article::where('is_deleted', true)->where('edited_by', $user->id)->count();
+            $deletedCount = Article::where('status', 'deleted')->where('edited_by', $user->id)->count();
         }
         else {
             $counts = (clone $query)
@@ -1091,7 +1055,7 @@ class ArticleController extends Controller
                 ->pluck('total', 'status')
                 ->toArray();
 
-            $deletedCount = Article::where('is_deleted', true)->count();
+            $deletedCount = Article::where('status', 'deleted')->count();
         }
 
         // Redis count (all Redis articles are pending)
@@ -1153,23 +1117,12 @@ class ArticleController extends Controller
                         $failed[] = ['id' => $id, 'reason' => 'Article not found in Redis'];
                         continue;
                     }
-                    if (Article::where('id', $id)->exists()) {
-                        $failed[] = ['id' => $id, 'reason' => 'Article already exists in database'];
-                        continue;
-                    }
-
                     $slug = \Illuminate\Support\Str::slug($redisArticle['title'] ?? 'article-' . $id);
-                    if (Article::where('slug', $slug)->exists()) {
-                        $slug = $slug . '-' . substr($id, 0, 8);
-                    }
 
                     $payload = [
                         'id' => $id,
-                        'article_id' => $id,
                         'title' => $redisArticle['title'] ?? 'Untitled',
-                        'original_title' => $redisArticle['title'] ?? null,
-                        'summary' => $redisArticle['summary'] ?? substr($redisArticle['content'] ?? '', 0, 500),
-                        'content' => $redisArticle['content'] ?? '',
+                        'summary' => $redisArticle['summary'] ?? '',
                         'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? null,
                         'category' => $redisArticle['category'] ?? '',
                         'country' => $redisArticle['country'] ?? '',
@@ -1178,12 +1131,10 @@ class ArticleController extends Controller
                         'keywords' => $redisArticle['keywords'] ?? null,
                         'topics' => $redisArticle['topics'] ?? [],
                         'content_blocks' => $redisArticle['content_blocks'] ?? [],
-                        'template' => $redisArticle['template'] ?? '',
                         'author' => $redisArticle['author'] ?? '',
                         'slug' => $slug,
                         'status' => 'pending review',
                         'views_count' => 0,
-                        'is_deleted' => false,
                         'edited_by' => null, // Initial move to DB for review is not an edit
                     ];
 
@@ -1477,10 +1428,8 @@ class ArticleController extends Controller
                 if ($redisArticle) {
                     Article::create([
                         'id' => $id,
-                        'article_id' => $id,
                         'title' => $redisArticle['title'] ?? 'Untitled',
-                        'summary' => $redisArticle['summary'] ?? substr($redisArticle['content'] ?? '', 0, 500),
-                        'content' => $redisArticle['content'] ?? '',
+                        'summary' => $redisArticle['summary'] ?? '',
                         'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? null,
                         'category' => $redisArticle['category'] ?? '',
                         'country' => $redisArticle['country'] ?? '',

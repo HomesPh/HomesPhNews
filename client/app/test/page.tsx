@@ -220,12 +220,12 @@ export default function TestPage() {
                       onClick={() => updateArticle(articleId, { title: "Updated: " + new Date().toLocaleTimeString() })}
                     />
                     <ActionRow
-                      label="Update Custom Titles"
+                      label="Update Main Title"
                       action="updateArticleTitles"
                       disabled={!articleId}
-                      description="Sets custom A/B titles"
+                      description="Updates just the title"
                       onClick={() => updateArticleTitles(articleId, {
-                        custom_titles: ["Variation X - " + Date.now(), "Variation Y - " + Date.now()]
+                        title: "Title Variation " + Date.now()
                       })}
                     />
                   </CardContent>
