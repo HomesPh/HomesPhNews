@@ -2,3 +2,5 @@ FHPHKeyPair.pem
 
 *.env
 *env
+
+migrator/

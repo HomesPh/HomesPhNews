@@ -43,7 +43,6 @@ class ArticleController extends Controller
         // Always filter by published status for public feed
         // AND restrict to articles published to the Main News Portal
         $query = Article::where('status', 'published')
-            ->where('is_deleted', false)
             ->whereHas('publishedSites', function ($q) {
                 $q->where('site_name', 'Main News Portal');
             });
@@ -104,7 +103,6 @@ class ArticleController extends Controller
         $category = $validated['category'] ?? null;
 
         $baseQuery = Article::where('status', 'published')
-            ->where('is_deleted', false)
             ->whereHas('publishedSites', function ($q) {
                 $q->where('site_name', 'Main News Portal');
             });
@@ -158,7 +156,6 @@ class ArticleController extends Controller
         // 1. Check Database for main articles
         $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])
             ->where('status', 'published')
-            ->where('is_deleted', false)
             ->whereHas('publishedSites', function ($q) {
                 $q->where('site_name', 'Main News Portal');
             })
@@ -198,7 +195,6 @@ class ArticleController extends Controller
                 'published_sites' => [],
                 'sites' => [],
                 'galleryImages' => [],
-                'is_deleted' => false,
                 'is_redis' => false,
 
                 // Rich Metadata for UI Matching Admin Page

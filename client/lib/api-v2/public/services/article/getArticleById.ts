@@ -24,13 +24,12 @@ export async function getArticleById(id: string): Promise<ArticleByIdResponse> {
 
     const baseArticle: Partial<ArticleResource> = {
       id,
-      article_id: id,
+      
       slug: id,
       views_count: 0,
       published_sites: [],
       sites: [],
       galleryImages: [],
-      is_deleted: false,
       is_redis: false,
       created_at: new Date().toISOString(),
       original_url: "#",

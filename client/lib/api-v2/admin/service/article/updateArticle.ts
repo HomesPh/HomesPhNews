@@ -14,7 +14,6 @@ export interface UpdateArticleRequest {
   image?: string | null;
   image_url?: string | null;
   status?: "published" | "pending review" | "rejected" | "edited" | null;
-  custom_titles?: string[] | null;
   topics?: string[] | null;
   keywords?: string | null;
   published_sites?: string[] | null;

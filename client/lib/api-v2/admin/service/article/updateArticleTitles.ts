@@ -5,7 +5,7 @@ import type { AxiosResponse } from "axios";
 import type { ArticleResource } from "../../../types/ArticleResource";
 
 export interface UpdateArticleTitlesRequest {
-  custom_titles?: string[] | null;
+  title?: string;
 }
 
 /**
