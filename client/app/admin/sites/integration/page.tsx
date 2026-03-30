@@ -65,10 +65,7 @@ document.getElementById('homestv-subscription-form').addEventListener('submit', 
         categories: ${JSON.stringify(selectedSite.categories)},
         countries: ["Philippines"], // Default
         time: "08:00 AM",
-        frequency: "Daily",
-        user_country: "Philippines", // Default User Origin
-        user_province: "",
-        user_city: ""
+        frequency: "Daily"
     };
 
     try {

@@ -55,11 +55,6 @@ class SubscriptionController extends Controller
             'countries' => 'required|array',
             'features' => 'nullable|string',
             'time' => 'nullable|string',
-            'province' => 'nullable|string',
-            'city' => 'nullable|string',
-            'user_country' => 'nullable|string',
-            'user_city' => 'nullable|string',
-            'user_province' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -76,11 +71,6 @@ class SubscriptionController extends Controller
                 'country' => $request->countries,
                 'features' => $request->features,
                 'time' => $request->time,
-                'province' => $request->province,
-                'city' => $request->city,
-                'user_country' => $request->user_country,
-                'user_city' => $request->user_city,
-                'user_province' => $request->user_province,
             ]);
 
             // Store in cache for algorithm purpose only
@@ -164,12 +154,6 @@ class SubscriptionController extends Controller
             'countries' => 'required|array',
             'features' => 'nullable|string',
             'time' => 'nullable|string',
-            'frequency' => 'nullable|string',
-            'province' => 'nullable|string',
-            'city' => 'nullable|string',
-            'user_country' => 'nullable|string',
-            'user_city' => 'nullable|string',
-            'user_province' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -225,20 +209,8 @@ class SubscriptionController extends Controller
                 $logoPath = $request->file('logo')->store('subscription-logos', 'public');
             }
 
-            // Determine source site: prioritize middleware site, then try request input as ID/name
-            $siteAttr = $request->attributes->get('site');
-            $sourceSiteId = $siteAttr ? $siteAttr->id : null;
-
-            if (!$sourceSiteId) {
-                $inputSource = $request->input('source_site');
-                if ($inputSource && is_numeric($inputSource)) {
-                    $sourceSiteId = $inputSource;
-                } else {
-                    // Fallback to searching by name if provided, or default to Main News Portal
-                    $site = \App\Models\Site::where('site_name', $inputSource ?: 'Main News Portal')->first();
-                    $sourceSiteId = $site?->id;
-                }
-            }
+            // Determine source site from middleware or request
+            $sourceSite = $request->attributes->get('site')->site_name ?? $request->input('source_site');
 
             // Save new subscription to database
             $subscription = SubscriptionDetail::create([
@@ -248,13 +220,7 @@ class SubscriptionController extends Controller
                 'country' => $request->countries,
                 'features' => $request->features,
                 'time' => $request->time,
-                'province' => $request->province,
-                'city' => $request->city,
-                'user_country' => $request->user_country,
-                'user_city' => $request->user_city,
-                'user_province' => $request->user_province,
-                'source_site' => $sourceSiteId,
-                'frequency' => $request->frequency,
+                'source_site' => $sourceSite,
             ]);
 
             // Store in cache for algorithm purpose only
