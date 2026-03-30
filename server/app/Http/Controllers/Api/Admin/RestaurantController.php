@@ -47,46 +47,38 @@ class RestaurantController extends Controller
         // 2. Redis list (Being Processed)
         $redisRestaurants = [];
         $restaurantIds = [];
-        $allDbIds = null; // lazy-loaded once
-        try {
-            if (!$status || $status === 'all' || $isBeingProcessed) {
-                $restaurantIds = Redis::smembers("{$this->prefix}all_restaurants");
-                if (!empty($restaurantIds)) {
-                    $allDbIds = \App\Models\Restaurant::pluck('id')->toArray();
-                    $dbIds = $allDbIds;
-                    $pendingIds = array_values(array_diff($restaurantIds, $dbIds));
-                    $sortedIds = collect($pendingIds)->sort()->reverse()->values()->all();
-                    if ($isBeingProcessed) {
-                        $sortedIds = array_slice($sortedIds, $offset, $limit);
-                    } else {
-                        $sortedIds = array_slice($sortedIds, 0, 10);
-                    }
-                    foreach ($sortedIds as $rid) {
-                        $redisData = Redis::get("{$this->prefix}restaurant:{$rid}");
-                        if ($redisData) {
-                            $r = json_decode($redisData, true);
-                            $redisRestaurants[] = [
-                                'id' => $r['id'] ?? $rid,
-                                'name' => $r['name'] ?? 'Unknown Restaurant',
-                                'country' => $r['country'] ?? '',
-                                'city' => $r['city'] ?? '',
-                                'cuisine_type' => $r['cuisine_type'] ?? 'Restaurant',
-                                'price_range' => $r['price_range'] ?? '₱₱',
-                                'rating' => $r['rating'] ?? 0,
-                                'image_url' => $r['image_url'] ?? '',
-                                'timestamp' => $r['timestamp'] ?? 0,
-                                'status' => $r['status'] ?? 'draft',
-                                'is_filipino_owned' => $r['is_filipino_owned'] ?? false,
-                                'is_redis' => true,
-                            ];
-                        }
+        if (!$status || $status === 'all' || $isBeingProcessed) {
+            $restaurantIds = Redis::smembers("{$this->prefix}all_restaurants");
+            if (!empty($restaurantIds)) {
+                $dbIds = \App\Models\Restaurant::pluck('id')->toArray();
+                $pendingIds = array_values(array_diff($restaurantIds, $dbIds));
+                $sortedIds = collect($pendingIds)->sort()->reverse()->values()->all();
+                if ($isBeingProcessed) {
+                    $sortedIds = array_slice($sortedIds, $offset, $limit);
+                } else {
+                    $sortedIds = array_slice($sortedIds, 0, 10);
+                }
+                foreach ($sortedIds as $rid) {
+                    $redisData = Redis::get("{$this->prefix}restaurant:{$rid}");
+                    if ($redisData) {
+                        $r = json_decode($redisData, true);
+                        $redisRestaurants[] = [
+                            'id' => $r['id'] ?? $rid,
+                            'name' => $r['name'] ?? 'Unknown Restaurant',
+                            'country' => $r['country'] ?? '',
+                            'city' => $r['city'] ?? '',
+                            'cuisine_type' => $r['cuisine_type'] ?? 'Restaurant',
+                            'price_range' => $r['price_range'] ?? '₱₱',
+                            'rating' => $r['rating'] ?? 0,
+                            'image_url' => $r['image_url'] ?? '',
+                            'timestamp' => $r['timestamp'] ?? 0,
+                            'status' => $r['status'] ?? 'draft',
+                            'is_filipino_owned' => $r['is_filipino_owned'] ?? false,
+                            'is_redis' => true,
+                        ];
                     }
                 }
             }
-        } catch (\Exception $e) {
-            \Log::warning('Redis unavailable in RestaurantController::index: ' . $e->getMessage());
-            $restaurantIds = [];
-            $redisRestaurants = [];
         }
 
         // Prepare filters for Dynamic Counts
@@ -103,57 +95,44 @@ class RestaurantController extends Controller
                 ->when($search, fn($sq) => $sq->where('name', 'like', "%{$search}%"));
         };
  
-        // Helper function for Redis filtering — fetches all Redis data in one pass
+        // Helper function for Redis filtering
         $allRedisDataFiltered = function($currentSearch) use ($restaurantIds) {
             $filtered = [];
-            if (empty($restaurantIds)) return $filtered;
-            try {
-                // Single DB query to get all existing IDs — avoids N queries inside the loop
-                $dbIds = \App\Models\Restaurant::whereIn('id', $restaurantIds)->pluck('id')->flip()->toArray();
-
-                foreach ($restaurantIds as $rid) {
-                    if (isset($dbIds[$rid])) continue; // already in DB, skip
-                    $raw = Redis::get("{$this->prefix}restaurant:{$rid}");
-                    if (!$raw) continue;
-                    $r = json_decode($raw, true);
-
-                    $matchesSearch = !$currentSearch || (isset($r['name']) && stripos($r['name'], $currentSearch) !== false);
-                    if ($matchesSearch) $filtered[] = $r;
-                }
-            } catch (\Exception $e) {
-                \Log::warning('Redis unavailable in allRedisDataFiltered: ' . $e->getMessage());
+            foreach ($restaurantIds as $rid) {
+                $raw = Redis::get("{$this->prefix}restaurant:{$rid}");
+                if (!$raw) continue;
+                $r = json_decode($raw, true);
+                $dbExists = \App\Models\Restaurant::where('id', $r['id'] ?? $rid)->exists();
+                if ($dbExists) continue;
+ 
+                $matchesSearch = !$currentSearch || (isset($r['name']) && stripos($r['name'], $currentSearch) !== false);
+                if ($matchesSearch) $filtered[] = $r;
             }
             return $filtered;
         };
  
-        // Fetch Redis data once and reuse for both category and country counts
-        $cachedRedisData = collect([]);
-        if (!$status || $status === 'all' || $isBeingProcessed) {
-            $cachedRedisData = collect($allRedisDataFiltered($search));
-        }
-
         // 1. Calculate Category Counts (respect search, country, city)
         $dbCatQuery = $applyDbFilters((clone $query))
             ->when($country, fn($q) => $q->where('country', $country))
             ->when($city, fn($q) => $q->where('city', $city));
         $dbCategoryCounts = $dbCatQuery->whereNotNull('cuisine_type')->groupBy('cuisine_type')->selectRaw('cuisine_type, count(*) as count')->pluck('count', 'cuisine_type')->toArray();
-
+        
         $redisCategoryCounts = [];
-        if ($cachedRedisData->isNotEmpty()) {
-            $redisFiltered = $cachedRedisData
+        if (!$status || $status === 'all' || $isBeingProcessed) {
+            $redisFiltered = collect($allRedisDataFiltered($search))
                 ->filter(fn($r) => (!$country || ($r['country'] ?? '') === $country) && (!$city || ($r['city'] ?? '') === $city));
             $redisCategoryCounts = $redisFiltered->groupBy('cuisine_type')->map(fn($g) => $g->count())->toArray();
         }
-
+ 
         // 2. Calculate Country Counts (respect search, category, city)
         $dbCountryQuery = $applyDbFilters((clone $query))
             ->when($category, fn($q) => $q->where('cuisine_type', $category))
             ->when($city, fn($q) => $q->where('city', $city));
         $dbCountryCounts = $dbCountryQuery->whereNotNull('country')->groupBy('country')->selectRaw('country, count(*) as count')->pluck('count', 'country')->toArray();
-
+ 
         $redisCountryCounts = [];
-        if ($cachedRedisData->isNotEmpty()) {
-            $redisFiltered = $cachedRedisData
+        if (!$status || $status || $isBeingProcessed) {
+            $redisFiltered = collect($allRedisDataFiltered($search))
                 ->filter(fn($r) => (!$category || ($r['cuisine_type'] ?? '') === $category) && (!$city || ($r['city'] ?? '') === $city));
             $redisCountryCounts = $redisFiltered->groupBy('country')->map(fn($g) => $g->count())->toArray();
         }
@@ -177,8 +156,7 @@ class RestaurantController extends Controller
  
         // Being Processed tab: Redis only
         if ($isBeingProcessed) {
-            $allDbIds = $allDbIds ?? \App\Models\Restaurant::pluck('id')->toArray();
-            $totalRedis = count(array_diff($restaurantIds, $allDbIds));
+            $totalRedis = count(array_diff($restaurantIds, \App\Models\Restaurant::pluck('id')->toArray()));
             return response()->json([
                 'data' => $redisRestaurants,
                 'current_page' => $page,
@@ -205,8 +183,7 @@ class RestaurantController extends Controller
         if (!$status || $status === 'all') {
             $allMerged = collect($redisRestaurants)->merge($data);
             $dbTotal = $dbRestaurants ? $dbRestaurants->total() : 0;
-            $allDbIds = $allDbIds ?? \App\Models\Restaurant::pluck('id')->toArray();
-            $redisTotal = count(array_diff($restaurantIds, $allDbIds));
+            $redisTotal = count(array_diff($restaurantIds, \App\Models\Restaurant::pluck('id')->toArray()));
             return response()->json([
                 'data' => $allMerged,
                 'current_page' => $page,
@@ -240,15 +217,11 @@ class RestaurantController extends Controller
         }
 
         // 2. Check Redis
-        try {
-            $data = Redis::get("{$this->prefix}restaurant:{$id}");
-            if ($data) {
-                $r = json_decode($data, true);
-                $r['is_redis'] = true;
-                return response()->json($r);
-            }
-        } catch (\Exception $e) {
-            \Log::warning('Redis unavailable in show: ' . $e->getMessage());
+        $data = Redis::get("{$this->prefix}restaurant:{$id}");
+        if ($data) {
+            $r = json_decode($data, true);
+            $r['is_redis'] = true;
+            return response()->json($r);
         }
 
         return response()->json(['error' => 'Restaurant not found'], 404);
@@ -467,13 +440,8 @@ class RestaurantController extends Controller
     {
         $published = \App\Models\Restaurant::where('status', 'published')->count();
         $dbDraft = \App\Models\Restaurant::where('status', 'draft')->count();
+        $redisCount = (int) Redis::scard("{$this->prefix}all_restaurants");
         $deleted = \App\Models\Restaurant::where('status', 'deleted')->count();
-        $redisCount = 0;
-        try {
-            $redisCount = (int) Redis::scard("{$this->prefix}all_restaurants");
-        } catch (\Exception $e) {
-            \Log::warning('Redis unavailable in getStatusCounts: ' . $e->getMessage());
-        }
         // Being Processed = Redis only. Pending = DB draft only.
         return [
             'all' => $published + $dbDraft + $redisCount,
@@ -490,14 +458,9 @@ class RestaurantController extends Controller
      */
     public function stats()
     {
-        $redisTotal = 0;
-        try {
-            $redisTotal = (int) Redis::scard("{$this->prefix}all_restaurants");
-        } catch (\Exception $e) {
-            \Log::warning('Redis unavailable in stats: ' . $e->getMessage());
-        }
+        $redisTotal = Redis::scard("{$this->prefix}all_restaurants");
         $dbTotal = \App\Models\Restaurant::count();
-
+        
         return response()->json([
             'total_restaurants' => $redisTotal + $dbTotal,
             'db_total' => $dbTotal,
@@ -525,12 +488,8 @@ class RestaurantController extends Controller
             $restaurant->delete();
         }
 
-        try {
-            Redis::del("{$this->prefix}restaurant:{$id}");
-            Redis::srem("{$this->prefix}all_restaurants", $id);
-        } catch (\Exception $e) {
-            \Log::warning('Redis unavailable in destroy: ' . $e->getMessage());
-        }
+        Redis::del("{$this->prefix}restaurant:{$id}");
+        Redis::srem("{$this->prefix}all_restaurants", $id);
 
         return response()->json(['message' => 'Restaurant deleted from all storage']);
     }
