@@ -88,12 +88,12 @@ Client API layer: [client/lib/api-v2/](../client/lib/api-v2/)
 
 | Method | Endpoint | Use Case | Parameters | Client File | Client Function |
 |---|---|---|---|---|---|
-| `GET` | `/api/external/articles` | Pull published articles into partner site | `category` (string), `country` (string), `province` (string, exact name), `city` (string, exact name) | Integration demo in [client/app/admin/sites/integration/page.tsx](../client/app/admin/sites/integration/page.tsx) | Inline fetch with `X-Site-Key` or `X-Site-Api-Key` |
-| `GET` | `/api/external/restaurants` | Pull published restaurants into partner site | — | — | — |
+| `GET` | `/api/external/articles` | Pull published articles into partner site | `category` (string), `country` (string), `province` (string, exact name), `city` (string, exact name), `per_page`, `page`, `limit`, `offset` | Integration demo in [client/app/admin/sites/integration/page.tsx](../client/app/admin/sites/integration/page.tsx) | Inline fetch with `X-Site-Key` or `X-Site-Api-Key` |
+| `GET` | `/api/external/restaurants` | Pull published restaurants into partner site | `country`, `city`, `per_page`, `page`, `limit`, `offset` | — | — |
 
 > **Note on Article Response Transformation**:
 > - Includes `published_at` (formatted string) as the primary timestamp.
-> - **Hidden Fields (Public/Partner Consumption)**: `created_at`, `date`, `source`, `original_url`, `is_deleted`, and `is_redis` are automatically removed for all non-admin requests to provide a clean content payload.
+> - **Hidden Fields (Public/Partner Consumption)**: `created_at`, `date`, `source`, `original_url`, `is_deleted`, `is_redis`, and `image` are automatically removed for all non-admin requests to provide a clean, content-focused payload. `published_at` and `image_url` remain available for public use.
 
 
 | `POST` | `/api/external/subscribe` | Register user subscription from partner site widget | `email`, `categories[]`, `countries[]`, `company_name`, `features`, `time`, `logo` | [client/app/admin/sites/integration/page.tsx:72](../client/app/admin/sites/integration/page.tsx) | Inline axios POST |
@@ -138,7 +138,7 @@ Client API layer: [client/lib/api-v2/](../client/lib/api-v2/)
 
 | Method | Endpoint | Use Case | Parameters | Client File | Client Function |
 |---|---|---|---|---|---|
-| `GET` | `/api/v1/restaurants` | List/search published restaurants | `limit`/`per_page`, `page`, `topic`, `country`, `search` | [client/lib/api-v2/public/services/restaurant/getRestaurants.ts:26](../client/lib/api-v2/public/services/restaurant/getRestaurants.ts) | `getRestaurants(params?)` |
+| `GET` | `/api/v1/restaurants` | List/search published restaurants | `limit`/`per_page`, `page`, `topic`, `country`, `city`, `category`, `search` | [client/lib/api-v2/public/services/restaurant/getRestaurants.ts:26](../client/lib/api-v2/public/services/restaurant/getRestaurants.ts) | `getRestaurants(params?)` |
 | `GET` | `/api/v1/restaurants/{id}` | Fetch single restaurant detail | `id` (path) | [client/lib/api-v2/public/services/restaurant/getRestaurantById.ts](../client/lib/api-v2/public/services/restaurant/getRestaurantById.ts) | `getRestaurantById(id)` |
 | `GET` | `/api/v1/restaurants/country/{country}` | Restaurants by country (max 20) | `country` (path) | Not directly called from client | — |
 
@@ -217,8 +217,8 @@ Client API layer: [client/lib/api-v2/](../client/lib/api-v2/)
 
 | Method | Endpoint | Use Case | Parameters | Client File | Client Function |
 |---|---|---|---|---|---|
-| `GET` | `/api/v1/subscriber/articles` | Fetch articles scoped to subscriber's allowed categories/countries | `search`, `category`, `country`, `per_page`, `page` | Not directly found — expected in subscriber portal | — |
-| `GET` | `/api/v1/subscriber/articles/{id}` | Fetch single article within subscriber scope | `id` (path) | Not directly found — expected in subscriber portal | — |
+| `GET` | `/api/v1/subscriber/articles` | Fetch articles scoped to subscriber's allowed categories/countries | `search`/`q`, `category`, `country`, `per_page`, `page`, `allowed_categories[]`, `allowed_countries[]` | Not directly found — expected in subscriber portal | — |
+| `GET` | `/api/v1/subscriber/articles/{id}` | Fetch single article (ID or slug) within subscriber scope | `id` (path) | Not directly found — expected in subscriber portal | — |
 
 ---
 
@@ -233,8 +233,8 @@ Client API layer: [client/lib/api-v2/](../client/lib/api-v2/)
 | Method | Endpoint | Roles | Use Case | Parameters | Client File | Client Function |
 |---|---|---|---|---|---|---|
 | `GET` | `/api/v1/admin/stats` | `admin` | Dashboard KPIs: totals, recent articles | — | [client/lib/api-v2/admin/service/dashboard/getAdminStats.ts:33](../client/lib/api-v2/admin/service/dashboard/getAdminStats.ts) | `getAdminStats()` |
-| `GET` | `/api/v1/admin/analytics` | `admin` | Article analytics (views, engagement) | `period`, `category`, `country` | [client/lib/api-v2/admin/service/analytics/getAdminAnalytics.ts:81](../client/lib/api-v2/admin/service/analytics/getAdminAnalytics.ts) | `getAdminAnalytics(params?)` |
-| `GET` | `/api/v1/admin/analytics/mailing-list` | `admin,ceo,editor` | Newsletter performance stats | `period`, `category`, `country` | [client/lib/api-v2/admin/service/analytics/getMailingListStats.ts](../client/lib/api-v2/admin/service/analytics/getMailingListStats.ts) | `getMailingListStats()` |
+| `GET` | `/api/v1/admin/analytics` | `admin` | Article analytics (views, engagement) | `period` (today, yesterday, 7days, 30days, custom), `category`, `country`, `start_date`, `end_date` | [client/lib/api-v2/admin/service/analytics/getAdminAnalytics.ts:81](../client/lib/api-v2/admin/service/analytics/getAdminAnalytics.ts) | `getAdminAnalytics(params?)` |
+| `GET` | `/api/v1/admin/analytics/mailing-list` | `admin,ceo,editor` | Newsletter performance stats | `period`, `category`, `country`, `start_date`, `end_date` | [client/lib/api-v2/admin/service/analytics/getMailingListStats.ts](../client/lib/api-v2/admin/service/analytics/getMailingListStats.ts) | `getMailingListStats()` |
 
 ---
 
@@ -242,22 +242,22 @@ Client API layer: [client/lib/api-v2/](../client/lib/api-v2/)
 
 | Method | Endpoint | Roles | Use Case | Parameters | Client File | Client Function |
 |---|---|---|---|---|---|---|
-| `GET` | `/api/v1/admin/articles` | `admin,ceo,editor` | List articles with advanced filters | `status`, `search`, `country`, `category`, `page`, `per_page`, `sort_by`, `sort_direction`, `start_date`, `end_date`, `city` | [client/lib/api-v2/admin/service/article/getAdminArticles.ts:92](../client/lib/api-v2/admin/service/article/getAdminArticles.ts) | `getAdminArticles(params?)` |
-| `POST` | `/api/v1/admin/articles` | `admin,editor` | Create new article | `title`, `summary`, `content`, `image`, `category`, `country`, `topics[]`, `published_sites[]`, `status` | [client/lib/api-v2/admin/service/article/createArticle.ts:37](../client/lib/api-v2/admin/service/article/createArticle.ts) | `createArticle(body)` |
+| `GET` | `/api/v1/admin/articles` | `admin,ceo,editor` | List articles with advanced filters | `status` (published, pending review, being_processed, edited, rejected, deleted, all), `search`/`q`, `country`, `province_id`, `city_id`, `category`, `per_page`/`limit`, `page`/`offset`, `sort_by` (created_at, views_count, title, timestamp, published_at), `sort_direction`, `start_date`, `end_date`, `editor_id` | [client/lib/api-v2/admin/service/article/getAdminArticles.ts:92](../client/lib/api-v2/admin/service/article/getAdminArticles.ts) | `getAdminArticles(params?)` |
+| `POST` | `/api/v1/admin/articles` | `admin,editor` | Create new article | `title`, `summary`, `content_blocks` (JSON), `image`/`image_url`, `category`, `country`, `province_id`, `city_id`, `topics[]`, `published_sites[]`, `status`, `template`, `author`, `slug`, `original_url` | [client/lib/api-v2/admin/service/article/createArticle.ts:37](../client/lib/api-v2/admin/service/article/createArticle.ts) | `createArticle(body)` |
 | `GET` | `/api/v1/admin/articles/{id}` | `admin,ceo,editor` | Fetch single article | `id` (path) | [client/lib/api-v2/admin/service/article/getAdminArticleById.ts:18](../client/lib/api-v2/admin/service/article/getAdminArticleById.ts) | `getAdminArticleById(id)` |
-| `PUT/PATCH` | `/api/v1/admin/articles/{id}` | `admin,ceo,editor` | Update article fields | `id` (path), article fields | [client/lib/api-v2/admin/service/article/updateArticle.ts:43](../client/lib/api-v2/admin/service/article/updateArticle.ts) | `updateArticle(articleId, body)` |
+| `PUT/PATCH` | `/api/v1/admin/articles/{id}` | `admin,ceo,editor` | Update article fields | `id` (path), article fields (same as POST) | [client/lib/api-v2/admin/service/article/updateArticle.ts:43](../client/lib/api-v2/admin/service/article/updateArticle.ts) | `updateArticle(articleId, body)` |
 | `PATCH` | `/api/v1/admin/articles/{id}/titles` | `admin,editor` | Update only title + summary | `id` (path), `title`, `summary` | [client/lib/api-v2/index.ts:34](../client/lib/api-v2/index.ts) | `updateArticleTitles()` |
-| `PATCH` | `/api/v1/admin/articles/{id}/pending` | `admin,editor` | Move article to pending/draft | `id` (path), article fields | [client/lib/api-v2/index.ts](../client/lib/api-v2/index.ts) | `updatePendingArticle()` |
+| `PATCH` | `/api/v1/admin/articles/{id}/pending` | `admin,editor` | Update a pending (Redis) article | `id` (path), article fields | [client/lib/api-v2/index.ts](../client/lib/api-v2/index.ts) | `updatePendingArticle()` |
 | `DELETE` | `/api/v1/admin/articles/{id}` | `admin` | Soft-delete article | `id` (path) | [client/lib/api-v2/admin/service/article/deleteArticle.ts:19](../client/lib/api-v2/admin/service/article/deleteArticle.ts) | `deleteArticle(id)` |
 | `DELETE` | `/api/v1/admin/articles/{id}/hard-delete` | `admin` | Permanently delete article | `id` (path) | [client/lib/api-v2/index.ts](../client/lib/api-v2/index.ts) | `hardDeleteArticle()` |
 | `POST` | `/api/v1/admin/articles/{id}/restore` | `admin` | Restore soft-deleted article | `id` (path) | [client/lib/api-v2/admin/service/article/restoreArticle.ts:11](../client/lib/api-v2/admin/service/article/restoreArticle.ts) | `restoreArticle(id)` |
-| `POST` | `/api/v1/admin/articles/{id}/publish` | `admin,ceo` | Publish a single article | `id` (path), `published_sites`, `custom_titles`, `reason` | [client/lib/api-v2/admin/service/article/publishArticle.ts:43](../client/lib/api-v2/admin/service/article/publishArticle.ts) | `publishArticle(id, body)` |
+| `POST` | `/api/v1/admin/articles/{id}/publish` | `admin,ceo` | Publish a pending article (supports Atomic Publish) | `id` (path), `published_sites`, and any article fields for final update | [client/lib/api-v2/admin/service/article/publishArticle.ts:43](../client/lib/api-v2/admin/service/article/publishArticle.ts) | `publishArticle(id, body)` |
 | `POST` | `/api/v1/admin/articles/{id}/send-newsletter` | `admin,editor` | Send article to newsletter subscribers | `id` (path), `subscriberIds?` | [client/lib/api-v2/admin/service/article/sendNewsletter.ts:10](../client/lib/api-v2/admin/service/article/sendNewsletter.ts) | `sendNewsletter(id, subscriberIds?)` |
-| `POST` | `/api/v1/admin/articles/move-to-db` | `admin,editor` | Move Redis-queued articles to DB | `article_ids[]` | [client/lib/api-v2/admin/service/article/moveArticlesToDb.ts:19](../client/lib/api-v2/admin/service/article/moveArticlesToDb.ts) | `moveArticlesToDb(ids)` |
-| `POST` | `/api/v1/admin/articles/bulk-publish` | `admin,ceo` | Publish multiple articles | `article_ids[]`, `publishedSites` | [client/lib/api-v2/admin/service/article/bulkPublishArticles.ts:10](../client/lib/api-v2/admin/service/article/bulkPublishArticles.ts) | `bulkPublishArticles(ids, publishedSites)` |
-| `POST` | `/api/v1/admin/articles/bulk-unpublish` | `admin,ceo` | Unpublish multiple articles | `article_ids[]` | [client/lib/api-v2/admin/service/article/bulkUnpublishArticles.ts:8](../client/lib/api-v2/admin/service/article/bulkUnpublishArticles.ts) | `bulkUnpublishArticles(ids)` |
+| `POST` | `/api/v1/admin/articles/move-to-db` | `admin,editor` | Move Redis-queued articles to DB as 'pending review' | `article_ids[]` | [client/lib/api-v2/admin/service/article/moveArticlesToDb.ts:19](../client/lib/api-v2/admin/service/article/moveArticlesToDb.ts) | `moveArticlesToDb(ids)` |
+| `POST` | `/api/v1/admin/articles/bulk-publish` | `admin,ceo` | Publish multiple articles | `article_ids[]`, `published_sites` | [client/lib/api-v2/admin/service/article/bulkPublishArticles.ts:10](../client/lib/api-v2/admin/service/article/bulkPublishArticles.ts) | `bulkPublishArticles(ids, published_sites)` |
+| `POST` | `/api/v1/admin/articles/bulk-unpublish` | `admin,ceo` | Unpublish multiple articles (status -> draft) | `article_ids[]` | [client/lib/api-v2/admin/service/article/bulkUnpublishArticles.ts:8](../client/lib/api-v2/admin/service/article/bulkUnpublishArticles.ts) | `bulkUnpublishArticles(ids)` |
 | `POST` | `/api/v1/admin/articles/bulk-reject` | `admin,ceo` | Reject multiple articles | `article_ids[]` | [client/lib/api-v2/admin/service/article/bulkRejectArticles.ts:9](../client/lib/api-v2/admin/service/article/bulkRejectArticles.ts) | `bulkRejectArticles(ids)` |
-| `POST` | `/api/v1/admin/articles/bulk-delete` | `admin,ceo` | Delete multiple articles | `article_ids[]`, `hardDelete` | [client/lib/api-v2/admin/service/article/bulkDeleteArticles.ts:10](../client/lib/api-v2/admin/service/article/bulkDeleteArticles.ts) | `bulkDeleteArticles(ids, hardDelete)` |
+| `POST` | `/api/v1/admin/articles/bulk-delete` | `admin,ceo` | Delete multiple articles | `article_ids[]`, `hard_delete` (boolean) | [client/lib/api-v2/admin/service/article/bulkDeleteArticles.ts:10](../client/lib/api-v2/admin/service/article/bulkDeleteArticles.ts) | `bulkDeleteArticles(ids, hard_delete)` |
 | `POST` | `/api/v1/admin/articles/bulk-send-newsletter` | `admin,ceo,editor` | Send multiple articles to mailing list | `article_ids[]`, `mailing_list_id` | [client/lib/api-v2/index.ts](../client/lib/api-v2/index.ts) | `bulkSendNewsletter()` |
 | `GET` | `/api/v1/admin/subscribers` | `admin,ceo,editor` | List all newsletter subscribers | — | [client/lib/api-v2/index.ts](../client/lib/api-v2/index.ts) | `getSubscribers()` |
 
@@ -267,20 +267,20 @@ Client API layer: [client/lib/api-v2/](../client/lib/api-v2/)
 
 | Method | Endpoint | Roles | Use Case | Parameters | Client File | Client Function |
 |---|---|---|---|---|---|---|
-| `GET` | `/api/v1/admin/restaurants` | `admin` | List restaurants with filters | `limit`/`per_page`, `page`, `status` | [client/lib/api-v2/admin/service/restaurant/getAdminRestaurants.ts:19](../client/lib/api-v2/admin/service/restaurant/getAdminRestaurants.ts) | `getAdminRestaurants(params?)` |
-| `POST` | `/api/v1/admin/restaurants` | `admin` | Create new restaurant | `name`, `description`, `image_url`, `category`, `cuisine_type`, `price_range`, `address`, `rating`, `status`, `published_sites` | [client/lib/api-v2/admin/service/restaurant/createRestaurant.ts:49](../client/lib/api-v2/admin/service/restaurant/createRestaurant.ts) | `createRestaurant(body)` |
+| `GET` | `/api/v1/admin/restaurants` | `admin` | List restaurants merging Redis/DB | `per_page`/`limit`, `page`, `status` (published, draft, pending_review, being_processed, all), `search`, `country`, `city`, `category` | [client/lib/api-v2/admin/service/restaurant/getAdminRestaurants.ts:19](../client/lib/api-v2/admin/service/restaurant/getAdminRestaurants.ts) | `getAdminRestaurants(params?)` |
+| `POST` | `/api/v1/admin/restaurants` | `admin` | Create new restaurant | `name`, `description`, `image_url`, `country`, `city`, `cuisine_type`, `price_range`, `address`, `rating`, `status`, `published_sites`, `is_featured`, `is_filipino_owned`, `tags[]`, `features[]` | [client/lib/api-v2/admin/service/restaurant/createRestaurant.ts:49](../client/lib/api-v2/admin/service/restaurant/createRestaurant.ts) | `createRestaurant(body)` |
 | `GET` | `/api/v1/admin/restaurants/stats` | `admin` | Restaurant stats overview | — | [client/lib/api-v2/admin/service/restaurant/getAdminRestaurantStats.ts](../client/lib/api-v2/admin/service/restaurant/getAdminRestaurantStats.ts) | `getAdminRestaurantStats()` |
 | `GET` | `/api/v1/admin/restaurants/country/{country}` | `admin` | Restaurants by country | `country` (path) | Not directly found in client | — |
-| `GET` | `/api/v1/admin/restaurants/{id}` | `admin` | Fetch single restaurant | `id` (path) | [client/lib/api-v2/admin/service/restaurant/getAdminRestaurantById.ts](../client/lib/api-v2/admin/service/restaurant/getAdminRestaurantById.ts) | `getAdminRestaurantById(id)` |
-| `PUT` | `/api/v1/admin/restaurants/{id}` | `admin` | Update restaurant | `id` (path), restaurant fields | [client/lib/api-v2/admin/service/restaurant/updateRestaurant.ts:51](../client/lib/api-v2/admin/service/restaurant/updateRestaurant.ts) | `updateRestaurant(id, body)` |
+| `GET` | `/api/v1/admin/restaurants/{id}` | `admin` | Fetch single restaurant (Redis/DB) | `id` (path) | [client/lib/api-v2/admin/service/restaurant/getAdminRestaurantById.ts](../client/lib/api-v2/admin/service/restaurant/getAdminRestaurantById.ts) | `getAdminRestaurantById(id)` |
+| `PUT` | `/api/v1/admin/restaurants/{id}` | `admin` | Update restaurant (triggers publish if status=published) | `id` (path), restaurant fields | [client/lib/api-v2/admin/service/restaurant/updateRestaurant.ts:51](../client/lib/api-v2/admin/service/restaurant/updateRestaurant.ts) | `updateRestaurant(id, body)` |
 | `DELETE` | `/api/v1/admin/restaurants/{id}` | `admin` | Delete restaurant | `id` (path) | [client/lib/api-v2/admin/service/restaurant/deleteAdminRestaurant.ts](../client/lib/api-v2/admin/service/restaurant/deleteAdminRestaurant.ts) | `deleteAdminRestaurant(id)` |
-| `POST` | `/api/v1/admin/restaurants/{id}/publish` | `admin,ceo` | Publish single restaurant | `id` (path) | [client/lib/api-v2/admin/service/restaurant/publishRestaurant.ts:15](../client/lib/api-v2/admin/service/restaurant/publishRestaurant.ts) | `publishRestaurant(id, body?)` |
+| `POST` | `/api/v1/admin/restaurants/{id}/publish` | `admin,ceo` | Publish single restaurant from Redis to DB | `id` (path), `published_sites`, and any additional fields | [client/lib/api-v2/admin/service/restaurant/publishRestaurant.ts:15](../client/lib/api-v2/admin/service/restaurant/publishRestaurant.ts) | `publishRestaurant(id, body?)` |
 | `POST` | `/api/v1/admin/restaurants/{id}/restore` | `admin` | Restore deleted restaurant | `id` (path) | [client/lib/api-v2/admin/service/restaurant/restoreRestaurant.ts](../client/lib/api-v2/admin/service/restaurant/restoreRestaurant.ts) | `restoreRestaurant(id)` |
-| `POST` | `/api/v1/admin/restaurants/move-to-db` | `admin` | Move Redis-queued restaurants to DB | `restaurant_ids[]` | [client/lib/api-v2/admin/service/restaurant/moveRestaurantsToDb.ts](../client/lib/api-v2/admin/service/restaurant/moveRestaurantsToDb.ts) | `moveRestaurantsToDb(ids)` |
-| `POST` | `/api/v1/admin/restaurants/bulk-publish` | `admin` | Publish multiple restaurants | `restaurant_ids[]` | [client/lib/api-v2/admin/service/restaurant/bulkPublishRestaurants.ts](../client/lib/api-v2/admin/service/restaurant/bulkPublishRestaurants.ts) | `bulkPublishRestaurants(ids)` |
-| `POST` | `/api/v1/admin/restaurants/bulk-unpublish` | `admin` | Unpublish multiple restaurants | `restaurant_ids[]` | [client/lib/api-v2/admin/service/restaurant/bulkUnpublishRestaurants.ts](../client/lib/api-v2/admin/service/restaurant/bulkUnpublishRestaurants.ts) | `bulkUnpublishRestaurants(ids)` |
-| `POST` | `/api/v1/admin/restaurants/bulk-reject` | `admin` | Reject multiple restaurants | `restaurant_ids[]` | [client/lib/api-v2/admin/service/restaurant/bulkRejectRestaurants.ts](../client/lib/api-v2/admin/service/restaurant/bulkRejectRestaurants.ts) | `bulkRejectRestaurants(ids)` |
-| `POST` | `/api/v1/admin/restaurants/bulk-delete` | `admin` | Delete multiple restaurants | `restaurant_ids[]` | [client/lib/api-v2/admin/service/restaurant/bulkDeleteRestaurants.ts](../client/lib/api-v2/admin/service/restaurant/bulkDeleteRestaurants.ts) | `bulkDeleteRestaurants(ids)` |
+| `POST` | `/api/v1/admin/restaurants/move-to-db` | `admin` | Move Redis-queued restaurants to DB as 'draft' | `ids[]` | [client/lib/api-v2/admin/service/restaurant/moveRestaurantsToDb.ts](../client/lib/api-v2/admin/service/restaurant/moveRestaurantsToDb.ts) | `moveRestaurantsToDb(ids)` |
+| `POST` | `/api/v1/admin/restaurants/bulk-publish` | `admin` | Publish multiple restaurants | `ids[]`, `published_sites` | [client/lib/api-v2/admin/service/restaurant/bulkPublishRestaurants.ts](../client/lib/api-v2/admin/service/restaurant/bulkPublishRestaurants.ts) | `bulkPublishRestaurants(ids)` |
+| `POST` | `/api/v1/admin/restaurants/bulk-unpublish` | `admin` | Unpublish multiple restaurants (status -> draft) | `ids[]` | [client/lib/api-v2/admin/service/restaurant/bulkUnpublishRestaurants.ts](../client/lib/api-v2/admin/service/restaurant/bulkUnpublishRestaurants.ts) | `bulkUnpublishRestaurants(ids)` |
+| `POST` | `/api/v1/admin/restaurants/bulk-reject` | `admin` | Reject multiple restaurants (status -> rejected) | `ids[]` | [client/lib/api-v2/admin/service/restaurant/bulkRejectRestaurants.ts](../client/lib/api-v2/admin/service/restaurant/bulkRejectRestaurants.ts) | `bulkRejectRestaurants(ids)` |
+| `POST` | `/api/v1/admin/restaurants/bulk-delete` | `admin` | Delete multiple restaurants | `ids[]`, `hard_delete` (boolean) | [client/lib/api-v2/admin/service/restaurant/bulkDeleteRestaurants.ts](../client/lib/api-v2/admin/service/restaurant/bulkDeleteRestaurants.ts) | `bulkDeleteRestaurants(ids)` |
 
 ---
 
@@ -289,12 +289,12 @@ Client API layer: [client/lib/api-v2/](../client/lib/api-v2/)
 | Method | Endpoint | Roles | Use Case | Parameters | Client File | Client Function |
 |---|---|---|---|---|---|---|
 | `GET` | `/api/v1/admin/sites/names` | `admin,ceo,editor` | Dropdown list of site names + IDs | — | [client/lib/api-v2/admin/service/sites/getSiteNames.ts](../client/lib/api-v2/admin/service/sites/getSiteNames.ts) | `getSiteNames()` |
-| `GET` | `/api/v1/admin/sites` | `admin,ceo,editor` | List all partner sites | `status`, `search` | [client/lib/api-v2/admin/service/sites/getAdminSites.ts:28](../client/lib/api-v2/admin/service/sites/getAdminSites.ts) | `getAdminSites(params?)` |
+| `GET` | `/api/v1/admin/sites` | `admin,ceo,editor` | List all partner sites | `status` (all, active, suspended), `search` | [client/lib/api-v2/admin/service/sites/getAdminSites.ts:28](../client/lib/api-v2/admin/service/sites/getAdminSites.ts) | `getAdminSites(params?)` |
 | `GET` | `/api/v1/admin/sites/{id}` | `admin,ceo,editor` | Fetch single site details | `id` (path) | [client/lib/api-v2/admin/service/sites/getAdminSiteById.ts](../client/lib/api-v2/admin/service/sites/getAdminSiteById.ts) | `getAdminSiteById(id)` |
-| `POST` | `/api/v1/admin/sites` | `admin` | Register new partner site | `name`, `domain`, `site_url`, `contact_name` | [client/lib/api-v2/admin/service/sites/createSite.ts:31](../client/lib/api-v2/admin/service/sites/createSite.ts) | `createSite(body)` |
-| `PUT` | `/api/v1/admin/sites/{id}` | `admin` | Update site details | `id` (path), site fields | [client/lib/api-v2/admin/service/sites/updateSite.ts](../client/lib/api-v2/admin/service/sites/updateSite.ts) | `updateSite(id, body)` |
+| `POST` | `/api/v1/admin/sites` | `admin` | Register new partner site | `name`, `domain`, `contact_name`, `contact_email`, `description`, `categories[]`, `image`, `original_logo`, `dark_logo`, `light_logo` | [client/lib/api-v2/admin/service/sites/createSite.ts:31](../client/lib/api-v2/admin/service/sites/createSite.ts) | `createSite(body)` |
+| `PUT` | `/api/v1/admin/sites/{id}` | `admin` | Update site details | `id` (path), same fields as POST + `status` (active, suspended) | [client/lib/api-v2/admin/service/sites/updateSite.ts](../client/lib/api-v2/admin/service/sites/updateSite.ts) | `updateSite(id, body)` |
 | `DELETE` | `/api/v1/admin/sites/{id}` | `admin` | Delete partner site | `id` (path) | [client/lib/api-v2/admin/service/sites/deleteSite.ts](../client/lib/api-v2/admin/service/sites/deleteSite.ts) | `deleteSite(id)` |
-| `PATCH` | `/api/v1/admin/sites/{id}/toggle-status` | `admin` | Enable/disable site API access | `id` (path) | [client/lib/api-v2/admin/service/sites/toggleSiteStatus.ts](../client/lib/api-v2/admin/service/sites/toggleSiteStatus.ts) | `toggleSiteStatus(id)` |
+| `PATCH` | `/api/v1/admin/sites/{id}/toggle-status` | `admin` | Enable/disable site API access | `id` (path) | [client/lib/api-v2/admin/service/sites/toggleSiteStatus.ts](../client/lib/api-v2/admin/service/sites/toggleSiteStatus.ts) | `toggleStatus(id)` |
 | `PATCH` | `/api/v1/admin/sites/{id}/refresh-key` | `admin` | Rotate site API key | `id` (path) | [client/lib/api-v2/admin/service/sites/refreshKey.ts:18](../client/lib/api-v2/admin/service/sites/refreshKey.ts) | `refreshKey(id)` |
 
 ---
@@ -444,11 +444,11 @@ Client API layer: [client/lib/api-v2/](../client/lib/api-v2/)
 | Method | Endpoint | Use Case | Parameters | Client File | Client Function |
 |---|---|---|---|---|---|
 | `GET` | `/api/v2/users` | List all users paginated | `page`, `per_page`, `search` | [client/lib/api-v2/admin/service/users/getUsers.ts:34](../client/lib/api-v2/admin/service/users/getUsers.ts) | `getUsers(params?)` |
-| `POST` | `/api/v2/users` | Create new user/staff account | `first_name`, `last_name`, `email`, `role` | [client/lib/api-v2/admin/service/users/createUser.ts](../client/lib/api-v2/admin/service/users/createUser.ts) | `createUser(data)` |
+| `POST` | `/api/v2/users` | Create new user/staff account (auto-generates password and sends email) | `first_name`, `last_name`, `email`, `role` (blogger, admin, ceo, editor) | [client/lib/api-v2/admin/service/users/createUser.ts](../client/lib/api-v2/admin/service/users/createUser.ts) | `createUser(data)` |
 | `GET` | `/api/v2/users/{id}` | Fetch single user | `id` (path) | [client/lib/api-v2/admin/service/users/getUser.ts](../client/lib/api-v2/admin/service/users/getUser.ts) | `getUser(id)` |
-| `PUT` | `/api/v2/users/{id}` | Update user info | `id` (path), user fields | Not directly found | — |
+| `PUT` | `/api/v2/users/{id}` | Update user info | `id` (path), `name`, `first_name`, `last_name`, `email`, `password`, `password_confirmation`, `roles[]` | Not directly found | — |
 | `DELETE` | `/api/v2/users/{id}` | Delete user account | `id` (path) | Not directly found | — |
-| `PUT` | `/api/v2/users/{id}/role` | Update user role | `id` (path), `role` | Not directly found | — |
+| `PUT` | `/api/v2/users/{id}/role` | Update user role | `id` (path), `roles` (array of role names) | Not directly found | — |
 | `GET` | `/api/v2/public/user/info` | Get public user info by email (no auth) | `email` (query) | [client/components/features/admin/login/SignInForm.tsx:73](../client/components/features/admin/login/SignInForm.tsx) | Inline native `fetch` |
 
 ---

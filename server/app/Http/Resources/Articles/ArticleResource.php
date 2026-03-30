@@ -138,6 +138,7 @@ class ArticleResource extends JsonResource
             'original_url' => (string) $get('original_url', ''),
             'is_redis' => !$isModel,
             'content_blocks' => $contentBlocks,
+            'content' => (string) $get('content', ''),
             'author' => (string) $get('author', ''),
             'province_id' => $get('province_id'),
             'city_id' => $get('city_id'),
@@ -149,7 +150,25 @@ class ArticleResource extends JsonResource
             'published_at' => (string) $date,
         ];
 
-        // Deduplication logic removed per objective.
+        // Conditional cleanup for non-admin consumers
+        // - Admin requests (Sanctum auth with admin/ceo/editor role) keep all metadata
+        // - Public/External requests get a streamlined payload
+        $user = $request->user();
+        $isAdmin = $user && ($user->isAdmin() || $user->isCeo() || $user->isEditor());
+
+        if (!$isAdmin) {
+            // Remove legacy/internal metadata
+            unset($result['created_at']);
+            unset($result['date']);
+            unset($result['source']);
+            unset($result['original_url']);
+            unset($result['is_redis']);
+
+            // Remove redundant primary image fields as images are now in content_blocks
+            unset($result['image_url']);
+
+            // Note: published_at remains as the primary timestamp
+        }
 
         return $result;
     }

@@ -7,8 +7,6 @@ use App\Http\Requests\Articles\ArticleQueryRequest;
 use App\Http\Resources\Articles\ArticleCollection;
 use App\Http\Resources\Articles\ArticleResource;
 use App\Models\Article;
-use App\Models\City;
-use App\Models\Province;
 use App\Services\RedisArticleService;
 use Illuminate\Http\JsonResponse;
 
@@ -37,8 +35,6 @@ class ArticleController extends Controller
         $validated = $request->validated();
         $search = $validated['search'] ?? $validated['q'] ?? null;
         $country = $validated['country'] ?? null;
-        $province = $validated['province'] ?? null;
-        $city = $validated['city'] ?? null;
         $category = $validated['category'] ?? null;
         $topic = $validated['topic'] ?? null;
         $perPage = min(100, max(1, (int)($validated['per_page'] ?? $validated['limit'] ?? 10)));
@@ -55,7 +51,7 @@ class ArticleController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'LIKE', "%{$search}%")
                     ->orWhere('summary', 'LIKE', "%{$search}%")
-                    ->orWhere('content', 'LIKE', "%{$search}%")
+                    ->orWhere('content_blocks', 'LIKE', "%{$search}%")
                     ->orWhere('keywords', 'LIKE', "%{$search}%")
                     ->orWhere('topics', 'LIKE', "%{$search}%");
             });
@@ -69,16 +65,6 @@ class ArticleController extends Controller
             $query->where('category', $category);
         }
 
-        if ($province) {
-            $provinceModel = Province::where('name', 'LIKE', $province)->first();
-            $query->where('province_id', $provinceModel ? $provinceModel->id : -1);
-        }
-
-        if ($city) {
-            $cityModel = City::where('name', 'LIKE', $city)->first();
-            $query->where('city_id', $cityModel ? $cityModel->city_id : -1);
-        }
-
         if ($topic) {
             // Filter by topic using JSON search
             $query->whereRaw('JSON_CONTAINS(topics, ?)', [json_encode($topic)]);
@@ -87,7 +73,7 @@ class ArticleController extends Controller
         // Eager load relationships to prevent N+1 queries
         $articles = $query
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'slug', 'title', 'summary', 'content', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'published_at', 'views_count', 'topics', 'original_url')
+            ->select('id', 'slug', 'title', 'summary', 'content_blocks', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'published_at', 'views_count', 'topics', 'original_url')
             ->orderBy('published_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
 
@@ -96,8 +82,6 @@ class ArticleController extends Controller
                 'filters' => array_filter([
                     'search' => $search,
                     'country' => $country,
-                    'province' => $province,
-                    'city' => $city,
                     'category' => $category,
                     'topic' => $topic,
                 ]),
@@ -116,8 +100,6 @@ class ArticleController extends Controller
     {
         $validated = $request->validated();
         $country = $validated['country'] ?? null;
-        $province = $validated['province'] ?? null;
-        $city = $validated['city'] ?? null;
         $category = $validated['category'] ?? null;
 
         $baseQuery = Article::where('status', 'published')
@@ -131,16 +113,6 @@ class ArticleController extends Controller
 
         if ($category) {
             $baseQuery->where('category', $category);
-        }
-
-        if ($province) {
-            $provinceModel = Province::where('name', 'LIKE', $province)->first();
-            $baseQuery->where('province_id', $provinceModel ? $provinceModel->id : -1);
-        }
-
-        if ($city) {
-            $cityModel = City::where('name', 'LIKE', $city)->first();
-            $baseQuery->where('city_id', $cityModel ? $cityModel->city_id : -1);
         }
 
         $trending = (clone $baseQuery)
@@ -159,7 +131,7 @@ class ArticleController extends Controller
 
         $latestGlobal = (clone $baseQuery)
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'slug', 'title', 'summary', 'content', 'country', 'category', 'status', 'created_at as timestamp', 'published_at', 'image', 'views_count', 'keywords', 'original_url')
+            ->select('id', 'slug', 'title', 'summary', 'content_blocks', 'country', 'category', 'status', 'created_at as timestamp', 'published_at', 'image', 'views_count', 'keywords', 'original_url')
             ->orderBy('published_at', 'desc')
             ->get();
 
@@ -210,7 +182,7 @@ class ArticleController extends Controller
                 'slug' => $restaurant->id,
                 'title' => $restaurant->name,
                 'summary' => $restaurant->clickbait_hook ?? $restaurant->description ?? '',
-                'content' => $restaurant->description ?? '',
+                'content_blocks' => $restaurant->description ? [['type' => 'paragraph', 'content' => $restaurant->description]] : [],
                 'category' => 'Restaurant',
                 'country' => $restaurant->country ?? 'Global',
                 'image_url' => $restaurant->image_url ?? '',

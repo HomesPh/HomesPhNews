@@ -30,7 +30,7 @@ class ArticleController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                   ->orWhere('summary', 'like', "%{$search}%")
-                  ->orWhere('content', 'like', "%{$search}%")
+                  ->orWhere('content_blocks', 'like', "%{$search}%")
                   ->orWhere('keywords', 'like', "%{$search}%")
                   ->orWhere('topics', 'like', "%{$search}%");
             });
@@ -62,7 +62,7 @@ class ArticleController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'content_blocks' => 'required|array',
             'summary' => 'nullable|string',
             'category' => 'nullable|string',
             'country' => 'nullable|string',
@@ -108,7 +108,7 @@ class ArticleController extends Controller
 
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
-            'content' => 'sometimes|string',
+            'content_blocks' => 'sometimes|array',
             'summary' => 'nullable|string',
             'category' => 'nullable|string',
             'country' => 'nullable|string',

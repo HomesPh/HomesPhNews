@@ -13,6 +13,7 @@ import { getCountries } from "@/lib/api-v2/admin/service/scraper/getCountries";
 import { getProvinces } from "@/lib/api-v2/admin/service/scraper/getProvinces";
 import { getCities } from "@/lib/api-v2/admin/service/cities/getCities";
 import { Button } from "@/components/ui/button";
+import { ImageUploader } from "@/components/shared/ImageUploader";
 
 // props type for on generate title and summary
 interface OnGenerateProps {
@@ -347,6 +348,15 @@ export default function BlockDrawer({
                                         onChange={(e) => onUpdateDetails({ original_url: e.target.value })}
                                         placeholder="e.g. https://example.com/article"
                                         className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none transition-all font-inter text-gray-800"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Featured Image</label>
+                                    <ImageUploader
+                                        value={details.image || ""}
+                                        onChange={(val) => onUpdateDetails({ image: Array.isArray(val) ? val[0] : (val || "") })}
+                                        multiple={false}
+                                        uploadType="article"
                                     />
                                 </div>
                                 <div>
