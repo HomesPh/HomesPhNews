@@ -567,8 +567,6 @@ function ArticleDetailsContent() {
                 onClose={() => setIsEditModalOpen(false)}
                 mode="edit"
                 initialData={article}
-                availableCategories={availableFilters.categories}
-                availableCountries={availableFilters.countries}
             />
 
             <AlertDialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
