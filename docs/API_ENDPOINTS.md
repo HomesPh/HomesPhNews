@@ -4,7 +4,7 @@
 > **Production Base URL**: `https://homesphnews-api-394504332858.asia-southeast1.run.app/api`
 > **Local Base URL**: `http://127.0.0.1:8000/api`
 > **HTTP Client**: Axios (with Bearer token interceptor)
-> **Last updated**: 2026-03-24
+> **Last updated**: 2026-03-30
 
 ---
 
@@ -82,15 +82,218 @@ Client API layer: [client/lib/api-v2/](../client/lib/api-v2/)
 
 ## External Site Routes
 
-**Prefix**: `/api/external` | **Middleware**: `site.auth`
+**Prefix**: `/api/external` | **Middleware**: `site.auth` | **Controller**: [server/app/Http/Controllers/Api/SiteContentController.php](../server/app/Http/Controllers/Api/SiteContentController.php)
 
-> Partner sites integrate via API key. The `site.auth` middleware reads the `X-Site-Key` header to identify the requesting site.
+> Partner sites integrate via API key. The `site.auth` middleware reads the `X-Site-Key` header to identify the requesting site. All endpoints below are scoped to the authenticated site.
 
-| Method | Endpoint | Use Case | Parameters | Client File | Client Function |
-|---|---|---|---|---|---|
-| `GET` | `/api/external/articles` | Pull published articles into partner site | — | Integration demo in [client/app/admin/sites/integration/page.tsx](../client/app/admin/sites/integration/page.tsx) | Inline fetch with `X-Site-Key` |
-| `GET` | `/api/external/restaurants` | Pull published restaurants into partner site | — | — | — |
-| `POST` | `/api/external/subscribe` | Register user subscription from partner site widget | `email`, `categories[]`, `countries[]`, `company_name`, `features`, `time`, `logo` | [client/app/admin/sites/integration/page.tsx:72](../client/app/admin/sites/integration/page.tsx) | Inline axios POST |
+### Endpoint Overview
+
+| Method | Endpoint | Use Case |
+|---|---|---|
+| `GET` | `/api/external/articles` | Paginated, filterable list of published articles |
+| `GET` | `/api/external/articles/{identifier}` | Single article by UUID **or** slug |
+| `GET` | `/api/external/restaurants` | Paginated, filterable list of published restaurants |
+| `POST` | `/api/external/subscribe` | Register user subscription from partner site widget |
+| `GET` | `/api/external/categories` | All active categories (for filter dropdowns) |
+| `GET` | `/api/external/countries` | All active countries (for filter dropdowns) |
+| `GET` | `/api/external/provinces` | Provinces, optionally filtered by country |
+| `GET` | `/api/external/cities` | Cities, optionally filtered by country and/or province |
+
+---
+
+### `GET /api/external/articles`
+
+Returns paginated articles published to this site. Uses `ExternalArticleResource` (not the public `ArticleResource`).
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `search` / `q` | string | -- | Full-text search on `title`, `summary`, `keywords`, `topics` |
+| `category` | string | -- | Exact match on article category (e.g. `Business & Economy`) |
+| `country` | string | -- | Exact match on article country (e.g. `Philippines`) |
+| `province` | integer | -- | Filter by `province_id` |
+| `city` | integer | -- | Filter by `city_id` |
+| `topic` | string | -- | JSON contains match on `topics` array (e.g. `Tourism`) |
+| `per_page` / `limit` | integer | 20 | Results per page (1-100) |
+| `page` | integer | 1 | Page number |
+
+**Sort order:** `published_at` descending, then `created_at` descending.
+
+**Response shape:**
+
+```json
+{
+  "site": { "name": "...", "url": "...", "description": "..." },
+  "data": {
+    "data": [ { "id": "...", "slug": "...", "title": "...", ... } ],
+    "current_page": 1,
+    "per_page": 20,
+    "total": 58,
+    "last_page": 3,
+    "from": 1,
+    "to": 20
+  }
+}
+```
+
+**Article object fields:** `id`, `slug`, `title`, `summary`, `category`, `country`, `status`, `published_at`, `created_at`, `views_count`, `image`, `location`, `description`, `date`, `views`, `published_sites`, `topics`, `keywords`, `content_blocks`, `author`, `province_id`, `city_id`, `province_name`, `city_name`. There is no separate flattened **`content`** (HTML string) in the current payload; body rendering from **`content_blocks`** is described under [Article body: HTML rendering (partner contract)](#article-body-html-rendering-partner-contract).
+
+- `published_at` -- formatted publish timestamp (`Y-m-d H:i:s`), empty string if not set.
+- `created_at` -- row creation time.
+- `date` -- display date: `published_at` when set, otherwise `created_at`.
+- `image` -- primary image URL (JSON wrappers unwrapped automatically).
+
+---
+
+### `GET /api/external/articles/{identifier}`
+
+Fetch a single published article. `{identifier}` accepts either a **UUID** (e.g. `218ffda0-6df7-497e-95b3-09ffbd1c9d68`) or a **slug** (e.g. `philippines-joins-regional-tourism-drive`). Detection is automatic.
+
+**Response shape:**
+
+```json
+{ "article": { "id": "...", "slug": "...", "title": "...", ... } }
+```
+
+Returns `404` if the article is not found, not published, or not assigned to this site.
+
+---
+
+### Article body: HTML rendering (partner contract)
+
+Partners should display article bodies so that **real HTML from the editorial pipeline** is not double-processed as plain text (which would show literal `&lt;p&gt;` tags). The API assumes **trusted** publisher markup for external sites that mirror HomesPhNews.
+
+**What the API returns today**
+
+- **`content_blocks`** -- JSON array of structured blocks (`text` / `image` / `grid`, etc.). This is the stored source of truth for the body.
+- **Flattened HTML `content`** -- The `articles` table no longer persists a separate `content` column; the external payload therefore does **not** currently include a top-level `content` string. If a future version adds optional **`content`** (raw HTML), clients should treat it as below.
+
+**Display logic (recommended)**
+
+1. **`content` when non-empty after trim** (reserved for future or supplemental fields):
+   - If the string **looks like HTML** (e.g. starts with `<` and contains `>`, or contains common tags such as `<p`, `<figure`, `<div`, headings, lists, `</p>`, `</figure>`, tables), **inject it as HTML** as returned. Do **not** run a global HTML-escape step on the entire string.
+   - Otherwise treat as plain text: split into paragraphs and wrap in `<p>...</p>` with HTML entity encoding **inside** the paragraph text only.
+
+2. **If `content` is absent or empty** -- Build HTML from **`content_blocks`**:
+   - Plain text in blocks: escape `<`, `&`, quotes as needed, then wrap in `<p>...</p>` (or equivalent).
+   - Block text that matches the same **HTML-like** heuristic: output **without** wrapping as escaped plain text (avoid visible entity soup).
+   - For **image** blocks **you synthesize** into markup: only allow `http:` / `https:` URLs; escape attributes (`src`, `alt`, caption) in generated `<img>` / `<figure>` strings.
+   - Optional: omit a block image whose `src` equals the article **`image`** (hero) URL so the lead asset is not duplicated when the template already shows a large hero.
+
+3. **Hero vs embedded body** -- If the body HTML already includes lead media (`<img`, `<figure`, `<picture`), consider hiding the template hero above the body to avoid two lead images.
+
+**Sanitization**
+
+- The HomesPhNews partner contract is **not** to strip or rewrite partner HTML at render time (inline `style`, layout tags, etc. should remain intact), consistent with editorial output.
+- That implies **no** aggressive client-side sanitizer such as DOMPurify **unless** your integration has untrusted input. Raw HTML via `dangerouslySetInnerHTML` (or equivalent) is appropriate only when the source is **fully trusted** (HomesPhNews API + your authenticated path). If end users can inject `content`, use sanitization or consume sanitized HTML only from the API.
+
+**Internal reference implementation** (same product, consumer app): `src/lib/news-api.ts` (`resolveArticleBodyHtml`, `looksLikePartnerArticleHtml`, block-to-HTML helpers), `src/views/NewsArticle.tsx` (`formatArticleContent`, body `dangerouslySetInnerHTML`). External partners should mirror this behavior in their stack.
+
+---
+
+### `GET /api/external/restaurants`
+
+Returns paginated restaurants published to this site.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `search` | string | -- | LIKE search on `name`, `description` |
+| `country` | string | -- | Exact match on `country` column (string) |
+| `city` | string | -- | Exact match on `city` column (string, **not** a FK) |
+| `cuisine_type` / `topic` | string | -- | Exact match on `cuisine_type` |
+| `per_page` / `limit` | integer | 20 | Results per page (1-100) |
+| `page` | integer | 1 | Page number |
+
+**Sort order:** `created_at` descending.
+
+**Response shape:**
+
+```json
+{
+  "site": { "name": "...", "url": "...", "description": "..." },
+  "data": {
+    "data": [ { ... } ],
+    "current_page": 1,
+    "per_page": 20,
+    "total": 12,
+    "last_page": 1,
+    "from": 1,
+    "to": 12
+  }
+}
+```
+
+> Note: Restaurant `city` is a plain string (not a foreign key to the `cities` table). Use the value as-is from the restaurant data.
+
+---
+
+### `POST /api/external/subscribe`
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `email` | string | yes | Subscriber email |
+| `categories[]` | array | no | Category preferences |
+| `countries[]` | array | no | Country preferences |
+| `company_name` | string | no | Company name |
+| `features` | string | no | Features description |
+| `time` | string | no | Preferred send time |
+| `logo` | string | no | Logo URL |
+
+Client reference: [client/app/admin/sites/integration/page.tsx:72](../client/app/admin/sites/integration/page.tsx)
+
+---
+
+### Metadata Endpoints (Filter Dropdowns)
+
+These endpoints provide reference data for partner sites to populate filter dropdowns. Responses are **simple JSON arrays** (not paginated).
+
+#### `GET /api/external/categories`
+
+Returns all active categories.
+
+```json
+[ { "id": 1, "name": "Business & Economy", "slug": "business-economy" } ]
+```
+
+#### `GET /api/external/countries`
+
+Returns all active countries.
+
+```json
+[ { "id": "PH", "name": "Philippines" } ]
+```
+
+#### `GET /api/external/provinces`
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `country_id` | string | -- | Filter provinces by country ID |
+
+```json
+[ { "id": 1, "name": "Cebu", "country_id": "PH" } ]
+```
+
+#### `GET /api/external/cities`
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `country_id` | string | -- | Filter cities by country ID |
+| `province_id` | integer | -- | Filter cities by province ID |
+
+```json
+[ { "city_id": 1, "name": "Cebu City", "province_id": 1, "country_id": "PH" } ]
+```
+
+---
+
+### Integration Pattern: Cookies + Filters
+
+Partner sites can use the metadata endpoints to build filter dropdowns, persist the user's selections in cookies, and pass them as query parameters on subsequent requests:
+
+1. On first load, call `/api/external/categories` and `/api/external/countries` to populate dropdowns.
+2. When a country is selected, call `/api/external/provinces?country_id=PH` to load provinces, then `/api/external/cities?country_id=PH&province_id=1` for cities.
+3. Store the user's filter selections in cookies (e.g. `category=Healthcare&country=Philippines`).
+4. On page load, read cookies and pass them as query params: `/api/external/articles?category=Healthcare&country=Philippines&page=1`.
+5. When a user clicks an article, navigate to the detail page using the slug: `/api/external/articles/philippines-joins-regional-tourism-drive`.
 
 ---
 
