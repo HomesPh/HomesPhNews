@@ -51,7 +51,7 @@ class ArticleController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'LIKE', "%{$search}%")
                     ->orWhere('summary', 'LIKE', "%{$search}%")
-                    ->orWhere('content', 'LIKE', "%{$search}%")
+                    ->orWhere('content_blocks', 'LIKE', "%{$search}%")
                     ->orWhere('keywords', 'LIKE', "%{$search}%")
                     ->orWhere('topics', 'LIKE', "%{$search}%");
             });
@@ -73,7 +73,7 @@ class ArticleController extends Controller
         // Eager load relationships to prevent N+1 queries
         $articles = $query
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'slug', 'title', 'summary', 'content', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'published_at', 'views_count', 'topics', 'original_url')
+            ->select('id', 'slug', 'title', 'summary', 'content_blocks', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'published_at', 'views_count', 'topics', 'original_url')
             ->orderBy('published_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
 
@@ -131,7 +131,7 @@ class ArticleController extends Controller
 
         $latestGlobal = (clone $baseQuery)
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'slug', 'title', 'summary', 'content', 'country', 'category', 'status', 'created_at as timestamp', 'published_at', 'image', 'views_count', 'keywords', 'original_url')
+            ->select('id', 'slug', 'title', 'summary', 'content_blocks', 'country', 'category', 'status', 'created_at as timestamp', 'published_at', 'image', 'views_count', 'keywords', 'original_url')
             ->orderBy('published_at', 'desc')
             ->get();
 
@@ -182,7 +182,7 @@ class ArticleController extends Controller
                 'slug' => $restaurant->id,
                 'title' => $restaurant->name,
                 'summary' => $restaurant->clickbait_hook ?? $restaurant->description ?? '',
-                'content' => $restaurant->description ?? '',
+                'content_blocks' => $restaurant->description ? [['type' => 'paragraph', 'content' => $restaurant->description]] : [],
                 'category' => 'Restaurant',
                 'country' => $restaurant->country ?? 'Global',
                 'image_url' => $restaurant->image_url ?? '',

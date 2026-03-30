@@ -1,7 +1,7 @@
 "use client";
 
 import AdSpace from "@/components/features/admin/ads/AdSpace";
-import { cn, decodeHtml } from "@/lib/utils";
+import { cn, decodeHtml, formatParagraphs } from "@/lib/utils";
 
 interface ContentBlocksRendererProps {
   blocks: any[];
@@ -46,7 +46,7 @@ export default function ContentBlocksRenderer({ blocks, forceLight = false }: Co
                         settings?.listType === "number" && "list-decimal ml-6",
                         isFirstText && "drop-cap"
                       )}
-                      dangerouslySetInnerHTML={{ __html: decodeHtml(bContent?.text || bContent || "") }}
+                      dangerouslySetInnerHTML={{ __html: formatParagraphs(decodeHtml(bContent?.text || bContent || "")) }}
                     />
                   );
                 })()}
@@ -111,7 +111,7 @@ export default function ContentBlocksRenderer({ blocks, forceLight = false }: Co
                       "whitespace-pre-wrap flex-1 text-[18px] leading-[34px] tiptap [&_p]:min-h-[1.5em] [&_ul]:list-disc [&_ul]:pl-10 [&_ol]:list-decimal [&_ol]:pl-10 [&_li]:mb-1",
                       darkClass("text-[#0c0c0c] dark:text-gray-200")
                     )}
-                    dangerouslySetInnerHTML={{ __html: decodeHtml(bContent?.text || bContent || "") }}
+                    dangerouslySetInnerHTML={{ __html: formatParagraphs(decodeHtml(bContent?.text || bContent || "")) }}
                   />
                 </div>
               )}
@@ -155,7 +155,7 @@ export default function ContentBlocksRenderer({ blocks, forceLight = false }: Co
                       "whitespace-pre-wrap flex-1 p-10 md:p-14 flex items-center text-[22px] leading-[1.4] font-medium tracking-tight tiptap [&_p]:min-h-[1.5em] [&_ul]:list-disc [&_ul]:pl-10 [&_ol]:list-decimal [&_ol]:pl-10 [&_li]:mb-1",
                       darkClass("text-[#111827] dark:text-white")
                     )}
-                    dangerouslySetInnerHTML={{ __html: decodeHtml(bContent?.text || bContent || "") }}
+                    dangerouslySetInnerHTML={{ __html: formatParagraphs(decodeHtml(bContent?.text || bContent || "")) }}
                   />
                 </div>
               )}
