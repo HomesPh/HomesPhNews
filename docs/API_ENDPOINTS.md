@@ -4,7 +4,7 @@
 > **Production Base URL**: `https://homesphnews-api-394504332858.asia-southeast1.run.app/api`
 > **Local Base URL**: `http://127.0.0.1:8000/api`
 > **HTTP Client**: Axios (with Bearer token interceptor)
-> **Last updated**: 2026-03-24
+> **Last updated**: 2026-03-30
 
 ---
 
@@ -88,15 +88,69 @@ Client API layer: [client/lib/api-v2/](../client/lib/api-v2/)
 
 | Method | Endpoint | Use Case | Parameters | Client File | Client Function |
 |---|---|---|---|---|---|
-| `GET` | `/api/external/articles` | Pull published articles into partner site | `category` (string), `country` (string), `province` (string, exact name), `city` (string, exact name), `per_page`, `page`, `limit`, `offset` | Integration demo in [client/app/admin/sites/integration/page.tsx](../client/app/admin/sites/integration/page.tsx) | Inline fetch with `X-Site-Key` or `X-Site-Api-Key` |
+| `GET` | `/api/external/articles` | Paginated list of articles **published to the authenticated site** | `category`, `country`, `province` (name, `LIKE` match), `city` (name, `LIKE` match), `per_page`, `page`, etc. (standard Laravel pagination) | Integration demo in [client/app/admin/sites/integration/page.tsx](../client/app/admin/sites/integration/page.tsx) | Inline fetch with `X-Site-Key` or `X-Site-Api-Key` |
+| `GET` | `/api/external/articles/{id}` | Single published article **scoped to the authenticated site** | `id` = article UUID **or** `slug` | — | — |
 | `GET` | `/api/external/restaurants` | Pull published restaurants into partner site | `country`, `city`, `per_page`, `page`, `limit`, `offset` | — | — |
-
-> **Note on Article Response Transformation**:
-> - Includes `published_at` (formatted string) as the primary timestamp.
-> - **Hidden Fields (Public/Partner Consumption)**: `created_at`, `date`, `source`, `original_url`, `is_deleted`, `is_redis`, and `image` are automatically removed for all non-admin requests to provide a clean, content-focused payload. `published_at` and `image_url` remain available for public use.
-
-
 | `POST` | `/api/external/subscribe` | Register user subscription from partner site widget | `email`, `categories[]`, `countries[]`, `company_name`, `features`, `time`, `logo` | [client/app/admin/sites/integration/page.tsx:72](../client/app/admin/sites/integration/page.tsx) | Inline axios POST |
+
+> **Single article (`GET /api/external/articles/{id}`)**  
+> Response shape: `{ "article": { ... } }` (same article object shape as items in the list payload). Returns **404** if the article is not published on the site tied to the API key (even if it exists on another site).
+
+> **Note on article serialization (partner vs public)**  
+> Requests that pass `site.auth` (external routes with `X-Site-Key` / `X-Site-Api-Key`) attach the resolved `Site` to the request. Article serialization uses that to tailor output:
+>
+> - **`content_blocks` (partner / external only)**  
+>   Returned **as stored** in the database (no server-side “smart paragraph” rewriting of text blocks).
+>
+> - **`content` (partner / external only)**  
+>   A **minimal** flattened HTML string: text blocks concatenated as-is; image-style blocks become simple `<img src="…" alt="…" />` (attribute-escaped), not styled `<figure>` wrappers. Use `content_blocks` when you need the canonical structure; use `content` for a quick full-body HTML string.
+>
+> - **`content` + `content_blocks` (public `/api/v1/articles`, no site key)**  
+>   Text blocks may be processed with smart paragraph splitting, and `content` may include richer markup (e.g. figures/grids) for display-oriented clients.
+>
+> - **Timestamps**  
+>   `published_at` is the primary timestamp string on article payloads.
+>
+> - **Hidden fields (all non-admin responses, including partner list/detail)**  
+>   `created_at`, `date`, `source`, `original_url`, `is_redis`, `image`, and `image_url` are omitted so consumers rely on `content_blocks` (and `published_at`). Admins still receive the full field set when authenticated as admin/CEO/editor.
+
+> **Performance**  
+> External article list and detail queries **eager-load** `publishedSites`, `images`, `province`, `city`, and `editor` so listing stays efficient (avoids N+1 when resolving `province_name`, `city_name`, and editor fields).
+
+---
+
+## Article Content Structure (Blocks)
+
+Modern articles use a structured **Block System** instead of a single HTML string. This allows for rich layouts (images, grids, split views) while maintaining **raw stored data for external partners** (`/api/external/...` with a site API key).
+
+### Content Blocks Field
+The `content_blocks` field in the API response is an array of objects. On **external** routes, this array matches storage (no automatic paragraph reformatting). On **public v1** routes, text blocks may be normalized for display (see below).
+
+**Example Block Schema:**
+```json
+{
+  "id": "block_unique_id",
+  "type": "text | image | grid | split-left | split-right",
+  "content": {
+    "text": "Raw text content (may contain basic tags like <b>, <i>)",
+    "src": "Image URL (for image types)",
+    "caption": "Image caption",
+    "images": ["url1", "url2"] // For grid type
+  },
+  "settings": {
+    "textAlign": "left | center | justify",
+    "fontSize": "18px",
+    "fontWeight": "normal | bold"
+  }
+}
+```
+
+### Smart Formatting (Paragraph Management)
+Applies to **public** article responses (e.g. `GET /api/v1/articles/...`) when the consumer is **not** an external partner request. The server may rewrite long text blocks and build a display-oriented flattened `content` string (figures, grids, paragraph splitting).
+
+- **Rule**: If a text block contains more than 5 sentences, it can be split into multiple paragraphs (`<p>` tags).
+- **Implementation**: Uses a list of abbreviations (Mr., Dr., etc.) to avoid false splits on punctuation.
+- **External partners**: See [External Site Routes](#external-site-routes) — `content_blocks` stay as stored; `content` is a minimal HTML concat without styled figures.
 
 ---
 

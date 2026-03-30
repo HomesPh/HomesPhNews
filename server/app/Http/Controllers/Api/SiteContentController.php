@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use App\Http\Resources\Articles\ArticleCollection;
+use App\Http\Resources\Articles\ArticleResource;
 use App\Http\Resources\Restaurants\RestaurantCollection;
 use App\Models\City;
 use App\Models\Province;
@@ -13,6 +14,22 @@ use App\Models\Restaurant;
 
 class SiteContentController extends Controller
 {
+    /**
+     * Eager loads for ArticleResource (avoids N+1 on list/show).
+     *
+     * @return list<string|array<string, mixed>>
+     */
+    protected function siteArticleWith(): array
+    {
+        return [
+            'publishedSites:id,site_name',
+            'images:article_id,image_path',
+            'province:id,name',
+            'city:city_id,name',
+            'editor:id,first_name,last_name,name',
+        ];
+    }
+
     public function getRestaurants(Request $request)
     {
         $site = $request->attributes->get('site');
@@ -43,7 +60,7 @@ class SiteContentController extends Controller
         $city     = $request->query('city');
 
         $query = $site->articles()
-            ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
+            ->with($this->siteArticleWith())
             ->where('status', 'published');
 
         if ($category) {
@@ -73,6 +90,28 @@ class SiteContentController extends Controller
                 'description' => $site->site_description,
             ],
             'data' => new ArticleCollection($articles)
+        ]);
+    }
+
+    public function getArticle(Request $request, string $id)
+    {
+        $site = $request->attributes->get('site');
+
+        $article = $site->articles()
+            ->with($this->siteArticleWith())
+            ->where('status', 'published')
+            ->where(function ($query) use ($id) {
+                $query->where('articles.id', $id)
+                    ->orWhere('articles.slug', $id);
+            })
+            ->first();
+
+        if (!$article) {
+            return response()->json(['message' => 'Article not found'], 404);
+        }
+
+        return response()->json([
+            'article' => new ArticleResource($article),
         ]);
     }
 }
