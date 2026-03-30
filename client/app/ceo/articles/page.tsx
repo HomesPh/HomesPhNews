@@ -663,8 +663,6 @@ export default function CEOArticlesPage() {
                 mode="create"
                 isOpen={isEditorModalOpen}
                 onClose={() => setIsEditorModalOpen(false)}
-                availableCategories={availableFilters.categories}
-                availableCountries={availableFilters.countries}
             />
         </div>
     );

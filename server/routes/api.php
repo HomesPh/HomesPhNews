@@ -202,6 +202,8 @@ Route::prefix('v1')->group(function () {
     // Metadata (Public)
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::get('/countries', [CountryController::class, 'index']);
+    Route::get('/provinces', [ProvinceController::class, 'index']);
+    Route::get('/cities', [CityController::class, 'index']);
     Route::get('/upload/proxy', [UploadController::class, 'proxyImage'])->name('upload.proxy');
 
     /*

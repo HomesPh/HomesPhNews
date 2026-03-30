@@ -193,8 +193,6 @@ export default function EditorArticlesPage() {
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 mode="create"
-                availableCategories={availableFilters.categories}
-                availableCountries={availableFilters.countries}
             />
         </div>
     );
