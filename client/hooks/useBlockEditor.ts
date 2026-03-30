@@ -50,6 +50,7 @@ export interface BlogDetails {
     platforms: string[];
     views: number;
     original_url: string;
+    image: string;
 }
 
 interface EditorState {
@@ -83,7 +84,8 @@ export function useBlockEditor() {
             publishTime: "12:00",
             platforms: [],
             views: 0,
-            original_url: ""
+            original_url: "",
+            image: ""
         }
     };
 

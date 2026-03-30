@@ -93,56 +93,6 @@ export default function ArticleEditorForm({
                 console.log("Blocks generated from HTML:", initialBlocks);
             }
 
-            // 1.5 - Ensure "Featured Image" (data.image) is present as the first block
-            // Many users expect the main article image to be editable on the canvas.
-            // If the converted blocks don't start with an image, or if the first image is different,
-            // we prepend the featured image.
-            if (data.image) {
-                console.log("Featured Image Data:", {
-                    image: data.image,
-                    image_caption: data.image_caption,
-                    caption: data.caption,
-                    allDataKeys: Object.keys(data)
-                });
-
-                const firstBlock = initialBlocks[0];
-                const firstBlockIsImage = firstBlock && ['image', 'centered-image'].includes(firstBlock.type);
-
-                // Check if the First Block IS the featured image (fuzzy match src)
-                const firstBlockSrc = firstBlockIsImage ? firstBlock.content.src : "";
-
-                // If the first block is NOT an image, OR if it's an image but different from data.image
-                // We prepend data.image. 
-                // However, we must be careful not to duplicate if data.image is just inside the content later?
-                // But usually Featured Image is TOP.
-                if (!firstBlockIsImage || (firstBlockSrc && !firstBlockSrc.includes(data.image) && !data.image.includes(firstBlockSrc))) {
-                    // Auto-generate caption from title + country if no explicit caption exists
-                    const captionValue = data.image_caption || data.caption ||
-                        (data.title && data.country ? `${data.title} — ${data.country}` : "");
-
-                    console.log("Prepending Featured Image to blocks:", {
-                        src: data.image,
-                        caption: captionValue,
-                        captionSource: data.image_caption ? 'image_caption' :
-                            data.caption ? 'caption' :
-                                captionValue ? 'auto-generated (title + country)' : 'empty'
-                    });
-
-                    const featuredImageBlock: Block = {
-                        id: Math.random().toString(36).substr(2, 9),
-                        type: 'image',
-                        content: {
-                            src: data.image,
-                            caption: captionValue
-                        },
-                        settings: { textAlign: 'center' }
-                    };
-                    initialBlocks.unshift(featuredImageBlock);
-
-                    console.log("Featured Image Block Created:", featuredImageBlock);
-                }
-            }
-
             // 2. Map Details
             const initialDetails = {
                 title: data.title || "",
@@ -159,7 +109,8 @@ export default function ArticleEditorForm({
                 publishTime: data.publishTime || "12:00",
                 platforms: data.publishTo || [],
                 views: data.views_count || 0,
-                original_url: data.original_url || ""
+                original_url: data.original_url || "",
+                image: data.image || ""
             };
 
             console.log("Loading Editor Data:", { initialBlocks, initialDetails });
@@ -192,6 +143,7 @@ export default function ArticleEditorForm({
         if (data.publishDate !== editor.details.publishDate) onDataChange('publishDate', editor.details.publishDate);
         if (data.publishTime !== editor.details.publishTime) onDataChange('publishTime', editor.details.publishTime);
         if (data.original_url !== editor.details.original_url) onDataChange('original_url', editor.details.original_url);
+        if (data.image !== editor.details.image) onDataChange('image', editor.details.image);
 
         // Sync Blocks & Content 
         if (JSON.stringify(data.contentBlocks) !== JSON.stringify(editor.blocks)) {
