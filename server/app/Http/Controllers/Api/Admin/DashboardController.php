@@ -25,7 +25,7 @@ class DashboardController extends Controller
         $sixtyDaysAgo = $now->copy()->subDays(60);
 
         // 1. Current Stats
-        $dbCounts = Article::where('is_deleted', false)
+        $dbCounts = Article::where('status', '!=', 'deleted')
             ->selectRaw('status, count(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status')
@@ -37,28 +37,28 @@ class DashboardController extends Controller
         // Pending Review = DB only (naa na sa database). Being Processed (Redis) is separate and not tallied here.
         $pendingReview = $dbPendingReview;
         $totalArticles = $totalPublished + $pendingReview;
-        $totalViews = Article::where('is_deleted', false)->sum('views_count');
+        $totalViews = Article::where('status', '!=', 'deleted')->sum('views_count');
 
         // 2. Trend Calculations (Last 30 vs Previous 30)
-        $currentPeriodArticles = Article::where('is_deleted', false)
+        $currentPeriodArticles = Article::where('status', '!=', 'deleted')
             ->whereBetween('created_at', [$thirtyDaysAgo, $now])
             ->count();
-        $previousPeriodArticles = Article::where('is_deleted', false)
+        $previousPeriodArticles = Article::where('status', '!=', 'deleted')
             ->whereBetween('created_at', [$sixtyDaysAgo, $thirtyDaysAgo])
             ->count();
         $articleTrend = $this->calculateTrend($currentPeriodArticles, $previousPeriodArticles);
 
-        $currentPeriodViews = Article::where('is_deleted', false)
+        $currentPeriodViews = Article::where('status', '!=', 'deleted')
             ->whereBetween('created_at', [$thirtyDaysAgo, $now])
             ->sum('views_count');
         // Views are all-time, so comparing "added views" in last 30 days might be hard without logs.
         $viewTrend = $this->calculateTrend($currentPeriodViews, 0); // Temporary placeholder
 
-        $currentPeriodPublished = Article::where('is_deleted', false)
+        $currentPeriodPublished = Article::where('status', '!=', 'deleted')
             ->where('status', 'published')
             ->whereBetween('created_at', [$thirtyDaysAgo, $now])
             ->count();
-        $previousPeriodPublished = Article::where('is_deleted', false)
+        $previousPeriodPublished = Article::where('status', '!=', 'deleted')
             ->where('status', 'published')
             ->whereBetween('created_at', [$sixtyDaysAgo, $thirtyDaysAgo])
             ->count();
@@ -67,12 +67,12 @@ class DashboardController extends Controller
         // 5. Distribution by Site - Filter out deleted articles
         $sitesWithCounts = \App\Models\Site::withCount([
             'articles' => function ($query) {
-                $query->where('articles.is_deleted', false);
+                $query->where('articles.status', '!=', 'deleted');
             }
         ])
             ->withSum([
                 'articles as total_views' => function ($query) {
-                    $query->where('articles.is_deleted', false);
+                    $query->where('articles.status', '!=', 'deleted');
                 }
             ], 'views_count')
             ->get();
@@ -89,7 +89,7 @@ class DashboardController extends Controller
         $recentArticles = Article::query()
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
             ->where('status', 'published')
-            ->where('is_deleted', false)
+            ->where('status', '!=', 'deleted')
             ->latest()
             ->take(5)
             ->get(['id', 'title', 'image', 'category', 'country', 'created_at', 'views_count', 'status']);

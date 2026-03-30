@@ -60,7 +60,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                                 <ShareButtons
                                     url={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                                     title={article.title}
-                                    description={article.summary || article.content}
+                                    description={article.summary || article.summary}
                                     size="xs"
                                 />
                             </div>
@@ -85,7 +85,7 @@ export default function LatestPostsSection({ articles, title, viewAllHref }: Lat
                                     {formatViews(article.views_count)}
                                 </span>
                                 <span>•</span>
-                                <span>{calculateReadTime(article.content || article.summary)}</span>
+                                <span>{calculateReadTime(article.summary || article.summary)}</span>
                             </div>
                         </div>
                     </Link>

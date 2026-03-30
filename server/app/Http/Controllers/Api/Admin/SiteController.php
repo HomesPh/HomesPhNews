@@ -33,7 +33,7 @@ class SiteController extends Controller
 
         $sites = $query->withCount([
             'articles' => function ($q) {
-                $q->where('articles.is_deleted', false);
+                $q->where('articles.status', '!=', 'deleted');
             }
         ])
             ->orderBy('created_at', 'desc')

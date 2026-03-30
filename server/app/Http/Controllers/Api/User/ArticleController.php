@@ -43,7 +43,6 @@ class ArticleController extends Controller
         // Always filter by published status for public feed
         // AND restrict to articles published to the Main News Portal
         $query = Article::where('status', 'published')
-            ->where('is_deleted', false)
             ->whereHas('publishedSites', function ($q) {
                 $q->where('site_name', 'Main News Portal');
             });
@@ -52,7 +51,7 @@ class ArticleController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'LIKE', "%{$search}%")
                     ->orWhere('summary', 'LIKE', "%{$search}%")
-                    ->orWhere('content', 'LIKE', "%{$search}%")
+                    ->orWhere('content_blocks', 'LIKE', "%{$search}%")
                     ->orWhere('keywords', 'LIKE', "%{$search}%")
                     ->orWhere('topics', 'LIKE', "%{$search}%");
             });
@@ -74,7 +73,7 @@ class ArticleController extends Controller
         // Eager load relationships to prevent N+1 queries
         $articles = $query
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'slug', 'title', 'summary', 'content', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'published_at', 'views_count', 'topics', 'original_url')
+            ->select('id', 'slug', 'title', 'summary', 'content_blocks', 'country', 'category', 'image', 'status', 'created_at as timestamp', 'published_at', 'views_count', 'topics', 'original_url')
             ->orderBy('published_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
 
@@ -104,7 +103,6 @@ class ArticleController extends Controller
         $category = $validated['category'] ?? null;
 
         $baseQuery = Article::where('status', 'published')
-            ->where('is_deleted', false)
             ->whereHas('publishedSites', function ($q) {
                 $q->where('site_name', 'Main News Portal');
             });
@@ -133,7 +131,7 @@ class ArticleController extends Controller
 
         $latestGlobal = (clone $baseQuery)
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'slug', 'title', 'summary', 'content', 'country', 'category', 'status', 'created_at as timestamp', 'published_at', 'image', 'views_count', 'keywords', 'original_url')
+            ->select('id', 'slug', 'title', 'summary', 'content_blocks', 'country', 'category', 'status', 'created_at as timestamp', 'published_at', 'image', 'views_count', 'keywords', 'original_url')
             ->orderBy('published_at', 'desc')
             ->get();
 
@@ -158,7 +156,6 @@ class ArticleController extends Controller
         // 1. Check Database for main articles
         $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])
             ->where('status', 'published')
-            ->where('is_deleted', false)
             ->whereHas('publishedSites', function ($q) {
                 $q->where('site_name', 'Main News Portal');
             })
@@ -185,7 +182,7 @@ class ArticleController extends Controller
                 'slug' => $restaurant->id,
                 'title' => $restaurant->name,
                 'summary' => $restaurant->clickbait_hook ?? $restaurant->description ?? '',
-                'content' => $restaurant->description ?? '',
+                'content_blocks' => $restaurant->description ? [['type' => 'paragraph', 'content' => $restaurant->description]] : [],
                 'category' => 'Restaurant',
                 'country' => $restaurant->country ?? 'Global',
                 'image_url' => $restaurant->image_url ?? '',
@@ -198,7 +195,6 @@ class ArticleController extends Controller
                 'published_sites' => [],
                 'sites' => [],
                 'galleryImages' => [],
-                'is_deleted' => false,
                 'is_redis' => false,
 
                 // Rich Metadata for UI Matching Admin Page

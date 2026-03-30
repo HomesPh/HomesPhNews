@@ -114,7 +114,7 @@ export default function LandingHeroGrid({ articles }: LandingHeroGridProps) {
                                 <ShareButtons
                                     url={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                                     title={article.title}
-                                    description={article.summary || article.content}
+                                    description={article.summary || article.summary}
                                     size="sm"
                                     className="transition-opacity"
                                 />

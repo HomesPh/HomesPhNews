@@ -18,8 +18,6 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-import { TemplateType } from "./editor/TemplateSelector";
-
 export interface ContentBlock {
     id: number;
     type: 'text' | 'image' | 'image-caption' | 'gallery' | 'split';
@@ -47,7 +45,7 @@ export default function ArticleEditorModal({
     availableCategories = [],
     availableCountries = []
 }: ArticleEditorModalProps) {
-    const [template, setTemplate] = useState<TemplateType>('single');
+
     const [availableSites, setAvailableSites] = useState<SiteResource[] | undefined>(undefined);
     const [showPublishDialog, setShowPublishDialog] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -146,10 +144,7 @@ export default function ArticleEditorModal({
                 city_id: initialData.city_id || '',
                 original_url: initialData.original_url || ''
             });
-            if (initialData.template) {
-                setTemplate(initialData.template);
-            }
-        } else if (isOpen) {
+
             // Reset for create mode
             setArticleData({
                 title: '',
@@ -173,7 +168,7 @@ export default function ArticleEditorModal({
                 city_id: '',
                 original_url: ''
             });
-            setTemplate('single');
+
         }
     }, [isOpen, initialData]);
 
@@ -183,94 +178,7 @@ export default function ArticleEditorModal({
         setArticleData(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleTemplateChange = (newTemplate: TemplateType) => {
-        const oldTemplate = template;
-        setTemplate(newTemplate);
 
-        // Content Preservation Logic (Deep Consolidation)
-        setArticleData(prev => {
-            let consolidatedText = '';
-            let consolidatedImage = prev.image;
-
-            // Helper to detect if content is just a placeholder
-            const isPlaceholder = (text: string) => {
-                if (!text) return true;
-                const stripped = text.replace(/<[^>]*>/g, '').trim();
-                const placeholders = [
-                    '',
-                    'Article content will appear here...',
-                    'Write your article content here...',
-                    'First section content...',
-                    'First section content before the image...',
-                    'Content that wraps around the left-floating image...',
-                    'Content for section 1...',
-                    'Content flowing around image...',
-                    'Text section content...'
-                ];
-                return placeholders.includes(stripped);
-            };
-
-            // 1. COLLECT: From everywhere
-            // Always take from main content if not placeholder
-            if (!isPlaceholder(prev.content)) {
-                consolidatedText = prev.content;
-            }
-
-            // Always add from blocks (if they have meaningful content)
-            const blocksData = prev.contentBlocks
-                .map((b: any) => b.content)
-                .filter((c: any) => c && !isPlaceholder(c))
-                .join('<br><br>');
-
-            if (blocksData) {
-                if (consolidatedText) consolidatedText += '<br><br>' + blocksData;
-                else consolidatedText = blocksData;
-            }
-
-            // Try to find an image if none is set
-            if (!consolidatedImage) {
-                consolidatedImage = prev.contentBlocks.find((b: any) => b.image)?.image || null;
-            }
-
-            // 2. REDISTRIBUTE: Into the new structure
-            let newBlocks: ContentBlock[] = [];
-            const blockTemplates: TemplateType[] = ['inline', 'textwrap', 'fullwidth'];
-
-            if (newTemplate === 'inline') {
-                newBlocks = [
-                    { id: 1, type: 'text', content: consolidatedText || '' },
-                    { id: 2, type: 'image', image: consolidatedImage || '', caption: '' },
-                    { id: 3, type: 'text', content: '' },
-                ];
-            } else if (newTemplate === 'textwrap') {
-                newBlocks = [
-                    { id: 1, type: 'image', image: consolidatedImage || '', position: 'left', content: consolidatedText || '' },
-                ];
-            } else if (newTemplate === 'fullwidth') {
-                newBlocks = [
-                    { id: 1, type: 'image-caption', image: consolidatedImage || '', caption: '', content: consolidatedText || '' },
-                ];
-            }
-
-            // 3. CLEAN UP: If we are going to a non-block template, put everything back into 'content'
-            let finalContent = consolidatedText;
-            if (!blockTemplates.includes(newTemplate)) {
-                newBlocks = [];
-            } else {
-                // If it's a block template, the first block usually holds the starting text
-                // which should have the dropcap. We don't need to change the content string itself
-                // but we might want to wipe 'content' to avoid duplication if the preview uses both
-                // Actually, preview uses RenderContent() for non-blocks.
-            }
-
-            return {
-                ...prev,
-                content: finalContent,
-                image: consolidatedImage,
-                contentBlocks: newBlocks
-            };
-        });
-    };
 
     // Helper: Convert Data or Blob URL to File object
     const localUrlToFile = async (url: string): Promise<File> => {
@@ -480,7 +388,6 @@ export default function ArticleEditorModal({
                 gallery_images: finalGalleryImages,
                 split_images: finalSplitImages,
                 content_blocks: finalContentBlocks,
-                template: template,
                 image_position: workingData.image_position,
                 image_position_x: workingData.image_position_x,
                 original_url: workingData.original_url || ''
@@ -609,8 +516,7 @@ export default function ArticleEditorModal({
                 availableCategories={availableCategories}
                 availableCountries={availableCountries}
                 onDataChange={handleDataChange}
-                template={template}
-                onTemplateChange={handleTemplateChange}
+
                 onSave={(data) => handleSave(false, data)}
                 onPublish={(data) => handlePublishClick(data)}
                 onClose={onClose}

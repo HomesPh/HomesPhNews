@@ -6,7 +6,6 @@ import type { ArticleResource } from "../../../types/ArticleResource";
 
 export interface PublishArticleRequest {
   published_sites: string[];
-  custom_titles?: string[] | null;
   reason?: string | null;
 
   // Optional Article Data for atomic publish
@@ -20,7 +19,6 @@ export interface PublishArticleRequest {
   topics?: string[];
   keywords?: string;
   content_blocks?: any[];
-  template?: string;
   author?: string;
   gallery_images?: any[];
   slug?: string;
