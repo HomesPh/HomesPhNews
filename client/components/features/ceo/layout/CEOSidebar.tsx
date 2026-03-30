@@ -10,7 +10,11 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar";
+<<<<<<< Updated upstream
 import { FileText, LogOut, Send, Calendar } from "lucide-react";
+=======
+import { FileText, LogOut, Send, CalendarDays } from "lucide-react";
+>>>>>>> Stashed changes
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -21,6 +25,11 @@ const SidebarItems = [
         title: "Articles",
         href: "/ceo/articles",
         icon: FileText,
+    },
+    {
+        title: "Calendar",
+        href: "/ceo/calendar",
+        icon: CalendarDays,
     },
     {
         title: "Editor",

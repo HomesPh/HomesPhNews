@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { X, Mail, Briefcase, ArrowLeft, CheckCircle2, ChevronDown, Clock, Calendar, HelpCircle, ChevronUp } from "lucide-react";
 import { Categories, Countries, RestaurantCategories } from "@/app/data";
@@ -26,6 +26,11 @@ export default function SubscribeModal({ isOpen, onClose, categories = [], count
         service: "General Inquiry",
         categories: [] as string[],
         countries: [] as string[],
+        province: "",
+        city: "",
+        user_country: "",
+        user_province: "",
+        user_city: "",
         frequency: "daily",
         deliveryTime: "08:00",
         plan: "",
@@ -37,6 +42,42 @@ export default function SubscribeModal({ isOpen, onClose, categories = [], count
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [showManual, setShowManual] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+    const [locationsFetched, setLocationsFetched] = useState(false);
+    const [provincesList, setProvincesList] = useState<{ id: number, name: string, country?: { id: number, name: string } }[]>([]);
+    const [citiesList, setCitiesList] = useState<{ id?: number, city_id?: number, name: string, province_id: number | null, country?: { id: number, name: string } }[]>([]);
+    const [showProvDrop, setShowProvDrop] = useState<'email' | 'configure' | null>(null);
+    const [showCityDrop, setShowCityDrop] = useState<'email' | 'configure' | null>(null);
+
+    const [categorySearch, setCategorySearch] = useState("");
+    const [countrySearch, setCountrySearch] = useState("");
+    const [userCountrySearch, setUserCountrySearch] = useState("");
+    const [showCatDrop, setShowCatDrop] = useState(false);
+    const [showCountryDrop, setShowCountryDrop] = useState(false);
+    const [showUserCountryDrop, setShowUserCountryDrop] = useState(false);
+    const [showUserProvDrop, setShowUserProvDrop] = useState<'email' | 'configure' | null>(null);
+    const [showUserCityDrop, setShowUserCityDrop] = useState<'email' | 'configure' | null>(null);
+
+    useEffect(() => {
+        if (isOpen && !locationsFetched) {
+            const fetchLocations = async () => {
+                try {
+                    const [provRes, cityRes] = await Promise.all([
+                        fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/provinces`),
+                        fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/cities`)
+                    ]);
+                    const provData = await provRes.json();
+                    const cityData = await cityRes.json();
+                    if (provData.data) setProvincesList(provData.data);
+                    if (cityData.data) setCitiesList(cityData.data);
+                    setLocationsFetched(true);
+                } catch (error) {
+                    console.error('Failed to fetch locations', error);
+                }
+            };
+            fetchLocations();
+        }
+    }, [isOpen, locationsFetched]);
 
     if (!isOpen) return null;
 
@@ -61,6 +102,11 @@ export default function SubscribeModal({ isOpen, onClose, categories = [], count
             service: "General Inquiry",
             categories: [],
             countries: [],
+            province: "",
+            city: "",
+            user_country: "",
+            user_province: "",
+            user_city: "",
             frequency: "daily",
             deliveryTime: "08:00",
             plan: "",
@@ -127,6 +173,11 @@ export default function SubscribeModal({ isOpen, onClose, categories = [], count
                         email: formData.email,
                         categories: formData.categories,
                         countries: formData.countries,
+                        province: formData.province,
+                        city: formData.city,
+                        user_country: formData.user_country,
+                        user_province: formData.user_province,
+                        user_city: formData.user_city,
                         features: formData.frequency,
                         time: formData.deliveryTime,
                     }),
@@ -160,6 +211,11 @@ export default function SubscribeModal({ isOpen, onClose, categories = [], count
                 // Add categories
                 formData.categories.forEach(cat => form.append('categories[]', cat));
                 formData.countries.forEach(country => form.append('countries[]', country));
+                form.append('province', formData.province);
+                form.append('city', formData.city);
+                form.append('user_country', formData.user_country);
+                form.append('user_province', formData.user_province);
+                form.append('user_city', formData.user_city);
                 form.append('features', formData.service); // Using service type as features
                 form.append('time', '09:00'); // Default time for business
                 form.append('plan', formData.plan);
@@ -263,7 +319,7 @@ export default function SubscribeModal({ isOpen, onClose, categories = [], count
                     </div>
                 </div>
 
-                <div className="p-5 md:p-[30px] flex-1">
+                <div className="p-4 md:p-[24px] flex-1 overflow-y-auto max-h-[85vh]">
                     {!isSubmitted ? (
                         <>
                             {step === 'choice' && (
@@ -309,196 +365,302 @@ export default function SubscribeModal({ isOpen, onClose, categories = [], count
 
                             {step === 'email' && (
                                 <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                                    <h2 className="font-bold text-[22px] text-[#111827] tracking-[-1px] mb-[8px]">
-                                        Email Subscription
-                                    </h2>
-                                    <p className="text-[#6b7280] text-[14px] mb-[16px] leading-[20px]">
-                                        Stay informed with breaking news and exclusive real estate stories.
-                                    </p>
-
-                                    {/* Manual Section */}
-                                    <div className="mb-[20px] border border-[#e5e7eb] rounded-[12px] overflow-hidden bg-gray-50/50">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div>
+                                            <h2 className="font-bold text-[20px] text-[#111827] tracking-[-1px]">
+                                                Email Subscription
+                                            </h2>
+                                            <p className="text-[#6b7280] text-[13px] leading-snug">Stay informed with exclusive real estate stories.</p>
+                                        </div>
                                         <button
                                             onClick={() => setShowManual(!showManual)}
-                                            className="w-full flex items-center justify-between p-[12px] hover:bg-gray-100 transition-colors"
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 hover:bg-gray-100 rounded-full text-[#000785] transition-colors"
                                         >
-                                            <div className="flex items-center gap-2 text-[#000785]">
-                                                <HelpCircle className="w-4 h-4" />
-                                                <span className="font-bold text-[14px] tracking-[-0.3px]">How to Subscribe?</span>
-                                            </div>
-                                            {showManual ? <ChevronUp className="w-4 h-4 text-[#9ca3af]" /> : <ChevronDown className="w-4 h-4 text-[#9ca3af]" />}
+                                            <HelpCircle className="w-3.5 h-3.5" />
+                                            <span className="font-bold text-[12px] tracking-[-0.3px]">Help</span>
+                                            {showManual ? <ChevronUp className="w-3 h-3 text-[#9ca3af]" /> : <ChevronDown className="w-3 h-3 text-[#9ca3af]" />}
                                         </button>
+                                    </div>
 
-                                        <div className={`overflow-hidden transition-all duration-300 ${showManual ? 'max-h-[400px] p-[16px] pt-0' : 'max-h-0'}`}>
-                                            <div className="space-y-[12px] text-[13px] text-[#4b5563]">
-                                                <div className="flex gap-3">
-                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#000785] text-white flex items-center justify-center text-[10px] font-bold">1</div>
-                                                    <p><span className="font-semibold text-[#111827]">Pick Categories:</span> Choose news topics like "Community" or "Sports".</p>
-                                                </div>
-                                                <div className="flex gap-3">
-                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#000785] text-white flex items-center justify-center text-[10px] font-bold">2</div>
-                                                    <p><span className="font-semibold text-[#111827]">Select Regions:</span> Target specific countries for relevant updates.</p>
-                                                </div>
-                                                <div className="flex gap-3">
-                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#000785] text-white flex items-center justify-center text-[10px] font-bold">3</div>
-                                                    <p><span className="font-semibold text-[#111827]">Set Schedule:</span> Tell us how often and when you want to be notified.</p>
-                                                </div>
-                                                <div className="flex gap-3">
-                                                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#000785] text-white flex items-center justify-center text-[10px] font-bold">4</div>
-                                                    <p><span className="font-semibold text-[#111827]">Confirm:</span> Enter your email and confirm the selection to finish!</p>
-                                                </div>
+                                    <div className={`overflow-hidden transition-all duration-300 bg-blue-50/30 rounded-xl mb-4 ${showManual ? 'max-h-[400px] p-4 border border-blue-100' : 'max-h-0'}`}>
+                                        <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-[12px] text-[#4b5563]">
+                                            <div className="flex gap-2.5">
+                                                <div className="flex-shrink-0 w-4.5 h-4.5 rounded-full bg-[#000785] text-white flex items-center justify-center text-[9px] font-bold">1</div>
+                                                <p><span className="font-semibold text-[#111827]">Pick Topics:</span> Categories like "Sports".</p>
+                                            </div>
+                                            <div className="flex gap-2.5">
+                                                <div className="flex-shrink-0 w-4.5 h-4.5 rounded-full bg-[#000785] text-white flex items-center justify-center text-[9px] font-bold">2</div>
+                                                <p><span className="font-semibold text-[#111827]">Select Regions:</span> Target news areas.</p>
+                                            </div>
+                                            <div className="flex gap-2.5">
+                                                <div className="flex-shrink-0 w-4.5 h-4.5 rounded-full bg-[#000785] text-white flex items-center justify-center text-[9px] font-bold">3</div>
+                                                <p><span className="font-semibold text-[#111827]">User Location:</span> For our data analytics.</p>
+                                            </div>
+                                            <div className="flex gap-2.5">
+                                                <div className="flex-shrink-0 w-4.5 h-4.5 rounded-full bg-[#000785] text-white flex items-center justify-center text-[9px] font-bold">4</div>
+                                                <p><span className="font-semibold text-[#111827]">Confirm:</span> Set schedule & email.</p>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <form onSubmit={handleSubmit} className="space-y-[14px]">
-                                        <div className="grid grid-cols-2 gap-[16px]">
-                                            {/* Categories Selection */}
-                                            <div>
-                                                <label className="block font-semibold text-[13px] text-[#374151] mb-[6px] tracking-[-0.3px]">
-                                                    Categories
-                                                </label>
-                                                <div className="relative group">
-                                                    <select
-                                                        className={`w-full border ${errors.categories ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[12px] py-[10px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white transition-all appearance-none cursor-pointer`}
-                                                        value=""
-                                                        onChange={(e) => {
-                                                            const val = e.target.value;
-                                                            if (val && !formData.categories.includes(val)) {
-                                                                setFormData({ ...formData, categories: [...formData.categories, val] });
-                                                                setErrors({ ...errors, categories: "" });
-                                                            }
-                                                        }}
-                                                    >
-                                                        <option value="" disabled>Choose...</option>
-                                                        {categories.filter(c => c.id !== "All")
-                                                            .filter(c => !formData.categories.includes(c.id))
-                                                            .map((category) => (
-                                                                <option key={`${category.id}-${category.label}`} value={category.id}>
-                                                                    {category.label}
-                                                                </option>
-                                                            ))}
-                                                    </select>
-                                                    <div className="absolute right-[12px] top-1/2 -translate-y-1/2 pointer-events-none text-[#9ca3af]">
-                                                        <ChevronDown className="w-4 h-4" />
-                                                    </div>
-                                                </div>
-                                                {errors.categories && <p className="text-red-500 text-[11px] mt-1 font-medium">{errors.categories}</p>}
-                                                <div className="flex flex-wrap gap-1.5 mt-2">
-                                                    {formData.categories.map((catId) => {
-                                                        const label = categories.find(c => c.id === catId)?.label || catId;
-                                                        return (
-                                                            <div key={catId} className="flex items-center gap-1 bg-blue-50 text-[#000785] px-2 py-0.5 rounded-full text-[11px] font-bold border border-blue-100">
-                                                                {label}
-                                                                <X className="w-2.5 h-2.5 cursor-pointer" onClick={() => setFormData({ ...formData, categories: formData.categories.filter(id => id !== catId) })} />
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-
-                                            {/* Countries Selection */}
-                                            <div>
-                                                <label className="block font-semibold text-[13px] text-[#374151] mb-[6px] tracking-[-0.3px]">
-                                                    Countries
-                                                </label>
-                                                <div className="relative group">
-                                                    <select
-                                                        className={`w-full border ${errors.countries ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[12px] py-[10px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white transition-all appearance-none cursor-pointer`}
-                                                        value=""
-                                                        onChange={(e) => {
-                                                            const val = e.target.value;
-                                                            if (val && !formData.countries.includes(val)) {
-                                                                setFormData({ ...formData, countries: [...formData.countries, val] });
-                                                                setErrors({ ...errors, countries: "" });
-                                                            }
-                                                        }}
-                                                    >
-                                                        <option value="" disabled>Choose...</option>
-                                                        {countries.filter(c => c.id !== "Global" && !formData.countries.includes(c.id)).map((country) => (
-                                                            <option key={country.id} value={country.id}>
-                                                                {country.label}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                    <div className="absolute right-[12px] top-1/2 -translate-y-1/2 pointer-events-none text-[#9ca3af]">
-                                                        <ChevronDown className="w-4 h-4" />
-                                                    </div>
-                                                </div>
-                                                {errors.countries && <p className="text-red-500 text-[11px] mt-1 font-medium">{errors.countries}</p>}
-                                                <div className="flex flex-wrap gap-1.5 mt-2">
-                                                    {formData.countries.map((countryId) => (
-                                                        <div key={countryId} className="flex items-center gap-1 bg-[#f0f9ff] text-[#0369a1] px-2 py-0.5 rounded-full text-[11px] font-bold border border-[#e0f2fe]">
-                                                            {countries.find(c => c.id === countryId)?.label || countryId}
-                                                            <X className="w-2.5 h-2.5 cursor-pointer" onClick={() => setFormData({ ...formData, countries: formData.countries.filter(id => id !== countryId) })} />
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="block font-semibold text-[13px] text-[#374151] mb-[4px] tracking-[-0.3px]">
-                                                Email Address
-                                            </label>
-                                            <input
-                                                type="email"
-                                                required
-                                                value={formData.email}
-                                                onChange={(e) => {
-                                                    setFormData({ ...formData, email: e.target.value });
-                                                    if (errors.email) setErrors({ ...errors, email: "" });
-                                                }}
-                                                placeholder="your@email.com"
-                                                className={`w-full border ${errors.email ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#000785] transition-all`}
-                                            />
-                                            {errors.email && <p className="text-red-500 text-[11px] mt-1 font-medium">{errors.email}</p>}
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-[12px]">
-                                            <div>
-                                                <div className="flex items-center gap-1.5 mb-[4px]">
-                                                    <Calendar className="w-3 h-3 text-gray-400" />
-                                                    <label className="block font-semibold text-[13px] text-[#374151] tracking-[-0.3px]">
-                                                        Frequency
+                                    <form onSubmit={handleSubmit} className="space-y-[12px]">
+                                        {/* Row 1: News Interests */}
+                                        <div className="bg-white border border-[#e5e7eb] rounded-xl p-3 space-y-3">
+                                            <p className="text-[11px] font-black uppercase tracking-wider text-[#9ca3af]">News Interests</p>
+                                            <div className="grid grid-cols-2 gap-[12px]">
+                                                <div>
+                                                    <label className="block font-semibold text-[12px] text-[#374151] mb-[4px] tracking-[-0.3px]">
+                                                        Categories
                                                     </label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="text"
+                                                            value={categorySearch}
+                                                            onChange={(e) => {
+                                                                setCategorySearch(e.target.value);
+                                                                setShowCatDrop(true);
+                                                            }}
+                                                            onFocus={() => setShowCatDrop(true)}
+                                                            onBlur={() => setTimeout(() => setShowCatDrop(false), 200)}
+                                                            placeholder="Type categories..."
+                                                            className={`w-full border ${errors.categories ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[12px] py-[8px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#000785] transition-all`}
+                                                        />
+                                                        {showCatDrop && (
+                                                            <div className="absolute z-50 w-full mt-1 bg-white border border-[#e5e7eb] rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                                                                {categories.filter(c => c.id !== "All" && !formData.categories.includes(c.id) && c.label.toLowerCase().includes(categorySearch.toLowerCase())).map((category) => (
+                                                                    <button key={category.id} type="button" className="w-full text-left px-3 py-2 text-[13px] hover:bg-gray-100" onClick={() => {
+                                                                        setFormData({ ...formData, categories: [...formData.categories, category.id] });
+                                                                        setErrors({ ...errors, categories: "" });
+                                                                        setCategorySearch("");
+                                                                        setShowCatDrop(false);
+                                                                    }}>
+                                                                        {category.label}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1 mt-1.5">
+                                                        {formData.categories.map((catId) => (
+                                                            <div key={catId} className="flex items-center gap-1 bg-blue-50 text-[#000785] px-1.5 py-0.5 rounded-full text-[10px] font-bold border border-blue-100">
+                                                                {categories.find(c => c.id === catId)?.label || catId}
+                                                                <X className="w-2 h-2 cursor-pointer" onClick={() => setFormData({ ...formData, categories: formData.categories.filter(id => id !== catId) })} />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <label className="block font-semibold text-[12px] text-[#374151] mb-[4px] tracking-[-0.3px]">
+                                                        Target Countries
+                                                    </label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="text"
+                                                            value={countrySearch}
+                                                            onChange={(e) => {
+                                                                setCountrySearch(e.target.value);
+                                                                setShowCountryDrop(true);
+                                                            }}
+                                                            onFocus={() => setShowCountryDrop(true)}
+                                                            onBlur={() => setTimeout(() => setShowCountryDrop(false), 200)}
+                                                            placeholder="Type countries..."
+                                                            className={`w-full border ${errors.countries ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[12px] py-[8px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#000785] transition-all`}
+                                                        />
+                                                        {showCountryDrop && (
+                                                            <div className="absolute z-50 w-full mt-1 bg-white border border-[#e5e7eb] rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                                                                {countries.filter(c => c.id !== "Global" && !formData.countries.includes(c.id) && c.label.toLowerCase().includes(countrySearch.toLowerCase())).map((country) => (
+                                                                    <button key={country.id} type="button" className="w-full text-left px-3 py-2 text-[13px] hover:bg-gray-100" onClick={() => {
+                                                                        setFormData({ ...formData, countries: [...formData.countries, country.id] });
+                                                                        setErrors({ ...errors, countries: "" });
+                                                                        setCountrySearch("");
+                                                                        setShowCountryDrop(false);
+                                                                    }}>
+                                                                        {country.label}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1 mt-1.5">
+                                                        {formData.countries.map((countryId) => (
+                                                            <div key={countryId} className="flex items-center gap-1 bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded-full text-[10px] font-bold border border-sky-100">
+                                                                {countries.find(c => c.id === countryId)?.label || countryId}
+                                                                <X className="w-2 h-2 cursor-pointer" onClick={() => setFormData({ ...formData, countries: formData.countries.filter(id => id !== countryId) })} />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-[12px]">
+                                                <div className="relative">
+                                                    <label className="block font-semibold text-[12px] text-[#374151] mb-[2px]">Target Province</label>
+                                                    <input
+                                                        type="text"
+                                                        value={formData.province}
+                                                        onChange={(e) => { setFormData({ ...formData, province: e.target.value, city: "" }); setShowProvDrop('email'); }}
+                                                        onFocus={() => setShowProvDrop('email')}
+                                                        onBlur={() => setTimeout(() => setShowProvDrop(null), 200)}
+                                                        placeholder="e.g. Metro Manila"
+                                                        className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[8px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#000785]"
+                                                    />
+                                                    {showProvDrop === 'email' && formData.province && (
+                                                        <div className="absolute z-50 w-full mt-1 bg-white border border-[#e5e7eb] rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                                                            {provincesList.filter(p => {
+                                                                if (formData.countries.length > 0 && !formData.countries.includes("Global")) {
+                                                                    if (p.country?.name && !formData.countries.includes(p.country.name)) return false;
+                                                                }
+                                                                return p.name.toLowerCase().includes(formData.province.toLowerCase());
+                                                            }).map(p => (
+                                                                <button key={p.id} type="button" className="w-full text-left px-3 py-2 text-[13px] hover:bg-gray-100" onClick={() => { setFormData({ ...formData, province: p.name, city: "" }); setShowProvDrop(null); }}>
+                                                                    {p.name}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="relative">
-                                                    <select
-                                                        className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white text-gray-900 transition-all appearance-none cursor-pointer"
-                                                        value={formData.frequency}
-                                                        onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-                                                    >
-                                                        <option value="daily" className="text-gray-900">Daily</option>
-                                                        <option value="3days" className="text-gray-900">Every 3 Days</option>
-                                                        <option value="5days" className="text-gray-900">Every 5 Days</option>
-                                                        <option value="weekly" className="text-gray-900">Weekly</option>
-                                                    </select>
-                                                    <ChevronDown className="absolute right-[12px] top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
+                                                    <label className="block font-semibold text-[12px] text-[#374151] mb-[2px]">Target City</label>
+                                                    <input
+                                                        type="text"
+                                                        value={formData.city}
+                                                        onChange={(e) => { setFormData({ ...formData, city: e.target.value }); setShowCityDrop('email'); }}
+                                                        onFocus={() => setShowCityDrop('email')}
+                                                        onBlur={() => setTimeout(() => setShowCityDrop(null), 200)}
+                                                        placeholder="e.g. Makati"
+                                                        className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[8px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#000785]"
+                                                    />
+                                                    {showCityDrop === 'email' && formData.city && (
+                                                        <div className="absolute z-50 w-full mt-1 bg-white border border-[#e5e7eb] rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                                                            {citiesList.filter(c => {
+                                                                if (formData.countries.length > 0 && !formData.countries.includes("Global")) {
+                                                                    if (c.country?.name && !formData.countries.includes(c.country.name)) return false;
+                                                                }
+                                                                const prov = provincesList.find(p => p.name === formData.province);
+                                                                if (prov && c.province_id && c.province_id !== prov.id) return false;
+                                                                return c.name.toLowerCase().includes(formData.city.toLowerCase());
+                                                            }).map(c => (
+                                                                <button key={c.city_id || c.id} type="button" className="w-full text-left px-3 py-2 text-[13px] hover:bg-gray-100" onClick={() => { setFormData({ ...formData, city: c.name }); setShowCityDrop(null); }}>
+                                                                    {c.name}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
 
-                                            <div>
-                                                <div className="flex items-center gap-1.5 mb-[4px]">
-                                                    <Clock className="w-3 h-3 text-gray-400" />
-                                                    <label className="block font-semibold text-[13px] text-[#374151] tracking-[-0.3px]">
-                                                        Time
-                                                    </label>
+                                            {/* Delivery & Origin Setup */}
+                                            <div className="pt-2 border-t border-gray-100">
+                                                <div className="space-y-3">
+                                                    <p className="text-[11px] font-black uppercase tracking-wider text-[#9ca3af] mb-1">Delivery Settings</p>
+                                                    <div className="grid grid-cols-3 gap-[10px] items-end">
+                                                        <div className="col-span-1">
+                                                            <label className="block font-semibold text-[11px] text-[#374151] mb-[2px]">Email Address</label>
+                                                            <input
+                                                                type="email" required value={formData.email}
+                                                                onChange={(e) => { setFormData({ ...formData, email: e.target.value }); if (errors.email) setErrors({ ...errors, email: "" }); }}
+                                                                placeholder="email@work.com"
+                                                                className={`w-full border ${errors.email ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[10px] py-[7px] text-[13px] focus:outline-none focus:ring-1 focus:ring-[#000785]`}
+                                                            />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <label className="block font-semibold text-[11px] text-[#374151] mb-[2px] flex items-center gap-1"><Calendar className="w-3 h-3" /> Frequency</label>
+                                                            <select className="w-full border border-[#e5e7eb] rounded-[10px] px-[8px] py-[7px] text-[13px] bg-white" value={formData.frequency} onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}>
+                                                                <option value="daily">Daily</option>
+                                                                <option value="3days">3 Days</option>
+                                                                <option value="5days">5 Days</option>
+                                                                <option value="weekly">Weekly</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <label className="block font-semibold text-[11px] text-[#374151] mb-[2px] flex items-center gap-1"><Clock className="w-3 h-3" /> Time</label>
+                                                            <input type="time" value={formData.deliveryTime} onChange={(e) => setFormData({ ...formData, deliveryTime: e.target.value })} className="w-full border border-[#e5e7eb] rounded-[10px] px-[8px] py-[7px] text-[13px] bg-white" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-3 gap-[10px]">
+                                                        <div className="relative">
+                                                            <label className="block font-semibold text-[11px] text-[#374151] mb-[2px]">Country</label>
+                                                            <input
+                                                                type="text"
+                                                                value={userCountrySearch || formData.user_country}
+                                                                onChange={(e) => { setUserCountrySearch(e.target.value); setShowUserCountryDrop(true); }}
+                                                                onFocus={() => setShowUserCountryDrop(true)}
+                                                                onBlur={() => setTimeout(() => setShowUserCountryDrop(false), 200)}
+                                                                placeholder="Select..."
+                                                                className="w-full border border-[#e5e7eb] rounded-[10px] px-[10px] py-[7px] text-[13px] bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#000785]"
+                                                            />
+                                                            {showUserCountryDrop && (
+                                                                <div className="absolute z-50 w-full mt-1 bg-white border border-[#e5e7eb] rounded-lg shadow-lg max-h-32 overflow-y-auto">
+                                                                    {countries.filter(c => c.id !== "Global" && c.label.toLowerCase().includes(userCountrySearch.toLowerCase())).map((country) => (
+                                                                        <button key={country.id} type="button" className="w-full text-left px-2 py-1.5 text-[12px] hover:bg-gray-100" onClick={() => {
+                                                                            setFormData({ ...formData, user_country: country.label, user_province: "", user_city: "" });
+                                                                            setUserCountrySearch("");
+                                                                            setShowUserCountryDrop(false);
+                                                                        }}>
+                                                                            {country.label}
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="relative">
+                                                            <label className="block font-semibold text-[11px] text-[#374151] mb-[2px]">Province</label>
+                                                            <input
+                                                                type="text"
+                                                                value={formData.user_province}
+                                                                onChange={(e) => { setFormData({ ...formData, user_province: e.target.value, user_city: "" }); setShowUserProvDrop('email'); }}
+                                                                onFocus={() => setShowUserProvDrop('email')}
+                                                                onBlur={() => setTimeout(() => setShowUserProvDrop(null), 200)}
+                                                                placeholder="Select..."
+                                                                className="w-full border border-[#e5e7eb] rounded-[10px] px-[10px] py-[7px] text-[13px] bg-white focus:outline-none focus:ring-1 focus:ring-[#000785]"
+                                                            />
+                                                            {showUserProvDrop === 'email' && formData.user_province && (
+                                                                <div className="absolute z-50 w-full mt-1 bg-white border border-[#e5e7eb] rounded-lg shadow-lg max-h-32 overflow-y-auto">
+                                                                    {provincesList.filter(p => {
+                                                                        if (formData.user_country && p.country?.name && p.country.name !== formData.user_country) return false;
+                                                                        return p.name.toLowerCase().includes(formData.user_province.toLowerCase());
+                                                                    }).map(p => (
+                                                                        <button key={p.id} type="button" className="w-full text-left px-2 py-1.5 text-[12px] hover:bg-gray-100" onClick={() => { setFormData({ ...formData, user_province: p.name, user_city: "" }); setShowUserProvDrop(null); }}>
+                                                                            {p.name}
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="relative">
+                                                            <label className="block font-semibold text-[11px] text-[#374151] mb-[2px]">City</label>
+                                                            <input
+                                                                type="text"
+                                                                value={formData.user_city}
+                                                                onChange={(e) => { setFormData({ ...formData, user_city: e.target.value }); setShowUserCityDrop('email'); }}
+                                                                onFocus={() => setShowUserCityDrop('email')}
+                                                                onBlur={() => setTimeout(() => setShowUserCityDrop(null), 200)}
+                                                                placeholder="Select..."
+                                                                className="w-full border border-[#e5e7eb] rounded-[10px] px-[10px] py-[7px] text-[13px] bg-white focus:outline-none focus:ring-1 focus:ring-[#000785]"
+                                                            />
+                                                            {showUserCityDrop === 'email' && formData.user_city && (
+                                                                <div className="absolute z-50 w-full mt-1 bg-white border border-[#e5e7eb] rounded-lg shadow-lg max-h-32 overflow-y-auto">
+                                                                    {citiesList.filter(c => {
+                                                                        if (formData.user_country && c.country?.name && c.country.name !== formData.user_country) return false;
+                                                                        const prov = provincesList.find(p => p.name === formData.user_province);
+                                                                        if (prov && c.province_id && c.province_id !== prov.id) return false;
+                                                                        return c.name.toLowerCase().includes(formData.user_city.toLowerCase());
+                                                                    }).map(c => (
+                                                                        <button key={c.city_id || c.id} type="button" className="w-full text-left px-2 py-1.5 text-[12px] hover:bg-gray-100" onClick={() => { setFormData({ ...formData, user_city: c.name }); setShowUserCityDrop(null); }}>
+                                                                            {c.name}
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <input
-                                                    type="time"
-                                                    value={formData.deliveryTime}
-                                                    onChange={(e) => setFormData({ ...formData, deliveryTime: e.target.value })}
-                                                    className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white text-gray-900 transition-all"
-                                                />
                                             </div>
                                         </div>
 
-                                        <button
-                                            type="submit"
-                                            disabled={isLoading}
-                                            className="w-full bg-[#000785] text-white py-[12px] rounded-[10px] font-bold text-[16px] tracking-[-0.5px] hover:bg-[#000566] transition-all shadow-md active:scale-[0.98] mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                                        >
+                                        <button type="submit" disabled={isLoading} className="w-full bg-[#000785] text-white py-[11px] rounded-[12px] font-bold text-[15px] hover:bg-[#000566] transition-all shadow-md active:scale-[0.98] disabled:opacity-70">
                                             {isLoading ? "Subscribing..." : "Subscribe Now"}
                                         </button>
                                     </form>
@@ -625,127 +787,176 @@ export default function SubscribeModal({ isOpen, onClose, categories = [], count
 
                             {step === 'configure' && (
                                 <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                                    <h2 className="font-bold text-[22px] text-[#111827] tracking-[-1px] mb-[8px]">
+                                    <h2 className="font-bold text-[20px] text-[#111827] tracking-[-1px] mb-[2px]">
                                         Configure {formData.plan}
                                     </h2>
-                                    <p className="text-[#6b7280] text-[14px] mb-[16px] leading-[20px]">
-                                        Complete your profile to get started.
-                                    </p>
+                                    <p className="text-[#6b7280] text-[13px] mb-3">Complete your profile to get started.</p>
 
-                                    <form onSubmit={handleSubmit} className="space-y-[12px]">
-                                        {/* Logo Upload */}
-                                        <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:border-[#000785] transition-colors cursor-pointer relative" onClick={() => document.getElementById('logo-upload')?.click()}>
-                                            <input
-                                                type="file"
-                                                id="logo-upload"
-                                                className="hidden"
-                                                accept="image/*"
-                                                onChange={handleLogoChange}
-                                            />
-                                            {formData.logo ? (
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden">
-                                                        <img src={URL.createObjectURL(formData.logo)} alt="Logo" className="w-full h-full object-cover" />
+                                    <form onSubmit={handleSubmit} className="space-y-[10px]">
+                                        <div className="flex gap-4 items-start">
+                                            {/* Logo Upload */}
+                                            <div className="w-[120px] h-[120px] flex-shrink-0 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center hover:border-[#000785] transition-colors cursor-pointer relative bg-gray-50/50" onClick={() => document.getElementById('logo-upload')?.click()}>
+                                                <input type="file" id="logo-upload" className="hidden" accept="image/*" onChange={handleLogoChange} />
+                                                {formData.logo ? (
+                                                    <img src={URL.createObjectURL(formData.logo)} alt="Logo" className="w-full h-full object-cover rounded-xl" />
+                                                ) : (
+                                                    <div className="text-center p-2">
+                                                        <Clock className="w-6 h-6 text-gray-400 mx-auto mb-1" />
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Upload Logo</p>
                                                     </div>
-                                                    <span className="text-sm text-gray-700 font-medium">{formData.logo.name}</span>
+                                                )}
+                                            </div>
+
+                                            <div className="flex-1 grid grid-cols-2 gap-3">
+                                                <div className="col-span-2">
+                                                    <label className="block font-semibold text-[12px] text-[#374151] mb-[2px]">Email Address</label>
+                                                    <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="john@example.com" className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[7px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#000785]" />
                                                 </div>
-                                            ) : (
-                                                <div className="space-y-1">
-                                                    <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-400">
-                                                        <div className="w-5 h-5 border-2 border-current rounded-sm"></div>
-                                                    </div>
-                                                    <p className="text-sm text-gray-500 font-medium">Upload Brand Logo</p>
-                                                    <p className="text-xs text-gray-400">PNG, JPG up to 2MB</p>
+                                                <div className="col-span-2">
+                                                    <label className="block font-semibold text-[12px] text-[#374151] mb-[2px]">Company Name</label>
+                                                    <input type="text" required value={formData.companyName} onChange={(e) => setFormData({ ...formData, companyName: e.target.value })} placeholder="Company Name" className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[7px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#000785]" />
                                                 </div>
-                                            )}
+                                            </div>
                                         </div>
 
-
-
-                                        <div className="grid grid-cols-2 gap-[12px]">
-                                            <div className="col-span-2">
-                                                <label className="block font-semibold text-[13px] text-[#374151] mb-[4px] tracking-[-0.3px]">
-                                                    Email Address
-                                                </label>
-                                                <input
-                                                    type="email"
-                                                    required
-                                                    value={formData.email}
-                                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                    placeholder="john@example.com"
-                                                    className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#000785] transition-all"
-                                                />
-                                            </div>
-                                            <div className="col-span-2">
-                                                <label className="block font-semibold text-[13px] text-[#374151] mb-[4px] tracking-[-0.3px]">
-                                                    Company Name
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    value={formData.companyName}
-                                                    onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                                                    placeholder="Company Name"
-                                                    className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#000785] transition-all"
-                                                />
-                                            </div>
-
-                                            {/* Categories (Simplified for Configure Step) */}
-                                            <div className="col-span-2">
-                                                <label className="block font-semibold text-[13px] text-[#374151] mb-[4px] tracking-[-0.3px]">
-                                                    Category
-                                                </label>
-                                                <div className="flex flex-wrap gap-2">
+                                        {/* Categories Selection */}
+                                        <div className="bg-white border border-[#e5e7eb] rounded-xl p-3 space-y-2">
+                                            <p className="text-[10px] font-black uppercase tracking-wider text-[#9ca3af]">Service Details</p>
+                                            <div className="space-y-2">
+                                                <label className="block font-semibold text-[12px] text-[#374151]">Select Primary Category</label>
+                                                <div className="flex flex-wrap gap-1.5">
                                                     {categories.filter(c => c.id !== "All").map((category) => (
-                                                        <button
-                                                            key={category.id}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setFormData({ ...formData, categories: [category.id] });
-                                                            }}
-                                                            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${formData.categories.includes(category.id)
-                                                                ? 'bg-blue-50 border-[#000785] text-[#000785]'
-                                                                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
-                                                                }`}
-                                                        >
+                                                        <button key={category.id} type="button" onClick={() => setFormData({ ...formData, categories: [category.id] })} className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all ${formData.categories.includes(category.id) ? 'bg-[#000785] border-[#000785] text-white shadow-md' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'}`}>
                                                             {category.label}
                                                         </button>
                                                     ))}
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <div className="col-span-2">
-                                                <label className="block font-semibold text-[13px] text-[#374151] mb-[4px] tracking-[-0.3px]">
-                                                    Target Country
-                                                </label>
-                                                <select
-                                                    className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white transition-all cursor-pointer"
-                                                    onChange={(e) => {
-                                                        if (e.target.value && !formData.countries.includes(e.target.value)) {
-                                                            setFormData({ ...formData, countries: [e.target.value] }); // Single region for simplicity now
-                                                        }
-                                                    }}
-                                                >
-                                                    <option value="">Select Country...</option>
-                                                    {countries.filter(c => c.id !== "Global").map((country) => (
-                                                        <option key={country.id} value={country.id}>
-                                                            {country.label}
-                                                        </option>
+                                        {/* News Targets */}
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <div className="relative">
+                                                <label className="block font-semibold text-[11px] text-[#374151] mb-[2px]">Target Country</label>
+                                                <input type="text" value={countrySearch} onChange={(e) => { setCountrySearch(e.target.value); setShowCountryDrop(true); }} onFocus={() => setShowCountryDrop(true)} onBlur={() => setTimeout(() => setShowCountryDrop(false), 200)} placeholder="Search..." className="w-full border border-[#e5e7eb] rounded-[10px] px-[10px] py-[7px] text-[13px] bg-white focus:outline-none focus:ring-1 focus:ring-[#000785]" />
+                                                {showCountryDrop && (
+                                                    <div className="absolute z-50 w-full mt-1 bg-white border border-[#e5e7eb] rounded-lg shadow-lg max-h-32 overflow-y-auto">
+                                                        {countries.filter(c => c.id !== "Global" && !formData.countries.includes(c.id) && c.label.toLowerCase().includes(countrySearch.toLowerCase())).map((country) => (
+                                                            <button key={country.id} type="button" className="w-full text-left px-2 py-1.5 text-[12px] hover:bg-gray-100" onClick={() => { setFormData({ ...formData, countries: [...formData.countries, country.id] }); setCountrySearch(""); setShowCountryDrop(false); }}>
+                                                                {country.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                <div className="flex flex-wrap gap-1 mt-1">
+                                                    {formData.countries.map((countryId) => (
+                                                        <div key={countryId} className="flex items-center gap-1 bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded-full text-[9px] font-bold border border-sky-100">
+                                                            {countries.find(c => c.id === countryId)?.label || countryId}
+                                                            <X className="w-2 h-2 cursor-pointer" onClick={() => setFormData({ ...formData, countries: formData.countries.filter(id => id !== countryId) })} />
+                                                        </div>
                                                     ))}
-                                                </select>
+                                                </div>
+                                            </div>
+                                            <div className="relative">
+                                                <label className="block font-semibold text-[11px] text-[#374151] mb-[2px]">Target Province</label>
+                                                <input type="text" value={formData.province} onChange={(e) => { setFormData({ ...formData, province: e.target.value, city: "" }); setShowProvDrop('configure'); }} onFocus={() => setShowProvDrop('configure')} onBlur={() => setTimeout(() => setShowProvDrop(null), 200)} placeholder="Province..." className="w-full border border-[#e5e7eb] rounded-[10px] px-[10px] py-[7px] text-[13px] focus:outline-none focus:ring-1 focus:ring-[#000785]" />
+                                                {showProvDrop === 'configure' && formData.province && (
+                                                    <div className="absolute z-50 w-full mt-1 bg-white border border-[#e5e7eb] rounded-lg shadow-lg max-h-32 overflow-y-auto">
+                                                        {provincesList.filter(p => {
+                                                            if (formData.countries.length > 0 && !formData.countries.includes("Global")) {
+                                                                if (p.country?.name && !formData.countries.includes(p.country.name)) return false;
+                                                            }
+                                                            return p.name.toLowerCase().includes(formData.province.toLowerCase());
+                                                        }).map(p => (
+                                                            <button key={p.id} type="button" className="w-full text-left px-2 py-1.5 text-[12px] hover:bg-gray-100" onClick={() => { setFormData({ ...formData, province: p.name, city: "" }); setShowProvDrop(null); }}>
+                                                                {p.name}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="relative">
+                                                <label className="block font-semibold text-[11px] text-[#374151] mb-[2px]">Target City</label>
+                                                <input type="text" value={formData.city} onChange={(e) => { setFormData({ ...formData, city: e.target.value }); setShowCityDrop('configure'); }} onFocus={() => setShowCityDrop('configure')} onBlur={() => setTimeout(() => setShowCityDrop(null), 200)} placeholder="City..." className="w-full border border-[#e5e7eb] rounded-[10px] px-[10px] py-[7px] text-[13px] focus:outline-none focus:ring-1 focus:ring-[#000785]" />
+                                                {showCityDrop === 'configure' && formData.city && (
+                                                    <div className="absolute z-50 w-full mt-1 bg-white border border-[#e5e7eb] rounded-lg shadow-lg max-h-32 overflow-y-auto">
+                                                        {citiesList.filter(c => {
+                                                            if (formData.countries.length > 0 && !formData.countries.includes("Global")) {
+                                                                if (c.country?.name && !formData.countries.includes(c.country.name)) return false;
+                                                            }
+                                                            const prov = provincesList.find(p => p.name === formData.province);
+                                                            if (prov && c.province_id && c.province_id !== prov.id) return false;
+                                                            return c.name.toLowerCase().includes(formData.city.toLowerCase());
+                                                        }).map(c => (
+                                                            <button key={c.city_id || c.id} type="button" className="w-full text-left px-2 py-1.5 text-[12px] hover:bg-gray-100" onClick={() => { setFormData({ ...formData, city: c.name }); setShowCityDrop(null); }}>
+                                                                {c.name}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 
-                                        <div className="bg-gray-50 rounded-xl p-4 mt-4 flex items-center justify-between border border-gray-100">
-                                            <div>
-                                                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Monthly</p>
-                                                <p className="text-xl font-bold text-gray-900">₱{formData.price.toLocaleString()}</p>
+                                        {/* User Origin */}
+                                        <div className="bg-gray-50 border border-[#e5e7eb] rounded-xl p-3 space-y-2">
+                                            <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">User Origin (For Data Analysis)</p>
+                                            <div className="grid grid-cols-3 gap-2.5">
+                                                <div className="relative">
+                                                    <label className="block font-semibold text-[11px] text-[#374151]">Country</label>
+                                                    <input type="text" value={userCountrySearch || formData.user_country} onChange={(e) => { setUserCountrySearch(e.target.value); setShowUserCountryDrop(true); }} onFocus={() => setShowUserCountryDrop(true)} onBlur={() => setTimeout(() => setShowUserCountryDrop(false), 200)} placeholder="Select..." className="w-full border border-[#e5e7eb] rounded-[10px] px-[10px] py-[6px] text-[12px] bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#000785]" />
+                                                    {showUserCountryDrop && (
+                                                        <div className="absolute z-50 w-full mt-1 bg-white border border-[#e5e7eb] rounded-lg shadow-lg max-h-32 overflow-y-auto">
+                                                            {countries.filter(c => c.id !== "Global" && c.label.toLowerCase().includes(userCountrySearch.toLowerCase())).map((country) => (
+                                                                <button key={country.id} type="button" className="w-full text-left px-2 py-1.5 text-[12px] hover:bg-gray-100" onClick={() => { setFormData({ ...formData, user_country: country.label, user_province: "", user_city: "" }); setUserCountrySearch(""); setShowUserCountryDrop(false); }}>
+                                                                    {country.label}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="relative">
+                                                    <label className="block font-semibold text-[11px] text-[#374151]">Province</label>
+                                                    <input type="text" value={formData.user_province} onChange={(e) => { setFormData({ ...formData, user_province: e.target.value, user_city: "" }); setShowUserProvDrop('configure'); }} onFocus={() => setShowUserProvDrop('configure')} onBlur={() => setTimeout(() => setShowUserProvDrop(null), 200)} placeholder="Province..." className="w-full border border-[#e5e7eb] rounded-[10px] px-[10px] py-[6px] text-[12px] bg-white focus:outline-none focus:ring-1 focus:ring-[#000785]" />
+                                                    {showUserProvDrop === 'configure' && formData.user_province && (
+                                                        <div className="absolute z-50 w-full mt-1 bg-white border border-[#e5e7eb] rounded-lg shadow-lg max-h-32 overflow-y-auto">
+                                                            {provincesList.filter(p => {
+                                                                if (formData.user_country && p.country?.name && p.country.name !== formData.user_country) return false;
+                                                                return p.name.toLowerCase().includes(formData.user_province.toLowerCase());
+                                                            }).map(p => (
+                                                                <button key={p.id} type="button" className="w-full text-left px-2 py-1.5 text-[12px] hover:bg-gray-100" onClick={() => { setFormData({ ...formData, user_province: p.name, user_city: "" }); setShowUserProvDrop(null); }}>
+                                                                    {p.name}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="relative">
+                                                    <label className="block font-semibold text-[11px] text-[#374151]">City</label>
+                                                    <input type="text" value={formData.user_city} onChange={(e) => { setFormData({ ...formData, user_city: e.target.value }); setShowUserCityDrop('configure'); }} onFocus={() => setShowUserCityDrop('configure')} onBlur={() => setTimeout(() => setShowUserCityDrop(null), 200)} placeholder="City..." className="w-full border border-[#e5e7eb] rounded-[10px] px-[10px] py-[6px] text-[12px] bg-white focus:outline-none focus:ring-1 focus:ring-[#000785]" />
+                                                    {showUserCityDrop === 'configure' && formData.user_city && (
+                                                        <div className="absolute z-50 w-full mt-1 bg-white border border-[#e5e7eb] rounded-lg shadow-lg max-h-32 overflow-y-auto">
+                                                            {citiesList.filter(c => {
+                                                                if (formData.user_country && c.country?.name && c.country.name !== formData.user_country) return false;
+                                                                const prov = provincesList.find(p => p.name === formData.user_province);
+                                                                if (prov && c.province_id && c.province_id !== prov.id) return false;
+                                                                return c.name.toLowerCase().includes(formData.user_city.toLowerCase());
+                                                            }).map(c => (
+                                                                <button key={c.city_id || c.id} type="button" className="w-full text-left px-2 py-1.5 text-[12px] hover:bg-gray-100" onClick={() => { setFormData({ ...formData, user_city: c.name }); setShowUserCityDrop(null); }}>
+                                                                    {c.name}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <button
-                                                type="submit"
-                                                disabled={isLoading}
-                                                className="bg-[#000785] text-white px-6 py-2.5 rounded-[10px] font-bold text-[14px] hover:bg-[#000566] transition-all shadow-md active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
-                                            >
+                                        </div>
+
+                                        <div className="bg-[#000785]/5 rounded-xl px-4 py-3 flex items-center justify-between border border-[#000785]/10">
+                                            <div>
+                                                <p className="text-[10px] text-[#000785]/60 font-black uppercase tracking-wider">Plan Total</p>
+                                                <p className="text-lg font-black text-[#000785]">₱{formData.price.toLocaleString()}<span className="text-[12px] font-medium text-[#000785]/60 ml-1">/month</span></p>
+                                            </div>
+                                            <button type="submit" disabled={isLoading} className="bg-[#000785] text-white px-8 py-2.5 rounded-full font-bold text-[14px] hover:bg-[#000566] transition-all shadow-lg active:scale-[0.98] disabled:opacity-70">
                                                 {isLoading ? "Processing..." : "Confirm & Pay"}
                                             </button>
                                         </div>
