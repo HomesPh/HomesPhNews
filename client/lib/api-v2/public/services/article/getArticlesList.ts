@@ -23,8 +23,6 @@ export type ArticleListParams = {
   q?: string;
   search?: string;
   country?: string;
-  province?: string;
-  city?: string;
   category?: string;
   topic?: string;
   topics?: string;

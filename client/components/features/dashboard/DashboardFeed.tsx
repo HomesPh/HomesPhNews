@@ -17,13 +17,11 @@ import { calculateReadTime } from "@/lib/utils";
 type DashboardFeedProps = {
     country: string;
     category: string;
-    province?: string;
-    city?: string;
     feed: Promise<FeedResponse>;
     restaurants: Promise<PaginatedRestaurants>;
 };
 
-export default function DashboardFeed({ country, category, province, city, feed, restaurants }: DashboardFeedProps) {
+export default function DashboardFeed({ country, category, feed, restaurants }: DashboardFeedProps) {
     const feedData = use(feed);
     const restaurantData = use(restaurants);
 
