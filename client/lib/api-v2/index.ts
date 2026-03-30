@@ -12,6 +12,8 @@ export * from "./public/services/subscription";
 export * from "./public/services/ads/getAdsByCampaign";
 export * from "./public/services/metadata/getCategories";
 export * from "./public/services/metadata/getCountries";
+export * from "./public/services/metadata/getProvinces";
+export * from "./public/services/metadata/getCities";
 
 /**
  * exports from admin

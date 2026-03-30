@@ -19,8 +19,7 @@ class RestaurantController extends Controller
         $topic = $request->input('topic');
         $country = $request->input('country');
 
-        $query = Restaurant::where('status', 'published')
-            ->whereJsonContains('published_sites', 'Main News Portal');
+        $query = Restaurant::where('status', 'published');
 
         if ($topic) {
             $query->where('cuisine_type', $topic);
@@ -51,7 +50,6 @@ class RestaurantController extends Controller
     {
         $restaurant = Restaurant::where('status', 'published')
             ->where('id', $id)
-            ->whereJsonContains('published_sites', 'Main News Portal')
             ->first();
 
         if (!$restaurant) {
@@ -68,7 +66,6 @@ class RestaurantController extends Controller
     {
         $restaurants = Restaurant::where('status', 'published')
             ->where('country', $country)
-            ->whereJsonContains('published_sites', 'Main News Portal')
             ->orderBy('created_at', 'desc')
             ->limit(20)
             ->get();

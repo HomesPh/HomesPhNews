@@ -41,6 +41,7 @@ use Illuminate\Support\Facades\Route;
 /* |-------------------------------------------------------------------------- | External Site Routes |-------------------------------------------------------------------------- | | Version-independent routes for external site integration. | */
 Route::middleware('site.auth')->prefix('external')->group(function () {
     Route::get('/articles', [SiteContentController::class, 'getArticles']);
+    Route::get('/articles/{id}', [SiteContentController::class, 'getArticle']);
     Route::get('/restaurants', [SiteContentController::class, 'getRestaurants']);
     Route::post('/subscribe', [SubscriptionController::class, 'store']);
 });
@@ -71,24 +72,49 @@ Route::prefix('v1')->group(function () {
     // PUBLIC USER ROUTES (Mixed Database and Redis)
     // ═══════════════════════════════════════════════════════════════
 
-    // Public User Routes
+    // Articles
     Route::prefix('articles')->name('articles.')->group(function () {
         Route::get('/', [UserArticleController::class, 'index'])->name('index');
         Route::get('/feed', [UserArticleController::class, 'feed'])->name('feed');
         Route::get('/{id}', [UserArticleController::class, 'show'])->name('show');
         Route::post('/{id}/view', [UserArticleController::class, 'incrementViews'])->name('view');
-    }
-    );
+    });
 
-    // Alias for backward compatibility if needed, or just redirect
+    // Legacy Article Alias
     Route::get('/article', [UserArticleController::class, 'index']);
 
     // Statistics
     Route::get('/stats', [UserArticleController::class, 'stats']);
 
-    // Ads (Public)
+    // Ads
     Route::get('/ads', [UserAdController::class, 'index']);
     Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
+
+    // Ad metrics
+    Route::post('/ads/metrics', [AdminAdMetricController::class, 'store']);
+
+    // Countries, Provinces, Cities (Public)
+    Route::get('/countries', [CountryController::class, 'index']);
+    Route::get('/provinces', [ProvinceController::class, 'index']);
+    Route::get('/cities', [CityController::class, 'index']);
+
+    // Restaurants
+    Route::prefix('restaurants')->name('restaurants.')->group(function () {
+        Route::get('/', [UserRestaurantController::class, 'index'])->name('index');
+        Route::get('/country/{country}', [UserRestaurantController::class, 'byCountry'])->name('byCountry');
+        Route::get('/{id}', [UserRestaurantController::class, 'show'])->name('show');
+    });
+
+    // Categories
+    Route::get('/categories', [CategoryController::class, 'index']);
+
+    // Upload Proxy
+    Route::get('/upload/proxy', [UploadController::class, 'proxyImage'])->name('upload.proxy');
+
+    // Subscription (Newsletter/Updates)
+    Route::post('/subscribe', [SubscriptionController::class, 'store']);
+    Route::get('/subscribe/{id}', [SubscriptionController::class, 'show']);
+    Route::patch('/subscribe/{id}', [SubscriptionController::class, 'update']);
 
     // ═══════════════════════════════════════════════════════════════
     // ADMIN ROUTES (Database-based for article management)

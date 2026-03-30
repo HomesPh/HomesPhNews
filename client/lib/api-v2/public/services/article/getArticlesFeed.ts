@@ -16,6 +16,8 @@ export type FeedParams = {
   q?: string;
   search?: string;
   country?: string;
+  province?: string;
+  city?: string;
   category?: string;
   topic?: string;
   topics?: string;
