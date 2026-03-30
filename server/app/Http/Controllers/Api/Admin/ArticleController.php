@@ -788,10 +788,11 @@ class ArticleController extends Controller
 
         // A. Start with Redis as fallback if available
         if ($redisArticle) {
+            $redisArticle = $this->standardizeArticleData($redisArticle);
             $finalData = array_merge($finalData, [
                 'title' => $redisArticle['title'] ?? '',
                 'summary' => $redisArticle['summary'] ?? '',
-                'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? '',
+                'image' => $redisArticle['image'] ?? '',
                 'category' => $redisArticle['category'] ?? '',
                 'country' => $redisArticle['country'] ?? '',
                 'source' => $redisArticle['source'] ?? '',
@@ -919,18 +920,21 @@ class ArticleController extends Controller
             try {
                 $redisArticle = $this->redisService->getArticle($id);
                 if ($redisArticle) {
+                    // Standardize Redis data
+                    $standardizedData = $this->standardizeArticleData($redisArticle);
+
                     // Move to DB as soft-deleted article
                     Article::create([
                         'id' => $id,
-                        'title' => $redisArticle['title'] ?? '',
-                        'summary' => $redisArticle['summary'] ?? '',
-                        'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? '',
-                        'category' => $redisArticle['category'] ?? '',
-                        'country' => $redisArticle['country'] ?? '',
-                        'source' => $redisArticle['source'] ?? '',
-                        'status' => 'pending review',
+                        'title' => $standardizedData['title'] ?? '',
+                        'summary' => $standardizedData['summary'] ?? '',
+                        'image' => $standardizedData['image'] ?? '',
+                        'category' => $standardizedData['category'] ?? '',
+                        'country' => $standardizedData['country'] ?? '',
+                        'source' => $standardizedData['source'] ?? '',
                         'status' => 'deleted',
-                        'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
+                        'slug' => \Illuminate\Support\Str::slug($standardizedData['title'] ?? ''),
+                        'content_blocks' => $standardizedData['content_blocks'] ?? [],
                     ]);
 
                     $this->redisService->deleteArticle($id);
@@ -1117,21 +1121,25 @@ class ArticleController extends Controller
                         $failed[] = ['id' => $id, 'reason' => 'Article not found in Redis'];
                         continue;
                     }
-                    $slug = \Illuminate\Support\Str::slug($redisArticle['title'] ?? 'article-' . $id);
+                    
+                    // Standardize Redis data (converting content/image to content_blocks)
+                    $standardizedData = $this->standardizeArticleData($redisArticle);
+
+                    $slug = \Illuminate\Support\Str::slug($standardizedData['title'] ?? 'article-' . $id);
 
                     $payload = [
                         'id' => $id,
-                        'title' => $redisArticle['title'] ?? 'Untitled',
-                        'summary' => $redisArticle['summary'] ?? '',
-                        'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? null,
-                        'category' => $redisArticle['category'] ?? '',
-                        'country' => $redisArticle['country'] ?? '',
-                        'source' => $redisArticle['source'] ?? 'Scraper',
-                        'original_url' => $redisArticle['original_url'] ?? null,
-                        'keywords' => $redisArticle['keywords'] ?? null,
-                        'topics' => $redisArticle['topics'] ?? [],
-                        'content_blocks' => $redisArticle['content_blocks'] ?? [],
-                        'author' => $redisArticle['author'] ?? '',
+                        'title' => $standardizedData['title'] ?? 'Untitled',
+                        'summary' => $standardizedData['summary'] ?? '',
+                        'image' => $standardizedData['image'] ?? null,
+                        'category' => $standardizedData['category'] ?? '',
+                        'country' => $standardizedData['country'] ?? '',
+                        'source' => $standardizedData['source'] ?? 'Scraper',
+                        'original_url' => $standardizedData['original_url'] ?? null,
+                        'keywords' => $standardizedData['keywords'] ?? null,
+                        'topics' => $standardizedData['topics'] ?? [],
+                        'content_blocks' => $standardizedData['content_blocks'] ?? [],
+                        'author' => $standardizedData['author'] ?? '',
                         'slug' => $slug,
                         'status' => 'pending review',
                         'views_count' => 0,
@@ -1494,5 +1502,68 @@ class ArticleController extends Controller
             ->update(['status' => 'pending review']);
 
         return response()->json(['message' => "{$count} articles unpublished successfully."]);
+    }
+
+    /**
+     * Standardize article data from Redis for database migration.
+     * Enforces exactly one image block and one text block.
+     * Disregards legacy content maintaining as per user request.
+     */
+    private function standardizeArticleData(array $data): array
+    {
+        $imageUrl = $data['image_url'] ?? $data['image'] ?? null;
+        $content = $data['content'] ?? $data['summary'] ?? '';
+
+        // Initialize content_blocks if not present or not an array
+        $blocks = $data['content_blocks'] ?? [];
+        if (is_string($blocks)) {
+            $blocks = json_decode($blocks, true) ?? [];
+        }
+
+        // Always rebuild blocks to ensure standardization (1 image, 1 text)
+        // If blocks were already structured, we try to preserve the first image and first text
+        $finalBlocks = [];
+
+        // 1. Resolve Image Block
+        $existingImage = collect($blocks)->firstWhere('type', 'image');
+        if ($existingImage) {
+            // Normalize image block content structure if it's a simple string
+            if (isset($existingImage['content']) && is_string($existingImage['content'])) {
+                $existingImage['content'] = ['src' => $existingImage['content'], 'caption' => ''];
+            } elseif (!isset($existingImage['content']) && isset($existingImage['image'])) {
+                // Handle another common variant sometimes seen in Redis
+                $existingImage['content'] = ['src' => $existingImage['image'], 'caption' => $existingImage['caption'] ?? ''];
+            }
+            
+            $finalBlocks[] = $existingImage;
+        } elseif ($imageUrl) {
+            $finalBlocks[] = [
+                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                'type' => 'image',
+                'content' => ['src' => $imageUrl, 'caption' => ''],
+            ];
+        }
+
+        // 2. Resolve Text Block
+        $existingText = collect($blocks)->firstWhere('type', 'text');
+        if ($existingText) {
+            // Normalize text block content structure if it's a simple string
+            if (isset($existingText['content']) && is_string($existingText['content'])) {
+                $existingText['content'] = ['text' => $existingText['content']];
+            }
+            
+            $finalBlocks[] = $existingText;
+        } elseif ($content) {
+            $finalBlocks[] = [
+                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                'type' => 'text',
+                'content' => ['text' => $content],
+            ];
+        }
+
+        $data['content_blocks'] = $finalBlocks;
+        $data['image'] = $imageUrl; // Ensure image column is populated
+
+        return $data;
     }
 }
