@@ -40,9 +40,15 @@ use Illuminate\Support\Facades\Route;
 
 /* |-------------------------------------------------------------------------- | External Site Routes |-------------------------------------------------------------------------- | | Version-independent routes for external site integration. | */
 Route::middleware('site.auth')->prefix('external')->group(function () {
+    Route::get('/articles/{identifier}', [SiteContentController::class, 'getArticle']);
     Route::get('/articles', [SiteContentController::class, 'getArticles']);
     Route::get('/restaurants', [SiteContentController::class, 'getRestaurants']);
     Route::post('/subscribe', [SubscriptionController::class, 'store']);
+
+    Route::get('/categories', [SiteContentController::class, 'getCategories']);
+    Route::get('/countries', [SiteContentController::class, 'getCountries']);
+    Route::get('/provinces', [SiteContentController::class, 'getProvinces']);
+    Route::get('/cities', [SiteContentController::class, 'getCities']);
 });
 
 Route::prefix('v1')->group(function () {
