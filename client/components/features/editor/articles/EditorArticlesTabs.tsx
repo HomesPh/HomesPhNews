@@ -15,7 +15,7 @@ export default function EditorArticlesTabs({ activeTab, setActiveTab, counts }: 
     const tabs = [
         { id: 'all' as EditorArticleTab, label: 'All Articles' },
         { id: 'pending_review' as EditorArticleTab, label: 'Pending Review' },
-        { id: 'edited' as EditorArticleTab, label: 'Edited' },
+        { id: 'edited' as EditorArticleTab, label: 'Pending Approval' },
         { id: 'published' as EditorArticleTab, label: 'Published' },
         { id: 'rejected' as EditorArticleTab, label: 'Rejected' },
     ];
