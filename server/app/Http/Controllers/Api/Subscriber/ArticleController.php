@@ -22,14 +22,14 @@ class ArticleController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $search = $request->input('search') ?? $request->input('q');
+        $search   = $request->input('search') ?? $request->input('q');
         $category = $request->input('category');
-        $country = $request->input('country');
-        $perPage = min(50, max(1, (int) $request->input('per_page', 10)));
-        $page = (int) $request->input('page', 1);
+        $country  = $request->input('country');
+        $perPage  = min(50, max(1, (int) $request->input('per_page', 10)));
+        $page     = (int) $request->input('page', 1);
 
         $allowedCategories = $request->input('allowed_categories');
-        $allowedCountries = $request->input('allowed_countries');
+        $allowedCountries  = $request->input('allowed_countries');
 
         $query = Article::query()
             ->where('status', 'published')
@@ -44,7 +44,7 @@ class ArticleController extends Controller
                 });
             })
             ->when($category, fn($q, $c) => $q->where('category', $c))
-            ->when($country, fn($q, $c) => $q->where('country', 'LIKE', "%{$c}%"))
+            ->when($country,  fn($q, $c) => $q->where('country', 'LIKE', "%{$c}%"))
             ->when($allowedCategories, fn($q, $c) => $q->whereIn('category', $c))
             ->when($allowedCountries, fn($q, $c) => $q->where(function ($sub) use ($c) {
                 foreach ($c as $country) {
@@ -71,7 +71,7 @@ class ArticleController extends Controller
                     $sub->orWhere('country', 'LIKE', "%{$country}%");
                 }
             }));
-
+ 
         // 1. Calculate Category Counts (respect search and country)
         $availableCategories = (clone $baseCountQuery)
             ->when($country, fn($q, $c) => $q->where('country', 'LIKE', "%{$c}%"))
@@ -81,7 +81,7 @@ class ArticleController extends Controller
             ->get()
             ->filter(fn($i) => !empty($i->name))
             ->values();
-
+ 
         // 2. Calculate Country Counts (respect search and category)
         $availableCountries = (clone $baseCountQuery)
             ->when($category, fn($q, $c) => $q->where('category', $c))
@@ -94,21 +94,21 @@ class ArticleController extends Controller
 
         $articles = $query
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'article_id', 'slug', 'title', 'summary', 'content', 'content_blocks', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'source', 'original_url')
+            ->select('id', 'article_id', 'slug', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'source', 'original_url')
             ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
 
         return response()->json([
-            'data' => ArticleResource::collection($articles->getCollection()),
-            'current_page' => $articles->currentPage(),
-            'per_page' => $articles->perPage(),
-            'total' => $articles->total(),
-            'last_page' => $articles->lastPage(),
-            'from' => $articles->firstItem(),
-            'to' => $articles->lastItem(),
+            'data'             => ArticleResource::collection($articles->getCollection()),
+            'current_page'     => $articles->currentPage(),
+            'per_page'         => $articles->perPage(),
+            'total'            => $articles->total(),
+            'last_page'        => $articles->lastPage(),
+            'from'             => $articles->firstItem(),
+            'to'               => $articles->lastItem(),
             'available_filters' => [
                 'categories' => $availableCategories,
-                'countries' => $availableCountries,
+                'countries'  => $availableCountries,
             ],
         ]);
     }
