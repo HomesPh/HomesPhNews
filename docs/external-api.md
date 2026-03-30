@@ -1,5 +1,7 @@
 # HomesPhNews — External API Documentation
 
+> DEPRECATED: consolidated into `docs/External.MD`. Please use `External.MD` as the single source of truth.
+
 This document covers the **External Content API** — a read-only API that lets partner sites embed HomesPhNews articles and restaurant listings on their own websites using an API key.
 
 ---
