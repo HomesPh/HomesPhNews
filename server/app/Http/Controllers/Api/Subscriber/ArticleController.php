@@ -33,7 +33,7 @@ class ArticleController extends Controller
 
         $query = Article::query()
             ->where('status', 'published')
-            ->where('is_deleted', false)
+            ->where('status', '!=', 'deleted')
             ->whereHas('publishedSites', function ($q) {
                 $q->where('site_name', 'Main News Portal');
             })
@@ -55,7 +55,7 @@ class ArticleController extends Controller
         // Base query for counts (respects search and allowedPrefs, but NOT the specific category/country filter)
         $baseCountQuery = Article::query()
             ->where('status', 'published')
-            ->where('is_deleted', false)
+            ->where('status', '!=', 'deleted')
             ->whereHas('publishedSites', function ($q) {
                 $q->where('site_name', 'Main News Portal');
             })
@@ -94,7 +94,7 @@ class ArticleController extends Controller
 
         $articles = $query
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path'])
-            ->select('id', 'article_id', 'slug', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'source', 'original_url', 'is_deleted')
+            ->select('id', 'article_id', 'slug', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'source', 'original_url')
             ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
 
@@ -120,7 +120,7 @@ class ArticleController extends Controller
     {
         $article = Article::with(['publishedSites:id,site_name', 'images:article_id,image_path'])
             ->where('status', 'published')
-            ->where('is_deleted', false)
+            ->where('status', '!=', 'deleted')
             ->whereHas('publishedSites', function ($q) {
                 $q->where('site_name', 'Main News Portal');
             })

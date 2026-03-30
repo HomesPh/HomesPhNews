@@ -48,14 +48,12 @@ export default async function RestaurantPage({ searchParams }: Props) {
                 topics: [r.cuisine_type].filter(Boolean) as string[],
                 source: "HomesPh Restaurant",
                 original_url: r.original_url || '',
-                is_deleted: false,
                 is_redis: false,
                 published_sites: [],
                 sites: [],
                 galleryImages: [],
                 keywords: r.cuisine_type || '',
                 content_blocks: [],
-                template: 'standard',
                 author: 'HomesPh Editor',
                 // Map additional restaurant fields
                 city: r.city,
@@ -99,9 +97,9 @@ export default async function RestaurantPage({ searchParams }: Props) {
     const latestPosts = articles.slice(15, 23);
 
     const restaurantCategories = [
-        { label: "Fine Dining", count: articles.filter(a => a.topics.includes("Fine Dining")).length || 0 },
-        { label: "Casual Dining", count: articles.filter(a => a.topics.includes("Casual Dining")).length || 0 },
-        { label: "Fast Food", count: articles.filter(a => a.topics.includes("Fast Food")).length || 0 },
+        { label: "Fine Dining", count: articles.filter(a => a.topics?.includes("Fine Dining")).length || 0 },
+        { label: "Casual Dining", count: articles.filter(a => a.topics?.includes("Casual Dining")).length || 0 },
+        { label: "Fast Food", count: articles.filter(a => a.topics?.includes("Fast Food")).length || 0 },
         { label: "Reviews", count: articles.length },
     ];
 
@@ -154,7 +152,7 @@ export default async function RestaurantPage({ searchParams }: Props) {
                         <TrendingTopicsCard
                             items={trending.slice(0, 5).map((article) => ({
                                 id: article.id,
-                                label: article.topics[0] || article.title,
+                                label: article.topics?.[0] || article.title,
                             }))}
                         />
                     )}

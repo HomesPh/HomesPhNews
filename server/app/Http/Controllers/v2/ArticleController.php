@@ -22,7 +22,7 @@ class ArticleController extends Controller
             'per_page' => 'nullable|integer|min:1|max:100',
         ]);
 
-        $query = Article::query()->where('is_deleted', false);
+        $query = Article::query()->where('status', '!=', 'deleted');
 
         // Search
         if (!empty($validated['search'])) {
@@ -66,8 +66,7 @@ class ArticleController extends Controller
             'summary' => 'nullable|string',
             'category' => 'nullable|string',
             'country' => 'nullable|string',
-            'image' => 'nullable|array',
-            'image.*' => 'string',
+            'image' => 'nullable|string|max:2000',
             'status' => 'nullable|string|in:published,pending review,rejected',
             'published_sites' => 'nullable|array',
             'published_sites.*' => 'string',
@@ -80,7 +79,6 @@ class ArticleController extends Controller
         $validated['article_id'] = $validated['id'];
         $validated['slug'] = Str::slug($validated['title']);
         $validated['status'] = $validated['status'] ?? 'pending review';
-        $validated['is_deleted'] = false;
 
         $article = Article::create($validated);
 
@@ -114,8 +112,7 @@ class ArticleController extends Controller
             'summary' => 'nullable|string',
             'category' => 'nullable|string',
             'country' => 'nullable|string',
-            'image' => 'nullable|array',
-            'image.*' => 'string',
+            'image' => 'nullable|string|max:2000',
             'status' => 'nullable|string|in:published,pending review,rejected',
             'published_sites' => 'nullable|array',
             'published_sites.*' => 'string',
@@ -143,7 +140,7 @@ class ArticleController extends Controller
     public function destroy(string $id)
     {
         $article = Article::findOrFail($id);
-        $article->update(['is_deleted' => true]);
+        $article->update(['status' => 'deleted']);
 
         return response()->json(null, 204);
     }

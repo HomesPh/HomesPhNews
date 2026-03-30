@@ -24,7 +24,6 @@ class StoreArticleRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'summary' => 'required|string|max:1000',
-            'content' => 'required|string',
             'category' => 'nullable|string|max:50',
             'country' => 'required|string|max:100',
             'province_id' => 'nullable|integer',
