@@ -33,17 +33,13 @@ interface ArticleEditorModalProps {
     isOpen: boolean;
     onClose: () => void;
     initialData?: any;
-    availableCategories?: (string | { name: string; count: number })[];
-    availableCountries?: (string | { name: string; count: number })[];
 }
 
 export default function ArticleEditorModal({
     mode,
     isOpen,
     onClose,
-    initialData,
-    availableCategories = [],
-    availableCountries = []
+    initialData
 }: ArticleEditorModalProps) {
 
     const [availableSites, setAvailableSites] = useState<SiteResource[] | undefined>(undefined);
@@ -513,8 +509,6 @@ export default function ArticleEditorModal({
                 mode={mode}
                 data={articleData}
                 availableSites={availableSites}
-                availableCategories={availableCategories}
-                availableCountries={availableCountries}
                 onDataChange={handleDataChange}
 
                 onSave={(data) => handleSave(false, data)}

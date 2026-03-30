@@ -181,6 +181,59 @@ Route::prefix('v1')->group(function () {
 
     /*
      |--------------------------------------------------------------------------
+     | Public Data Routes
+     |--------------------------------------------------------------------------
+     |
+     | Routes accessible to the public without authentication.
+     |
+     */
+
+    // Articles
+    Route::group(['prefix' => 'articles', 'as' => 'articles.'], function () {
+        Route::get('/', [UserArticleController::class, 'index'])->name('index');
+        Route::get('/feed', [UserArticleController::class, 'feed'])->name('feed');
+        Route::get('/{id}', [UserArticleController::class, 'show'])->name('show');
+        Route::post('/{id}/view', [UserArticleController::class, 'incrementViews'])->name('view');
+    }
+    );
+    // Legacy Article Alias
+    Route::get('/article', [UserArticleController::class, 'index']);
+
+    // Stats
+    Route::get('/stats', [UserArticleController::class, 'stats']);
+
+    // Ads
+    Route::get('/ads', [UserAdController::class, 'index']);
+    Route::get('/ads/{name}', [UserAdController::class, 'showByName']);
+
+    // Ad metrics
+    Route::post('/ads/metrics', [AdminAdMetricController::class, 'store']);
+
+    // Countries
+    Route::get('/countries', [CountryController::class, 'index']);
+
+    // Restaurants
+    Route::group(['prefix' => 'restaurants', 'as' => 'restaurants.'], function () {
+        Route::get('/', [UserRestaurantController::class, 'index'])->name('index');
+        Route::get('/{id}', [UserRestaurantController::class, 'show'])->name('show');
+        Route::get('/country/{country}', [UserRestaurantController::class, 'byCountry'])->name('byCountry');
+    }
+    );
+
+    // Subscription (Newsletter/Updates)
+    Route::post('/subscribe', [SubscriptionController::class, 'store']);
+    Route::get('/subscribe/{id}', [SubscriptionController::class, 'show']);
+    Route::patch('/subscribe/{id}', [SubscriptionController::class, 'update']);
+
+    // Metadata (Public)
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/countries', [CountryController::class, 'index']);
+    Route::get('/provinces', [ProvinceController::class, 'index']);
+    Route::get('/cities', [CityController::class, 'index']);
+    Route::get('/upload/proxy', [UploadController::class, 'proxyImage'])->name('upload.proxy');
+
+    /*
+     |--------------------------------------------------------------------------
      | Authenticated User Routes
      |--------------------------------------------------------------------------
      |
