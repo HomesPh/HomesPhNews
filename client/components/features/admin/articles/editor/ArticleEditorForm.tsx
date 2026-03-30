@@ -19,13 +19,9 @@ import { Loader2 } from "lucide-react";
 
 interface ArticleEditorFormProps {
     data: any;
-<<<<<<< Updated upstream
     availableSites?: any[];
     availableCategories?: (string | { name: string; count: number })[];
     availableCountries?: (string | { name: string; count: number })[];
-=======
-    availableSites: string[];
->>>>>>> Stashed changes
     onDataChange: (field: string, value: any) => void;
     onSave?: (currentData?: any) => void;
     onPublish?: (currentData?: any) => void;
@@ -36,6 +32,8 @@ interface ArticleEditorFormProps {
 export default function ArticleEditorForm({
     data,
     availableSites,
+    availableCategories = [],
+    availableCountries = [],
     onDataChange,
     onSave,
     onPublish,
@@ -269,6 +267,8 @@ export default function ArticleEditorForm({
                                 onAddBlock={editor.addBlock}
                                 details={editor.details}
                                 onUpdateDetails={editor.updateDetails}
+                                availableCategories={availableCategories}
+                                availableCountries={availableCountries}
                                 availableSites={availableSites}
                                 isEditor={isEditor}
                                 mode={mode}
