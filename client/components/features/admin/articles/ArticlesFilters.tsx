@@ -16,6 +16,8 @@ import { getCities } from "@/lib/api-v2/admin/service/cities/getCities";
 interface FilterOption {
     name: string;
     count: number;
+    // Optional unique identifiers from API resources (used only for stable React keys).
+    city_id?: number;
 }
 
 interface ArticlesFiltersProps {
@@ -162,10 +164,14 @@ export default function ArticlesFilters({
             baseCities = []; 
         }
 
-        return baseCities.map(c => ({
-            name: c.name,
-            count: counts.get(c.name) || 0
-        })).sort((a, b) => a.name.localeCompare(b.name));
+        return baseCities
+            .map((c: any) => ({
+                name: c.name,
+                count: counts.get(c.name) || 0,
+                // Use API field when available for stable, unique keys (city names can repeat).
+                city_id: c.city_id ?? c.id,
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name));
     }, [exhaustiveCities, availableCities, selectedCountryId, selectedProvinceId, countryFilter]);
 
     const getOptionData = (opt: string | FilterOption) => {
@@ -291,10 +297,13 @@ export default function ArticlesFilters({
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">{countryFilter ? 'All Cities' : 'Select Country First'}</SelectItem>
-                        {finalCities.map((city) => {
+                        {finalCities.map((city, idx) => {
                             const data = getOptionData(city);
+                            const uniqueKey = city.city_id != null
+                                ? `${data.value}-${city.city_id}`
+                                : `${data.value}-${idx}`;
                             return (
-                                <SelectItem key={data.value} value={data.value}>
+                                <SelectItem key={uniqueKey} value={data.value}>
                                     {data.name} <span className="text-[#1428AE] ml-1">({data.count})</span>
                                 </SelectItem>
                             );
