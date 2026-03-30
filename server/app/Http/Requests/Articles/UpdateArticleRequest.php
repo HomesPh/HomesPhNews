@@ -24,7 +24,6 @@ class UpdateArticleRequest extends FormRequest
         return [
             'title' => 'nullable|string|max:255',
             'summary' => 'nullable|string|max:1000',
-            'content' => 'nullable|string',
             'category' => 'nullable|string|max:50',
             'country' => 'nullable|string|max:100',
             'province_id' => 'nullable|integer',
@@ -34,11 +33,9 @@ class UpdateArticleRequest extends FormRequest
             'published_sites' => 'nullable|array',
             'published_sites.*' => 'string',
             'status' => 'nullable|string|in:published,pending review,rejected,deleted,edited',
-            'custom_titles' => 'nullable|array',
             'topics' => 'nullable|array',
             'keywords' => 'nullable|string|max:255',
             'content_blocks' => 'nullable|array',
-            'template' => 'nullable|string',
             'author' => 'nullable|string',
             // Additional fields from editor
             'gallery_images' => 'nullable|array',

@@ -54,7 +54,6 @@ export default async function SearchPage({ searchParams }: Props) {
             keywords: "",
             source: "Restaurant Guide",
             original_url: r.google_maps_url || "",
-            is_deleted: false,
             is_redis: false
         } as ArticleResource));
         totalPages = response.last_page || 1;
@@ -137,7 +136,7 @@ export default async function SearchPage({ searchParams }: Props) {
                                 views={formatViews(article.views_count || 0)}
                                 imageSrc={article.image || "/images/placeholder.png"}
                                 imagePosition={article.image_position}
-                                content={article.content}
+                                content={article.summary || ''}
                             />
                         ))}
                     </div>

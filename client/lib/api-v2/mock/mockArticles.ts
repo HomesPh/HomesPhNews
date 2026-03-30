@@ -4,7 +4,6 @@ import { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
 export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
   'dummy-blog-1': {
     id: 'dummy-blog-1',
-    article_id: 'dummy-blog-1',
     slug: 'metro-manila-office-vacancy-rates-drop',
     title: 'Metro Manila Office Vacancy Rates Drop to Pre-Pandemic Levels',
     summary: 'The BPO sector continues to drive demand in key business districts, signaling a robust recovery for the commercial real estate market.',
@@ -38,12 +37,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-newsletter-1': {
     id: 'dummy-newsletter-1',
-    article_id: 'dummy-newsletter-1',
     slug: 'luxury-residential-market-resilient',
     title: 'Luxury Residential Market Resilient Despite Interest Rate Hikes',
     summary: 'High-net-worth individuals continue to invest in prime properties, viewing luxury real estate as a hedge against inflation.',
@@ -76,12 +73,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-blog-2': {
     id: 'dummy-blog-2',
-    article_id: 'dummy-blog-2',
     slug: 'sustainable-allocations-green-buildings',
     title: 'Sustainable Allocations: Green Buildings Become the New Standard',
     summary: 'Developers are racing to achieve LEED and BERDE certifications as tenants increasingly demand eco-friendly workspaces.',
@@ -111,12 +106,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-newsletter-2': {
     id: 'dummy-newsletter-2',
-    article_id: 'dummy-newsletter-2',
     slug: 'proptech-revolution-ai-valuation',
     title: 'PropTech Revolution: How AI is Changing Property Valuation',
     summary: 'Automated Valuation Models (AVMs) are reducing turnaround times from days to minutes, transforming the mortgage landscape.',
@@ -147,12 +140,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-newsletter-3': {
     id: 'dummy-newsletter-3',
-    article_id: 'dummy-newsletter-3',
     slug: 'central-bank-pauses-rate-hikes',
     title: 'Central Bank Pauses Rate Hikes as Inflation Cools',
     summary: 'Good news for borrowers: mortgage rates are expected to stabilize as the BSP signals a pause in monetary tightening.',
@@ -179,12 +170,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-newsletter-4': {
     id: 'dummy-newsletter-4',
-    article_id: 'dummy-newsletter-4',
     slug: 'township-developments-visayas',
     title: 'The Resurgence of Township Developments in the Visayas',
     summary: 'Major developers are shifting focus to Cebu and Iloilo, launching integrated communities that combine work, live, and play.',
@@ -211,12 +200,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-newsletter-5': {
     id: 'dummy-newsletter-5',
-    article_id: 'dummy-newsletter-5',
     slug: 'office-leasing-pogo-returning',
     title: 'Office Leasing Market: Is the POGO Sector Returning?',
     summary: 'Rumors of new offshore gaming licenses are stirring activity in the Bay Area office market, though regulatory hurdles remain.',
@@ -243,12 +230,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-newsletter-6': {
     id: 'dummy-newsletter-6',
-    article_id: 'dummy-newsletter-6',
     slug: 'home-loan-interest-rates-h2-2026',
     title: 'Home Loan Interest Rates: What to Expect in H2 2026',
     summary: 'Expert analysis on whether you should fix your mortgage rate now or wait for potential cuts later in the year.',
@@ -275,13 +260,11 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   // NEW BLOGS
   'dummy-blog-3': {
     id: 'dummy-blog-3',
-    article_id: 'dummy-blog-3',
     slug: 'condo-living-vs-house-and-lot',
     title: 'Condo Living vs House and Lot: Which is Right for You?',
     summary: 'A comprehensive pros and cons analysis of vertical living versus traditional horizontal housing in the current market.',
@@ -319,12 +302,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-blog-4': {
     id: 'dummy-blog-4',
-    article_id: 'dummy-blog-4',
     slug: 'rise-of-smart-cities',
     title: 'The Rise of Smart Cities in the Philippines',
     summary: 'How Clark Global City, New Clark City, and Davao Global Township are setting the benchmark for urban planning.',
@@ -354,12 +335,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-blog-5': {
     id: 'dummy-blog-5',
-    article_id: 'dummy-blog-5',
     slug: 'investing-in-reits-beginners-guide',
     title: 'Investing in REITs: A Guide for Beginners',
     summary: 'Demystifying Real Estate Investment Trusts. Learn how to earn passive income from real estate without buying a property.',
@@ -393,12 +372,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-blog-6': {
     id: 'dummy-blog-6',
-    article_id: 'dummy-blog-6',
     slug: 'emerging-property-hotspots',
     title: 'Top 5 Emerging Property Hotspots Outside Metro Manila',
     summary: 'Looking for high capital appreciation? Look north to Pampanga and south to Laguna and Cavite.',
@@ -434,12 +411,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-blog-7': {
     id: 'dummy-blog-7',
-    article_id: 'dummy-blog-7',
     slug: 'how-to-spot-real-estate-scam',
     title: 'How to Spot a Real Estate Scam',
     summary: 'Protect your hard-earned money. Essential tips on verifying titles, checking licenses, and avoiding "colorum" agents.',
@@ -472,13 +447,11 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   // Restaurant Items
   'dummy-rest-1': {
     id: 'dummy-rest-1',
-    article_id: 'dummy-rest-1',
     slug: 'global-palate-filipino-cuisine',
     title: 'Global Palate: Filipino Cuisine Takes Center Stage in Major Capitals',
     summary: 'From New York to London, Filipino chefs are redefining fine dining with elevated takes on classic dishes like Adobo and Sinigang.',
@@ -508,12 +481,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-rest-2': {
     id: 'dummy-rest-2',
-    article_id: 'dummy-rest-2',
     slug: 'metro-manila-fine-dining',
     title: 'Metro Manila Fine Dining: A Renaissance of Local Ingredients',
     summary: 'A new wave of chefs is championing endemic ingredients, transforming the local dining landscape.',
@@ -540,12 +511,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-rest-3': {
     id: 'dummy-rest-3',
-    article_id: 'dummy-rest-3',
     slug: 'sustainable-sourcing-island-resorts',
     title: 'Sustainable Sourcing: Island Resorts Lean into Farm-to-Table',
     summary: 'Resorts in Boracay and Palawan are establishing their own organic farms to ensure quality and sustainability.',
@@ -572,12 +541,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-rest-4': {
     id: 'dummy-rest-4',
-    article_id: 'dummy-rest-4',
     slug: 'street-food-elevated',
     title: 'Street Food Elevated: Reimagining Isaw and Balut for the Global Palate',
     summary: 'How humble street food staples are finding their way onto tasting menus.',
@@ -600,12 +567,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-rest-5': {
     id: 'dummy-rest-5',
-    article_id: 'dummy-rest-5',
     slug: 'jollibee-expansion-europe',
     title: 'Jollibee Foods Corp Accelerates European Expansion Strategy',
     summary: 'The fast-food giant considers new markets in Eastern Europe as Chickenjoy conquers the UK and Italy.',
@@ -628,12 +593,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-rest-6': {
     id: 'dummy-rest-6',
-    article_id: 'dummy-rest-6',
     slug: 'coffee-culture-cebu',
     title: 'Coffee Culture: The Third Wave Experience in Cebu',
     summary: 'Local roasters in Cebu are putting Philippine coffee beans on the map, offering world-class brews in instagram-mable spaces.',
@@ -660,12 +623,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-labor-1': {
     id: 'dummy-labor-1',
-    article_id: 'dummy-labor-1',
     slug: 'ofw-labor-protections-gulf',
     title: 'New Labor Protections for OFWs in the Gulf Region',
     summary: 'Recent bilateral agreements aim to enhance welfare and legal support for Filipino workers in Saudi Arabia and the UAE.',
@@ -690,12 +651,10 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   },
   'dummy-health-1': {
     id: 'dummy-health-1',
-    article_id: 'dummy-health-1',
     slug: 'telemedicine-adoption-rural',
     title: 'Healthcare Innovation: Telemedicine adoption rises in rural communities',
     summary: 'Digital health platforms are bridging the gap in medical access for island communities across the Philippines.',
@@ -720,7 +679,6 @@ export const DUMMY_ARTICLES: Record<string, ArticleResource> = {
     published_sites: [],
     sites: [],
     galleryImages: [],
-    is_deleted: false,
     is_redis: false
   }
 };

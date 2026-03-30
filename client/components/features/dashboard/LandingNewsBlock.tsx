@@ -51,7 +51,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                     <ShareButtons
                                         url={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                                         title={article.title}
-                                        description={article.summary || article.content}
+                                        description={article.summary || article.summary}
                                         size="xs"
                                     />
                                 </div>
@@ -64,7 +64,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 <span>•</span>
                                 <span suppressHydrationWarning>{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'Recently'}</span>
                                 <span>•</span>
-                                <span suppressHydrationWarning>{calculateReadTime(article.content || article.summary)}</span>
+                                <span suppressHydrationWarning>{calculateReadTime(article.summary || article.summary)}</span>
                             </div>
                         </Link>
                     ))}
@@ -164,7 +164,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                         <span>•</span>
                                         <span suppressHydrationWarning>{formatViews(article.views_count)}</span>
                                         <span>•</span>
-                                        <span suppressHydrationWarning>{calculateReadTime(article.summary || article.content)}</span>
+                                        <span suppressHydrationWarning>{calculateReadTime(article.summary || article.summary)}</span>
                                     </div>
                                 </div>
                             </Link>
@@ -209,7 +209,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                                 <ShareButtons
                                     url={article.slug ? `/article/${article.slug}` : `/article/${article.id}`}
                                     title={article.title}
-                                    description={article.summary || article.content}
+                                    description={article.summary || article.summary}
                                     size="xs"
                                 />
                             </div>
@@ -222,7 +222,7 @@ export default function LandingNewsBlock({ title, articles, variant = 1 }: Landi
                             <span>•</span>
                             <span>By {article.source || "HomesPh News"}</span>
                             <span>•</span>
-                            <span suppressHydrationWarning>{calculateReadTime(article.summary || article.content)}</span>
+                            <span suppressHydrationWarning>{calculateReadTime(article.summary || article.summary)}</span>
                         </div>
                     </Link>
                 ))}

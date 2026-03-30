@@ -5,6 +5,7 @@ import { cn, decodeHtml, formatViews, calculateReadTime, sanitizeImageUrl, forma
 import { useParams, useRouter } from 'next/navigation';
 import { Calendar, Eye, Clock, Building2, Globe, CheckCircle2, BookOpen, ArrowLeft, ExternalLink } from 'lucide-react';
 import { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
+import ContentBlocksRenderer from "@/components/features/article/ContentBlocksRenderer";
 import AXIOS_INSTANCE_ADMIN from "@/lib/api-v2/admin/axios-instance";
 
 export default function SubscriberArticleDetailsPage() {
@@ -74,18 +75,9 @@ export default function SubscriberArticleDetailsPage() {
     );
 
     // ── Image logic (same as admin: skip featured image if content already has it) ──
-    const rawImage = article.image_url || article.image || '';
-    const imageUrl = sanitizeImageUrl(rawImage);
     const dateStr = article.date || article.created_at || '';
-    const content = article.content || article.summary || '';
+    const content = article.summary || '';
     const hasContentBlocks = Array.isArray(article.content_blocks) && article.content_blocks.length > 0;
-
-    const firstImageMatch = content.match(/<img[^>]+src=['"]([^'"]+)['"]/);
-    const isDuplicateImage = firstImageMatch && rawImage && (
-        firstImageMatch[1] === rawImage ||
-        decodeURIComponent(firstImageMatch[1]) === decodeURIComponent(rawImage)
-    );
-    const shouldShowFeatureImage = imageUrl && !isDuplicateImage;
 
     const topics: string[] = article.topics || [];
 
@@ -149,82 +141,10 @@ export default function SubscriberArticleDetailsPage() {
                                 {(() => {
                                     return (
                                         <>
-                                            {/* Featured image — only shown if NOT already in content */}
-                                            {shouldShowFeatureImage && (
-                                                <figure className="mb-8">
-                                                    <div className="w-full aspect-[16/9] overflow-hidden bg-gray-100 rounded-[8px] mb-3">
-                                                        <img
-                                                            src={imageUrl}
-                                                            alt={article.title}
-                                                            className="w-full h-full object-cover"
-                                                            style={{ objectPosition: `${article.image_position_x ?? 50}% ${article.image_position ?? 0}%` }}
-                                                            onError={(e) => { e.currentTarget.src = 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image'; }}
-                                                        />
-                                                    </div>
-                                                    <figcaption className="text-[13px] text-[#6b7280] italic leading-relaxed">
-                                                        {article.title} — {article.country}
-                                                    </figcaption>
-                                                </figure>
-                                            )}
-
                                             {/* Main content area */}
                                             <div className="prose prose-lg max-w-none prose-p:text-[#374151] prose-p:leading-[28px] prose-p:tracking-[-0.5px]">
                                                 {hasContentBlocks ? (
-                                                    <div className="space-y-6">
-                                                        {article.content_blocks?.map((block: any, idx: number) => {
-                                                            const { type, content: blockContent, settings } = block;
-                                                            const blockStyle = {
-                                                                textAlign: settings?.textAlign || 'left',
-                                                                fontSize: settings?.fontSize || '18px',
-                                                                color: settings?.color || 'inherit',
-                                                                fontWeight: settings?.fontWeight || 'normal',
-                                                                fontStyle: settings?.isItalic ? 'italic' : 'normal',
-                                                                textDecoration: settings?.isUnderline ? 'underline' : 'none',
-                                                            } as React.CSSProperties;
-
-                                                            return (
-                                                                <div key={block.id || idx} className="mb-8">
-                                                                    {type === 'text' && (
-                                                                        <div
-                                                                            style={blockStyle}
-                                                                            className={cn(
-                                                                                "whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&_p]:min-h-[1.5em]",
-                                                                                settings?.listType === 'bullet' && "list-disc ml-6",
-                                                                                settings?.listType === 'number' && "list-decimal ml-6"
-                                                                            )}
-                                                                            dangerouslySetInnerHTML={{ __html: formatParagraphs(blockContent?.text || blockContent || '') }}
-                                                                        />
-                                                                    )}
-                                                                    {(type === 'image' || type === 'centered-image') && (
-                                                                        <figure className={cn("my-8", type === 'centered-image' && "max-w-[80%] mx-auto text-center")}>
-                                                                            <img src={blockContent?.src || block.image} alt={blockContent?.caption || block.caption || ""} className="w-full rounded-xl shadow-sm border border-gray-100" />
-                                                                            {(blockContent?.caption || block.caption) && (
-                                                                                <figcaption className="text-sm text-center text-gray-400 mt-3 italic">{blockContent?.caption || block.caption}</figcaption>
-                                                                            )}
-                                                                        </figure>
-                                                                    )}
-                                                                    {(type === 'left-image' || type === 'right-image') && (
-                                                                        <div className={cn("my-10 flex gap-8 items-start flex-col md:flex-row", type === 'right-image' && "md:flex-row-reverse")}>
-                                                                            <div className="w-full md:w-[200px] shrink-0">
-                                                                                <img src={blockContent?.image || blockContent?.src || block.image} alt="" className="w-full aspect-square object-cover rounded-xl shadow-sm" />
-                                                                                {(blockContent?.caption || block.caption) && (
-                                                                                    <p className="text-[11px] text-gray-400 mt-2 italic text-center leading-tight">{blockContent?.caption || block.caption}</p>
-                                                                                )}
-                                                                            </div>
-                                                                            <div style={blockStyle} className="flex-1 text-[18px] text-[#374151] leading-[32px]" dangerouslySetInnerHTML={{ __html: formatParagraphs(decodeHtml(blockContent?.text || blockContent || '')) }} />
-                                                                        </div>
-                                                                    )}
-                                                                    {type === 'grid' && (
-                                                                        <div className={cn("my-8 grid gap-4", (blockContent?.images?.length === 3) ? "grid-cols-3" : "grid-cols-2")}>
-                                                                            {blockContent?.images?.map((img: string, i: number) => (
-                                                                                <img key={i} src={img} className="w-full aspect-square object-cover rounded-xl shadow-sm" />
-                                                                            ))}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
+                                                    <ContentBlocksRenderer blocks={article.content_blocks || []} forceLight={true} />
                                                 ) : (
                                                     <div
                                                         className="whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>li]:mb-1 [&>a]:text-blue-600 [&>a]:underline first-letter:text-[72px] first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-5px] first-letter:leading-[0.8] first-letter:text-[#0c0c0c] [&_p]:min-h-[1.5em]"
