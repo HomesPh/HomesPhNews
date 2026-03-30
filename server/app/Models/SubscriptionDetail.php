@@ -24,17 +24,12 @@ class SubscriptionDetail extends Model
     protected $fillable = [
         'category',
         'country',
-        'province',
-        'city',
         'email',
         'features',
         'time',
         'frequency',
         'company_name',
         'source_site',
-        'user_country',
-        'user_city',
-        'user_province',
     ];
 
     /**

@@ -23,15 +23,9 @@ interface OnGenerateProps {
 
 interface BlockDrawerProps {
     details: BlogDetails;
-<<<<<<< Updated upstream
     availableCategories?: (string | { name: string; count: number })[];
     availableCountries?: (string | { name: string; count: number })[];
     availableSites?: any[];
-=======
-    onUpdateDetails: (updates: Partial<BlogDetails>) => void;
-    onAddBlock: (type: BlockType) => void;
-    availableSites?: string[];
->>>>>>> Stashed changes
     isEditor?: boolean;
 
     // callbacks
@@ -75,13 +69,8 @@ function TagsInput({ tags, onChange }: { tags: string[], onChange: (tags: string
 
 export default function BlockDrawer({
     details,
-<<<<<<< Updated upstream
     availableCategories: propsCategories,
     availableCountries: propsCountries,
-=======
-    onUpdateDetails,
-    onAddBlock,
->>>>>>> Stashed changes
     availableSites,
     isEditor,
     onUpdateDetails,
@@ -100,11 +89,7 @@ export default function BlockDrawer({
     const [showAllPlatforms, setShowAllPlatforms] = useState(false);
 
     useEffect(() => {
-<<<<<<< Updated upstream
         // Always fetch exhaustive categories to ensure all options are available
-=======
-        // Fetch categories internally
->>>>>>> Stashed changes
         getCategories().then(res => {
             if (Array.isArray(res.data)) {
                 // Map objects to names if they are objects
@@ -113,17 +98,10 @@ export default function BlockDrawer({
             }
         }).catch(err => {
             console.error("Failed to fetch categories in BlockDrawer:", err);
-<<<<<<< Updated upstream
             // No fallback to defaults - let it be empty if it fails
             setInternalCategories([]);
         });
     }, []); // Always fetch on mount
-=======
-            // Fallback to defaults
-            setInternalCategories(["Community", "Real Estate", "Technology", "AI", "Investment", "Lifestyle"]);
-        });
-    }, []);
->>>>>>> Stashed changes
 
     // Consolidate initial data fetching
     useEffect(() => {
@@ -134,10 +112,7 @@ export default function BlockDrawer({
                 const countryData = (countryRes.data as any).data || countryRes.data;
                 if (Array.isArray(countryData)) {
                     setAllCountries(countryData);
-<<<<<<< Updated upstream
                     // Always populate internal exhaustive list
-=======
->>>>>>> Stashed changes
                     setInternalCountries(countryData.map((c: any) => c.name));
                 }
 
@@ -162,7 +137,6 @@ export default function BlockDrawer({
         fetchInitialData();
     }, []); // Only fetch once on mount
 
-<<<<<<< Updated upstream
     // Update internal countries if props change later (e.g. parent filter loads)
     useEffect(() => {
         if (propsCountries && propsCountries.length > 0 && allCountries.length > 0) {
@@ -174,10 +148,6 @@ export default function BlockDrawer({
     // Favor exhaustive internal lists over filtered props to ensure all options are available
     const finalCategories = (internalCategories.length > 0) ? internalCategories : (propsCategories || []);
     const finalCountries = (internalCountries.length > 0) ? internalCountries : (propsCountries || []);
-=======
-    const finalCategories = internalCategories;
-    const finalCountries = internalCountries;
->>>>>>> Stashed changes
 
     // Filter Logic
     const selectedCountryId = useMemo(() => {
