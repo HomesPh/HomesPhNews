@@ -792,9 +792,7 @@ class ArticleController extends Controller
             $finalData = array_merge($finalData, [
                 'title' => $redisArticle['title'] ?? '',
                 'summary' => $redisArticle['summary'] ?? '',
-                // Keep hero image column empty for Redis-imported articles.
-                // Main image should live in content_blocks to avoid duplicate display.
-                'image' => null,
+                'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? null,
                 'category' => $redisArticle['category'] ?? '',
                 'country' => $redisArticle['country'] ?? '',
                 'source' => $redisArticle['source'] ?? '',
@@ -979,7 +977,6 @@ class ArticleController extends Controller
                         'category' => $redisArticle['category'] ?? '',
                         'country' => $redisArticle['country'] ?? '',
                         'source' => $redisArticle['source'] ?? '',
-                        'status' => 'pending review',
                         'status' => 'deleted',
                         'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
                     ]);
@@ -1174,10 +1171,8 @@ class ArticleController extends Controller
                     $payload = [
                         'id' => $id,
                         'title' => $redisArticle['title'] ?? 'Untitled',
-                        'summary' => $redisArticle['summary'] ?? '',
-                        // Keep hero image column empty for Redis-imported articles.
-                        // Main image should live in content_blocks to avoid duplicate display.
-                        'image' => null,
+                        // Use image from Redis if available
+                        'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? null,
                         'category' => $redisArticle['category'] ?? '',
                         'country' => $redisArticle['country'] ?? '',
                         'source' => $redisArticle['source'] ?? 'Scraper',
