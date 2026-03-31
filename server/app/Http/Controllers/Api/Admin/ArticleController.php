@@ -788,17 +788,20 @@ class ArticleController extends Controller
 
         // A. Start with Redis as fallback if available
         if ($redisArticle) {
+            $normalizedContentBlocks = $this->normalizeRedisContentBlocks($redisArticle);
             $finalData = array_merge($finalData, [
                 'title' => $redisArticle['title'] ?? '',
                 'summary' => $redisArticle['summary'] ?? '',
-                'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? '',
+                // Keep hero image column empty for Redis-imported articles.
+                // Main image should live in content_blocks to avoid duplicate display.
+                'image' => null,
                 'category' => $redisArticle['category'] ?? '',
                 'country' => $redisArticle['country'] ?? '',
                 'source' => $redisArticle['source'] ?? '',
                 'original_url' => $redisArticle['original_url'] ?? '',
                 'keywords' => $redisArticle['keywords'] ?? '',
                 'topics' => $redisArticle['topics'] ?? [],
-                'content_blocks' => $redisArticle['content_blocks'] ?? [],
+                'content_blocks' => $normalizedContentBlocks,
                 'author' => $redisArticle['author'] ?? '',
                 'slug' => \Illuminate\Support\Str::slug($redisArticle['title'] ?? ''),
             ]);
@@ -896,6 +899,54 @@ class ArticleController extends Controller
         \Log::info("Article {$id} published and archived successfully.");
 
         return new ArticleResource($article);
+    }
+
+    /**
+     * Normalize Redis article payload to content block format.
+     * Keeps existing non-empty content_blocks; otherwise builds:
+     * - image block from image_url/image
+     * - text block from content string
+     */
+    private function normalizeRedisContentBlocks(array $redisArticle): array
+    {
+        $rawBlocks = $redisArticle['content_blocks'] ?? [];
+
+        if (is_string($rawBlocks)) {
+            $decoded = json_decode($rawBlocks, true);
+            $rawBlocks = is_array($decoded) ? $decoded : [];
+        }
+
+        if (is_array($rawBlocks) && !empty($rawBlocks)) {
+            return array_values($rawBlocks);
+        }
+
+        $imageUrl = trim((string)($redisArticle['image_url'] ?? $redisArticle['image'] ?? ''));
+        $caption = trim((string)($redisArticle['title'] ?? ''));
+        $textContent = trim((string)($redisArticle['content'] ?? ''));
+        $blocks = [];
+
+        if ($imageUrl !== '') {
+            $blocks[] = [
+                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                'type' => 'image',
+                'content' => [
+                    'src' => $imageUrl,
+                    'caption' => $caption,
+                ],
+            ];
+        }
+
+        if ($textContent !== '') {
+            $blocks[] = [
+                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                'type' => 'text',
+                'content' => [
+                    'text' => $textContent,
+                ],
+            ];
+        }
+
+        return $blocks;
     }
 
     /**
@@ -1118,19 +1169,22 @@ class ArticleController extends Controller
                         continue;
                     }
                     $slug = \Illuminate\Support\Str::slug($redisArticle['title'] ?? 'article-' . $id);
+                    $normalizedContentBlocks = $this->normalizeRedisContentBlocks($redisArticle);
 
                     $payload = [
                         'id' => $id,
                         'title' => $redisArticle['title'] ?? 'Untitled',
                         'summary' => $redisArticle['summary'] ?? '',
-                        'image' => $redisArticle['image_url'] ?? $redisArticle['image'] ?? null,
+                        // Keep hero image column empty for Redis-imported articles.
+                        // Main image should live in content_blocks to avoid duplicate display.
+                        'image' => null,
                         'category' => $redisArticle['category'] ?? '',
                         'country' => $redisArticle['country'] ?? '',
                         'source' => $redisArticle['source'] ?? 'Scraper',
                         'original_url' => $redisArticle['original_url'] ?? null,
                         'keywords' => $redisArticle['keywords'] ?? null,
                         'topics' => $redisArticle['topics'] ?? [],
-                        'content_blocks' => $redisArticle['content_blocks'] ?? [],
+                        'content_blocks' => $normalizedContentBlocks,
                         'author' => $redisArticle['author'] ?? '',
                         'slug' => $slug,
                         'status' => 'pending review',
