@@ -4,6 +4,7 @@ import LandingCountryNav from "@/components/layout/nav/LandingCountryNav";
 import LandingCategoryNav from "@/components/layout/nav/LandingCategoryNav";
 import LandingFooter from "@/components/layout/footer/LandingFooter";
 import { getPublicCategories, getPublicCountries } from "@/lib/api-v2";
+import AuthGuard from "@/components/features/auth/AuthGuard";
 
 export default async function LandingLayout({
   children,
@@ -31,7 +32,8 @@ export default async function LandingLayout({
     }))
   ];
   return (
-    <div className="min-h-screen bg-[#f9fafb] dark:bg-[#030712] flex flex-col pt-[120px] transition-colors duration-300">
+    <AuthGuard>
+      <div className="min-h-screen bg-[#f9fafb] dark:bg-[#030712] flex flex-col pt-[120px] transition-colors duration-300">
       <Suspense fallback={<div className="h-[72px] bg-white dark:bg-[#1a1d2e] border-b border-[#e5e7eb] dark:border-[#2a2d3e]" />}>
         <LandingHeader categories={dynamicCategories} countries={dynamicCountries} />
       </Suspense>
@@ -46,5 +48,6 @@ export default async function LandingLayout({
       </main>
       <LandingFooter />
     </div>
-  );
+  </AuthGuard>
+);
 }

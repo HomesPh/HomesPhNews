@@ -54,7 +54,7 @@ function FooterContent() {
       params.delete(type);
     }
     const q = params.get("q");
-    const targetPath = (q || pathname.startsWith("/search")) ? "/search" : "/";
+    const targetPath = (q || pathname.startsWith("/search")) ? "/search" : "/feed";
     const queryString = params.toString() ? `?${params.toString()}` : "";
     return `${targetPath}${queryString}`;
   };
@@ -72,7 +72,7 @@ function FooterContent() {
 
         {/* Column 1: Logo + Description */}
         <div className="w-full md:w-[220px] md:shrink-0 flex flex-col gap-4">
-          <Link href="/" onClick={handleScrollTop}>
+          <Link href="/feed" onClick={handleScrollTop}>
             <Image
               src="/images/HomesLogoW.png"
               alt="Homes.ph News"

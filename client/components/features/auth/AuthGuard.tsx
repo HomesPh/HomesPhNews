@@ -122,6 +122,17 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                         router.push('/verify-email');
                         return;
                     }
+                } else {
+                    // This block handles other routes, like those under the (landing) layout (e.g., /feed)
+                    // The user wants these to be restricted to staff roles only.
+                    const staffRoles = ['admin', 'ceo', 'editor', 'blogger'];
+                    const isStaff = staffRoles.includes(primaryRole);
+                    const publicRoutes = ["/login", "/register", "/verify-email"];
+
+                    if (!isStaff && !publicRoutes.includes(pathname)) {
+                        redirectHome();
+                        return;
+                    }
                 }
 
                 setIsLoading(false);
