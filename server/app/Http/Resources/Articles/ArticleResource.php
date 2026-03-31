@@ -115,11 +115,42 @@ class ArticleResource extends JsonResource
             $contentBlocks = [];
         }
 
+        // Fallback for Redis payloads that only provide `content` + `image_url`.
+        // Keep renderer/editor unchanged by emitting the expected block schema.
+        if (empty($contentBlocks)) {
+            $contentText = trim((string) $get('content', ''));
+            $fallbackBlocks = [];
+
+            if ($heroImage !== '') {
+                $fallbackBlocks[] = [
+                    'id' => \Illuminate\Support\Str::uuid()->toString(),
+                    'type' => 'image',
+                    'content' => [
+                        'src' => $heroImage,
+                        'caption' => (string) $get('title', ''),
+                    ],
+                ];
+            }
+
+            if ($contentText !== '') {
+                $fallbackBlocks[] = [
+                    'id' => \Illuminate\Support\Str::uuid()->toString(),
+                    'type' => 'text',
+                    'content' => [
+                        'text' => $contentText,
+                    ],
+                ];
+            }
+
+            $contentBlocks = $fallbackBlocks;
+        }
+
         $result = [
             'id' => (string) $get('id', ''),
             'slug' => (string) $get('slug', ''),
             'title' => (string) $get('title', ''),
             'summary' => $summary,
+            'content' => (string) $get('content', ''),
             'category' => (string) $get('category', 'All'),
             'country' => (string) $get('country', $get('location', 'Global')),
             'status' => $status,
