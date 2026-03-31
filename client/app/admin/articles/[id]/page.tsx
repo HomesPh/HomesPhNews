@@ -400,7 +400,7 @@ function ArticleDetailsContent() {
                                 ))}
                             </div>
                             {article.is_redis && (
-                                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-[12px] text-amber-700 leading-relaxed font-medium">
+                                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-[12px] text-red-700 leading-relaxed font-medium">
                                     This article is <strong>Being Processed</strong> (in Redis only) and is not yet in the database. Move it to DB from the Being Processed tab, or click Publish here to save and publish in one step.
                                 </div>
                             )}

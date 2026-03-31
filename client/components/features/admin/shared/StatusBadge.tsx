@@ -32,9 +32,9 @@ export default function StatusBadge({ status, className }: StatusBadgeProps) {
         },
         being_processed: {
             label: 'Being Processed',
-            bgColor: '#fef9c3', // Soft Yellow
-            textColor: '#9a3412', // Deep Orange
-            borderColor: '#fef08a',
+            bgColor: '#fee2e2', // Soft Red
+            textColor: '#991b1b', // Deep Red
+            borderColor: '#fecaca',
         },
         'pending review': {
             label: 'Pending Review',
