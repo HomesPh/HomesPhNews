@@ -68,14 +68,14 @@ export default function RestaurantDetails({ restaurant }: RestaurantDetailsProps
             </div>
 
             {/* 2. About / Content Section */}
-            {restaurant.content && (
+            {(restaurant as any).content && (
                 <div className="prose prose-lg dark:prose-invert max-w-none 
                     prose-headings:font-bold prose-a:text-[#C10007] dark:prose-a:text-[#ff3d3d]
                     prose-img:rounded-2xl prose-img:shadow-lg">
                     <h3 className="text-[24px] font-bold text-gray-900 dark:text-white mb-6">About</h3>
                     <div
                         className="text-gray-600 dark:text-gray-300 leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: restaurant.content }}
+                        dangerouslySetInnerHTML={{ __html: (restaurant as any).content }}
                     />
                 </div>
             )}

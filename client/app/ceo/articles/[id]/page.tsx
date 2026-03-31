@@ -23,6 +23,7 @@ import { getSiteNames } from "@/lib/api-v2/admin/service/sites/getSiteNames";
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 import ArticleBreadcrumb from "@/components/features/article/ArticleBreadcrumb";
 import TemplateGenerator from "@/components/features/admin/articles/TemplateGenerator";
+import ContentBlocksRenderer from "@/components/features/article/ContentBlocksRenderer";
 import { ImageIcon } from "lucide-react";
 import {
     AlertDialog,
@@ -166,7 +167,7 @@ function CEOArticleDetailContent() {
     const isPublished = article.status === "published";
     const isRejected = article.status === "rejected";
 
-    const content = article.content || article.summary || "";
+    const content = article.summary || "";
     const hasContentBlocks =
         Array.isArray(article.content_blocks) && article.content_blocks.length > 0;
 
@@ -235,106 +236,15 @@ function CEOArticleDetailContent() {
                                 </div>
 
                                 {(() => {
-                                    const content = article.content || article.summary || '';
-                                    const decodedContent = content; // Use raw content directly
-
-                                    // Check if content already starts with the feature image to avoid duplication
-                                    const firstImageMatch = decodedContent.match(/<img[^>]+src=['"]([^'"]+)['"]/);
-                                    const isDuplicateImage = firstImageMatch && article.image && (
-                                        firstImageMatch[1] === article.image ||
-                                        decodeURIComponent(firstImageMatch[1]) === decodeURIComponent(article.image)
-                                    );
-
                                     const hasContentBlocks = Array.isArray(article.content_blocks) && article.content_blocks.length > 0;
-                                    const shouldShowFeatureImage = article.image && !isDuplicateImage;
+                                    const decodedContent = article.summary || '';
 
                                     return (
                                         <>
-                                            {/* Feature Image - only if not redundant */}
-                                            {shouldShowFeatureImage && (
-                                                <figure className="mb-8">
-                                                    <div className="w-full aspect-[16/9] overflow-hidden bg-gray-100 rounded-[8px] mb-3">
-                                                        <img
-                                                            src={article.image || 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'}
-                                                            alt={article.title}
-                                                            className="w-full h-full object-cover"
-                                                            onError={(e) => { e.currentTarget.src = 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'; }}
-                                                        />
-                                                    </div>
-                                                    <figcaption className="text-[13px] text-[#6b7280] italic leading-relaxed">
-                                                        {article.title} — {article.country}
-                                                    </figcaption>
-                                                </figure>
-                                            )}
-
                                             {/* Main Content Area */}
                                             <div className="prose prose-lg max-w-none prose-p:text-[#374151] prose-p:leading-[28px] prose-p:tracking-[-0.5px]">
                                                 {hasContentBlocks ? (
-                                                    <div className="space-y-6">
-                                                        {article.content_blocks?.map((block: any, idx: number) => {
-                                                            const { type, content: blockContent, settings } = block;
-                                                            const blockStyle = {
-                                                                textAlign: settings?.textAlign || 'left',
-                                                                fontSize: settings?.fontSize || '18px',
-                                                                color: settings?.color || 'inherit',
-                                                                fontWeight: settings?.fontWeight || 'normal',
-                                                                fontStyle: settings?.isItalic ? 'italic' : 'normal',
-                                                                textDecoration: settings?.isUnderline ? 'underline' : 'none',
-                                                            } as React.CSSProperties;
-
-                                                            return (
-                                                                <div key={block.id || idx} className="mb-8">
-                                                                    {type === 'text' && (
-                                                                        <div
-                                                                            style={blockStyle}
-                                                                            className={cn(
-                                                                                "whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&_p]:min-h-[1.5em]",
-                                                                                settings?.listType === 'bullet' && "list-disc ml-6",
-                                                                                settings?.listType === 'number' && "list-decimal ml-6"
-                                                                            )}
-                                                                            dangerouslySetInnerHTML={{ __html: formatParagraphs(blockContent?.text || blockContent || '') }}
-                                                                        />
-                                                                    )}
-                                                                    {(type === 'image' || type === 'centered-image') && (
-                                                                        <figure className={cn("my-8", type === 'centered-image' && "max-w-[80%] mx-auto text-center")}>
-                                                                            <img src={blockContent?.src || block.image} alt={blockContent?.caption || block.caption || ""} className="w-full rounded-xl shadow-sm border border-gray-100" />
-                                                                            {(blockContent?.caption || block.caption) && (
-                                                                                <figcaption className="text-sm text-center text-gray-400 mt-3 italic">{blockContent?.caption || block.caption}</figcaption>
-                                                                            )}
-                                                                        </figure>
-                                                                    )}
-                                                                    {(type === 'left-image' || type === 'right-image') && (
-                                                                        <div className={cn("my-10 flex gap-8 items-start flex-col md:flex-row", type === 'right-image' && "md:flex-row-reverse")}>
-                                                                            <div className="w-full md:w-[200px] shrink-0">
-                                                                                <img src={blockContent?.image || blockContent?.src || block.image} alt="" className="w-full aspect-square object-cover rounded-xl shadow-sm" />
-                                                                                {(blockContent?.caption || block.caption) && (
-                                                                                    <p className="text-[11px] text-gray-400 mt-2 italic text-center leading-tight">{blockContent?.caption || block.caption}</p>
-                                                                                )}
-                                                                            </div>
-                                                                            <div style={blockStyle} className="flex-1 text-[18px] text-[#374151] leading-[32px]" dangerouslySetInnerHTML={{ __html: formatParagraphs(decodeHtml(blockContent?.text || blockContent || '')) }} />
-                                                                        </div>
-                                                                    )}
-                                                                    {type === 'grid' && (
-                                                                        <div className={cn(
-                                                                            "my-8 grid gap-4",
-                                                                            (blockContent?.images?.length === 3) ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"
-                                                                        )}>
-                                                                            {blockContent?.images?.map((img: string, i: number) => (
-                                                                                <img key={i} src={img} className="w-full aspect-square object-cover rounded-xl shadow-sm" />
-                                                                            ))}
-                                                                        </div>
-                                                                    )}
-                                                                    {type === 'dynamic-images' && (
-                                                                        <div className="my-8 space-y-4">
-                                                                            {blockContent?.images?.map((img: string, i: number) => (
-                                                                                <img key={i} src={img} className="w-full rounded-xl shadow-sm" />
-                                                                            ))}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
+                                                    <ContentBlocksRenderer blocks={article.content_blocks || []} forceLight={true} />
                                                 ) : (
                                                     <div
                                                         className="whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&>li]:mb-1 [&>a]:text-blue-600 [&>a]:underline first-letter:text-[72px] first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-5px] first-letter:leading-[0.8] first-letter:text-[#0c0c0c] [&_p]:min-h-[1.5em]"

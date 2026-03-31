@@ -15,11 +15,8 @@ class Article extends Model
 
     protected $fillable = [
         'id',              // UUID from Redis (primary key)
-        'article_id',      // UUID from Scraper (legacy, keeping for compatibility)
         'title',
-        'original_title',
         'summary',
-        'content',
         'image',
         'status',
         'views_count',
@@ -33,9 +30,7 @@ class Article extends Model
         'topics',          // JSON array of topics
         'published_sites', // JSON array of site names
         'content_blocks',  // Structured block data
-        'template',        // Visual template name
         'author',          // Author name
-        'is_deleted',
         'slug',
         'edited_by',
         'published_at',
@@ -46,13 +41,10 @@ class Article extends Model
      */
     protected $casts = [
         'keywords' => 'array',
-        'custom_titles' => 'array',
         'topics' => 'array',
         'published_sites' => 'array', // ["FilipinoHomes", "Rent.ph", ...]
         'content_blocks' => 'array',
-        'image' => 'array',
         'views_count' => 'integer',
-        'is_deleted' => 'boolean',
         'published_at' => 'datetime',
     ];
 
@@ -67,11 +59,7 @@ class Article extends Model
      */
     public function getImageUrlAttribute(): ?string
     {
-        $image = $this->image; // Uses automatic casting
-        if (is_array($image)) {
-            return $image[0] ?? null;
-        }
-        return is_string($image) ? $image : null;
+        return is_string($this->image) ? $this->image : null;
     }
 
     /**

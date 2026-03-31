@@ -25,12 +25,10 @@ class ArticleActionRequest extends FormRequest
             // Action-related fields
             'published_sites' => 'required|array',
             'published_sites.*' => 'string',
-            'custom_titles' => 'nullable|array',
 
             // Article Data fields (Atomic Publish support)
             'title' => 'nullable|string|max:255',
             'summary' => 'nullable|string',
-            'content' => 'nullable|string',
             'category' => 'nullable|string',
             'country' => 'nullable|string',
             'image' => 'nullable|string',
@@ -38,7 +36,6 @@ class ArticleActionRequest extends FormRequest
             'topics' => 'nullable|array',
             'keywords' => 'nullable|string',
             'content_blocks' => 'nullable|array',
-            'template' => 'nullable|string',
             'author' => 'nullable|string',
             'gallery_images' => 'nullable|array',
             'slug' => 'nullable|string',

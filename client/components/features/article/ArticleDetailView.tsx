@@ -44,7 +44,7 @@ export default function ArticleDetailView({ article }: ArticleDetailViewProps) {
         countryId={article.country}
         title={article.title}
         subtitle={
-          article.summary || (stripHtml(article.content).substring(0, 160) + "...")
+          article.summary || (stripHtml(article.content || '').substring(0, 160) + "...")
         }
         author={{ name: article.author || "HOMESPH NEWS" }}
         date={new Date(article.created_at || Date.now()).toLocaleDateString("en-US", {
@@ -69,7 +69,7 @@ export default function ArticleDetailView({ article }: ArticleDetailViewProps) {
         <RestaurantDetails restaurant={article} />
       ) : (
         <ArticleContent
-          content={article.content}
+          content={article.content || ''}
           contentBlocks={article.content_blocks}
           topics={
             Array.isArray((article as any).topics) ? (article as any).topics :

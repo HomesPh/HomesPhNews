@@ -67,9 +67,9 @@ const hsvToRgb = (h: number, s: number, v: number) => {
     return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
 };
 
-function PremiumColorPicker({ color, opacity, onChange, onOpacityChange }: { 
-    color: string, 
-    opacity: number, 
+function PremiumColorPicker({ color, opacity, onChange, onOpacityChange }: {
+    color: string,
+    opacity: number,
     onChange: (color: string) => void,
     onOpacityChange: (opacity: number) => void
 }) {
@@ -109,16 +109,15 @@ function PremiumColorPicker({ color, opacity, onChange, onOpacityChange }: {
 
     return (
         <div className="relative" ref={popoverRef}>
-            <button 
+            <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full flex items-center justify-between px-4 py-3 bg-white border transition-all overflow-hidden group ${
-                    isOpen 
-                        ? 'border-[#1428AE] ring-4 ring-[#1428AE]/20 shadow-[0_4px_20px_rgba(20,40,174,0.15)] rounded-t-[12px] rounded-b-none' 
+                className={`w-full flex items-center justify-between px-4 py-3 bg-white border transition-all overflow-hidden group ${isOpen
+                        ? 'border-[#1428AE] ring-4 ring-[#1428AE]/20 shadow-[0_4px_20px_rgba(20,40,174,0.15)] rounded-t-[12px] rounded-b-none'
                         : 'border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:border-[#1428AE]/30 rounded-[12px]'
-                }`}
+                    }`}
             >
                 <div className="flex items-center gap-3">
-                    <div 
+                    <div
                         className="w-6 h-6 rounded-[6px] border border-gray-200 shadow-sm transition-transform group-hover:scale-105"
                         style={{ backgroundColor: color, opacity: opacity / 100 }}
                     />
@@ -134,7 +133,7 @@ function PremiumColorPicker({ color, opacity, onChange, onOpacityChange }: {
                         <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Picker</span>
                         <div className="flex items-center gap-2">
                             {typeof window !== 'undefined' && (window as any).EyeDropper && (
-                                <button 
+                                <button
                                     onClick={handleEyedropper}
                                     className="p-1.5 hover:bg-gray-100 rounded-md text-gray-500 hover:text-[#1428AE] transition-all"
                                     title="Eyedropper"
@@ -146,7 +145,7 @@ function PremiumColorPicker({ color, opacity, onChange, onOpacityChange }: {
                     </div>
 
                     {/* Saturation/Brightness Area */}
-                    <div 
+                    <div
                         className="relative w-full h-[160px] rounded-[10px] mb-4 cursor-crosshair overflow-hidden"
                         style={{ backgroundColor: `hsl(${hsv.h}, 100%, 50%)` }}
                         onMouseDown={(e) => {
@@ -163,7 +162,7 @@ function PremiumColorPicker({ color, opacity, onChange, onOpacityChange }: {
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-white to-transparent" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
-                        <div 
+                        <div
                             className="absolute w-3.5 h-3.5 border-2 border-white rounded-full shadow-md transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
                             style={{ left: `${hsv.s}%`, top: `${100 - hsv.v}%` }}
                         />
@@ -173,12 +172,12 @@ function PremiumColorPicker({ color, opacity, onChange, onOpacityChange }: {
                     <div className="space-y-4">
                         {/* Hue Slider */}
                         <div className="relative h-3 rounded-full overflow-hidden bg-gradient-to-r from-[#ff0000] via-[#ffff00] via-[#00ff00] via-[#00ffff] via-[#0000ff] via-[#ff00ff] to-[#ff0000] cursor-pointer">
-                            <input 
+                            <input
                                 type="range" min="0" max="360" value={hsv.h}
                                 onChange={(e) => updateHsv(Number(e.target.value), hsv.s, hsv.v)}
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             />
-                            <div 
+                            <div
                                 className="absolute w-3 h-3 bg-white border-2 border-white rounded-full shadow-md transform -translate-x-1/2 pointer-events-none top-0"
                                 style={{ left: `${(hsv.h / 360) * 100}%` }}
                             />
@@ -186,16 +185,16 @@ function PremiumColorPicker({ color, opacity, onChange, onOpacityChange }: {
 
                         {/* Opacity Slider */}
                         <div className="relative h-3 rounded-full cursor-pointer bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAAXNSR0IArs4c6QAAACBJREFUGF5jYmBgYGBkZGRkYGBgYGBkYGBkYGBkYGBkYGCYp8MAHwEFAAAAAElFTkSuQmCC')] bg-repeat">
-                            <div 
+                            <div
                                 className="absolute inset-0 rounded-full"
                                 style={{ background: `linear-gradient(to right, transparent, ${color})` }}
                             />
-                            <input 
+                            <input
                                 type="range" min="0" max="100" value={opacity}
                                 onChange={(e) => onOpacityChange(Number(e.target.value))}
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             />
-                            <div 
+                            <div
                                 className="absolute w-3 h-3 bg-white border-2 border-white rounded-full shadow-md transform -translate-x-1/2 pointer-events-none top-0"
                                 style={{ left: `${opacity}%` }}
                             />
@@ -206,7 +205,7 @@ function PremiumColorPicker({ color, opacity, onChange, onOpacityChange }: {
                     <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <span className="text-[10px] font-bold text-gray-400 uppercase">HEX</span>
-                            <input 
+                            <input
                                 type="text" value={color.replace('#', '')}
                                 onChange={(e) => {
                                     const val = e.target.value.toUpperCase();
@@ -244,18 +243,18 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
     const [aspectRatio, setAspectRatio] = useState<AspectRatio>('16:9');
     const [selectedLogoSize, setSelectedLogoSize] = useState<'small' | 'regular' | 'large' | 'manual'>('regular');
     const [selectedTextSize, setSelectedTextSize] = useState<'small' | 'regular' | 'large' | 'manual'>('regular');
-    
+
     // Overlay States
     const [overlayDirection, setOverlayDirection] = useState<'none' | 'top' | 'bottom' | 'left' | 'right' | 'full'>('bottom');
     const [overlayColor, setOverlayColor] = useState('#000000');
     const [overlayOpacity, setOverlayOpacity] = useState(80); // 0-100
-    
+
     // Caching refs for images
     const bgImageRef = useRef<HTMLImageElement | null>(null);
     const logoImageRef = useRef<HTMLImageElement | null>(null);
     const currentBgSrcRef = useRef<string | null>(null);
     const currentLogoSrcRef = useRef<string | null>(null);
-    
+
     const [isLoading, setIsLoading] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
 
@@ -270,26 +269,26 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
         try {
             const res = await getAdminSites();
             const allSites = res.data.data as SiteResource[];
-            
+
             // Filter sites that the article is published to
             // backend returns string[] for published_sites
             const publishedSiteData = article.published_sites || article.sites || [];
-            const publishedSiteNames = Array.isArray(publishedSiteData) 
+            const publishedSiteNames = Array.isArray(publishedSiteData)
                 ? publishedSiteData.map(s => typeof s === 'string' ? s : (s as any).name)
                 : [publishedSiteData].filter(Boolean).map(s => typeof s === 'string' ? s : (s as any).name);
-            
+
             console.log("Published Site Names:", publishedSiteNames);
-            
-            const filteredSites = allSites.filter(site => 
+
+            const filteredSites = allSites.filter(site =>
                 publishedSiteNames.some(name => {
                     const normalizedName = String(name).toLowerCase().replace(/\s+/g, '');
                     const normalizedSiteName = String(site.name).toLowerCase().replace(/\s+/g, '');
                     return normalizedName === normalizedSiteName || normalizedSiteName.includes(normalizedName) || normalizedName.includes(normalizedSiteName);
                 })
             );
-            
+
             console.log("Filtered Sites:", filteredSites);
-            
+
             setSites(filteredSites);
             if (filteredSites.length > 0) {
                 setSelectedSiteId(filteredSites[0].id);
@@ -309,12 +308,12 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
 
     const getLogoUrl = () => {
         if (!selectedSite) return null;
-        let url = logoVariant === 'dark' ? selectedSite.dark_logo : 
-                  logoVariant === 'light' ? selectedSite.light_logo : 
-                  selectedSite.image;
-        
+        let url = logoVariant === 'dark' ? selectedSite.dark_logo :
+            logoVariant === 'light' ? selectedSite.light_logo :
+                selectedSite.image;
+
         if (!url) return null;
-        
+
         // Handle relative URLs - if it starts with / and it's not a full URL
         // In this project, /images/ paths are usually on the client
         if (url.startsWith('/') && !url.startsWith('//')) {
@@ -323,12 +322,12 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
         }
 
         const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api");
-        
+
         // If it's an external URL (like S3), use our proxy
         if (url.startsWith('http') && !url.includes('localhost') && !url.includes('127.0.0.1')) {
             return `${apiBase}/v1/upload/proxy?url=${encodeURIComponent(url)}`;
         }
-        
+
         return url;
     };
 
@@ -386,14 +385,14 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                 if (article.image) return article.image;
                 if (article.image_url) return article.image_url;
                 if (article.content_blocks && Array.isArray(article.content_blocks)) {
-                    const imgBlock = article.content_blocks.find(b => 
-                        (b.type === 'image' || b.type === 'centered-image') && 
+                    const imgBlock = article.content_blocks.find(b =>
+                        (b.type === 'image' || b.type === 'centered-image') &&
                         (b.content?.src || b.content?.image)
                     );
                     if (imgBlock) return imgBlock.content?.src || imgBlock.content?.image;
                 }
                 if (article.galleryImages && article.galleryImages.length > 0) return article.galleryImages[0];
-                const match = article.content?.match(/<img[^>]+src=["']([^"']+)["']/);
+                const match = article.summary?.match(/<img[^>]+src=["']([^"']+)["']/);
                 if (match) return match[1];
                 return null;
             };
@@ -493,7 +492,7 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
         // Set canvas size
         let targetWidth = 1408;
         let targetHeight = 768;
-        
+
         if (aspectRatio === '1:1') {
             targetWidth = 1080;
             targetHeight = 1080;
@@ -571,11 +570,11 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
         ctx.font = `${fontWeight} ${fontSize}px "${fontFamily}", system-ui, -apple-system, sans-serif`;
         ctx.textBaseline = 'middle';
         ctx.textAlign = titleAlignment === 'justify' ? 'left' : titleAlignment;
-        
+
         const marginX = 90;
         const marginY = 40;
         const maxWidth = targetWidth - (marginX * 2);
-        
+
         // Wrap text
         const words = title.split(' ');
         let line = '';
@@ -594,7 +593,7 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
 
         const actualLineHeight = lineHeight || fontSize * 1.25;
         const totalTextHeight = lines.length * actualLineHeight;
-        
+
         let titleY = 0;
         if (titlePosition.startsWith('top-')) {
             titleY = marginY + (actualLineHeight / 2);
@@ -630,18 +629,18 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
         lines.forEach((l, i) => {
             const currentY = titleY + (i * actualLineHeight);
             const textString = l.trim();
-            
+
             if (titleAlignment === 'justify' && i < lines.length - 1) {
                 const wordsInLine = textString.split(' ');
                 const totalWordsWidth = wordsInLine.reduce((sum, word) => sum + ctx.measureText(word).width, 0);
                 const spaceCount = wordsInLine.length - 1;
                 const totalSpaceWidth = maxWidth - totalWordsWidth;
                 const spaceWidth = totalSpaceWidth / spaceCount;
-                
+
                 let currentLineX = marginX;
                 // For justify, we always use the full width box starting at marginX
                 ctx.textAlign = 'left';
-                
+
                 wordsInLine.forEach((word, wordIdx) => {
                     ctx.fillText(word, currentLineX, currentY);
                     currentLineX += ctx.measureText(word).width + spaceWidth;
@@ -655,7 +654,7 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
         if (logoImg) {
             const logoW = logoWidth;
             const logoH = logoHeight;
-            
+
             let logoX = marginX;
             let logoY = marginY;
 
@@ -684,7 +683,7 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
     const handleDownload = () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
-        
+
         const link = document.createElement('a');
         link.download = `template-${article.slug || 'export'}.png`;
         link.href = canvas.toDataURL('image/png');
@@ -734,11 +733,10 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                                     <button
                                         key={variant}
                                         onClick={() => setLogoVariant(variant)}
-                                        className={`px-3 py-2.5 text-[13px] font-medium rounded-[8px] border transition-all tracking-[-0.5px] ${
-                                            logoVariant === variant 
-                                                ? 'bg-[#1428AE] text-white border-[#1428AE] shadow-md shadow-[#1428AE]/20' 
+                                        className={`px-3 py-2.5 text-[13px] font-medium rounded-[8px] border transition-all tracking-[-0.5px] ${logoVariant === variant
+                                                ? 'bg-[#1428AE] text-white border-[#1428AE] shadow-md shadow-[#1428AE]/20'
                                                 : 'bg-white text-gray-600 border-gray-200 hover:border-[#1428AE]/40'
-                                        }`}
+                                            }`}
                                     >
                                         {variant.charAt(0).toUpperCase() + variant.slice(1)}
                                     </button>
@@ -756,11 +754,10 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                                     <button
                                         key={ratio}
                                         onClick={() => setAspectRatio(ratio)}
-                                        className={`px-3 py-2.5 text-[13px] font-medium rounded-[8px] border transition-all tracking-[-0.5px] ${
-                                            aspectRatio === ratio 
-                                                ? 'bg-[#1428AE] text-white border-[#1428AE] shadow-md shadow-[#1428AE]/20' 
+                                        className={`px-3 py-2.5 text-[13px] font-medium rounded-[8px] border transition-all tracking-[-0.5px] ${aspectRatio === ratio
+                                                ? 'bg-[#1428AE] text-white border-[#1428AE] shadow-md shadow-[#1428AE]/20'
                                                 : 'bg-white text-gray-600 border-gray-200 hover:border-[#1428AE]/40'
-                                        }`}
+                                            }`}
                                     >
                                         {ratio === '16:9' ? 'Landscape' : ratio === '1:1' ? 'Square' : 'Portrait'}
                                     </button>
@@ -778,11 +775,10 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                                     <button
                                         key={opt.id}
                                         onClick={() => setLogoPosition(opt.id)}
-                                        className={`px-2 py-2 text-[11px] font-medium rounded-[8px] border transition-all tracking-[-0.5px] ${
-                                            logoPosition === opt.id 
-                                                ? 'bg-[#1428AE] text-white border-[#1428AE] shadow-md shadow-[#1428AE]/20' 
+                                        className={`px-2 py-2 text-[11px] font-medium rounded-[8px] border transition-all tracking-[-0.5px] ${logoPosition === opt.id
+                                                ? 'bg-[#1428AE] text-white border-[#1428AE] shadow-md shadow-[#1428AE]/20'
                                                 : 'bg-white text-gray-600 border-gray-200 hover:border-[#1428AE]/40'
-                                        }`}
+                                            }`}
                                     >
                                         {opt.label}
                                     </button>
@@ -806,11 +802,10 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                                             setLogoHeight(p.h);
                                             setSelectedLogoSize(p.label.toLowerCase() as any);
                                         }}
-                                        className={`px-3 py-2 text-[12px] font-medium rounded-[8px] border transition-all ${
-                                            selectedLogoSize === p.label.toLowerCase()
-                                                ? 'bg-[#1428AE] text-white border-[#1428AE]' 
+                                        className={`px-3 py-2 text-[12px] font-medium rounded-[8px] border transition-all ${selectedLogoSize === p.label.toLowerCase()
+                                                ? 'bg-[#1428AE] text-white border-[#1428AE]'
                                                 : 'bg-white text-gray-600 border-gray-200'
-                                        }`}
+                                            }`}
                                     >
                                         {p.label}
                                     </button>
@@ -819,8 +814,8 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                             <div className="flex items-center gap-2">
                                 <div className="flex-1">
                                     <span className="text-[10px] text-gray-400 uppercase ml-1">Width</span>
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         value={logoWidth}
                                         onChange={(e) => setLogoWidth(Number(e.target.value))}
                                         className="w-full px-3 py-2 bg-white border border-gray-200 rounded-[8px] text-[13px] focus:ring-2 focus:ring-[#1428AE]/20 shadow-sm"
@@ -828,8 +823,8 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                                 </div>
                                 <div className="flex-1">
                                     <span className="text-[10px] text-gray-400 uppercase ml-1">Height</span>
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         value={logoHeight}
                                         onChange={(e) => setLogoHeight(Number(e.target.value))}
                                         className="w-full px-3 py-2 bg-white border border-gray-200 rounded-[8px] text-[13px] focus:ring-2 focus:ring-[#1428AE]/20 shadow-sm"
@@ -870,11 +865,10 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                                                 setFontSize(p.size);
                                                 setLineHeight(p.lh);
                                             }}
-                                            className={`px-3 py-2 text-[12px] font-medium rounded-[8px] border transition-all ${
-                                                fontSize === p.size && lineHeight === p.lh
-                                                    ? 'bg-[#1428AE] text-white border-[#1428AE]' 
+                                            className={`px-3 py-2 text-[12px] font-medium rounded-[8px] border transition-all ${fontSize === p.size && lineHeight === p.lh
+                                                    ? 'bg-[#1428AE] text-white border-[#1428AE]'
                                                     : 'bg-white text-gray-600 border-gray-200'
-                                            }`}
+                                                }`}
                                         >
                                             {p.label}
                                         </button>
@@ -883,8 +877,8 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                                 <div className="flex items-center gap-2">
                                     <div className="flex-1">
                                         <span className="text-[10px] text-gray-400 uppercase ml-1">Font Size</span>
-                                        <input 
-                                            type="number" 
+                                        <input
+                                            type="number"
                                             value={fontSize}
                                             onChange={(e) => setFontSize(Number(e.target.value))}
                                             className="w-full px-3 py-2 bg-white border border-gray-200 rounded-[8px] text-[13px] focus:ring-2 focus:ring-[#1428AE]/20 shadow-sm"
@@ -892,8 +886,8 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                                     </div>
                                     <div className="flex-1">
                                         <span className="text-[10px] text-gray-400 uppercase ml-1">Line Height</span>
-                                        <input 
-                                            type="number" 
+                                        <input
+                                            type="number"
                                             value={lineHeight}
                                             onChange={(e) => setLineHeight(Number(e.target.value))}
                                             className="w-full px-3 py-2 bg-white border border-gray-200 rounded-[8px] text-[13px] focus:ring-2 focus:ring-[#1428AE]/20 shadow-sm"
@@ -909,11 +903,10 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                                         <button
                                             key={align}
                                             onClick={() => setTitleAlignment(align)}
-                                            className={`px-1 py-2 text-[10px] font-bold uppercase rounded-[8px] border transition-all ${
-                                                titleAlignment === align 
-                                                    ? 'bg-[#1428AE] text-white border-[#1428AE]' 
+                                            className={`px-1 py-2 text-[10px] font-bold uppercase rounded-[8px] border transition-all ${titleAlignment === align
+                                                    ? 'bg-[#1428AE] text-white border-[#1428AE]'
                                                     : 'bg-white text-gray-600 border-gray-200'
-                                            }`}
+                                                }`}
                                         >
                                             {align}
                                         </button>
@@ -928,11 +921,10 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                                         <button
                                             key={opt.id}
                                             onClick={() => setTitlePosition(opt.id)}
-                                            className={`px-3 py-2 text-[12px] font-medium rounded-[8px] border transition-all ${
-                                                titlePosition === opt.id 
-                                                    ? 'bg-[#1428AE] text-white border-[#1428AE]' 
+                                            className={`px-3 py-2 text-[12px] font-medium rounded-[8px] border transition-all ${titlePosition === opt.id
+                                                    ? 'bg-[#1428AE] text-white border-[#1428AE]'
                                                     : 'bg-white text-gray-600 border-gray-200'
-                                            }`}
+                                                }`}
                                         >
                                             {opt.label}
                                         </button>
@@ -952,11 +944,10 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                                         <button
                                             key={color}
                                             onClick={() => setTitleColor(color)}
-                                            className={`px-3 py-2.5 text-[13px] font-medium rounded-[8px] border transition-all tracking-[-0.5px] capitalize ${
-                                                titleColor === color 
-                                                    ? 'bg-[#1428AE] text-white border-[#1428AE] shadow-md shadow-[#1428AE]/20' 
+                                            className={`px-3 py-2.5 text-[13px] font-medium rounded-[8px] border transition-all tracking-[-0.5px] capitalize ${titleColor === color
+                                                    ? 'bg-[#1428AE] text-white border-[#1428AE] shadow-md shadow-[#1428AE]/20'
                                                     : 'bg-white text-gray-600 border-gray-200 hover:border-[#1428AE]/40'
-                                            }`}
+                                                }`}
                                         >
                                             {color}
                                         </button>
@@ -989,14 +980,14 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                                 <label className="text-[12px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
                                     <ImageIcon className="w-3.5 h-3.5" /> Overlay Color & Opacity
                                 </label>
-                                <PremiumColorPicker 
+                                <PremiumColorPicker
                                     color={overlayColor}
                                     opacity={overlayOpacity}
                                     onChange={setOverlayColor}
                                     onOpacityChange={setOverlayOpacity}
                                 />
                             </div>
-                            
+
                             <div className="space-y-2">
                                 <span className="text-[10px] text-gray-400 uppercase ml-1 block">Recommended</span>
                                 <div className="flex flex-wrap gap-2">
@@ -1032,7 +1023,7 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                         <div className="min-h-full p-6 lg:p-10 flex flex-col items-center justify-center">
                             <div className="relative group max-w-full">
                                 <div className="bg-white p-2 shadow-2xl ring-1 ring-black/5">
-                                    <canvas 
+                                    <canvas
                                         ref={canvasRef}
                                         className="max-w-full h-auto shadow-inner bg-gray-200"
                                         style={{ maxHeight: '60vh' }}
@@ -1046,7 +1037,7 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                                         </div>
                                     )}
                                 </div>
-                                
+
                                 <p className="mt-4 text-center text-xs text-gray-400 font-medium font-sans">
                                     Preview shows how the exported image will look
                                 </p>
@@ -1061,13 +1052,13 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                         <p className="text-xs font-medium">Export Format: {aspectRatio === '16:9' ? 'Landscape (1408x768)' : aspectRatio === '1:1' ? 'Square (1080x1080)' : 'Portrait (1080x1350)'}</p>
                     </div>
                     <div className="flex items-center gap-4">
-                        <button 
+                        <button
                             onClick={onClose}
                             className="px-5 py-2.5 text-[14px] font-medium text-[#6b7280] hover:text-[#111827] transition-colors tracking-[-0.5px]"
                         >
                             Cancel
                         </button>
-                        <button 
+                        <button
                             onClick={handleDownload}
                             disabled={isGenerating || !selectedSiteId}
                             className="px-5 py-2.5 bg-[#1428AE] text-white rounded-[8px] text-[14px] font-medium transition-colors hover:bg-[#000785] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 tracking-[-0.5px]"
@@ -1082,15 +1073,15 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
     );
 }
 
-function CustomDropdown<T extends unknown>({ 
-    label, 
-    value, 
-    options, 
-    onChange 
-}: { 
-    label: string, 
-    value: T | null, 
-    options: { id: T, label: string }[], 
+function CustomDropdown<T extends unknown>({
+    label,
+    value,
+    options,
+    onChange
+}: {
+    label: string,
+    value: T | null,
+    options: { id: T, label: string }[],
     onChange: (val: T) => void
 }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -1115,11 +1106,10 @@ function CustomDropdown<T extends unknown>({
             </label>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full flex items-center justify-between px-4 py-3 bg-white border transition-all shadow-[0_2px_10px_rgba(0,0,0,0.05)] text-left ${
-                    isOpen 
-                        ? 'border-[#1428AE] ring-4 ring-[#1428AE]/20 shadow-[0_4px_20px_rgba(20,40,174,0.15)] rounded-t-[12px] rounded-b-none' 
+                className={`w-full flex items-center justify-between px-4 py-3 bg-white border transition-all shadow-[0_2px_10px_rgba(0,0,0,0.05)] text-left ${isOpen
+                        ? 'border-[#1428AE] ring-4 ring-[#1428AE]/20 shadow-[0_4px_20px_rgba(20,40,174,0.15)] rounded-t-[12px] rounded-b-none'
                         : 'border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:border-[#1428AE]/30 rounded-[12px]'
-                }`}
+                    }`}
             >
                 <span className="font-semibold text-gray-900 text-[14px]">{selectedOption?.label || (value ? String(value) : 'Select...')}</span>
                 <ChevronDown className={`w-4 h-4 text-[#1428AE] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
@@ -1134,11 +1124,10 @@ function CustomDropdown<T extends unknown>({
                                 onChange(opt.id);
                                 setIsOpen(false);
                             }}
-                            className={`w-full text-left px-4 py-2.5 rounded-[10px] text-[14px] transition-all flex items-center justify-between group mb-0.5 last:mb-0 ${
-                                value === opt.id 
-                                    ? 'bg-[#1428AE] text-white font-bold' 
+                            className={`w-full text-left px-4 py-2.5 rounded-[10px] text-[14px] transition-all flex items-center justify-between group mb-0.5 last:mb-0 ${value === opt.id
+                                    ? 'bg-[#1428AE] text-white font-bold'
                                     : 'text-gray-700 hover:bg-[#1428AE]/5 hover:text-[#1428AE] border border-transparent hover:border-[#1428AE]/10'
-                            }`}
+                                }`}
                         >
                             {opt.label}
                             {value === opt.id && <Check className="w-4 h-4" />}

@@ -1,5 +1,7 @@
 # Global News Integration Guide
 
+> DEPRECATED: consolidated into `docs/External.MD` (partner contract + auth + security notes). Please use `External.MD` as the single source of truth.
+
 This document outlines the architecture and implementation for integrating the News API into your platform using a secure proxy service.
 
 ## 🏗️ Architecture Overview

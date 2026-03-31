@@ -5,16 +5,15 @@ namespace App\Http\Resources\Articles;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ArticleResource extends JsonResource
+/**
+ * External partner API payload: dedicated shape (no ArticleResource).
+ * Primary image unwraps JSON string/array wrappers only (fixes doubled quotes in DB).
+ */
+class ExternalArticleResource extends JsonResource
 {
-    /**
-     * Disable wrapping to allow manual control in controller responses.
-     */
     public static $wrap = null;
 
     /**
-     * Transform the resource into an array.
-     *
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
@@ -22,7 +21,6 @@ class ArticleResource extends JsonResource
         $res = $this->resource;
         $isModel = $res instanceof \Illuminate\Database\Eloquent\Model;
 
-        // Extract raw data safely
         if ($isModel) {
             $data = $res->getAttributes();
         } else {
@@ -33,10 +31,10 @@ class ArticleResource extends JsonResource
             if ($isModel) {
                 return $res->{$key} ?? $data[$key] ?? $default;
             }
+
             return $data[$key] ?? $default;
         };
 
-        // Handle sites (robust)
         $sites = [];
         if ($isModel) {
             if ($res->relationLoaded('publishedSites')) {
@@ -63,28 +61,14 @@ class ArticleResource extends JsonResource
             }
         }
 
-        // Handle images (robust)
-        $images = [];
-        if ($isModel) {
-            if ($res->relationLoaded('images')) {
-                $rel = $res->getRelation('images');
-                $images = ($rel instanceof \Illuminate\Support\Collection)
-                    ? $rel->pluck('image_path')->toArray()
-                    : (is_array($rel) ? $rel : []);
-            }
-        } else {
-            $imgs = $get('galleryImages', []) ?? $get('gallery_images', []) ?? [];
-            $images = is_array($imgs) ? $imgs : [];
-        }
-
-        // Date logic: Prioritize published_at, fallback to created_at
-        $date = $get('published_at') ?? $get('created_at', null);
-        if (empty($date) && isset($data['timestamp'])) {
+        $publishedRaw = $get('published_at');
+        $createdRaw = $get('created_at');
+        $displayDate = $publishedRaw ?? $createdRaw ?? null;
+        if (empty($displayDate) && isset($data['timestamp'])) {
             $ts = $data['timestamp'];
-            $date = is_numeric($ts) ? date('Y-m-d H:i:s', (int) $ts) : (string) $ts;
+            $displayDate = is_numeric($ts) ? date('Y-m-d H:i:s', (int) $ts) : (string) $ts;
         }
 
-        // Topics logic
         $topics = $get('topics', []);
         if (is_string($topics)) {
             $decoded = json_decode($topics, true);
@@ -93,18 +77,16 @@ class ArticleResource extends JsonResource
 
         $status = (string) $get('status', 'pending');
 
-        // Content is retrieved from content_blocks in modern flow
         $summary = (string) $get('summary', '');
         $description = (string) $get('summary', '');
 
-        // Resolve primary image values once so we can reuse them and dedupe blocks against them
-        $rawImageUrl = $data['image_url'] ?? $data['image'] ?? '';
-        $rawImage = $data['image'] ?? $data['image_url'] ?? '';
-        $primaryImageUrl = $this->sanitizeImageUrl($rawImageUrl);
-        $primaryImage = $this->sanitizeImageUrl($rawImage);
-        $heroImage = $primaryImageUrl !== '' ? $primaryImageUrl : $primaryImage;
+        if ($isModel) {
+            $rawImage = $data['image'] ?? null;
+        } else {
+            $rawImage = $data['image'] ?? $data['image_url'] ?? null;
+        }
+        $image = $this->unwrapStoredImage($rawImage);
 
-        // Decode content blocks
         $rawBlocks = $get('content_blocks', []);
         if (is_string($rawBlocks)) {
             $decodedBlocks = json_decode($rawBlocks, true);
@@ -115,7 +97,7 @@ class ArticleResource extends JsonResource
             $contentBlocks = [];
         }
 
-        $result = [
+        return [
             'id' => (string) $get('id', ''),
             'slug' => (string) $get('slug', ''),
             'title' => (string) $get('title', ''),
@@ -123,51 +105,53 @@ class ArticleResource extends JsonResource
             'category' => (string) $get('category', 'All'),
             'country' => (string) $get('country', $get('location', 'Global')),
             'status' => $status,
-            'created_at' => (string) $date,
+            'published_at' => $this->formatExternalDateTime($publishedRaw),
+            'created_at' => $this->formatExternalDateTime($createdRaw),
             'views_count' => (int) $get('views_count', 0),
-            'image_url' => $primaryImageUrl,
-            'image' => $primaryImage,
+            'image' => $image,
             'location' => (string) $get('country', $get('location', 'Global')),
             'description' => $description,
-            'date' => (string) $date,
+            'date' => $this->formatExternalDateTime($displayDate),
             'views' => number_format((int) $get('views_count', 0)) . ' views',
             'published_sites' => array_map('strval', $sites),
-            'sites' => array_map('strval', $sites),
             'topics' => array_map('strval', is_array($topics) ? $topics : []),
-            'galleryImages' => array_map('strval', $images),
             'keywords' => is_array($get('keywords', [])) ? implode(', ', $get('keywords', [])) : (string) $get('keywords', ''),
-            'source' => (string) $get('source', ''),
-            'original_url' => (string) $get('original_url', ''),
-            'is_redis' => !$isModel,
             'content_blocks' => $contentBlocks,
             'author' => (string) $get('author', ''),
             'province_id' => $get('province_id'),
             'city_id' => $get('city_id'),
             'province_name' => $isModel ? ($this->province->name ?? null) : null,
             'city_name' => $isModel ? ($this->city->name ?? null) : null,
-            'editor_first_name' => $isModel ? ($this->editor->first_name ?? null) : null,
-            'editor_last_name' => $isModel ? ($this->editor->last_name ?? null) : null,
-            'editor_name' => $isModel ? ($this->editor->name ?? null) : null,
         ];
+    }
 
-        // Deduplication logic removed per objective.
+    protected function formatExternalDateTime(mixed $value): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('Y-m-d H:i:s');
+        }
 
-        return $result;
+        return (string) $value;
     }
 
     /**
-     * Sanitize image URL that may be stored as a JSON array string.
-     * e.g. '["https://example.com/img.png"]' → 'https://example.com/img.png'
+     * Unwrap image values stored as JSON string/array (e.g. MySQL JSON or legacy encoding).
      */
-    protected function sanitizeImageUrl(mixed $value): string
+    protected function unwrapStoredImage(mixed $value): string
     {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
         if (is_array($value)) {
             return (string) ($value[0] ?? '');
         }
 
         $str = trim((string) $value);
 
-        // Case 1: JSON array string '["url"]'
         if (str_starts_with($str, '["') && str_ends_with($str, '"]')) {
             $decoded = json_decode($str, true);
             if (is_array($decoded) && !empty($decoded)) {
@@ -175,16 +159,15 @@ class ArticleResource extends JsonResource
             }
         }
 
-        // Case 2: Quoted JSON string '"url"' (happens with MySQL JSON columns)
         if (str_starts_with($str, '"') && str_ends_with($str, '"')) {
             $decoded = json_decode($str);
             if (is_string($decoded)) {
                 return $decoded;
             }
+
             return trim($str, '"');
         }
 
         return $str;
     }
-
 }

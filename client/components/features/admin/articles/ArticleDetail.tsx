@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/api-v2";
 import { Calendar, Eye, Edit, ChevronLeft, Loader2, ExternalLink, Image as ImageIcon } from 'lucide-react';
 
 import { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
+import ContentBlocksRenderer from "@/components/features/article/ContentBlocksRenderer";
 import { getAdminArticleById } from "@/lib/api-v2/admin/service/article/getAdminArticleById";
 import { publishArticle } from "@/lib/api-v2/admin/service/article/publishArticle";
 import { deleteArticle } from "@/lib/api-v2/admin/service/article/deleteArticle";
@@ -15,7 +16,7 @@ import { hardDeleteArticle } from "@/lib/api-v2/admin/service/article/hardDelete
 import { Trash2, RotateCcw, ShieldAlert, Send } from 'lucide-react';
 import { sendNewsletter } from "@/lib/api-v2/admin/service/article/sendNewsletter";
 import ArticleEditorModal from "@/components/features/admin/articles/ArticleEditorModal";
-import CustomizeTitlesModal from "@/components/features/admin/articles/CustomizeTitlesModal";
+
 import StatusBadge from "@/components/features/admin/shared/StatusBadge";
 import SendNewsletterModal from "@/components/features/admin/articles/SendNewsletterModal";
 import ArticleBreadcrumb from "@/components/features/article/ArticleBreadcrumb";
@@ -54,14 +55,12 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
     const from = backPath || searchParams.get('from') || defaultBackPath;
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
     const [article, setArticle] = useState<ArticleResource | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isPublishing, setIsPublishing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isRestoring, setIsRestoring] = useState(false);
     const [isHardDeleting, setIsHardDeleting] = useState(false);
-    const [customTitles, setCustomTitles] = useState<Record<string, string>>({});
     const [showPublishDialog, setShowPublishDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showRestoreDialog, setShowRestoreDialog] = useState(false);
@@ -89,7 +88,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                 const articleData = responseData.data ?? responseData;
 
                 // If editor tries to access a deleted article, redirect them
-                if (isEditor && (articleData.status === 'deleted' || articleData.is_deleted)) {
+                if (isEditor && articleData.status === 'deleted') {
                     router.push(from);
                     return;
                 }
@@ -161,7 +160,6 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
         try {
             await publishArticle(id, {
                 published_sites: publishToSites,
-                custom_titles: Object.entries(customTitles).map(([k, v]) => `${k}:${v}`)
             });
             router.push(`${defaultBackPath}?status=published`);
         } catch (error: any) {
@@ -232,10 +230,6 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
 
     const handleSendNewsletter = () => {
         setIsNewsletterModalOpen(true);
-    };
-
-    const handleCustomTitlesUpdate = (titles: Record<string, string>) => {
-        setCustomTitles(titles);
     };
 
     const toggleSite = (site: string) => {
@@ -313,26 +307,6 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
 
                                 {(() => {
                                     const hasContentBlocks = Array.isArray(article.content_blocks) && article.content_blocks.length > 0;
-                                    
-                                    let isDuplicateImage = false;
-                                    if (hasContentBlocks) {
-                                        isDuplicateImage = (article.content_blocks ?? []).some(
-                                            (block: any) => block.type === 'image' && (
-                                                block.content?.src === article.image ||
-                                                block.content?.image === article.image
-                                            )
-                                        );
-                                    } else {
-                                        const content = article.content || article.summary || '';
-                                        const firstImageMatch = content.match(/<img[^>]+src=['"]([^'"]+)['"]/);
-                                        isDuplicateImage = !!(firstImageMatch && article.image && (
-                                            firstImageMatch[1] === article.image ||
-                                            decodeURIComponent(firstImageMatch[1]) === decodeURIComponent(article.image)
-                                        ));
-                                    }
-
-                                    const shouldShowFeatureImage = article.image && !isDuplicateImage;
-                                    let textBlockCount = 0;
 
                                     return (
                                         <>
@@ -347,147 +321,10 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                                     color: #0c0c0c;
                                                 }
                                             `}</style>
-                                            {shouldShowFeatureImage && (
-                                                <figure className="mb-8 flex justify-center">
-                                                    <div className="overflow-hidden bg-gray-50 rounded-[8px] mb-3">
-                                                        <img
-                                                            src={article.image || 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'}
-                                                            alt={article.title}
-                                                            className="max-w-full h-auto object-contain max-h-[500px]"
-                                                            onError={(e) => { e.currentTarget.src = 'https://placehold.co/1200x675/e5e7eb/666666?text=No+Image+Available'; }}
-                                                        />
-                                                    </div>
-                                                    <figcaption className="text-[13px] text-[#6b7280] italic leading-relaxed">
-                                                        {article.title} — {article.country}
-                                                    </figcaption>
-                                                </figure>
-                                            )}
 
                                             <div className="prose prose-lg max-w-none prose-p:text-[#374151] prose-p:leading-[28px] prose-p:tracking-[-0.5px]">
                                                 {hasContentBlocks ? (
-                                                    <div className="space-y-6">
-                                                        {article.content_blocks?.map((block: any, idx: number) => {                                                            const { type, content, settings } = block;
-
-                                                                const blockStyle = {
-                                                                    textAlign: settings?.textAlign || 'left',
-                                                                    fontSize: settings?.fontSize || '18px',
-                                                                    color: settings?.color || 'inherit',
-                                                                    fontWeight: settings?.fontWeight || 'normal',
-                                                                    fontStyle: settings?.isItalic ? 'italic' : 'normal',
-                                                                    textDecoration: settings?.isUnderline ? 'underline' : 'none',
-                                                                } as React.CSSProperties;
-
-                                                                return (
-                                                                    <div key={block.id || idx} className="mb-8">
-                                                                        {type === 'text' && (() => {
-                                                                        const isFirstText = textBlockCount === 0;
-                                                                        textBlockCount++;
-                                                                        return (
-                                                                            <div
-                                                                                key={block.id || idx}
-                                                                                className={`${isFirstText ? 'drop-cap' : ''} tiptap whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&_p]:min-h-[1.5em] [&_ul]:list-disc [&_ul]:pl-10 [&_ol]:list-decimal [&_ol]:pl-10 [&_li]:mb-1 ${
-                                                                                    settings?.listType === 'bullet' ? 'list-disc ml-6' : ''
-                                                                                } ${
-                                                                                    settings?.listType === 'number' ? 'list-decimal ml-6' : ''
-                                                                                }`}
-                                                                                style={blockStyle}
-                                                                                dangerouslySetInnerHTML={{ __html: decodeHtml(content?.text || content || '') }}
-                                                                            />
-                                                                        );
-                                                                    })()}
-
-                                                                    {(type === 'image' || type === 'centered-image') && (
-                                                                        <figure className={cn("my-8", type === 'centered-image' && "max-w-[80%] mx-auto text-center")}>
-                                                                            <img
-                                                                                src={typeof content === 'string' ? content : (content?.src || content?.image || block.image)}
-                                                                                alt={content?.caption || block.caption || ""}
-                                                                                className={cn(
-                                                                                    "w-full rounded-xl shadow-sm border border-gray-100",
-                                                                                    type === 'centered-image' ? "max-h-[600px] object-cover" : "h-auto"
-                                                                                )}
-                                                                            />
-                                                                            {(content?.caption || block.caption) && (
-                                                                                <figcaption className="text-sm text-center text-gray-400 mt-3 italic">
-                                                                                    {content?.caption || block.caption}
-                                                                                </figcaption>
-                                                                            )}
-                                                                        </figure>
-                                                                    )}
-
-                                                                    {(type === 'left-image' || type === 'right-image') && (
-                                                                        <div className={cn(
-                                                                            "my-10 flex gap-8 items-start flex-col md:flex-row",
-                                                                            type === 'right-image' && "md:flex-row-reverse"
-                                                                        )}>
-                                                                            <div className="w-full md:w-[200px] shrink-0">
-                                                                                <img
-                                                                                    src={typeof content === 'string' ? content : (content?.image || content?.src || block.image)}
-                                                                                    alt=""
-                                                                                    className="w-full aspect-square object-cover rounded-xl shadow-sm"
-                                                                                />
-                                                                                {(content?.caption || block.caption) && (
-                                                                                    <p className="text-[11px] text-gray-400 mt-2 italic text-center leading-tight">
-                                                                                        {content?.caption || block.caption}
-                                                                                    </p>
-                                                                                )}
-                                                                            </div>
-                                                                            <div
-                                                                                style={blockStyle}
-                                                                                className="flex-1 text-[18px] text-[#374151] leading-[32px]"
-                                                                                dangerouslySetInnerHTML={{ __html: decodeHtml(content?.text || content || '') }}
-                                                                            />
-                                                                        </div>
-                                                                    )}
-
-                                                                    {type === 'grid' && (
-                                                                        <div className={cn(
-                                                                            "my-8 grid gap-4",
-                                                                            (content?.images?.length === 3) ? "grid-cols-3" : "grid-cols-2"
-                                                                        )}>
-                                                                            {content?.images?.map((img: string, i: number) => (
-                                                                                <img
-                                                                                    key={i}
-                                                                                    src={img}
-                                                                                    className="w-full aspect-square object-cover rounded-xl shadow-sm"
-                                                                                />
-                                                                            ))}
-                                                                        </div>
-                                                                    )}
-
-                                                                    {(type === 'split-left' || type === 'split-right') && (
-                                                                        <div className={cn(
-                                                                            "my-10 flex flex-col md:flex-row bg-[#f9fafb] rounded-2xl overflow-hidden min-h-[400px]",
-                                                                            type === 'split-right' && "md:flex-row-reverse"
-                                                                        )}>
-                                                                            <div className="flex-1 min-h-[300px]">
-                                                                                <img
-                                                                                    src={content?.image || content?.src || block.image}
-                                                                                    className="w-full h-full object-cover"
-                                                                                />
-                                                                            </div>
-                                                                            <div
-                                                                                style={blockStyle}
-                                                                                className="flex-1 p-8 md:p-12 flex items-center text-[20px] text-[#111827] leading-[1.4] font-medium"
-                                                                                dangerouslySetInnerHTML={{ __html: decodeHtml(content?.text || content || '') }}
-                                                                            />
-                                                                        </div>
-                                                                    )}
-
-                                                                    {type === 'dynamic-images' && (
-                                                                        <div className="my-8 space-y-4">
-                                                                            {content?.images?.map((img: string, i: number) => (
-                                                                                <img
-                                                                                    key={i}
-                                                                                    src={img}
-                                                                                    className="w-full rounded-xl shadow-sm"
-                                                                                />
-                                                                            ))}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
+                                                    <ContentBlocksRenderer blocks={article.content_blocks || []} forceLight={true} />
                                                 ) : (
                                                     <div
                                                         className="whitespace-pre-wrap text-[18px] text-[#374151] leading-[32px] tracking-[-0.5px] tiptap [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-6 [&>ol]:list-decimal [&>ol]:ml-6 [&_ul]:list-disc [&_ul]:pl-10 [&_ol]:list-decimal [&_ol]:pl-10 [&_li]:mb-1 [&>li]:mb-1 [&>a]:text-blue-600 [&>a]:underline first-letter:text-[72px] first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-5px] first-letter:leading-[0.8] first-letter:text-[#0c0c0c] [&_p]:min-h-[1.5em] drop-cap"
@@ -569,7 +406,6 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                     </div>
                                 )}
                                 <div className="flex gap-3">
-                                    <button disabled className="flex-1 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#374151] bg-gray-100 opacity-50 cursor-not-allowed tracking-[-0.5px]">Customize</button>
                                     <button
                                         onClick={handlePublishClick}
                                         disabled={isPublishing || (article.status === 'published' && !article.is_redis)}
@@ -665,7 +501,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                 <button onClick={() => setIsEditModalOpen(true)} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-[#d1d5db] rounded-[8px] text-[14px] font-medium text-[#374151] hover:bg-gray-50 transition-all active:scale-95 tracking-[-0.5px]">
                                     <Edit className="w-4 h-4" /> Edit Article
                                 </button>
-                                {article.status === 'published' && !article.is_deleted && !isEditor && (
+                                {article.status === 'published' && !isEditor && (
                                     <button
                                         onClick={handleSendNewsletter}
                                         className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-[#1428AE] text-[#1428AE] rounded-[8px] text-[14px] font-medium hover:bg-blue-50 transition-all active:scale-95 tracking-[-0.5px]"
@@ -687,7 +523,7 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                                     // Editors shouldn't see delete/restore in detail view usually, or if they do, it's restricted
                                     null
                                 ) : (
-                                    article.is_deleted || article.status === 'deleted' ? (
+                                    article.status === 'deleted' ? (
                                         <div className="space-y-3">
                                             <button
                                                 onClick={handleRestoreClick}
@@ -741,7 +577,6 @@ export default function ArticleDetail({ id, backPath }: ArticleDetailProps) {
                 availableCategories={availableFilters.categories}
                 availableCountries={availableFilters.countries}
             />
-            <CustomizeTitlesModal isOpen={isCustomizeModalOpen} onClose={() => setIsCustomizeModalOpen(false)} publishTo={publishToSites} originalTitle={article.title} onSave={handleCustomTitlesUpdate} />
 
             <AlertDialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
                 <AlertDialogContent>
