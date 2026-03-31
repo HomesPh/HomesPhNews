@@ -68,10 +68,13 @@ If it does not match, you may receive `403 Unauthorized Origin`.
 | `GET` | `/api/external/articles/{identifier}` | Single article by UUID or slug |
 | `GET` | `/api/external/restaurants` | List/filter published restaurants |
 | `POST` | `/api/external/subscribe` | Register subscription from partner widget |
+| `GET` | `/api/external/categories/countries` | Valid category + country pairs for this site (slugs + counts) |
 | `GET` | `/api/external/categories` | Active categories (dropdown data) |
 | `GET` | `/api/external/countries` | Active countries (dropdown data) |
-| `GET` | `/api/external/provinces` | Provinces (optionally filtered by country) |
-| `GET` | `/api/external/cities` | Cities (optionally filtered by country and/or province) |
+| `GET` | `/api/external/countries/{country}/provinces` | Provinces for one country (id or slugified name) |
+| `GET` | `/api/external/countries/{country}/provinces/{province}/cities` | Cities for one province (id or slugified name) |
+| `GET` | `/api/external/provinces` | Provinces, optionally filtered by country |
+| `GET` | `/api/external/cities` | Cities, optionally filtered by country and/or province |
 
 ---
 
@@ -84,11 +87,13 @@ Uses the partner-specific article payload shape (based on `ExternalArticleResour
 
 | Parameter | Type | Description |
 |---|---|---|
-| `search` / `q` | string | Server-side LIKE search on `title`, `summary`, `keywords`, and `topics` (does NOT search `content_blocks`) |
-| `category` | string | Exact match on article category (e.g. `Business & Economy`) |
-| `country` | string | Exact match on article country (e.g. `Philippines`) |
-| `province` | integer | Filter by `province_id` |
-| `city` | integer | Filter by `city_id` |
+| `search` / `q` | string | LIKE search on `title`, `summary`, `keywords`, `topics`, and **`content_blocks`** (substring; not full-text) |
+| `category_slug` | string | Active category by `slug` → filters by category **name**; invalid slug returns empty list |
+| `category` | string | Exact match on category name; ignored if `category_slug` is set |
+| `country_slug` | string | Country by id (`PH`), name, or slugified name (`philippines`); invalid returns empty list |
+| `country` | string | Exact match on article country; ignored if `country_slug` is set |
+| `province_slug` / `province` | string or int | Numeric → `province_id`; else slugified match on province **name** (scoped by country when provided) |
+| `city_slug` / `city` | string or int | Numeric → `city_id`; else slugified match on city **name** (scoped by province when unambiguous, or country) |
 | `topic` | string | Matches one element inside JSON `topics` using `JSON_CONTAINS(topics, json_encode($topic))` |
 | `per_page` / `limit` | integer | Results per page (server clamps to `1..100`), default: `20` |
 | `page` | integer | Page number, default: `1` |
@@ -96,13 +101,22 @@ Uses the partner-specific article payload shape (based on `ExternalArticleResour
 Sort order:
 `published_at` descending, then `created_at` descending.
 
-### Content blocks search (important)
+### URL-style example (cookies / path segments)
 
-There is currently **no** query parameter that searches within `content_blocks` for `/api/external/articles`.
-Filtering/search is limited to:
-- `search` / `q` across `title`, `summary`, `keywords`, `topics`
-- exact filters (`category`, `country`, `province`, `city`)
-- `topic` (JSON element match inside `topics`)
+A partner route like `/real-estate/philippines/cebu` can call the list endpoint with:
+
+`category_slug=real-estate&country_slug=philippines&city_slug=cebu`
+
+Use **`GET /api/external/categories/countries`** to populate only valid category/country pairs for your site before persisting filters in cookies.
+
+### Nested geo (optional)
+
+- `GET /api/external/countries/PH/provinces` or `/api/external/countries/philippines/provinces`
+- `GET /api/external/countries/PH/provinces/7/cities` or `.../provinces/cebu/cities` (province id or slugified name; use numeric id if the name is ambiguous → **422**)
+
+### Content blocks search
+
+`search` / `q` also runs a SQL **`LIKE`** on the serialized **`content_blocks`** column. This is a simple substring match, not indexed full-text search.
 
 ### Response shape (example)
 
@@ -124,10 +138,10 @@ Filtering/search is limited to:
 ### Article object fields (high level)
 
 Key fields you can expect:
-`id`, `slug`, `title`, `summary`, `category`, `country`, `status`, `published_at`, `created_at`,
+`id`, `slug`, `title`, `summary`, `category`, `category_slug`, `country`, `status`, `published_at`, `created_at`,
 `views_count`, `image`, `location`, `description`, `date`, `views`, `published_sites`,
 `topics`, `keywords`, `content_blocks`, `author`, `province_id`, `city_id`,
-`province_name`, `city_name`.
+`province_slug`, `city_slug`, `province_name`, `city_name`.
 
 Note:
 There is no separate top-level flattened `content` string in the current payload.
@@ -409,4 +423,7 @@ Suggested flow:
 5. When a user clicks an article:
    - navigate to the detail page using the article slug:
      `/api/external/articles/philippines-joins-regional-tourism-drive`
+
+6. (Optional) Load valid filter pairs once per session:
+   - `GET /api/external/categories/countries` then drive path segments / cookies from `category_slug`, `country_id`, and later `city_slug` on the articles list.
 

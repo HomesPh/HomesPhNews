@@ -4,6 +4,8 @@ namespace App\Http\Resources\Articles;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 /**
  * External partner API payload: dedicated shape (no ArticleResource).
@@ -97,6 +99,23 @@ class ExternalArticleResource extends JsonResource
             $contentBlocks = [];
         }
 
+        $categoryName = (string) $get('category', '');
+        $categorySlugMap = Cache::remember('external_api_category_slug_by_name_v1', 300, function () {
+            return \App\Models\Category::where('is_active', true)->pluck('slug', 'name')->all();
+        });
+        $categorySlug = $categoryName !== '' ? ($categorySlugMap[$categoryName] ?? null) : null;
+
+        $provinceSlug = null;
+        $citySlug = null;
+        if ($isModel) {
+            if ($res->relationLoaded('province') && $res->province) {
+                $provinceSlug = Str::slug($res->province->name);
+            }
+            if ($res->relationLoaded('city') && $res->city) {
+                $citySlug = Str::slug($res->city->name);
+            }
+        }
+
         return [
             'id' => (string) $get('id', ''),
             'slug' => (string) $get('slug', ''),
@@ -117,6 +136,9 @@ class ExternalArticleResource extends JsonResource
             'topics' => array_map('strval', is_array($topics) ? $topics : []),
             'keywords' => is_array($get('keywords', [])) ? implode(', ', $get('keywords', [])) : (string) $get('keywords', ''),
             'content_blocks' => $contentBlocks,
+            'category_slug' => $categorySlug,
+            'province_slug' => $provinceSlug,
+            'city_slug' => $citySlug,
             'author' => (string) $get('author', ''),
             'province_id' => $get('province_id'),
             'city_id' => $get('city_id'),
