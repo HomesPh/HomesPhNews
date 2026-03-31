@@ -176,7 +176,7 @@ class SiteContentController extends Controller
                 'url' => $site->site_url,
                 'description' => $site->site_description,
             ],
-            'data' => new RestaurantCollection($restaurants),
+            'data' => new ExternalArticleCollection($articles),
         ]);
     }
 
