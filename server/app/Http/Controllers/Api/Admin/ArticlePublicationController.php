@@ -61,7 +61,8 @@ class ArticlePublicationController extends Controller
         }
         $siteIds = array_values(array_unique($siteIds));
 
-        $scheduledAt = $validated['date'] . ' ' . $validated['time'];
+        $datePart = \Carbon\Carbon::parse($validated['date'])->toDateString();
+        $scheduledAt = $datePart . ' ' . $validated['time'];
         $publications = [];
 
         DB::transaction(function () use ($validated, $scheduledAt, $siteIds, &$publications) {

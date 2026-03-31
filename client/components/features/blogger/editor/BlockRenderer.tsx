@@ -3,7 +3,7 @@
 
 import {
     Trash2, Type, Image as ImageIcon,
-    Grid, Plus, GripVertical, Move, Check, X as XIcon, Sparkles
+    Grid, Plus, GripVertical, Move, Check, X as XIcon, Sparkles, Star
 } from "lucide-react";
 import { Block, BlockType } from "@/hooks/useBlockEditor";
 import { cn, formatParagraphs } from "@/lib/utils";
@@ -25,6 +25,8 @@ interface BlockRendererProps {
     onReorder: (dragIndex: number, hoverIndex: number) => void;
     onGenerate?: (args: { id: string; block: Block; }) => void;
     onUpdateSettings?: (id: string, settings: any) => void;
+    onSetImageAsThumbnail?: (url: string) => void;
+    thumbnailUrl?: string;
 }
 
 // --- Reusable Draggable Image Component ---
@@ -281,7 +283,9 @@ export default function BlockRenderer({
     onMove,
     onReorder,
     onGenerate,
-    onUpdateSettings
+    onUpdateSettings,
+    onSetImageAsThumbnail,
+    thumbnailUrl
 }: BlockRendererProps) {
     const ref = useRef<HTMLDivElement>(null);
     const [isRepositioning, setIsRepositioning] = useState(false);
@@ -541,13 +545,13 @@ export default function BlockRenderer({
                         (!isSplitLeft && !isActualMobile) && "md:flex-row-reverse"
                     )}>
                         <div className="flex-1 min-h-[300px] h-full">
-                                <DraggableImage
-                                    src={typeof block.content === 'string' ? block.content : (block.content.src || block.content.image || block.image)}
-                                    onUpload={(file) => handleFileUpload(file, (url) => onUpdate(block.id, { image: url }))}
-                                    imagePosition={settings.imagePosition}
-                                    onPositionChange={handleUpdateImagePosition}
-                                    className="h-full"
-                                />
+                            <DraggableImage
+                                src={typeof block.content === 'string' ? block.content : (block.content.src || block.content.image || block.image)}
+                                onUpload={(file) => handleFileUpload(file, (url) => onUpdate(block.id, { image: url }))}
+                                imagePosition={settings.imagePosition}
+                                onPositionChange={handleUpdateImagePosition}
+                                className="h-full"
+                            />
                         </div>
                         <div className="flex-1 min-w-0 p-8 md:p-12 flex flex-col justify-center">
                             <RichTextEditor
@@ -617,20 +621,50 @@ export default function BlockRenderer({
                 isActive && "opacity-100"
             )}>
                 <div className="p-1 px-1.5 bg-white rounded-lg shadow-sm border border-gray-100 flex flex-col gap-0.5">
-                    {block.type === "image" && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
+                    {['image', 'centered-image', 'left-image', 'right-image'].includes(block.type) && (
+                        <>
+                            {(block.type === 'image' || block.type === 'centered-image') && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onGenerate?.({ id: block.id, block });
+                                    }}
+                                    className="p-1.5 hover:bg-[#eef2ff] rounded-md text-gray-400 hover:text-[#1428AE]"
+                                    disabled={isLoading}
+                                    title="Generate Image"
+                                >
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                </button>
+                            )}
+                            {(() => {
+                                const imgSrc = block.type === 'left-image' || block.type === 'right-image'
+                                    ? block.content.image
+                                    : block.content.src;
 
-                                console.log("[BlockRenderer.tsx]: Generate button clicked!");
-                                onGenerate?.({ id: block.id, block });
-                            }}
-                            className="p-1.5 hover:bg-[#eef2ff] rounded-md text-gray-400 hover:text-[#1428AE]"
-                            title="Generate"
-                            disabled={isLoading}
-                        >
-                            <Sparkles className="w-3.5 h-3.5" />
-                        </button>
+                                if (!imgSrc) return null;
+
+                                const isThumbnail = thumbnailUrl === imgSrc;
+
+                                return (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onSetImageAsThumbnail?.(imgSrc);
+                                        }}
+                                        className={cn(
+                                            "p-1.5 rounded-md transition-all",
+                                            isThumbnail
+                                                ? "bg-[#eef2ff] text-[#1428AE]"
+                                                : "hover:bg-[#eef2ff] text-gray-400 hover:text-[#1428AE]"
+                                        )}
+                                        disabled={isLoading}
+                                        title={isThumbnail ? "Current Thumbnail" : "Set as Thumbnail"}
+                                    >
+                                        <Star className={cn("w-3.5 h-3.5", isThumbnail && "fill-current")} />
+                                    </button>
+                                );
+                            })()}
+                        </>
                     )}
                     <button
                         className="p-1.5 hover:bg-gray-50 rounded-md text-gray-400 hover:text-[#1428AE] cursor-grab active:cursor-grabbing"

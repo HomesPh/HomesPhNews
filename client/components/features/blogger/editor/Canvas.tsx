@@ -257,6 +257,7 @@ export default function Canvas({
                             block={block}
                             isActive={activeBlockId === block.id}
                             viewMode={viewMode}
+                            isLoading={!!loadingByBlockId?.[block.id]}
                             onSelect={() => onSelectBlock(block.id)}
                             onUpdate={onUpdateBlock}
                             onRemove={onRemoveBlock}
@@ -264,7 +265,8 @@ export default function Canvas({
                             onReorder={onReorder}
                             onUpdateSettings={onUpdateBlockSettings}
                             onGenerate={onGenerate}
-                            isLoading={!!loadingByBlockId?.[block.id]}
+                            onSetImageAsThumbnail={(url) => onUpdateDetails({ image: url })}
+                            thumbnailUrl={details.image}
                         />
 
                         {/* Bottom Block Separator (Add Below) */}

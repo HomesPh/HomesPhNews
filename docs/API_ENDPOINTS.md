@@ -94,8 +94,11 @@ Client API layer: [client/lib/api-v2/](../client/lib/api-v2/)
 | `GET` | `/api/external/articles/{identifier}` | Single article by UUID **or** slug |
 | `GET` | `/api/external/restaurants` | Paginated, filterable list of published restaurants |
 | `POST` | `/api/external/subscribe` | Register user subscription from partner site widget |
+| `GET` | `/api/external/categories/countries` | Site-scoped distinct `category` + `country` pairs (with slugs and counts) for cookie/URL filters |
 | `GET` | `/api/external/categories` | All active categories (for filter dropdowns) |
 | `GET` | `/api/external/countries` | All active countries (for filter dropdowns) |
+| `GET` | `/api/external/countries/{country}/provinces` | Provinces for one country (`{country}` = country id `PH` or slug e.g. `philippines`) |
+| `GET` | `/api/external/countries/{country}/provinces/{province}/cities` | Cities for one province (`{province}` = numeric id or slugified province name) |
 | `GET` | `/api/external/provinces` | Provinces, optionally filtered by country |
 | `GET` | `/api/external/cities` | Cities, optionally filtered by country and/or province |
 
@@ -107,14 +110,21 @@ Returns paginated articles published to this site. Uses `ExternalArticleResource
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `search` / `q` | string | -- | Full-text search on `title`, `summary`, `keywords`, `topics` |
-| `category` | string | -- | Exact match on article category (e.g. `Business & Economy`) |
+| `search` / `q` | string | -- | LIKE search on `title`, `summary`, `keywords`, `topics`, and **`content_blocks`** (substring; not full-text indexed) |
+| `category_slug` | string | -- | Resolve active `categories.slug` → category **name**; invalid slug returns no rows. If set, **`category` is ignored**. |
+| `category` | string | -- | Exact match on article category (e.g. `Business & Economy`); ignored when `category_slug` is set |
+| `country_slug` | string | -- | Resolve country by **id** (e.g. `PH`), **name**, or **slugified** English name (e.g. `philippines`); invalid returns no rows. If set, **`country` is ignored**. |
 | `country` | string | -- | Exact match on article country (e.g. `Philippines`) |
-| `province` | integer | -- | Filter by `province_id` |
-| `city` | integer | -- | Filter by `city_id` |
+| `province_slug` | string | -- | Filter by province: numeric = `province_id`; otherwise match **slugified** province `name` (optional scope: resolved `country` / `country_slug`) |
+| `province` | string / integer | -- | Same as `province_slug` (alias); integer or numeric string filters `province_id` |
+| `city_slug` | string | -- | Filter by city: numeric = `city_id`; otherwise match **slugified** city `name` (optional scope: resolved province when unambiguous, or country) |
+| `city` | string / integer | -- | Same as `city_slug` (alias); integer or numeric string filters `city_id` |
 | `topic` | string | -- | JSON contains match on `topics` array (e.g. `Tourism`) |
 | `per_page` / `limit` | integer | 20 | Results per page (1-100) |
 | `page` | integer | 1 | Page number |
+
+**URL-style filters (cookies):** A path like `/real-estate/philippines/cebu` can map to query params, for example:  
+`category_slug=real-estate&country_slug=philippines&city_slug=cebu`.
 
 **Sort order:** `published_at` descending, then `created_at` descending.
 
@@ -135,7 +145,7 @@ Returns paginated articles published to this site. Uses `ExternalArticleResource
 }
 ```
 
-**Article object fields:** `id`, `slug`, `title`, `summary`, `category`, `country`, `status`, `published_at`, `created_at`, `views_count`, `image`, `location`, `description`, `date`, `views`, `published_sites`, `topics`, `keywords`, `content_blocks`, `author`, `province_id`, `city_id`, `province_name`, `city_name`. There is no separate flattened **`content`** (HTML string) in the current payload; body rendering from **`content_blocks`** is described under [Article body: HTML rendering (partner contract)](#article-body-html-rendering-partner-contract).
+**Article object fields:** `id`, `slug`, `title`, `summary`, `category`, `category_slug`, `country`, `status`, `published_at`, `created_at`, `views_count`, `image`, `location`, `description`, `date`, `views`, `published_sites`, `topics`, `keywords`, `content_blocks`, `author`, `province_id`, `city_id`, `province_slug`, `city_slug`, `province_name`, `city_name`. There is no separate flattened **`content`** (HTML string) in the current payload; body rendering from **`content_blocks`** is described under [Article body: HTML rendering (partner contract)](#article-body-html-rendering-partner-contract).
 
 - `published_at` -- formatted publish timestamp (`Y-m-d H:i:s`), empty string if not set.
 - `created_at` -- row creation time.
@@ -155,6 +165,41 @@ Fetch a single published article. `{identifier}` accepts either a **UUID** (e.g.
 ```
 
 Returns `404` if the article is not found, not published, or not assigned to this site.
+
+---
+
+### `GET /api/external/categories/countries`
+
+Returns **distinct** `category` + `country` combinations that appear on **published** articles assigned to this site, with optional counts. Use this to build cookie-driven or URL-segment filters without dead combinations.
+
+**Response shape (example):**
+
+```json
+{
+  "site": { "name": "...", "url": "...", "description": "..." },
+  "data": [
+    {
+      "category": "Healthcare",
+      "category_slug": "healthcare",
+      "country": "Philippines",
+      "country_id": "PH",
+      "article_count": 12
+    }
+  ]
+}
+```
+
+---
+
+### `GET /api/external/countries/{country}/provinces`
+
+Same rows as `GET /api/external/provinces?country_id=...`, but `{country}` accepts **country id** (`PH`) or **slugified** name (`philippines`). Returns `404` with `{ "message": "Country not found" }` when unresolved.
+
+---
+
+### `GET /api/external/countries/{country}/provinces/{province}/cities`
+
+Cities for a single province. `{province}` is a **numeric** province id or a **slugified** province name **within** the resolved country. If the province name matches more than one province, returns **`422`** with a message to use a numeric id. Returns **`404`** if country or province cannot be resolved.
 
 ---
 
