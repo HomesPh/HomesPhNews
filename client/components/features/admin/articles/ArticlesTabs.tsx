@@ -41,7 +41,7 @@ export default function ArticlesTabs({ activeTab, setActiveTab, counts }: Articl
                             onClick={() => setActiveTab(tab.id)}
                             className={cn(
                                 "flex items-center gap-2 px-2 pb-3 relative transition-all whitespace-nowrap flex-shrink-0",
-                                isActive ? "border-b-4 border-[#F4AA1D]" : ""
+                                isActive ? cn("border-b-4", tab.id === 'being_processed' ? "border-red-500" : "border-[#F4AA1D]") : ""
                             )}
                         >
                             {/* Icons matching reference SVG paths roughly with Lucide fallback if needed, but here we can use SVGs if we want exact */}

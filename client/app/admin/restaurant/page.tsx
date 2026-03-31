@@ -314,7 +314,7 @@ export default function RestaurantPage() {
                 />
 
                 {filters.status === 'being_processed' && filteredRestaurants.length > 0 && (
-                    <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-[#e5e7eb] bg-amber-50/50">
+                    <div className="flex items-center justify-between gap-4 px-5 py-3 border-b border-[#e5e7eb] bg-red-50/50">
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input
                                 type="checkbox"

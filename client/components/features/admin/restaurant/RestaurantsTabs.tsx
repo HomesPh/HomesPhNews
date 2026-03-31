@@ -39,7 +39,7 @@ export default function RestaurantsTabs({ activeTab, setActiveTab, counts }: Res
                             onClick={() => setActiveTab(tab.id)}
                             className={cn(
                                 "flex items-center gap-[15px] px-2 pb-3 relative transition-all",
-                                isActive ? "border-b-4 border-[#F4AA1D]" : ""
+                                isActive ? cn("border-b-4", tab.id === 'being_processed' ? "border-red-500" : "border-[#F4AA1D]") : ""
                             )}
                         >
                             {/* Icons matching ArticlesTabs */}
