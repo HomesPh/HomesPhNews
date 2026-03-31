@@ -94,7 +94,7 @@ export default function ArticlesFilters({
         }));
 
         // Filter out "Restaurant" categories
-        return merged.filter(cat => 
+        return merged.filter(cat =>
             cat.name.toLowerCase() !== 'restaurant' && cat.name.toLowerCase() !== 'restaurants'
         );
     }, [exhaustiveCategories, availableCategories]);
@@ -114,7 +114,7 @@ export default function ArticlesFilters({
 
     const selectedCountryId = useMemo(() => {
         if (!countryFilter) return null;
-        return exhaustiveCountries.find(c => 
+        return exhaustiveCountries.find(c =>
             c.name.toLowerCase() === countryFilter.toLowerCase()
         )?.id || null;
     }, [countryFilter, exhaustiveCountries]);
@@ -141,7 +141,7 @@ export default function ArticlesFilters({
 
     const selectedProvinceId = useMemo(() => {
         if (!provinceFilter) return null;
-        return exhaustiveProvinces.find(p => 
+        return exhaustiveProvinces.find(p =>
             p.name.toLowerCase() === provinceFilter.toLowerCase()
         )?.id || null;
     }, [provinceFilter, exhaustiveProvinces]);
@@ -161,7 +161,7 @@ export default function ArticlesFilters({
                 baseCities = baseCities.filter(c => String(c.province_id) === String(selectedProvinceId));
             }
         } else if (!countryFilter) {
-            baseCities = []; 
+            baseCities = [];
         }
 
         return baseCities
@@ -264,10 +264,10 @@ export default function ArticlesFilters({
                             ? 'bg-gray-50 border-[#e5e7eb] text-[#9ca3af] cursor-not-allowed'
                             : 'bg-[#f9fafb] border-[#e5e7eb] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE]'
                     )}>
-                        <SelectValue placeholder={countryFilter ? 'All Provinces' : 'Select Country'} />
+                        <SelectValue placeholder="All Provinces" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">{countryFilter ? 'All Provinces' : 'Select Country First'}</SelectItem>
+                        <SelectItem value="all">All Provinces</SelectItem>
                         {finalProvinces.map((prov) => {
                             const data = getOptionData(prov);
                             return (
@@ -293,7 +293,7 @@ export default function ArticlesFilters({
                             ? 'bg-gray-50 border-[#e5e7eb] text-[#9ca3af] cursor-not-allowed'
                             : 'bg-[#f9fafb] border-[#e5e7eb] text-[#111827] focus:ring-[#1428AE]/10 focus:border-[#1428AE]'
                     )}>
-                        <SelectValue placeholder={countryFilter ? 'All Cities' : 'Select Country'} />
+                        <SelectValue placeholder="All Cities" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">{countryFilter ? 'All Cities' : 'Select Country First'}</SelectItem>
