@@ -83,7 +83,7 @@ export default function LandingHeader({ categories = [], countries = [] }: Landi
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
     } else {
-      router.push("/");
+      router.push("/feed");
     }
   };
 
@@ -92,9 +92,9 @@ export default function LandingHeader({ categories = [], countries = [] }: Landi
   };
 
   const navLinks = [
-    { href: "/?category=Articles", label: "Articles", icon: LayoutDashboard },
-    { href: "/?category=Blogs", label: "Blogs", icon: FileText },
-    { href: "/?category=Newsletters", label: "Newsletters", icon: Mail },
+    { href: "/feed?category=Articles", label: "Articles", icon: LayoutDashboard },
+    { href: "/feed?category=Blogs", label: "Blogs", icon: FileText },
+    { href: "/feed?category=Newsletters", label: "Newsletters", icon: Mail },
     { href: "/restaurants", label: "Restaurants", icon: Utensils },
   ];
 
@@ -108,7 +108,7 @@ export default function LandingHeader({ categories = [], countries = [] }: Landi
             <div className="flex items-center justify-between h-full">
 
               {/* Logo Section */}
-              <Link href="/" className="flex items-center gap-2 md:gap-3">
+              <Link href="/feed" className="flex items-center gap-2 md:gap-3">
                 <div className="relative h-4 md:h-6 w-auto flex items-center">
                   <img
                     src="/images/HomesLogo.png"

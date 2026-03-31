@@ -14,6 +14,11 @@ const SidebarItems = [
     icon: LayoutDashboard
   },
   {
+    title: "View Live Site",
+    href: "/feed",
+    icon: Globe
+  },
+  {
     title: "Articles",
     href: "/admin/articles",
     icon: FileText
