@@ -304,22 +304,22 @@
                         <tr>
                             <td>
                                 <a href="#" class="social-icon" title="Facebook">
-                                    <img src="{{ $message->embed(public_path('img/emails/facebook-icon.png')) }}" width="16" height="16" alt="Facebook" style="display: block;" />
+                                    <img src="https://news.homes.ph/img/emails/facebook-icon.png" width="16" height="16" alt="Facebook" style="display: block;" />
                                 </a>
                             </td>
                             <td>
                                 <a href="#" class="social-icon" title="LinkedIn">
-                                    <img src="{{ $message->embed(public_path('img/emails/linkedin-icon.png')) }}" width="16" height="16" alt="LinkedIn" style="display: block;" />
+                                    <img src="https://news.homes.ph/img/emails/linkedin-icon.png" width="16" height="16" alt="LinkedIn" style="display: block;" />
                                 </a>
                             </td>
                             <td>
                                 <a href="#" class="social-icon" title="Instagram">
-                                    <img src="{{ $message->embed(public_path('img/emails/instagram-icon.png')) }}" width="16" height="16" alt="Instagram" style="display: block;" />
+                                    <img src="https://news.homes.ph/img/emails/instagram-icon.png" width="16" height="16" alt="Instagram" style="display: block;" />
                                 </a>
                             </td>
                             <td>
                                 <a href="#" class="social-icon" title="X">
-                                    <img src="{{ $message->embed(public_path('img/emails/x-icon.png')) }}" width="16" height="16" alt="X" style="display: block;" />
+                                    <img src="https://news.homes.ph/img/emails/x-icon.png" width="16" height="16" alt="X" style="display: block;" />
                                 </a>
                             </td>
                         </tr>
