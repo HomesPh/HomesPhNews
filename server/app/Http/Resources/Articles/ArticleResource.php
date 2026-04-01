@@ -94,8 +94,14 @@ class ArticleResource extends JsonResource
         $status = (string) $get('status', 'pending');
 
         // Content is retrieved from content_blocks in modern flow
-        $summary = (string) $get('summary', '');
-        $description = (string) $get('summary', '');
+        // Use explicit null/empty check instead of ?? to handle empty strings correctly
+        $rawSummary = $get('summary', null);
+        // Also try $data directly in case getAttribute returns empty but DB has value
+        if (($rawSummary === null || $rawSummary === '') && isset($data['summary']) && $data['summary'] !== '') {
+            $rawSummary = $data['summary'];
+        }
+        $summary = (string) ($rawSummary ?? '');
+        $description = $summary;
 
         // Resolve primary image values once so we can reuse them and dedupe blocks against them
         $rawImageUrl = $data['image_url'] ?? $data['image'] ?? '';
@@ -145,6 +151,23 @@ class ArticleResource extends JsonResource
             $contentBlocks = $fallbackBlocks;
         }
 
+        // If summary is still empty, derive a plain-text fallback from content_blocks
+        if ($summary === '' && !empty($contentBlocks)) {
+            foreach ($contentBlocks as $block) {
+                $blockType = $block['type'] ?? '';
+                if ($blockType === 'text' || $blockType === 'paragraph') {
+                    $blockText = $block['content']['text'] ?? $block['content']['html'] ?? '';
+                    if ($blockText !== '') {
+                        // Strip HTML and take first 200 chars as summary preview
+                        $plainText = strip_tags($blockText);
+                        $summary = \Illuminate\Support\Str::limit($plainText, 200, '');
+                        $description = $summary;
+                        break;
+                    }
+                }
+            }
+        }
+
         $result = [
             'id' => (string) $get('id', ''),
             'slug' => (string) $get('slug', ''),
@@ -154,6 +177,7 @@ class ArticleResource extends JsonResource
             'category' => (string) $get('category', 'All'),
             'country' => (string) $get('country', $get('location', 'Global')),
             'status' => $status,
+            'published_at' => (string) ($get('published_at') ?? ''),
             'created_at' => (string) $date,
             'views_count' => (int) $get('views_count', 0),
             'image_url' => $primaryImageUrl,

@@ -434,7 +434,7 @@ class ArticleController extends Controller
         // Paginate DB results - Eager load to prevent N+1 queries
         $articles = $query
             ->with(['publishedSites:id,site_name', 'images:article_id,image_path', 'editor:id,name,first_name,last_name', 'city', 'province'])
-            ->select('id', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'content_blocks', 'author', 'edited_by', 'province_id', 'city_id')
+            ->select('id', 'slug', 'title', 'summary', 'image', 'category', 'country', 'status', 'created_at', 'published_at', 'views_count', 'topics', 'keywords', 'source', 'original_url', 'content_blocks', 'author', 'edited_by', 'province_id', 'city_id')
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage);
 
