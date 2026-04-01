@@ -37,17 +37,32 @@ export default function IntegrationPage() {
 
         return `<!-- HomesTV News Subscription Widget -->
 <div id="homestv-subscription-container">
-    <form id="homestv-subscription-form" style="max-width: 400px; padding: 20px; border: 1px solid #e5e7eb; rounded: 8px;">
-        <h3 style="margin-top: 0;">Subscribe to News</h3>
+    <form id="homestv-subscription-form" style="max-width: 400px; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; font-family: Arial, sans-serif;">
+        <h3 style="margin-top: 0; color: #111827;">Subscribe to News</h3>
+        
         <div style="margin-bottom: 15px;">
-            <input type="email" id="sub-email" placeholder="Email Address" required 
-                   style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Email Address</label>
+            <input type="email" id="sub-email" placeholder="email@example.com" required 
+                   style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
         </div>
+
+        <div style="margin-bottom: 15px; display: grid; grid-cols: 1; gap: 10px;">
+            <div>
+                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Target Location (Optional)</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="sub-target-province" placeholder="Province" 
+                           style="width: 50%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box; font-size: 13px;">
+                    <input type="text" id="sub-target-city" placeholder="City" 
+                           style="width: 50%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box; font-size: 13px;">
+                </div>
+            </div>
+        </div>
+
         <button type="submit" id="sub-btn" 
-                style="width: 100%; padding: 10px; background: #C10007; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                style="width: 100%; padding: 12px; background: #C10007; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 5px;">
             Subscribe Now
         </button>
-        <p id="sub-message" style="margin-top: 10px; font-size: 14px;"></p>
+        <p id="sub-message" style="margin-top: 10px; font-size: 14px; text-align: center;"></p>
     </form>
 </div>
 
@@ -63,13 +78,21 @@ document.getElementById('homestv-subscription-form').addEventListener('submit', 
     const payload = {
         email: document.getElementById('sub-email').value,
         categories: ${JSON.stringify(selectedSite.categories)},
-        countries: ["Philippines"], // Default
+        countries: ["Philippines"],
+        // News Interests (Targeting)
+        target_province: document.getElementById('sub-target-province').value || "All Provinces",
+        target_city: document.getElementById('sub-target-city').value || "All Cities",
+        // Delivery Settings (User Location)
+        user_country: "Philippines",
+        user_province: document.getElementById('sub-target-province').value || "",
+        user_city: document.getElementById('sub-target-city').value || "",
+        // Default Settings
         time: "08:00 AM",
-        frequency: "Daily"
+        features: "Daily"
     };
 
     try {
-        const response = await fetch('${apiUrl}/api/external/subscribe', {
+        const response = await fetch('${apiUrl}/external/subscribe', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
