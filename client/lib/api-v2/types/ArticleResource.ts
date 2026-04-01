@@ -11,6 +11,7 @@ export interface ArticleResource {
   province_name?: string | null;
   city_name?: string | null;
   status: string | "deleted";
+  published_at?: string | null;
   created_at: string;
   views_count: number;
   image_url: string;

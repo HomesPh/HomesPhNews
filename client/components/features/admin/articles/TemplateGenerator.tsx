@@ -1,15 +1,19 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
+import { cn } from "@/lib/utils";
 import { X, Download, RefreshCw, Type, Layout, Image as ImageIcon, ChevronDown, Check, Pipette } from 'lucide-react';
 import { SiteResource } from "@/lib/api-v2/types/SiteResource";
 import { ArticleResource } from "@/lib/api-v2/types/ArticleResource";
 import { getAdminSites } from "@/lib/api-v2/admin/service/sites/getAdminSites";
 
 interface TemplateGeneratorProps {
-    isOpen: boolean;
-    onClose: () => void;
-    article: ArticleResource;
+    isOpen?: boolean;
+    onClose?: () => void;
+    article?: ArticleResource;
+    isPage?: boolean;
+    initialTitle?: string;
+    initialImage?: string;
 }
 
 type LogoVariant = 'original' | 'dark' | 'light';
@@ -76,7 +80,19 @@ function PremiumColorPicker({ color, opacity, onChange, onOpacityChange }: {
     const [isOpen, setIsOpen] = useState(false);
     const popoverRef = useRef<HTMLDivElement>(null);
     const rgb = hexToRgb(color);
-    const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+
+    // Internal HSV state so dragging hue doesn't lose the hue angle during rgb<->hsv round-trips
+    const [hsvState, setHsvState] = useState(() => rgbToHsv(rgb.r, rgb.g, rgb.b));
+
+    // Sync internal state if the color prop changes externally (e.g. eyedropper, hex input)
+    const prevColorRef = useRef(color);
+    useEffect(() => {
+        if (color !== prevColorRef.current) {
+            prevColorRef.current = color;
+            const r2 = hexToRgb(color);
+            setHsvState(rgbToHsv(r2.r, r2.g, r2.b));
+        }
+    }, [color]);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -89,6 +105,8 @@ function PremiumColorPicker({ color, opacity, onChange, onOpacityChange }: {
     }, []);
 
     const updateHsv = (h: number, s: number, v: number) => {
+        const newHsv = { h, s, v };
+        setHsvState(newHsv);
         const { r, g, b } = hsvToRgb(h, s, v);
         onChange(rgbToHex(r, g, b));
     };
@@ -147,13 +165,13 @@ function PremiumColorPicker({ color, opacity, onChange, onOpacityChange }: {
                     {/* Saturation/Brightness Area */}
                     <div
                         className="relative w-full h-[160px] rounded-[10px] mb-4 cursor-crosshair overflow-hidden"
-                        style={{ backgroundColor: `hsl(${hsv.h}, 100%, 50%)` }}
+                        style={{ backgroundColor: `hsl(${hsvState.h}, 100%, 50%)` }}
                         onMouseDown={(e) => {
                             const rect = e.currentTarget.getBoundingClientRect();
                             const update = (moveEvent: MouseEvent) => {
                                 const x = Math.max(0, Math.min(1, (moveEvent.clientX - rect.left) / rect.width));
                                 const y = Math.max(0, Math.min(1, (moveEvent.clientY - rect.top) / rect.height));
-                                updateHsv(hsv.h, x * 100, (1 - y) * 100);
+                                updateHsv(hsvState.h, x * 100, (1 - y) * 100);
                             };
                             update(e as any);
                             window.addEventListener('mousemove', update);
@@ -164,38 +182,59 @@ function PremiumColorPicker({ color, opacity, onChange, onOpacityChange }: {
                         <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
                         <div
                             className="absolute w-3.5 h-3.5 border-2 border-white rounded-full shadow-md transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-                            style={{ left: `${hsv.s}%`, top: `${100 - hsv.v}%` }}
+                            style={{ left: `${hsvState.s}%`, top: `${100 - hsvState.v}%` }}
                         />
                     </div>
 
                     {/* Sliders Area */}
                     <div className="space-y-4">
                         {/* Hue Slider */}
-                        <div className="relative h-3 rounded-full overflow-hidden bg-gradient-to-r from-[#ff0000] via-[#ffff00] via-[#00ff00] via-[#00ffff] via-[#0000ff] via-[#ff00ff] to-[#ff0000] cursor-pointer">
-                            <input
-                                type="range" min="0" max="360" value={hsv.h}
-                                onChange={(e) => updateHsv(Number(e.target.value), hsv.s, hsv.v)}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            />
+                        <div 
+                            className="relative h-6 flex items-center justify-center cursor-pointer"
+                            onMouseDown={(e) => {
+                                e.preventDefault();
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const update = (moveEvent: MouseEvent) => {
+                                    const x = Math.max(0, Math.min(1, (moveEvent.clientX - rect.left) / rect.width));
+                                    updateHsv(Math.round(x * 360), hsvState.s, hsvState.v);
+                                };
+                                update(e as any);
+                                window.addEventListener('mousemove', update);
+                                window.addEventListener('mouseup', () => window.removeEventListener('mousemove', update), { once: true });
+                            }}
+                        >
+                            {/* Track Background */}
+                            <div className="absolute left-0 right-0 h-3 rounded-full bg-gradient-to-r from-[#ff0000] via-[#ffff00] via-[#00ff00] via-[#00ffff] via-[#0000ff] via-[#ff00ff] to-[#ff0000] pointer-events-none" />
                             <div
-                                className="absolute w-3 h-3 bg-white border-2 border-white rounded-full shadow-md transform -translate-x-1/2 pointer-events-none top-0"
-                                style={{ left: `${(hsv.h / 360) * 100}%` }}
+                                className="absolute w-5 h-5 bg-[#1428AE] border-[3px] border-white rounded-full shadow-[0_2px_5px_rgba(0,0,0,0.3)] transform -translate-x-1/2 pointer-events-none"
+                                style={{ left: `${(hsvState.h / 360) * 100}%` }}
                             />
                         </div>
 
                         {/* Opacity Slider */}
-                        <div className="relative h-3 rounded-full cursor-pointer bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAAXNSR0IArs4c6QAAACBJREFUGF5jYmBgYGBkZGRkYGBgYGBkYGBkYGBkYGBkYGCYp8MAHwEFAAAAAElFTkSuQmCC')] bg-repeat">
+                        <div 
+                            className="relative h-6 flex items-center justify-center cursor-pointer"
+                            onMouseDown={(e) => {
+                                e.preventDefault();
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const update = (moveEvent: MouseEvent) => {
+                                    const x = Math.max(0, Math.min(1, (moveEvent.clientX - rect.left) / rect.width));
+                                    onOpacityChange(Math.round(x * 100));
+                                };
+                                update(e as any);
+                                window.addEventListener('mousemove', update);
+                                window.addEventListener('mouseup', () => window.removeEventListener('mousemove', update), { once: true });
+                            }}
+                        >
+                            {/* Track Background (checkerboard + gradient) */}
+                            <div className="absolute left-0 right-0 h-3 rounded-full pointer-events-none overflow-hidden bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAAXNSR0IArs4c6QAAACBJREFUGF5jYmBgYGBkZGRkYGBgYGBkYGBkYGBkYGBkYGCYp8MAHwEFAAAAAElFTkSuQmCC')] bg-repeat">
+                                <div
+                                    className="absolute inset-0"
+                                    style={{ background: `linear-gradient(to right, transparent, ${color})` }}
+                                />
+                            </div>
                             <div
-                                className="absolute inset-0 rounded-full"
-                                style={{ background: `linear-gradient(to right, transparent, ${color})` }}
-                            />
-                            <input
-                                type="range" min="0" max="100" value={opacity}
-                                onChange={(e) => onOpacityChange(Number(e.target.value))}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            />
-                            <div
-                                className="absolute w-3 h-3 bg-white border-2 border-white rounded-full shadow-md transform -translate-x-1/2 pointer-events-none top-0"
+                                className="absolute w-5 h-5 bg-[#1428AE] border-[3px] border-white rounded-full shadow-[0_2px_5px_rgba(0,0,0,0.3)] transform -translate-x-1/2 pointer-events-none"
                                 style={{ left: `${opacity}%` }}
                             />
                         </div>
@@ -224,15 +263,16 @@ function PremiumColorPicker({ color, opacity, onChange, onOpacityChange }: {
     );
 }
 
-export default function TemplateGenerator({ isOpen, onClose, article }: TemplateGeneratorProps) {
+export default function TemplateGenerator({ isOpen, onClose, article, isPage = false, initialTitle = "", initialImage = "" }: TemplateGeneratorProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [sites, setSites] = useState<SiteResource[]>([]);
     const [selectedSiteId, setSelectedSiteId] = useState<number | null>(null);
     const [logoVariant, setLogoVariant] = useState<LogoVariant>('original');
     const [logoPosition, setLogoPosition] = useState<LogoPosition>('top-right');
     const [titlePosition, setTitlePosition] = useState<LogoPosition>('bottom-left');
     const [titleAlignment, setTitleAlignment] = useState<TextAlignment>('left');
-    const [title, setTitle] = useState(article.title);
+    const [title, setTitle] = useState(initialTitle || article?.title || "");
     const [logoWidth, setLogoWidth] = useState(250);
     const [logoHeight, setLogoHeight] = useState(70);
     const [fontSize, setFontSize] = useState(60);
@@ -249,6 +289,10 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
     const [overlayColor, setOverlayColor] = useState('#000000');
     const [overlayOpacity, setOverlayOpacity] = useState(80); // 0-100
 
+    // Logo Shadow States
+    const [logoShadowColor, setLogoShadowColor] = useState('#FFFFFF');
+    const [logoShadowOpacity, setLogoShadowOpacity] = useState(100); // 0-100
+
     // Caching refs for images
     const bgImageRef = useRef<HTMLImageElement | null>(null);
     const logoImageRef = useRef<HTMLImageElement | null>(null);
@@ -257,12 +301,29 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
 
     const [isLoading, setIsLoading] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [manualImageUrl, setManualImageUrl] = useState<string>(initialImage);
 
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen || isPage) {
             fetchSites();
         }
-    }, [isOpen]);
+    }, [isOpen, isPage]);
+
+    useEffect(() => {
+        if (initialTitle) setTitle(initialTitle);
+    }, [initialTitle]);
+
+    useEffect(() => {
+        if (initialImage) setManualImageUrl(initialImage);
+    }, [initialImage]);
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            setManualImageUrl(url);
+        }
+    };
 
     const fetchSites = async () => {
         setIsLoading(true);
@@ -272,7 +333,7 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
 
             // Filter sites that the article is published to
             // backend returns string[] for published_sites
-            const publishedSiteData = article.published_sites || article.sites || [];
+            const publishedSiteData = article?.published_sites || article?.sites || [];
             const publishedSiteNames = Array.isArray(publishedSiteData)
                 ? publishedSiteData.map(s => typeof s === 'string' ? s : (s as any).name)
                 : [publishedSiteData].filter(Boolean).map(s => typeof s === 'string' ? s : (s as any).name);
@@ -354,9 +415,9 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
     ] as { id: LogoPosition, label: string }[];
 
     const logoPresets = [
-        { label: 'Small', w: 150, h: 42 },
-        { label: 'Regular', w: 250, h: 70 },
-        { label: 'Large', w: 350, h: 98 }
+        { label: 'Small', max: 150 },
+        { label: 'Regular', max: 250 },
+        { label: 'Large', max: 350 }
     ];
 
     const textPresets = [
@@ -382,6 +443,8 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
     useEffect(() => {
         const loadBg = async () => {
             const getFirstImage = () => {
+                if (manualImageUrl) return manualImageUrl;
+                if (!article) return null;
                 if (article.image) return article.image;
                 if (article.image_url) return article.image_url;
                 if (article.content_blocks && Array.isArray(article.content_blocks)) {
@@ -402,7 +465,9 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
 
             const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api");
             let fullSrc = src;
-            if (fullSrc.startsWith('http') && !fullSrc.includes('localhost') && !fullSrc.includes('127.0.0.1')) {
+            if (fullSrc.startsWith('blob:') || fullSrc.startsWith('data:')) {
+                // Leave blob and data URLs exactly as they are
+            } else if (fullSrc.startsWith('http') && !fullSrc.includes('localhost') && !fullSrc.includes('127.0.0.1')) {
                 fullSrc = `${apiBase}/v1/upload/proxy?url=${encodeURIComponent(fullSrc)}`;
             } else if (!fullSrc.startsWith('http')) {
                 if (!fullSrc.startsWith('/')) fullSrc = '/' + fullSrc;
@@ -414,19 +479,23 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
             setIsGenerating(true);
             const img = new Image();
             img.crossOrigin = "anonymous";
-            img.src = fullSrc + (fullSrc.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+            // Don't append cache-busting for blob/data URLs
+            const isDataUrl = fullSrc.startsWith('blob:') || fullSrc.startsWith('data:');
+            img.src = isDataUrl ? fullSrc : fullSrc + (fullSrc.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
             img.onload = () => {
+                setIsGenerating(false);
                 bgImageRef.current = img;
                 drawPreview();
             };
             img.onerror = () => {
+                setIsGenerating(false);
                 bgImageRef.current = null;
                 drawPreview();
             };
         };
 
-        if (isOpen) loadBg();
-    }, [isOpen, article]);
+        if (isOpen || isPage) loadBg();
+    }, [isOpen, isPage, article, manualImageUrl]);
 
     // Effect to pre-load logo image
     useEffect(() => {
@@ -447,6 +516,26 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
             img.src = url;
             img.onload = () => {
                 logoImageRef.current = img;
+
+                // Adjust default width/height based on aspect ratio
+                const MAX_WIDTH = 250;
+                const MAX_HEIGHT = 150;
+                let w = img.width;
+                let h = img.height;
+                if (h > 0) {
+                    const ratio = w / h;
+                    if (w > MAX_WIDTH) {
+                        w = MAX_WIDTH;
+                        h = w / ratio;
+                    }
+                    if (h > MAX_HEIGHT) {
+                        h = MAX_HEIGHT;
+                        w = h * ratio;
+                    }
+                }
+                setLogoWidth(Math.round(w));
+                setLogoHeight(Math.round(h));
+
                 drawPreview();
             };
             img.onerror = () => {
@@ -455,15 +544,15 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
             };
         };
 
-        if (isOpen && selectedSiteId) loadLogo();
-    }, [isOpen, selectedSiteId, logoVariant]);
+        if ((isOpen || isPage) && selectedSiteId) loadLogo();
+    }, [isOpen, isPage, selectedSiteId, logoVariant]);
 
     // Redraw whenever parameters change
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen || isPage) {
             drawPreview();
         }
-    }, [title, logoWidth, logoHeight, fontSize, lineHeight, fontFamily, fontWeight, titlePosition, titleAlignment, logoPosition, titleColor, aspectRatio, overlayDirection, overlayColor, overlayOpacity, isOpen]);
+    }, [title, logoWidth, logoHeight, fontSize, lineHeight, fontFamily, fontWeight, titlePosition, titleAlignment, logoPosition, titleColor, aspectRatio, overlayDirection, overlayColor, overlayOpacity, logoShadowColor, logoShadowOpacity, isOpen, isPage]);
 
     const drawPreview = () => {
         const canvas = canvasRef.current;
@@ -487,6 +576,7 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
             return;
         }
 
+        // We successfully have bgImg, clear generating state if still active
         setIsGenerating(false);
 
         // Set canvas size
@@ -676,7 +766,26 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                 logoY = (targetHeight - logoH) / 2;
             }
 
-            ctx.drawImage(logoImg, logoX, logoY, logoW, logoH);
+            if (logoShadowOpacity > 0) {
+                ctx.save();
+                const hexToRgbLocal = (hex: string) => {
+                    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                    return result ? {
+                        r: parseInt(result[1], 16),
+                        g: parseInt(result[2], 16),
+                        b: parseInt(result[3], 16)
+                    } : { r: 255, g: 255, b: 255 };
+                };
+                const rgb = hexToRgbLocal(logoShadowColor);
+                ctx.shadowColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${logoShadowOpacity / 100})`;
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 4;
+                ctx.drawImage(logoImg, logoX, logoY, logoW, logoH);
+                ctx.restore();
+            } else {
+                ctx.drawImage(logoImg, logoX, logoY, logoW, logoH);
+            }
         }
     };
 
@@ -685,37 +794,66 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
         if (!canvas) return;
 
         const link = document.createElement('a');
-        link.download = `template-${article.slug || 'export'}.png`;
+        link.download = `template-${article?.slug || 'export'}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
     };
 
-    if (!isOpen) return null;
+    if (!isOpen && !isPage) return null;
 
-    return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4 lg:p-8 animate-in fade-in duration-300">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
-                {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-[#1428AE]/10 rounded-xl flex items-center justify-center text-[#1428AE]">
-                            <ImageIcon className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900 tracking-tight">Template Generator</h2>
-                            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Create watermarked content</p>
-                        </div>
+    const content = (
+        <div className={cn(
+            "bg-white w-full flex flex-col overflow-hidden",
+            isPage ? "h-full rounded-none" : "rounded-2xl shadow-2xl max-w-5xl h-[90vh] animate-in zoom-in-95 duration-300"
+        )}>
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#1428AE]/10 rounded-xl flex items-center justify-center text-[#1428AE]">
+                        <ImageIcon className="w-5 h-5" />
                     </div>
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-900 tracking-tight">Template Generator</h2>
+                        <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Create watermarked content</p>
+                    </div>
+                </div>
+                {!isPage && (
                     <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                         <X className="w-6 h-6 text-gray-400" />
                     </button>
-                </div>
+                )}
+            </div>
 
-                {/* Body */}
-                <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
-                    {/* Sidebar / Controls */}
-                    <div className="w-full lg:w-80 border-r border-gray-100 overflow-y-auto p-6 space-y-8 bg-gray-50/30">
-                        {/* Site Selection */}
+            {/* Body */}
+            <div className="flex-1 overflow-hidden flex flex-col-reverse lg:flex-row min-h-0">
+                {/* Sidebar / Controls */}
+                <div className="w-full lg:w-80 h-[40vh] lg:h-full lg:min-h-0 border-t lg:border-t-0 lg:border-r border-gray-100 overflow-y-auto p-6 space-y-8 bg-gray-50/30">
+                    {/* Image Upload */}
+                    {isPage && (
+                        <div className="space-y-3">
+                            <label className="text-[13px] font-bold text-gray-700 uppercase tracking-wider flex items-center justify-between">
+                                <span className="flex items-center gap-2">
+                                    <ImageIcon className="w-3.5 h-3.5" /> Background Image
+                                </span>
+                            </label>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleImageUpload}
+                                accept="image/*"
+                                className="hidden"
+                            />
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-[12px] text-[14px] font-semibold text-gray-700 hover:border-[#1428AE]/30 transition-all shadow-[0_2px_10px_rgba(0,0,0,0.05)]"
+                            >
+                                <ImageIcon className="w-4 h-4 text-[#1428AE]" />
+                                {manualImageUrl ? 'Change Image' : 'Upload Image'}
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Site Selection */}
                         <CustomDropdown
                             label="Select Site"
                             value={selectedSiteId}
@@ -798,8 +936,23 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                                     <button
                                         key={p.label}
                                         onClick={() => {
-                                            setLogoWidth(p.w);
-                                            setLogoHeight(p.h);
+                                            const img = logoImageRef.current;
+                                            if (img && img.height > 0) {
+                                                const ratio = img.width / img.height;
+                                                let w = p.max;
+                                                let h = w / ratio;
+                                                // Prevent tall logos from becoming too tall
+                                                const maxHeight = p.max * 0.75;
+                                                if (h > maxHeight) {
+                                                    h = maxHeight;
+                                                    w = h * ratio;
+                                                }
+                                                setLogoWidth(Math.round(w));
+                                                setLogoHeight(Math.round(h));
+                                            } else {
+                                                setLogoWidth(p.max);
+                                                setLogoHeight(Math.round(p.max / 3.5));
+                                            }
                                             setSelectedLogoSize(p.label.toLowerCase() as any);
                                         }}
                                         className={`px-3 py-2 text-[12px] font-medium rounded-[8px] border transition-all ${selectedLogoSize === p.label.toLowerCase()
@@ -817,7 +970,15 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                                     <input
                                         type="number"
                                         value={logoWidth}
-                                        onChange={(e) => setLogoWidth(Number(e.target.value))}
+                                        onChange={(e) => {
+                                            const w = Number(e.target.value);
+                                            setLogoWidth(w);
+                                            const img = logoImageRef.current;
+                                            if (img && img.height > 0) {
+                                                setLogoHeight(Math.round(w / (img.width / img.height)));
+                                            }
+                                            setSelectedLogoSize('manual');
+                                        }}
                                         className="w-full px-3 py-2 bg-white border border-gray-200 rounded-[8px] text-[13px] focus:ring-2 focus:ring-[#1428AE]/20 shadow-sm"
                                     />
                                 </div>
@@ -826,11 +987,32 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                                     <input
                                         type="number"
                                         value={logoHeight}
-                                        onChange={(e) => setLogoHeight(Number(e.target.value))}
+                                        onChange={(e) => {
+                                            const h = Number(e.target.value);
+                                            setLogoHeight(h);
+                                            const img = logoImageRef.current;
+                                            if (img && img.height > 0) {
+                                                setLogoWidth(Math.round(h * (img.width / img.height)));
+                                            }
+                                            setSelectedLogoSize('manual');
+                                        }}
                                         className="w-full px-3 py-2 bg-white border border-gray-200 rounded-[8px] text-[13px] focus:ring-2 focus:ring-[#1428AE]/20 shadow-sm"
                                     />
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Logo Shadow */}
+                        <div className="space-y-4 pt-4 border-t border-gray-100">
+                            <label className="text-[14px] font-black text-gray-900 uppercase tracking-[1px] flex items-center gap-2">
+                                <ImageIcon className="w-4 h-4" /> Logo Shadow
+                            </label>
+                            <PremiumColorPicker
+                                color={logoShadowColor}
+                                opacity={logoShadowOpacity}
+                                onChange={setLogoShadowColor}
+                                onOpacityChange={setLogoShadowOpacity}
+                            />
                         </div>
 
                         {/* Typography Section */}
@@ -1047,17 +1229,19 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                 </div>
 
                 {/* Footer */}
-                <div className="px-8 py-5 border-t border-gray-100 flex items-center justify-between bg-gray-50">
+                <div className="px-8 py-5 border-t border-gray-100 flex items-center justify-between bg-white">
                     <div className="flex items-center gap-2 text-gray-500">
                         <p className="text-xs font-medium">Export Format: {aspectRatio === '16:9' ? 'Landscape (1408x768)' : aspectRatio === '1:1' ? 'Square (1080x1080)' : 'Portrait (1080x1350)'}</p>
                     </div>
                     <div className="flex items-center gap-4">
-                        <button
-                            onClick={onClose}
-                            className="px-5 py-2.5 text-[14px] font-medium text-[#6b7280] hover:text-[#111827] transition-colors tracking-[-0.5px]"
-                        >
-                            Cancel
-                        </button>
+                        {!isPage && (
+                            <button
+                                onClick={onClose}
+                                className="px-5 py-2.5 text-[14px] font-medium text-[#6b7280] hover:text-[#111827] transition-colors tracking-[-0.5px]"
+                            >
+                                Cancel
+                            </button>
+                        )}
                         <button
                             onClick={handleDownload}
                             disabled={isGenerating || !selectedSiteId}
@@ -1069,6 +1253,15 @@ export default function TemplateGenerator({ isOpen, onClose, article }: Template
                     </div>
                 </div>
             </div>
+        );
+
+    if (isPage) {
+        return content;
+    }
+
+    return (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] flex items-center justify-center p-4 lg:p-8 animate-in fade-in duration-300">
+            {content}
         </div>
     );
 }
