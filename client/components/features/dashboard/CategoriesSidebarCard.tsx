@@ -25,7 +25,7 @@ export default function CategoriesSidebarCard({ counts = {} }: CategoriesSidebar
                     return (
                         <Link
                             key={cat.id}
-                            href={`/?category=${encodeURIComponent(cat.id)}`}
+                            href={`/feed?category=${encodeURIComponent(cat.id)}`}
                             className="flex items-center justify-between py-3 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-[#F4AA1D] transition-colors text-left"
                         >
                             <span>{cat.label}</span>
