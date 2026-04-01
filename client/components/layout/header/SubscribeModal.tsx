@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { X, Mail, Briefcase, ArrowLeft, CheckCircle2, ChevronDown, Clock, Calendar, HelpCircle, ChevronUp } from "lucide-react";
 import { Categories, Countries, RestaurantCategories } from "@/app/data";
@@ -30,13 +30,156 @@ export default function SubscribeModal({ isOpen, onClose, categories = [], count
         deliveryTime: "08:00",
         plan: "",
         price: 0,
-        logo: null as File | null
+        logo: null as File | null,
+        // News Interests — target location for content filtering
+        targetProvince: "",
+        targetCity: "",
+        // Delivery Settings — subscriber's actual location
+        userCountry: "",
+        userProvince: "",
+        userCity: "",
     });
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [showManual, setShowManual] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+    // ── News Categories custom dropdown ────────────────────────────────
+    const [categorySearch, setCategorySearch] = useState("");
+    const [categoryOpen, setCategoryOpen]     = useState(false);
+    const categoryRef = useRef<HTMLDivElement>(null);
+
+    // ── Target Countries custom dropdown ────────────────────────────────
+    const [countrySearch, setCountrySearch]   = useState("");
+    const [countryOpen, setCountryOpen]       = useState(false);
+    const countryRef = useRef<HTMLDivElement>(null);
+
+    // ── Target Province typeahead ──────────────────────────────────────
+    const [provinceInput, setProvinceInput]     = useState("");
+    const [provinceSuggestions, setProvinceSuggestions] = useState<{ id: number; name: string }[]>([]);
+    const [provinceOpen, setProvinceOpen]       = useState(false);
+    const [provinceLoading, setProvinceLoading] = useState(false);
+    const provinceRef   = useRef<HTMLDivElement>(null);
+    const provinceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // ── Target City typeahead ──────────────────────────────────────────
+    const [cityInput, setCityInput]           = useState("");
+    const [citySuggestions, setCitySuggestions] = useState<{ city_id: number; name: string }[]>([]);
+    const [cityOpen, setCityOpen]             = useState(false);
+    const [cityLoading, setCityLoading]       = useState(false);
+    const cityRef   = useRef<HTMLDivElement>(null);
+    const cityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // ── Cache & Abort for search results ─────────────────────────────
+    const searchCache = useRef<{ [key: string]: any }>({});
+    const abortControllers = useRef<{ [key: string]: AbortController }>({});
+
+    // countryIds is passed directly so the closure is never stale
+    const searchProvinces = useCallback((q: string, countryIds: string[]) => {
+        if (provinceTimer.current) clearTimeout(provinceTimer.current);
+        if (!q.trim()) { setProvinceSuggestions([]); setProvinceOpen(false); return; }
+
+        const countriesKey = countryIds.join(',') || 'all';
+        const cacheKey = `prov_${countriesKey}_${q.toLowerCase()}`;
+        if (searchCache.current[cacheKey]) {
+            setProvinceSuggestions(searchCache.current[cacheKey]);
+            setProvinceOpen(true);
+            return;
+        }
+
+        provinceTimer.current = setTimeout(async () => {
+            if (abortControllers.current.province) abortControllers.current.province.abort();
+            abortControllers.current.province = new AbortController();
+
+            setProvinceLoading(true);
+            try {
+                const countryParam = countryIds.length > 0 ? `&country_id=${encodeURIComponent(countryIds.join(','))}` : '';
+                const res = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_URL}/v1/provinces/search?q=${encodeURIComponent(q)}&limit=15${countryParam}`,
+                    { signal: abortControllers.current.province.signal }
+                );
+                const data = await res.json();
+                const results = Array.isArray(data) ? data : [];
+                searchCache.current[cacheKey] = results;
+                setProvinceSuggestions(results);
+                setProvinceOpen(true);
+            } catch (err: any) {
+                if (err.name !== 'AbortError') setProvinceSuggestions([]);
+            } finally {
+                setProvinceLoading(false);
+            }
+        }, 150);
+    }, []);
+
+    const searchCities = useCallback((q: string, countryIds: string[]) => {
+        if (cityTimer.current) clearTimeout(cityTimer.current);
+        if (!q.trim()) { setCitySuggestions([]); setCityOpen(false); return; }
+
+        const countriesKey = countryIds.join(',') || 'all';
+        const cacheKey = `city_${countriesKey}_${q.toLowerCase()}`;
+        if (searchCache.current[cacheKey]) {
+            setCitySuggestions(searchCache.current[cacheKey]);
+            setCityOpen(true);
+            return;
+        }
+
+        cityTimer.current = setTimeout(async () => {
+            if (abortControllers.current.city) abortControllers.current.city.abort();
+            abortControllers.current.city = new AbortController();
+
+            setCityLoading(true);
+            try {
+                const countryParam = countryIds.length > 0 ? `&country_id=${encodeURIComponent(countryIds.join(','))}` : '';
+                const res = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_URL}/v1/cities/search?q=${encodeURIComponent(q)}&limit=15${countryParam}`,
+                    { signal: abortControllers.current.city.signal }
+                );
+                const data = await res.json();
+                const results = Array.isArray(data) ? data : [];
+                searchCache.current[cacheKey] = results;
+                setCitySuggestions(results);
+                setCityOpen(true);
+            } catch (err: any) {
+                if (err.name !== 'AbortError') setCitySuggestions([]);
+            } finally {
+                setCityLoading(false);
+            }
+        }, 150);
+    }, []);
+
+    // Clear province/city inputs & suggestions whenever selected countries change
+    const prevCountriesRef = useRef<string[]>([]);
+    useEffect(() => {
+        const prev = prevCountriesRef.current;
+        const curr = formData.countries;
+        const changed =
+            prev.length !== curr.length ||
+            prev.some((id, i) => id !== curr[i]);
+        if (changed) {
+            setProvinceInput('');
+            setFormData(fd => ({ ...fd, targetProvince: '' }));
+            setProvinceSuggestions([]);
+            setProvinceOpen(false);
+            setCityInput('');
+            setFormData(fd => ({ ...fd, targetCity: '' }));
+            setCitySuggestions([]);
+            setCityOpen(false);
+            prevCountriesRef.current = curr;
+        }
+    }, [formData.countries]);
+
+    // Close dropdowns on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (provinceRef.current && !provinceRef.current.contains(e.target as Node)) setProvinceOpen(false);
+            if (cityRef.current     && !cityRef.current.contains(e.target as Node))    setCityOpen(false);
+            if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) setCategoryOpen(false);
+            if (countryRef.current  && !countryRef.current.contains(e.target as Node))  setCountryOpen(false);
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, []);
 
     if (!isOpen) return null;
 
@@ -65,7 +208,12 @@ export default function SubscribeModal({ isOpen, onClose, categories = [], count
             deliveryTime: "08:00",
             plan: "",
             price: 0,
-            logo: null
+            logo: null,
+            targetProvince: "",
+            targetCity: "",
+            userCountry: "",
+            userProvince: "",
+            userCity: "",
         });
         setErrors({});
         setShowConfirmation(false);
@@ -129,6 +277,11 @@ export default function SubscribeModal({ isOpen, onClose, categories = [], count
                         countries: formData.countries,
                         features: formData.frequency,
                         time: formData.deliveryTime,
+                        target_province: formData.targetProvince || null,
+                        target_city: formData.targetCity || null,
+                        user_country: formData.userCountry || null,
+                        user_province: formData.userProvince || null,
+                        user_city: formData.userCity || null,
                     }),
                 });
 
@@ -168,6 +321,12 @@ export default function SubscribeModal({ isOpen, onClose, categories = [], count
                 if (formData.logo) {
                     form.append('logo', formData.logo);
                 }
+
+                form.append('target_province', formData.targetProvince || '');
+                form.append('target_city', formData.targetCity || '');
+                form.append('user_country', formData.userCountry || '');
+                form.append('user_province', formData.userProvince || '');
+                form.append('user_city', formData.userCity || '');
 
                 const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/subscribe`, {
                     method: 'POST',
@@ -352,152 +511,434 @@ export default function SubscribeModal({ isOpen, onClose, categories = [], count
                                     </div>
 
                                     <form onSubmit={handleSubmit} className="space-y-[14px]">
-                                        <div className="grid grid-cols-2 gap-[16px]">
-                                            {/* Categories Selection */}
-                                            <div>
-                                                <label className="block font-semibold text-[13px] text-[#374151] mb-[6px] tracking-[-0.3px]">
-                                                    Categories
-                                                </label>
-                                                <div className="relative group">
-                                                    <select
-                                                        className={`w-full border ${errors.categories ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[12px] py-[10px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white transition-all appearance-none cursor-pointer`}
-                                                        value=""
-                                                        onChange={(e) => {
-                                                            const val = e.target.value;
-                                                            if (val && !formData.categories.includes(val)) {
-                                                                setFormData({ ...formData, categories: [...formData.categories, val] });
-                                                                setErrors({ ...errors, categories: "" });
-                                                            }
-                                                        }}
-                                                    >
-                                                        <option value="" disabled>Choose...</option>
-                                                        {categories.filter(c => c.id !== "All")
-                                                            .filter(c => !formData.categories.includes(c.id))
-                                                            .map((category) => (
-                                                                <option key={`${category.id}-${category.label}`} value={category.id}>
-                                                                    {category.label}
-                                                                </option>
-                                                            ))}
-                                                    </select>
-                                                    <div className="absolute right-[12px] top-1/2 -translate-y-1/2 pointer-events-none text-[#9ca3af]">
-                                                        <ChevronDown className="w-4 h-4" />
-                                                    </div>
-                                                </div>
-                                                {errors.categories && <p className="text-red-500 text-[11px] mt-1 font-medium">{errors.categories}</p>}
-                                                <div className="flex flex-wrap gap-1.5 mt-2">
-                                                    {formData.categories.map((catId) => {
-                                                        const label = categories.find(c => c.id === catId)?.label || catId;
-                                                        return (
-                                                            <div key={catId} className="flex items-center gap-1 bg-blue-50 text-[#000785] px-2 py-0.5 rounded-full text-[11px] font-bold border border-blue-100">
-                                                                {label}
-                                                                <X className="w-2.5 h-2.5 cursor-pointer" onClick={() => setFormData({ ...formData, categories: formData.categories.filter(id => id !== catId) })} />
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-
-                                            {/* Countries Selection */}
-                                            <div>
-                                                <label className="block font-semibold text-[13px] text-[#374151] mb-[6px] tracking-[-0.3px]">
-                                                    Countries
-                                                </label>
-                                                <div className="relative group">
-                                                    <select
-                                                        className={`w-full border ${errors.countries ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[12px] py-[10px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white transition-all appearance-none cursor-pointer`}
-                                                        value=""
-                                                        onChange={(e) => {
-                                                            const val = e.target.value;
-                                                            if (val && !formData.countries.includes(val)) {
-                                                                setFormData({ ...formData, countries: [...formData.countries, val] });
-                                                                setErrors({ ...errors, countries: "" });
-                                                            }
-                                                        }}
-                                                    >
-                                                        <option value="" disabled>Choose...</option>
-                                                        {countries.filter(c => c.id !== "Global" && !formData.countries.includes(c.id)).map((country) => (
-                                                            <option key={country.id} value={country.id}>
-                                                                {country.label}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                    <div className="absolute right-[12px] top-1/2 -translate-y-1/2 pointer-events-none text-[#9ca3af]">
-                                                        <ChevronDown className="w-4 h-4" />
-                                                    </div>
-                                                </div>
-                                                {errors.countries && <p className="text-red-500 text-[11px] mt-1 font-medium">{errors.countries}</p>}
-                                                <div className="flex flex-wrap gap-1.5 mt-2">
-                                                    {formData.countries.map((countryId) => (
-                                                        <div key={countryId} className="flex items-center gap-1 bg-[#f0f9ff] text-[#0369a1] px-2 py-0.5 rounded-full text-[11px] font-bold border border-[#e0f2fe]">
-                                                            {countries.find(c => c.id === countryId)?.label || countryId}
-                                                            <X className="w-2.5 h-2.5 cursor-pointer" onClick={() => setFormData({ ...formData, countries: formData.countries.filter(id => id !== countryId) })} />
+                                        {/* NEWS INTERESTS */}
+                                        <div className="border border-[#e5e7eb] rounded-[12px] p-[16px] space-y-[12px]">
+                                            <p className="text-[10px] font-bold text-[#6b7280] uppercase tracking-widest">News Interests</p>
+                                            <div className="grid grid-cols-2 gap-[16px]">
+                                                {/* News Categories Selection */}
+                                                <div ref={categoryRef} className="relative">
+                                                    <label className="block font-semibold text-[13px] text-[#374151] mb-[6px] tracking-[-0.3px]">
+                                                        Categories
+                                                    </label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Type categories..."
+                                                            value={categorySearch}
+                                                            onChange={(e) => {
+                                                                setCategorySearch(e.target.value);
+                                                                setCategoryOpen(true);
+                                                            }}
+                                                            onFocus={() => setCategoryOpen(true)}
+                                                            className={`w-full border ${errors.categories ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[12px] py-[10px] pr-[36px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white transition-all`}
+                                                        />
+                                                        <div 
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
+                                                            onClick={() => setCategoryOpen(!categoryOpen)}
+                                                        >
+                                                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${categoryOpen ? 'rotate-180' : ''}`} />
                                                         </div>
-                                                    ))}
+                                                    </div>
+
+                                                    {categoryOpen && (
+                                                        <ul className="absolute z-50 mt-1 w-full bg-white border border-[#e5e7eb] rounded-[10px] shadow-xl overflow-hidden max-h-[220px] overflow-y-auto custom-scrollbar">
+                                                            {categories
+                                                                .filter(c => c.id !== 'All' && !formData.categories.includes(c.id))
+                                                                .filter(c => c.label.toLowerCase().includes(categorySearch.toLowerCase()))
+                                                                .map((cat) => (
+                                                                    <li
+                                                                        key={cat.id}
+                                                                        onMouseDown={(e) => {
+                                                                            e.preventDefault();
+                                                                            setFormData({ ...formData, categories: [...formData.categories, cat.id] });
+                                                                            setErrors({ ...errors, categories: '' });
+                                                                            setCategorySearch("");
+                                                                            setCategoryOpen(false);
+                                                                        }}
+                                                                        className="px-[12px] py-[9px] text-[13px] text-[#374151] hover:bg-blue-50 hover:text-[#000785] cursor-pointer transition-colors flex items-center gap-2 border-b border-[#f3f4f6] last:border-0"
+                                                                    >
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#000785]/20" />
+                                                                        {cat.label}
+                                                                    </li>
+                                                                ))}
+                                                            {categories.filter(c => c.id !== 'All' && !formData.categories.includes(c.id)).filter(c => c.label.toLowerCase().includes(categorySearch.toLowerCase())).length === 0 && (
+                                                                <li className="px-4 py-3 text-xs text-gray-400 italic">No more categories found</li>
+                                                            )}
+                                                        </ul>
+                                                    )}
+                                                    
+                                                    {errors.categories && <p className="text-red-500 text-[11px] mt-1 font-medium">{errors.categories}</p>}
+                                                    <div className="flex flex-wrap gap-1.5 mt-2">
+                                                        {formData.categories.map((catId) => {
+                                                            const label = categories.find(c => c.id === catId)?.label || catId;
+                                                            return (
+                                                                <div key={catId} className="flex items-center gap-1 bg-blue-50 text-[#000785] px-2 py-0.5 rounded-full text-[11px] font-bold border border-blue-100">
+                                                                    {label}
+                                                                    <X className="w-2.5 h-2.5 cursor-pointer" onClick={() => setFormData({ ...formData, categories: formData.categories.filter(id => id !== catId) })} />
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+
+                                                {/* Target Countries Selection */}
+                                                <div ref={countryRef} className="relative">
+                                                    <label className="block font-semibold text-[13px] text-[#374151] mb-[6px] tracking-[-0.3px]">
+                                                        Target Countries
+                                                    </label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Type countries..."
+                                                            value={countrySearch}
+                                                            onChange={(e) => {
+                                                                setCountrySearch(e.target.value);
+                                                                setCountryOpen(true);
+                                                            }}
+                                                            onFocus={() => setCountryOpen(true)}
+                                                            className={`w-full border ${errors.countries ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[12px] py-[10px] pr-[36px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white transition-all`}
+                                                        />
+                                                        <div 
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
+                                                            onClick={() => setCountryOpen(!countryOpen)}
+                                                        >
+                                                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${countryOpen ? 'rotate-180' : ''}`} />
+                                                        </div>
+                                                    </div>
+
+                                                    {countryOpen && (
+                                                        <ul className="absolute z-50 mt-1 w-full bg-white border border-[#e5e7eb] rounded-[10px] shadow-xl overflow-hidden max-h-[220px] overflow-y-auto custom-scrollbar">
+                                                            {countries
+                                                                .filter(c => c.id !== 'Global' && !formData.countries.includes(c.id))
+                                                                .filter(c => c.label.toLowerCase().includes(countrySearch.toLowerCase()))
+                                                                .map((country) => (
+                                                                    <li
+                                                                        key={country.id}
+                                                                        onMouseDown={(e) => {
+                                                                            e.preventDefault();
+                                                                            setFormData({ ...formData, countries: [...formData.countries, country.id] });
+                                                                            setErrors({ ...errors, countries: '' });
+                                                                            setCountrySearch("");
+                                                                            setCountryOpen(false);
+                                                                        }}
+                                                                        className="px-[12px] py-[9px] text-[13px] text-[#374151] hover:bg-blue-50 hover:text-[#000785] cursor-pointer transition-colors flex items-center gap-2 border-b border-[#f3f4f6] last:border-0"
+                                                                    >
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#000785]/20" />
+                                                                        {country.label}
+                                                                    </li>
+                                                                ))}
+                                                            {countries.filter(c => c.id !== 'Global' && !formData.countries.includes(c.id)).filter(c => c.label.toLowerCase().includes(countrySearch.toLowerCase())).length === 0 && (
+                                                                <li className="px-4 py-3 text-xs text-gray-400 italic">No more countries found</li>
+                                                            )}
+                                                        </ul>
+                                                    )}
+                                                    
+                                                    {errors.countries && <p className="text-red-500 text-[11px] mt-1 font-medium">{errors.countries}</p>}
+                                                    <div className="flex flex-wrap gap-1.5 mt-2">
+                                                        {formData.countries.map((countryId) => (
+                                                            <div key={countryId} className="flex items-center gap-1 bg-[#f0f9ff] text-[#0369a1] px-2 py-0.5 rounded-full text-[11px] font-bold border border-[#e0f2fe]">
+                                                                {countries.find(c => c.id === countryId)?.label || countryId}
+                                                                <X className="w-2.5 h-2.5 cursor-pointer" onClick={() => setFormData({ ...formData, countries: formData.countries.filter(id => id !== countryId) })} />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {/* Target Province — typeahead */}
+                                                <div ref={provinceRef} className="relative">
+                                                    <label className="block font-semibold text-[13px] text-[#374151] mb-[6px] tracking-[-0.3px]">
+                                                        Target Province
+                                                    </label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="e.g. Metro Manila"
+                                                            value={provinceInput}
+                                                            autoComplete="off"
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                setProvinceInput(val);
+                                                                setFormData({ ...formData, targetProvince: val });
+                                                                searchProvinces(val, formData.countries);
+                                                            }}
+                                                            onFocus={() => { 
+                                                                if (provinceSuggestions.length) setProvinceOpen(true);
+                                                                else searchProvinces(provinceInput, formData.countries);
+                                                            }}
+                                                            className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[10px] pr-[36px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#000785] transition-all"
+                                                        />
+                                                        <div 
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 cursor-pointer"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (provinceOpen) setProvinceOpen(false);
+                                                                else {
+                                                                    setProvinceOpen(true);
+                                                                    if (provinceSuggestions.length === 0) searchProvinces(provinceInput, formData.countries);
+                                                                }
+                                                            }}
+                                                        >
+                                                            {provinceLoading ? (
+                                                                <div className="w-3.5 h-3.5 border-2 border-[#000785]/30 border-t-[#000785] rounded-full animate-spin" />
+                                                            ) : (
+                                                                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${provinceOpen ? 'rotate-180' : ''}`} />
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    {provinceOpen && (
+                                                        <ul className="absolute z-50 mt-1 w-full bg-white border border-[#e5e7eb] rounded-[10px] shadow-lg overflow-hidden max-h-[180px] overflow-y-auto custom-scrollbar">
+                                                            {formData.countries.length > 0 && provinceInput === "" && !provinceLoading && (
+                                                                <li
+                                                                    onMouseDown={(e) => {
+                                                                        e.preventDefault();
+                                                                        setProvinceInput("All Provinces");
+                                                                        setFormData({ ...formData, targetProvince: "All Provinces" });
+                                                                        setProvinceSuggestions([]);
+                                                                        setProvinceOpen(false);
+                                                                    }}
+                                                                    className="px-[12px] py-[9px] text-[13px] font-bold text-[#000785] hover:bg-blue-50 cursor-pointer transition-colors flex items-center gap-2 border-b border-[#f3f4f6]"
+                                                                >
+                                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#000785]" />
+                                                                    All Provinces
+                                                                </li>
+                                                            )}
+                                                            {provinceLoading && provinceSuggestions.length === 0 ? (
+                                                                <li className="px-4 py-3 text-xs text-gray-400 italic flex items-center gap-2">
+                                                                    <div className="w-3 h-3 border-2 border-gray-300 border-t-[#000785] rounded-full animate-spin" />
+                                                                    Searching...
+                                                                </li>
+                                                            ) : provinceSuggestions.length > 0 ? (
+                                                                provinceSuggestions.map((p: any) => (
+                                                                    <li
+                                                                        key={p.id}
+                                                                        onMouseDown={(e) => {
+                                                                            e.preventDefault();
+                                                                            setProvinceInput(p.name);
+                                                                            setFormData({ ...formData, targetProvince: p.name });
+                                                                            setProvinceSuggestions([]);
+                                                                            setProvinceOpen(false);
+                                                                        }}
+                                                                        className="px-[12px] py-[9px] text-[13px] text-[#374151] hover:bg-blue-50 hover:text-[#000785] cursor-pointer transition-colors flex items-center justify-between gap-2 border-b border-[#f3f4f6] last:border-0"
+                                                                    >
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="w-1.5 h-1.5 rounded-full bg-[#000785]/30 flex-shrink-0" />
+                                                                            {p.name}
+                                                                        </div>
+                                                                        {formData.countries.length > 1 && (
+                                                                            <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded text-gray-500 uppercase font-bold">
+                                                                                {p.country_id}
+                                                                            </span>
+                                                                        )}
+                                                                    </li>
+                                                                ))
+                                                            ) : (
+                                                                <li className="px-4 py-3 text-xs text-gray-400 italic">No results found</li>
+                                                            )}
+                                                        </ul>
+                                                    )}
+                                                </div>
+
+                                                {/* Target City — typeahead */}
+                                                <div ref={cityRef} className="relative">
+                                                    <label className="block font-semibold text-[13px] text-[#374151] mb-[6px] tracking-[-0.3px]">
+                                                        Target City
+                                                    </label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="e.g. Makati"
+                                                            value={cityInput}
+                                                            autoComplete="off"
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                setCityInput(val);
+                                                                setFormData({ ...formData, targetCity: val });
+                                                                searchCities(val, formData.countries);
+                                                            }}
+                                                            onFocus={() => { 
+                                                                if (citySuggestions.length) setCityOpen(true);
+                                                                else searchCities(cityInput, formData.countries);
+                                                            }}
+                                                            className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[10px] pr-[36px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#000785] transition-all"
+                                                        />
+                                                        <div 
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 cursor-pointer"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (cityOpen) setCityOpen(false);
+                                                                else {
+                                                                    setCityOpen(true);
+                                                                    if (citySuggestions.length === 0) searchCities(cityInput, formData.countries);
+                                                                }
+                                                            }}
+                                                        >
+                                                            {cityLoading ? (
+                                                                <div className="w-3.5 h-3.5 border-2 border-[#000785]/30 border-t-[#000785] rounded-full animate-spin" />
+                                                            ) : (
+                                                                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${cityOpen ? 'rotate-180' : ''}`} />
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    {cityOpen && (
+                                                        <ul className="absolute z-50 mt-1 w-full bg-white border border-[#e5e7eb] rounded-[10px] shadow-lg overflow-hidden max-h-[180px] overflow-y-auto custom-scrollbar">
+                                                            {formData.countries.length > 0 && cityInput === "" && !cityLoading && (
+                                                                <li
+                                                                    onMouseDown={(e) => {
+                                                                        e.preventDefault();
+                                                                        setCityInput("All Cities");
+                                                                        setFormData({ ...formData, targetCity: "All Cities" });
+                                                                        setCitySuggestions([]);
+                                                                        setCityOpen(false);
+                                                                    }}
+                                                                    className="px-[12px] py-[9px] text-[13px] font-bold text-[#000785] hover:bg-blue-50 cursor-pointer transition-colors flex items-center gap-2 border-b border-[#f3f4f6]"
+                                                                >
+                                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#000785]" />
+                                                                    All Cities
+                                                                </li>
+                                                            )}
+                                                            {cityLoading && citySuggestions.length === 0 ? (
+                                                                <li className="px-4 py-3 text-xs text-gray-400 italic flex items-center gap-2">
+                                                                    <div className="w-3 h-3 border-2 border-gray-300 border-t-[#000785] rounded-full animate-spin" />
+                                                                    Searching...
+                                                                </li>
+                                                            ) : citySuggestions.length > 0 ? (
+                                                                citySuggestions.map((c: any) => (
+                                                                    <li
+                                                                        key={c.city_id}
+                                                                        onMouseDown={(e) => {
+                                                                            e.preventDefault();
+                                                                            setCityInput(c.name);
+                                                                            setFormData({ ...formData, targetCity: c.name });
+                                                                            setCitySuggestions([]);
+                                                                            setCityOpen(false);
+                                                                        }}
+                                                                        className="px-[12px] py-[9px] text-[13px] text-[#374151] hover:bg-blue-50 hover:text-[#000785] cursor-pointer transition-colors flex items-center justify-between gap-2 border-b border-[#f3f4f6] last:border-0"
+                                                                    >
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="w-1.5 h-1.5 rounded-full bg-[#000785]/30 flex-shrink-0" />
+                                                                            {c.name}
+                                                                        </div>
+                                                                        {formData.countries.length > 1 && (
+                                                                            <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded text-gray-500 uppercase font-bold">
+                                                                                {c.country_id}
+                                                                            </span>
+                                                                        )}
+                                                                    </li>
+                                                                ))
+                                                            ) : (
+                                                                <li className="px-4 py-3 text-xs text-gray-400 italic">No results found</li>
+                                                            )}
+                                                        </ul>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <label className="block font-semibold text-[13px] text-[#374151] mb-[4px] tracking-[-0.3px]">
-                                                Email Address
-                                            </label>
-                                            <input
-                                                type="email"
-                                                required
-                                                value={formData.email}
-                                                onChange={(e) => {
-                                                    setFormData({ ...formData, email: e.target.value });
-                                                    if (errors.email) setErrors({ ...errors, email: "" });
-                                                }}
-                                                placeholder="your@email.com"
-                                                className={`w-full border ${errors.email ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#000785] transition-all`}
-                                            />
-                                            {errors.email && <p className="text-red-500 text-[11px] mt-1 font-medium">{errors.email}</p>}
-                                        </div>
+                                        {/* DELIVERY SETTINGS */}
+                                        <div className="border border-[#e5e7eb] rounded-[12px] p-[16px] space-y-[12px]">
+                                            <p className="text-[10px] font-bold text-[#6b7280] uppercase tracking-widest">Delivery Settings</p>
 
-                                        <div className="grid grid-cols-2 gap-[12px]">
-                                            <div>
-                                                <div className="flex items-center gap-1.5 mb-[4px]">
-                                                    <Calendar className="w-3 h-3 text-gray-400" />
-                                                    <label className="block font-semibold text-[13px] text-[#374151] tracking-[-0.3px]">
-                                                        Frequency
+                                            {/* Row 1: Email | Frequency | Time */}
+                                            <div className="grid grid-cols-3 gap-[12px]">
+                                                <div>
+                                                    <label className="block font-semibold text-[13px] text-[#374151] mb-[4px] tracking-[-0.3px]">
+                                                        Email Address
                                                     </label>
+                                                    <input
+                                                        type="email"
+                                                        required
+                                                        value={formData.email}
+                                                        onChange={(e) => {
+                                                            setFormData({ ...formData, email: e.target.value });
+                                                            if (errors.email) setErrors({ ...errors, email: '' });
+                                                        }}
+                                                        placeholder="email@work.com"
+                                                        className={`w-full border ${errors.email ? 'border-red-500' : 'border-[#e5e7eb]'} rounded-[10px] px-[12px] py-[10px] text-[13px] focus:outline-none focus:ring-2 focus:ring-[#000785] transition-all`}
+                                                    />
+                                                    {errors.email && <p className="text-red-500 text-[11px] mt-1 font-medium">{errors.email}</p>}
                                                 </div>
-                                                <div className="relative">
-                                                    <select
-                                                        className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white text-gray-900 transition-all appearance-none cursor-pointer"
-                                                        value={formData.frequency}
-                                                        onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-                                                    >
-                                                        <option value="daily" className="text-gray-900">Daily</option>
-                                                        <option value="3days" className="text-gray-900">Every 3 Days</option>
-                                                        <option value="5days" className="text-gray-900">Every 5 Days</option>
-                                                        <option value="weekly" className="text-gray-900">Weekly</option>
-                                                    </select>
-                                                    <ChevronDown className="absolute right-[12px] top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
+
+                                                <div>
+                                                    <div className="flex items-center gap-1.5 mb-[4px]">
+                                                        <Calendar className="w-3 h-3 text-gray-400" />
+                                                        <label className="block font-semibold text-[13px] text-[#374151] tracking-[-0.3px]">Frequency</label>
+                                                    </div>
+                                                    <div className="relative">
+                                                        <select
+                                                            className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[10px] text-[13px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white text-gray-900 transition-all appearance-none cursor-pointer"
+                                                            value={formData.frequency}
+                                                            onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+                                                        >
+                                                            <option value="daily">Daily</option>
+                                                            <option value="3days">Every 3 Days</option>
+                                                            <option value="5days">Every 5 Days</option>
+                                                            <option value="weekly">Weekly</option>
+                                                        </select>
+                                                        <ChevronDown className="absolute right-[10px] top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <div className="flex items-center gap-1.5 mb-[4px]">
+                                                        <Clock className="w-3 h-3 text-gray-400" />
+                                                        <label className="block font-semibold text-[13px] text-[#374151] tracking-[-0.3px]">Time</label>
+                                                    </div>
+                                                    <input
+                                                        type="time"
+                                                        value={formData.deliveryTime}
+                                                        onChange={(e) => setFormData({ ...formData, deliveryTime: e.target.value })}
+                                                        className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[10px] text-[13px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white text-gray-900 transition-all"
+                                                    />
                                                 </div>
                                             </div>
 
-                                            <div>
-                                                <div className="flex items-center gap-1.5 mb-[4px]">
-                                                    <Clock className="w-3 h-3 text-gray-400" />
-                                                    <label className="block font-semibold text-[13px] text-[#374151] tracking-[-0.3px]">
-                                                        Time
-                                                    </label>
+                                            {/* Row 2: Country | Province | City */}
+                                            <div className="grid grid-cols-3 gap-[12px]">
+                                                <div>
+                                                    <label className="block font-semibold text-[13px] text-[#374151] mb-[4px] tracking-[-0.3px]">Country</label>
+                                                    <div className="relative">
+                                                        <select
+                                                            className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[10px] text-[13px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white transition-all appearance-none cursor-pointer text-gray-500"
+                                                            value={formData.userCountry}
+                                                            onChange={(e) => setFormData({ ...formData, userCountry: e.target.value, userProvince: '', userCity: '' })}
+                                                        >
+                                                            <option value="">Select...</option>
+                                                            {countries.filter(c => c.id !== 'Global').map(c => (
+                                                                <option key={c.id} value={c.id}>{c.label}</option>
+                                                            ))}
+                                                        </select>
+                                                        <ChevronDown className="absolute right-[10px] top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af] pointer-events-none" />
+                                                    </div>
                                                 </div>
-                                                <input
-                                                    type="time"
-                                                    value={formData.deliveryTime}
-                                                    onChange={(e) => setFormData({ ...formData, deliveryTime: e.target.value })}
-                                                    className="w-full border border-[#e5e7eb] rounded-[10px] px-[14px] py-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#000785] bg-white text-gray-900 transition-all"
-                                                />
+
+                                                <div>
+                                                    <label className="block font-semibold text-[13px] text-[#374151] mb-[4px] tracking-[-0.3px]">Province</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Select..."
+                                                        value={formData.userProvince}
+                                                        onChange={(e) => setFormData({ ...formData, userProvince: e.target.value, userCity: '' })}
+                                                        className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[10px] text-[13px] focus:outline-none focus:ring-2 focus:ring-[#000785] transition-all placeholder:text-gray-400"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label className="block font-semibold text-[13px] text-[#374151] mb-[4px] tracking-[-0.3px]">City</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Select..."
+                                                        value={formData.userCity}
+                                                        onChange={(e) => setFormData({ ...formData, userCity: e.target.value })}
+                                                        className="w-full border border-[#e5e7eb] rounded-[10px] px-[12px] py-[10px] text-[13px] focus:outline-none focus:ring-2 focus:ring-[#000785] transition-all placeholder:text-gray-400"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
 
                                         <button
                                             type="submit"
                                             disabled={isLoading}
-                                            className="w-full bg-[#000785] text-white py-[12px] rounded-[10px] font-bold text-[16px] tracking-[-0.5px] hover:bg-[#000566] transition-all shadow-md active:scale-[0.98] mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                            className="w-full bg-[#000785] text-white py-[13px] rounded-[10px] font-bold text-[16px] tracking-[-0.5px] hover:bg-[#000566] transition-all shadow-md active:scale-[0.98] mt-1 disabled:opacity-70 disabled:cursor-not-allowed"
                                         >
                                             {isLoading ? "Subscribing..." : "Subscribe Now"}
                                         </button>
