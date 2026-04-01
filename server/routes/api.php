@@ -211,6 +211,11 @@ Route::prefix('v1')->group(function () {
     // Metadata (Public)
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::get('/countries', [CountryController::class, 'index']);
+
+    // Province & City typeahead search (public — used by subscribe modal)
+    Route::get('/provinces/search', [SiteContentController::class, 'searchProvinces']);
+    Route::get('/cities/search', [SiteContentController::class, 'searchCities']);
+
     Route::get('/upload/proxy', [UploadController::class, 'proxyImage'])->name('upload.proxy');
 
     /*

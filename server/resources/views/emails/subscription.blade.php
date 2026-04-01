@@ -226,7 +226,7 @@
                             }
 
                             if ($imageUrl && !str_starts_with($imageUrl, 'http')) {
-                                $imageUrl = 'https://news.homes.ph/storage/' . $imageUrl;
+                                $imageUrl = \Illuminate\Support\Facades\Storage::url($imageUrl);
                             }
                         }
                     @endphp

@@ -37,7 +37,7 @@ function NavContent({ countries }: LandingCountryNavProps) {
 
     // Determine target path: if searching or already on search page, stay on search page
     const q = params.get("q");
-    const targetPath = (q || pathname.startsWith("/search")) ? "/search" : "/";
+    const targetPath = (q || pathname.startsWith("/search")) ? "/search" : "/feed";
 
     const queryString = params.toString() ? `?${params.toString()}` : "";
     router.push(`${targetPath}${queryString}`, { scroll: false });

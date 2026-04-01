@@ -55,6 +55,11 @@ class SubscriptionController extends Controller
             'countries' => 'required|array',
             'features' => 'nullable|string',
             'time' => 'nullable|string',
+            'target_province' => 'nullable|string',
+            'target_city' => 'nullable|string',
+            'user_country' => 'nullable|string',
+            'user_province' => 'nullable|string',
+            'user_city' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -71,6 +76,13 @@ class SubscriptionController extends Controller
                 'country' => $request->countries,
                 'features' => $request->features,
                 'time' => $request->time,
+                'target_province' => $request->target_province,
+                'target_city' => $request->target_city,
+                'user_country' => $request->user_country,
+                'province' => $request->target_province, // Compatibility mapping
+                'city' => $request->target_city,           // Compatibility mapping
+                'user_province' => $request->user_province,
+                'user_city' => $request->user_city,
             ]);
 
             // Store in cache for algorithm purpose only
@@ -154,6 +166,11 @@ class SubscriptionController extends Controller
             'countries' => 'required|array',
             'features' => 'nullable|string',
             'time' => 'nullable|string',
+            'target_province' => 'nullable|string',
+            'target_city' => 'nullable|string',
+            'user_country' => 'nullable|string',
+            'user_province' => 'nullable|string',
+            'user_city' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -210,7 +227,9 @@ class SubscriptionController extends Controller
             }
 
             // Determine source site from middleware or request
-            $sourceSite = $request->attributes->get('site')->site_name ?? $request->input('source_site');
+            // If it's an external site, use the attached site ID from middleware
+            // If it's an internal subscription, default to Main News Portal ID (5)
+            $sourceSite = $request->attributes->get('site')->id ?? $request->input('source_site', 5);
 
             // Save new subscription to database
             $subscription = SubscriptionDetail::create([
@@ -221,6 +240,13 @@ class SubscriptionController extends Controller
                 'features' => $request->features,
                 'time' => $request->time,
                 'source_site' => $sourceSite,
+                'target_province' => $request->target_province,
+                'target_city' => $request->target_city,
+                'user_country' => $request->user_country,
+                'province' => $request->target_province, // Compatibility mapping
+                'city' => $request->target_city,           // Compatibility mapping
+                'user_province' => $request->user_province,
+                'user_city' => $request->user_city,
             ]);
 
             // Store in cache for algorithm purpose only

@@ -225,6 +225,99 @@ class SiteContentController extends Controller
     }
 
     /**
+     * Public full-text search for provinces — powers the typeahead in the subscribe modal.
+     * GET /v1/provinces/search?q=metro&country_id=PH&limit=10
+     */
+    public function searchProvinces(Request $request)
+    {
+        $q     = trim((string) $request->input('q', ''));
+        $limit = min(30, max(1, (int) $request->input('limit', 15)));
+
+        $query = Province::query()->select(['id', 'name', 'country_id']);
+
+        if ($q !== '') {
+            $query->where('name', 'like', "%{$q}%");
+        }
+
+        if ($countryIn = $request->input('country_id')) {
+            $segments = is_array($countryIn) ? $countryIn : explode(',', $countryIn);
+            $ids = [];
+            foreach ($segments as $seg) {
+                $resolved = $this->resolveCountryFromSegment($seg);
+                if ($resolved) $ids[] = $resolved['id'];
+            }
+            if (!empty($ids)) {
+                $query->whereIn('country_id', $ids);
+            }
+        }
+
+        return response()->json(
+            $query->orderByRaw("name LIKE ? DESC, name ASC", ["{$q}%"])
+                  ->limit($limit)
+                  ->get()
+        );
+    }
+
+    /**
+     * Public full-text search for cities — powers the typeahead in the subscribe modal.
+     * GET /v1/cities/search?q=maka&province_id=1&country_id=PH&limit=10
+     */
+    public function searchCities(Request $request)
+    {
+        $q     = trim((string) $request->input('q', ''));
+        $limit = min(30, max(1, (int) $request->input('limit', 15)));
+
+        $query = City::query()->select(['city_id', 'name', 'province_id', 'country_id']);
+
+        if ($q !== '') {
+            $query->where('name', 'like', "%{$q}%");
+        }
+
+        // Resolve countries
+        $countryIds = [];
+        if ($countryIn = $request->input('country_id')) {
+            $segments = is_array($countryIn) ? $countryIn : explode(',', $countryIn);
+            foreach ($segments as $seg) {
+                $resolved = $this->resolveCountryFromSegment($seg);
+                if ($resolved) $countryIds[] = $resolved['id'];
+            }
+            if (!empty($countryIds)) {
+                $query->whereIn('country_id', $countryIds);
+            }
+        }
+
+        // Resolve provinces
+        if ($provinceIn = $request->input('province_id')) {
+            $segments = is_array($provinceIn) ? $provinceIn : explode(',', $provinceIn);
+            $allProvinceIds = [];
+            foreach ($segments as $pSeg) {
+                // If we have multiple countries, we might need more complex logic, 
+                // but resolveProvinceIds handles slug comparison. 
+                // We'll collect all found IDs.
+                if (empty($countryIds)) {
+                    $pIds = $this->resolveProvinceIds($pSeg, null);
+                } else {
+                    $pIds = [];
+                    foreach ($countryIds as $cId) {
+                        $f = $this->resolveProvinceIds($pSeg, $cId);
+                        if ($f) $pIds = array_merge($pIds, $f);
+                    }
+                }
+                if ($pIds) $allProvinceIds = array_merge($allProvinceIds, $pIds);
+            }
+            if (!empty($allProvinceIds)) {
+                $query->whereIn('province_id', array_unique($allProvinceIds));
+            }
+        }
+
+        return response()->json(
+            $query->orderByRaw("name LIKE ? DESC, name ASC", ["{$q}%"])
+                  ->limit($limit)
+                  ->get()
+        );
+    }
+
+    /**
      * Nested: provinces for a country (country id e.g. PH or slug e.g. philippines).
      */
     public function getProvincesForCountry(Request $request, string $country)

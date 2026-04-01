@@ -16,13 +16,13 @@ export default function ArticleBreadcrumb({
   categoryId,
   country,
   countryId,
-  homeHref = "/",
+  homeHref = "/feed",
   homeLabel = "Home",
   categoryHref,
   countryHref
 }: ArticleBreadcrumbProps) {
-  const finalCategoryHref = categoryHref || (categoryId ? `/?category=${categoryId}` : "/");
-  const finalCountryHref = countryHref || (countryId ? `/?country=${countryId}` : "/");
+  const finalCategoryHref = categoryHref || (categoryId ? `/feed?category=${categoryId}` : "/feed");
+  const finalCountryHref = countryHref || (countryId ? `/feed?country=${countryId}` : "/feed");
 
   return (
     <p className="font-normal text-[16px] text-[#4b5563] dark:text-gray-400 tracking-[-0.5px] leading-[24px]">

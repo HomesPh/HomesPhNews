@@ -46,7 +46,7 @@ function NavContent({ categories }: LandingCategoryNavProps) {
     const q = params.get("q");
 
     // Fix: If restaurant page, link to restaurants page with topic, else default behavior
-    let targetPath = (q || pathname.startsWith("/search")) ? "/search" : "/";
+    let targetPath = (q || pathname.startsWith("/search")) ? "/search" : "/feed";
     if (isRestaurantPage) targetPath = "/restaurants";
 
     const queryString = params.toString() ? `?${params.toString()}` : "";

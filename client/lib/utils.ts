@@ -198,3 +198,13 @@ export function formatParagraphs(htmlOrText: string | null | undefined, maxSente
     }).join('\n\n\n');
   }
 }
+
+/**
+ * Returns the correct href for an article or restaurant based on its category.
+ */
+export function getArticleHref(article: { category?: string | null, slug?: string | null, id: string }): string {
+  if (article.category === 'Restaurant') {
+    return article.slug ? `/restaurants/${article.slug}` : `/restaurants/${article.id}`;
+  }
+  return article.slug ? `/article/${article.slug}` : `/article/${article.id}`;
+}

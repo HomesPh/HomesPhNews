@@ -30,6 +30,15 @@ class SubscriptionDetail extends Model
         'frequency',
         'company_name',
         'source_site',
+        // Target location (content filter)
+        'target_province',
+        'target_city',
+        // User's actual location (delivery settings)
+        'user_country',
+        'user_province',
+        'user_city',
+        'province',   // Legacy/Compatibility mapping
+        'city',       // Legacy/Compatibility mapping
     ];
 
     /**
