@@ -1,6 +1,6 @@
 "use client";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, useSidebar } from "@/components/ui/sidebar";
-import { LayoutDashboard, FileText, BarChart3, Calendar, Settings, LogOut, Users, BookOpen, Globe, Megaphone, Utensils, Bot, Send, Code, ChevronDown } from "lucide-react";
+import { LayoutDashboard, FileText, BarChart3, Calendar, Settings, LogOut, Users, BookOpen, Globe, Megaphone, Utensils, Bot, Send, Code, ChevronDown, Image as ImageIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -91,6 +91,11 @@ const SidebarItems = [
     icon: Calendar
   },
   {
+    title: "Template Generator",
+    href: "/admin/template-generator",
+    icon: ImageIcon
+  },
+  {
     title: "Settings",
     href: "/admin/settings",
     icon: Settings
@@ -125,7 +130,7 @@ export default function AdminSidebar() {
   const filteredSidebarItems = SidebarItems.filter(item => {
     // If user is CEO, only show Mailing List, Articles and Calendar
     if (user?.roles?.includes('ceo')) {
-      return item.title === "Mailing List" || item.title === "Articles" || item.title === "Calendar";
+      return item.title === "Mailing List" || item.title === "Articles" || item.title === "Calendar" || item.title === "Template Generator";
     }
     // If user is Editor, only show Articles, Settings and Calendar
     if (user?.roles?.includes('editor')) {
@@ -172,6 +177,8 @@ export default function AdminSidebar() {
               } else if (item.title === "Calendar") {
                 if (user?.roles?.includes('ceo')) href = "/ceo/calendar";
                 else if (user?.roles?.includes('editor')) href = "/editor/calendar";
+              } else if (item.title === "Template Generator") {
+                if (user?.roles?.includes('ceo')) href = "/ceo/template-generator";
               } else if (item.title === "Settings") {
                  if (user?.roles?.includes('editor')) href = "/editor/settings";
               }

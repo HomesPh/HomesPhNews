@@ -16,6 +16,11 @@ export async function getArticleById(id: string): Promise<ArticleByIdResponse> {
     return DUMMY_ARTICLES[id];
   }
 
+  const dummyBySlug = Object.values(DUMMY_ARTICLES).find(a => a.slug === id);
+  if (dummyBySlug) {
+    return dummyBySlug;
+  }
+
   // 2. Handle generated dummy IDs (dummy-gen-X or dummy-fill-X)
   if (id.startsWith('dummy-')) {
     // Extract ID number for consistent generation
