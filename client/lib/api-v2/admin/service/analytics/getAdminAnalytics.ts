@@ -69,6 +69,8 @@ export interface AdminAnalyticsResponse {
   }>;
   device_breakdown: ChartDataPoint[];
   traffic_sources: ChartDataPoint[];
+  subscribers_by_source: ChartDataPoint[];
+  subscribers_by_country?: ChartDataPoint[];
 }
 
 /**
