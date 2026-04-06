@@ -932,8 +932,13 @@ export default function ManualNewsletterPage() {
                                                     >
                                                         <Checkbox checked={selectedSubscriberIds.includes(sub.sub_Id)} className="shrink-0" />
                                                         <div className="flex-1 min-w-0">
-                                                            <p className="text-sm font-bold text-[#1e293b] truncate">{sub.email}</p>
-                                                            <div className="flex flex-wrap gap-2 mt-1">
+                                                            <div className="flex flex-col">
+                                                                <p className="text-sm font-bold text-[#1e293b] truncate leading-tight">{sub.email}</p>
+                                                                {sub.phone_no && (
+                                                                    <p className="text-[11px] text-gray-400 font-medium tracking-tight mt-0.5">{sub.phone_no}</p>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex flex-wrap gap-2 mt-2">
                                                                 {Array.isArray(sub.category) && sub.category.map((c: string, i: number) => (
                                                                     <span key={i} className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter shrink-0">#{c}</span>
                                                                 ))}
