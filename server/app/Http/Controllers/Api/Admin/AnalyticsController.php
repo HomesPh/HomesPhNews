@@ -19,7 +19,7 @@ class AnalyticsController extends Controller
         $period = $request->query('period', '7d');
         $category = $request->query('category');
         $country = $request->query('country');
-        
+
         $endDate = Carbon::now();
 
         switch ($period) {
@@ -43,7 +43,8 @@ class AnalyticsController extends Controller
 
         // Calculate previous period for trends
         $diffInDays = $startDate->diffInDays($endDate);
-        if ($diffInDays == 0) $diffInDays = 1;
+        if ($diffInDays == 0)
+            $diffInDays = 1;
         $prevStartDate = $startDate->copy()->subDays($diffInDays);
         $prevEndDate = $startDate->copy()->subSecond();
 
@@ -71,18 +72,18 @@ class AnalyticsController extends Controller
         // However, Analytics table might have "Unique Visitors" which is different from "Total Views".
         // If filtered, we can't get Unique Visitors easily from Articles (no IP tracking in Article table usually).
         // Solution: Use views_count as proxy for "Global Reach/Views" when filtered.
-        
+
         $isFiltered = ($category && $category !== 'All') || ($country && $country !== 'All');
 
         if ($isFiltered) {
             // Filtered Mode: Use Article Aggregation
             $totalViews = $articleQuery->sum('views_count');
             $prevViews = $prevArticleQuery->sum('views_count');
-            
+
             // Clicks not in Article table, mock or estimate logic (e.g. 5% of views)
-            $totalClicks = round($totalViews * 0.05); 
+            $totalClicks = round($totalViews * 0.05);
             $prevClicks = round($prevViews * 0.05);
-            
+
             // avg_engagement not in Article, calculate (Clicks+Views)/30 ? Or just 0.
             $avgEngagement = $totalViews > 0 ? (($totalClicks + $totalViews) / 30) : 0;
             $prevAvgEngagement = $prevViews > 0 ? (($prevClicks + $prevViews) / 30) : 0;
@@ -91,16 +92,16 @@ class AnalyticsController extends Controller
             // Global Mode: Use Analytics Table for Uniques/Clicks if preferred, OR just sum Articles for consistency?
             // The user wants "Google Analytics" style. unique_visitors is valuable.
             // Let's stick to Analytics table for Global values as they are likely more accurate for "Site Traffic".
-            
+
             $totalViews = Analytics::whereBetween('created_at', [$startDate, $endDate])->sum('unique_visitors'); // Using unique visitors as "Reach"
             // Note: If user wants "Total Page Views", that's usually higher than unique. 
             // Existing code used unique_visitors for "Total Reach".
-            
+
             $prevViews = Analytics::whereBetween('created_at', [$prevStartDate, $prevEndDate])->sum('unique_visitors');
-            
+
             $totalClicks = Analytics::whereBetween('created_at', [$startDate, $endDate])->sum('total_clicks');
             $prevClicks = Analytics::whereBetween('created_at', [$prevStartDate, $prevEndDate])->sum('total_clicks');
-            
+
             $avgEngagement = Analytics::whereBetween('created_at', [$startDate, $endDate])->avg('avg_engagement');
             $prevAvgEngagement = Analytics::whereBetween('created_at', [$prevStartDate, $prevEndDate])->avg('avg_engagement');
         }
@@ -115,18 +116,18 @@ class AnalyticsController extends Controller
         // 2. Traffic Trends (Chart)
         // If filtered, group Article counts. If global, use Analytics or Article?
         // Let's use Article counts for "Page News" trend, and Article Views for "Views" trend if filtered.
-        
+
         $trafficTrends = [];
-        
+
         // Helper to get daily data
-        $getDailyData = function($query, $column) {
+        $getDailyData = function ($query, $column) {
             return $query->selectRaw('DATE(created_at) as date, sum(' . $column . ') as count')
                 ->groupBy('date')
                 ->pluck('count', 'date');
         };
-        
-        $getDailyCount = function($query) {
-             return $query->selectRaw('DATE(created_at) as date, count(*) as count')
+
+        $getDailyCount = function ($query) {
+            return $query->selectRaw('DATE(created_at) as date, count(*) as count')
                 ->groupBy('date')
                 ->pluck('count', 'date');
         };
@@ -136,8 +137,8 @@ class AnalyticsController extends Controller
             $newsCounts = $getDailyCount(clone $articleQuery);
             $visitorCounts = $getDailyData(clone $articleQuery, 'views_count');
         } else {
-             $newsCounts = $getDailyCount(clone $articleQuery);
-             $visitorCounts = Analytics::whereBetween('created_at', [$startDate, $endDate])
+            $newsCounts = $getDailyCount(clone $articleQuery);
+            $visitorCounts = Analytics::whereBetween('created_at', [$startDate, $endDate])
                 ->selectRaw('DATE(created_at) as date, sum(unique_visitors) as count')
                 ->groupBy('date')
                 ->pluck('count', 'date');
@@ -172,32 +173,36 @@ class AnalyticsController extends Controller
         // Filtering relations is tricker, let's just leave global or attempt filter
         // For simplicity, leaving partner stats global or simple filter if easy. 
         // Let's apply time filter at least.
-        
-        $partnerStats = \App\Models\Site::withCount(['articles' => function($query) use ($startDate, $endDate) {
-            $query->whereBetween('article_site.created_at', [$startDate, $endDate]);
-        }])
-        ->withSum(['articles' => function($query) use ($startDate, $endDate) {
-            $query->whereBetween('article_site.created_at', [$startDate, $endDate]);
-        }], 'views_count')
-        ->get();
 
-        $partnerPerformance = $partnerStats->map(function($site) {
+        $partnerStats = \App\Models\Site::withCount([
+            'articles' => function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('article_site.created_at', [$startDate, $endDate]);
+            }
+        ])
+            ->withSum([
+                'articles' => function ($query) use ($startDate, $endDate) {
+                    $query->whereBetween('article_site.created_at', [$startDate, $endDate]);
+                }
+            ], 'views_count')
+            ->get();
+
+        $partnerPerformance = $partnerStats->map(function ($site) {
             return [
                 'site' => $site->site_name,
                 'articlesShared' => $site->articles_count,
                 'monthlyViews' => (int) ($site->articles_sum_views_count ?? 0),
                 'revenueGenerated' => '$0.00',
-                'avgEngagement' => '0.0%' 
+                'avgEngagement' => '0.0%'
             ];
         });
-        
+
         // 6. Content Performance (Top Articles)
         $contentPerformance = (clone $articleQuery)
             ->select('id', 'title', 'category', 'views_count', 'country')
             ->orderByDesc('views_count')
             ->limit(10)
             ->get()
-            ->map(function($article) {
+            ->map(function ($article) {
                 return [
                     'id' => $article->id,
                     'title' => $article->title,
@@ -244,8 +249,46 @@ class AnalyticsController extends Controller
             'partner_performance' => $partnerPerformance,
             'content_performance' => $contentPerformance,
             'device_breakdown' => $deviceBreakdown,
-            'traffic_sources' => $trafficSources
+            'traffic_sources' => $trafficSources,
+            'subscribers_by_source' => SubscriptionDetail::leftJoin('sites', 'subscription_details.source_site', '=', 'sites.id')
+                ->select(DB::raw('COALESCE(sites.site_name, subscription_details.source_site) as name'), DB::raw('count(*) as value'))
+                ->whereBetween('subscription_details.created_at', [$startDate, $endDate])
+                ->whereNotNull('subscription_details.source_site')
+                ->where('subscription_details.source_site', '!=', '')
+                ->groupBy('name')
+                ->orderByDesc('value')
+                ->get(),
+            'subscribers_by_country' => $this->getFlattenedCountryStats($startDate, $endDate)
         ]);
+    }
+
+    private function getFlattenedCountryStats($startDate = null, $endDate = null)
+    {
+        $query = SubscriptionDetail::select('country', DB::raw('count(*) as count'))
+            ->whereNotNull('country');
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        $rawStats = $query->groupBy('country')->get();
+        $aggregated = [];
+
+        foreach ($rawStats as $row) {
+            $countries = is_string($row->country) ? json_decode($row->country, true) : $row->country;
+            if (!is_array($countries))
+                $countries = [$countries];
+
+            foreach ($countries as $country) {
+                if ($country && is_string($country)) {
+                    $aggregated[$country] = ($aggregated[$country] ?? 0) + $row->count;
+                }
+            }
+        }
+
+        return collect($aggregated)->map(function ($value, $name) {
+            return ['name' => $name, 'value' => $value];
+        })->values()->sortByDesc('value')->take(10)->values();
     }
 
     public function mailingListStats()
@@ -253,7 +296,7 @@ class AnalyticsController extends Controller
         $totalBroadcasts = MailingListBroadcast::count();
         $totalRecipients = MailingListBroadcast::sum('recipient_count');
         $totalSubscribers = SubscriptionDetail::count();
-        
+
         $broadcasts = MailingListBroadcast::with('recipients')
             ->orderByDesc('sent_at')
             ->limit(10)
@@ -279,55 +322,100 @@ class AnalyticsController extends Controller
         }
 
         // 3. Map broadcasts to final structure
-        $recentBroadcasts = $broadcasts->map(function($b) use ($articlesFromDb) {
+        $recentBroadcasts = $broadcasts->map(function ($b) use ($articlesFromDb) {
             $ids = is_array($b->article_ids) ? $b->article_ids : [];
-            
+
             $resolvedArticles = [];
             foreach ($ids as $id) {
                 $article = $articlesFromDb->get($id);
                 if ($article) {
                     $resolvedArticles[] = [
-                        'id'       => $article->id,
-                        'title'    => $article->title,
+                        'id' => $article->id,
+                        'title' => $article->title,
                         'category' => $article->category,
-                        'country'  => $article->country,
-                        'image'    => $article->image_url, // Uses the model's accessor automatically
+                        'country' => $article->country,
+                        'image' => $article->image_url, // Uses the model's accessor automatically
                     ];
                 } else {
                     $resolvedArticles[] = [
-                        'id'       => $id,
-                        'title'    => null,
+                        'id' => $id,
+                        'title' => null,
                         'category' => null,
-                        'country'  => null,
-                        'image'    => null,
+                        'country' => null,
+                        'image' => null,
                     ];
                 }
             }
 
             return [
-                'id'              => $b->id,
-                'article_ids'     => $ids,
-                'article_count'   => count($ids),
-                'articles'        => $resolvedArticles,
+                'id' => $b->id,
+                'article_ids' => $ids,
+                'article_count' => count($ids),
+                'articles' => $resolvedArticles,
                 'recipient_count' => $b->recipient_count,
-                'recipients'      => $b->recipients->map(function($r) {
+                'recipients' => $b->recipients->map(function ($r) {
                     return [
-                        'email'  => $r->email,
+                        'email' => $r->email,
                         'status' => $r->status
                     ];
                 }),
-                'status'          => $b->status,
-                'type'            => $b->type,
-                'sent_at'         => $b->sent_at instanceof \Carbon\Carbon ? $b->sent_at->toDateTimeString() : $b->sent_at
+                'status' => $b->status,
+                'type' => $b->type,
+                'sent_at' => $b->sent_at instanceof \Carbon\Carbon ? $b->sent_at->toDateTimeString() : $b->sent_at
             ];
         });
 
+        // Calculate sent count by category
+        $allBroadcasts = MailingListBroadcast::where('recipient_count', '>', 0)->get();
+        $allBroadcastArticleIds = $allBroadcasts->flatMap(fn($b) => is_array($b->article_ids) ? $b->article_ids : [])->unique()->toArray();
+        $articleCategoriesMap = Article::whereIn('id', $allBroadcastArticleIds)->pluck('category', 'id');
+
+        $sentByCategoryRaw = [];
+        foreach ($allBroadcasts as $b) {
+            $ids = is_array($b->article_ids) ? $b->article_ids : [];
+            $categoriesInBroadcast = [];
+            foreach ($ids as $id) {
+                if (isset($articleCategoriesMap[$id])) {
+                    $categoriesInBroadcast[] = $articleCategoriesMap[$id];
+                }
+            }
+            // Unique categories in this single email
+            foreach (array_unique($categoriesInBroadcast) as $cat) {
+                if (!$cat)
+                    continue;
+                $sentByCategoryRaw[$cat] = ($sentByCategoryRaw[$cat] ?? 0) + $b->recipient_count;
+            }
+        }
+
+        $sentByCategory = collect($sentByCategoryRaw)->map(fn($v, $k) => ['name' => $k, 'value' => $v])->values()->sortByDesc('value')->values();
+
         return response()->json([
             'stats' => [
-                'total_broadcasts'  => $totalBroadcasts,
-                'total_recipients'  => (int) $totalRecipients,
+                'total_broadcasts' => $totalBroadcasts,
+                'total_recipients' => (int) $totalRecipients,
                 'total_subscribers' => $totalSubscribers,
             ],
+            'subscribers_by_source' => SubscriptionDetail::leftJoin('sites', 'subscription_details.source_site', '=', 'sites.id')
+                ->select(DB::raw('COALESCE(sites.site_name, subscription_details.source_site) as name'), DB::raw('count(*) as value'))
+                ->whereNotNull('subscription_details.source_site')
+                ->where('subscription_details.source_site', '!=', '')
+                ->groupBy('name')
+                ->orderByDesc('value')
+                ->get(),
+            'subscribers_by_country' => $this->getFlattenedCountryStats(),
+            'sent_by_category' => $sentByCategory,
+            'broadcasts_by_hour' => MailingListBroadcast::selectRaw('HOUR(sent_at) as name, count(*) as value')
+                ->whereNotNull('sent_at')
+                ->where('status', 'completed')
+                ->groupBy('name')
+                ->orderBy('name')
+                ->get()
+                ->map(fn($row) => ['name' => sprintf('%02d:00', $row->name), 'value' => $row->value]),
+            'broadcasts_by_day' => MailingListBroadcast::selectRaw('DAYNAME(sent_at) as name, count(*) as value')
+                ->whereNotNull('sent_at')
+                ->where('status', 'completed')
+                ->groupBy('name')
+                ->get(),
             'recent_broadcasts' => $recentBroadcasts
         ]);
     }

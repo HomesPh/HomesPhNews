@@ -21,7 +21,10 @@ import {
     ArrowLeft,
     Inbox,
     Eye,
-    X
+    X,
+    BarChart3,
+    ChevronUp,
+    Globe
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,6 +62,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import SubscriberSourceChart from "@/components/features/admin/analytics/SubscriberSourceChart";
 
 
 type Step = 'articles' | 'recipients' | 'review';
@@ -92,6 +96,7 @@ export default function ManualNewsletterPage() {
     const [newGroupName, setNewGroupName] = useState('');
     const [newGroupDesc, setNewGroupDesc] = useState('');
     const [recipientTab, setRecipientTab] = useState<'individual' | 'groups'>('individual');
+    const [showAnalytics, setShowAnalytics] = useState(true);
 
     // Filters
     const [articleSearch, setArticleSearch] = useState('');
@@ -417,14 +422,14 @@ export default function ManualNewsletterPage() {
     ];
 
     return (
-        <div className="p-8 bg-[#f9fafb] min-h-screen" data-layout-v2="true">
+        <div className="p-4 sm:p-6 bg-[#f9fafb] min-h-screen" data-layout-v2="true">
             <AdminPageHeader
                 title="Manual Mailing List Broadcast"
                 description="Targeted article distribution to your subscriber base"
             />
 
             {/* Analytics Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 {isLoadingStats ? (
                     Array(3).fill(0).map((_, i) => (
                         <Skeleton key={i} className="h-[120px] rounded-xl bg-white shadow-sm" />
@@ -452,6 +457,98 @@ export default function ManualNewsletterPage() {
                     </>
                 )}
             </div>
+
+            {/* Subscriber Analytics Section */}
+            {!isLoadingStats && (
+                <div className="mb-4">
+                    <div className="flex items-center justify-between mb-3 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-600">
+                                <BarChart3 className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-900 leading-tight">Audience Insights</h3>
+                                <p className="text-[11px] text-gray-400 font-medium tracking-tight">Interactive performance & growth metrics</p>
+                            </div>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowAnalytics(!showAnalytics)}
+                            className="bg-gray-50 hover:bg-gray-100 text-gray-500 font-bold px-3 py-1 rounded-lg transition-all active:scale-95 flex gap-2 h-9"
+                        >
+                            {showAnalytics ? (
+                                <>
+                                    <ChevronUp className="w-4 h-4" />
+                                    <span className="text-xs uppercase tracking-wider">Minimize</span>
+                                </>
+                            ) : (
+                                <>
+                                    <ChevronDown className="w-4 h-4" />
+                                    <span className="text-xs uppercase tracking-wider">Show Metrics</span>
+                                </>
+                            )}
+                        </Button>
+                    </div>
+
+                    {showAnalytics && (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            {mailingStats?.subscribers_by_source && (
+                                <SubscriberSourceChart
+                                    data={mailingStats.subscribers_by_source}
+                                    title="Origination"
+                                    description="Top acquisition sites."
+                                    compact={true}
+                                />
+                            )}
+                            {mailingStats?.subscribers_by_country && (
+                                <SubscriberSourceChart
+                                    data={mailingStats.subscribers_by_country}
+                                    title="Global Performance"
+                                    description="Regional distribution."
+                                    compact={true}
+                                />
+                            )}
+                            {mailingStats?.sent_by_category && (
+                                <SubscriberSourceChart
+                                    data={mailingStats.sent_by_category}
+                                    title="Transmission Volume"
+                                    description="Sent by category."
+                                    compact={true}
+                                />
+                            )}
+                            {mailingStats?.broadcasts_by_hour && (
+                                <SubscriberSourceChart
+                                    data={mailingStats.broadcasts_by_hour}
+                                    title="Peak Send Hour"
+                                    description="Activity by hour (UTC)."
+                                    compact={true}
+                                />
+                            )}
+                            {mailingStats?.broadcasts_by_day && (
+                                <SubscriberSourceChart
+                                    data={mailingStats.broadcasts_by_day}
+                                    title="Send Frequency"
+                                    description="Activity by day of week."
+                                    compact={true}
+                                />
+                            )}
+                            {!isLoadingStats && mailingStats?.subscribers_by_source && (
+                                <div className="bg-gray-50/50 rounded-2xl p-6 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-center">
+                                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-4 transition-transform hover:scale-110">
+                                        <Globe className="w-6 h-6" />
+                                    </div>
+                                    <h4 className="font-bold text-[#111827] mb-1 uppercase text-xs tracking-tight">Growth Insight</h4>
+                                    <p className="text-[12px] text-gray-500 max-w-[200px] leading-relaxed">
+                                        Most subscribers are from <strong>{mailingStats.subscribers_by_source[0]?.name || 'Direct Content'}</strong>.
+                                        Consider doubling down on this channel.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Stepper */}
             <div className="flex items-center justify-between mb-8 bg-white p-6 rounded-2xl border border-[#e5e7eb] shadow-sm">

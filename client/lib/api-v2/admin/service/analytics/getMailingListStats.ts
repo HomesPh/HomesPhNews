@@ -1,11 +1,22 @@
 import AXIOS_INSTANCE_ADMIN from "../../axios-instance";
 
+export interface ChartDataPoint {
+    name: string;
+    value: number;
+    color?: string;
+}
+
 export interface MailingListStats {
     stats: {
         total_broadcasts: number;
         total_recipients: number;
         total_subscribers: number;
     };
+    subscribers_by_source: ChartDataPoint[];
+    subscribers_by_country: ChartDataPoint[];
+    sent_by_category: ChartDataPoint[];
+    broadcasts_by_hour: ChartDataPoint[];
+    broadcasts_by_day: ChartDataPoint[];
     recent_broadcasts: Array<{
         id: string;
         article_ids: string[];

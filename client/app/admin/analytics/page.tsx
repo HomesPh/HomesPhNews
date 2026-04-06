@@ -12,10 +12,11 @@ import ContentPerformanceTable from "@/components/features/admin/analytics/Conte
 import VisitorBreakdownChart from "@/components/features/admin/analytics/VisitorBreakdownChart";
 import SubscriptionGrowth from "@/components/features/admin/analytics/SubscriptionGrowth";
 import ReferralSourcesTable from "@/components/features/admin/analytics/ReferralSourcesTable";
-import InteractiveGeographicMap from "@/components/features/admin/analytics/InteractiveGeographicMap";
 import ContentEngagementMetrics from "@/components/features/admin/analytics/ContentEngagementMetrics";
 import ArticleDistribution from "@/components/features/admin/dashboard/ArticleDistribution";
+import SubscriberSourceChart from "@/components/features/admin/analytics/SubscriberSourceChart";
 import { getAdminAnalytics, AdminAnalyticsResponse } from "@/lib/api-v2/admin/service/analytics/getAdminAnalytics";
+import { getMailingListStats, MailingListStats } from "@/lib/api-v2";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Categories, Countries, RestaurantCategories } from '@/app/data';
 import { format, parseISO, startOfWeek, startOfMonth, startOfQuarter, startOfYear, getQuarter, getYear } from 'date-fns';
@@ -50,6 +51,11 @@ export default function AnalyticsPage() {
     const [sourceData, setSourceData] = useState<any[]>([]);
     const [countryPerformanceData, setCountryPerformanceData] = useState<any[]>([]);
     const [distributionSites, setDistributionSites] = useState<any[]>([]);
+    const [subscriberSourceData, setSubscriberSourceData] = useState<any[]>([]);
+    const [subscriberCountryData, setSubscriberCountryData] = useState<any[]>([]);
+    const [subscriberCategoryData, setSubscriberCategoryData] = useState<any[]>([]);
+    const [subscriberHourData, setSubscriberHourData] = useState<any[]>([]);
+    const [subscriberDayData, setSubscriberDayData] = useState<any[]>([]);
     const [totalPublished, setTotalPublished] = useState(0);
     const [partnerData, setPartnerData] = useState<any[]>([]);
 
@@ -172,6 +178,15 @@ export default function AnalyticsPage() {
                     count: p.articlesShared,
                     totalViews: p.monthlyViews
                 })));
+                setSubscriberSourceData(resData.subscribers_by_source || []);
+                setSubscriberCountryData(resData.subscribers_by_country || []);
+
+                // Fetch mailing list specific stats for hour/day/category
+                const mailingStatsResponse = await getMailingListStats();
+                setSubscriberHourData(mailingStatsResponse.data.broadcasts_by_hour || []);
+                setSubscriberDayData(mailingStatsResponse.data.broadcasts_by_day || []);
+                setSubscriberCategoryData(mailingStatsResponse.data.sent_by_category || []);
+
                 setTotalPublished(totalContent);
 
             } catch (error) {
@@ -449,6 +464,52 @@ export default function AnalyticsPage() {
                     <>
                         <CountryPerformanceChart data={countryPerformanceData} />
                         <ArticleDistribution sites={distributionSites} totalArticles={totalPublished} className="h-full" />
+                    </>
+                )}
+            </div>
+:
+            {/* Subscriber Analytics Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {isLoading ? (
+                    <>
+                        <Skeleton className="h-[240px] rounded-[12px] bg-white shadow-sm" />
+                        <Skeleton className="h-[240px] rounded-[12px] bg-white shadow-sm" />
+                        <Skeleton className="h-[240px] rounded-[12px] bg-white shadow-sm" />
+                        <Skeleton className="h-[240px] rounded-[12px] bg-white shadow-sm" />
+                        <Skeleton className="h-[240px] rounded-[12px] bg-white shadow-sm" />
+                    </>
+                ) : (
+                    <>
+                        <SubscriberSourceChart 
+                            data={subscriberSourceData} 
+                            title="Origination"
+                            description="Top acquisition platforms."
+                            compact={true}
+                        />
+                        <SubscriberSourceChart 
+                            data={subscriberCountryData} 
+                            title="Global Performance"
+                            description="Regional subscriber distribution."
+                            compact={true}
+                        />
+                        <SubscriberSourceChart 
+                            data={subscriberCategoryData} 
+                            title="Transmission Volume"
+                            description="Total newsletters sent by category."
+                            compact={true}
+                        />
+                        <SubscriberSourceChart 
+                            data={subscriberHourData} 
+                            title="Peak Send Hour"
+                            description="Historical performance by hour (UTC)."
+                            compact={true}
+                        />
+                        <SubscriberSourceChart 
+                            data={subscriberDayData} 
+                            title="Send Frequency"
+                            description="Historical performance by day."
+                            compact={true}
+                        />
                     </>
                 )}
             </div>
