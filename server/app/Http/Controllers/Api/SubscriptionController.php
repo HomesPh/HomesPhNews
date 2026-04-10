@@ -60,7 +60,12 @@ class SubscriptionController extends Controller
             'user_country' => 'nullable|string',
             'user_province' => 'nullable|string',
             'user_city' => 'nullable|string',
+<<<<<<< HEAD
+=======
+            'phone_no' => 'nullable|string',
+>>>>>>> eb65d49e738f4116fa18e26ecf2298bd551c6b14
         ]);
+
 
         if ($validator->fails()) {
             return response()->json([
@@ -83,7 +88,12 @@ class SubscriptionController extends Controller
                 'city' => $request->target_city,           // Compatibility mapping
                 'user_province' => $request->user_province,
                 'user_city' => $request->user_city,
+<<<<<<< HEAD
+=======
+                'phone_no' => $request->phone_no,
+>>>>>>> eb65d49e738f4116fa18e26ecf2298bd551c6b14
             ]);
+
 
             // Store in cache for algorithm purpose only
             Cache::put("user_preferences:{$subscription->sub_Id}", [
@@ -171,7 +181,12 @@ class SubscriptionController extends Controller
             'user_country' => 'nullable|string',
             'user_province' => 'nullable|string',
             'user_city' => 'nullable|string',
+<<<<<<< HEAD
+=======
+            'phone_no' => 'nullable|string',
+>>>>>>> eb65d49e738f4116fa18e26ecf2298bd551c6b14
         ]);
+
 
         if ($validator->fails()) {
             return response()->json([
@@ -247,7 +262,12 @@ class SubscriptionController extends Controller
                 'city' => $request->target_city,           // Compatibility mapping
                 'user_province' => $request->user_province,
                 'user_city' => $request->user_city,
+<<<<<<< HEAD
+=======
+                'phone_no' => $request->phone_no,
+>>>>>>> eb65d49e738f4116fa18e26ecf2298bd551c6b14
             ]);
+
 
             // Store in cache for algorithm purpose only
             Cache::put("user_preferences:{$subscription->sub_Id}", [
