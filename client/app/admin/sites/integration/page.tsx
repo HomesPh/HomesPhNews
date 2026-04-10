@@ -46,9 +46,6 @@ export default function IntegrationPage() {
                    style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
         </div>
 
-<<<<<<< HEAD
-        <div style="margin-bottom: 15px; display: grid; grid-cols: 1; gap: 10px;">
-=======
         <!-- Phone Number Field -->
         <div style="margin-bottom: 15px;">
             <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Phone Number (Optional)</label>
@@ -57,7 +54,7 @@ export default function IntegrationPage() {
         </div>
 
         <div style="margin-bottom: 15px; display: grid; grid-template-columns: 1fr; gap: 10px;">
->>>>>>> eb65d49e738f4116fa18e26ecf2298bd551c6b14
+        <div style="margin-bottom: 15px; display: grid; grid-cols: 1; gap: 10px;">
             <div>
                 <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Target Location (Optional)</label>
                 <div style="display: flex; gap: 10px;">
