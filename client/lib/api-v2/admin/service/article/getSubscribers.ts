@@ -5,6 +5,7 @@ export interface Subscriber {
     email: string;
     category: string[] | string;
     country: string[] | string;
+    phone_no?: string;
 }
 
 /**

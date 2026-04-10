@@ -39,7 +39,9 @@ class SubscriptionDetail extends Model
         'user_city',
         'province',   // Legacy/Compatibility mapping
         'city',       // Legacy/Compatibility mapping
+        'phone_no',
     ];
+
 
     /**
      * The attributes that should be cast.

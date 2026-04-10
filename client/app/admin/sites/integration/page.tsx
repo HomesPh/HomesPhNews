@@ -46,6 +46,14 @@ export default function IntegrationPage() {
                    style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
         </div>
 
+        <!-- Phone Number Field -->
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Phone Number (Optional)</label>
+            <input type="tel" id="sub-phone" placeholder="+63 912 345 6789" 
+                   style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 15px; display: grid; grid-template-columns: 1fr; gap: 10px;">
         <div style="margin-bottom: 15px; display: grid; grid-cols: 1; gap: 10px;">
             <div>
                 <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px;">Target Location (Optional)</label>
@@ -77,6 +85,7 @@ document.getElementById('homestv-subscription-form').addEventListener('submit', 
 
     const payload = {
         email: document.getElementById('sub-email').value,
+        phone_no: document.getElementById('sub-phone').value, // Included phone_no
         categories: ${JSON.stringify(selectedSite.categories)},
         countries: ["Philippines"],
         // News Interests (Targeting)
