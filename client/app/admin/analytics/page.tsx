@@ -20,6 +20,7 @@ import { getMailingListStats, MailingListStats } from "@/lib/api-v2";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Categories, Countries, RestaurantCategories } from '@/app/data';
 import { format, parseISO, startOfWeek, startOfMonth, startOfQuarter, startOfYear, getQuarter, getYear } from 'date-fns';
+import InteractiveGeographicMap from '@/components/features/admin/analytics/InteractiveGeographicMap';
 
 type TimeInterval = 'Daily' | 'Weekly' | 'Monthly' | 'Quarterly' | 'Bi-annual' | 'Annually';
 type ContentType = 'All' | 'Article' | 'Blog' | 'Newsletter' | 'Restaurant';

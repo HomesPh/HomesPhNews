@@ -1,10 +1,5 @@
 import AXIOS_INSTANCE_ADMIN from "../../axios-instance";
-
-export interface ChartDataPoint {
-    name: string;
-    value: number;
-    color?: string;
-}
+import { ChartDataPoint } from "./getAdminAnalytics";
 
 export interface MailingListStats {
     stats: {
