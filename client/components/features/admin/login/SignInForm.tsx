@@ -188,37 +188,40 @@ export default function SignInForm({ fields, submitLabel, demoCredentials }: Sig
                     </Button>
                 </form>
 
-                {/* Divider */}
-                <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-200"></div>
+                {/* The following options and sign up link are currently hidden as users are added via admin */}
+                <div className="hidden">
+                    {/* Divider */}
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-200"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-4 bg-white text-gray-500 font-medium">Or</span>
+                        </div>
                     </div>
-                    <div className="relative flex justify-center text-sm">
-                        <span className="px-4 bg-white text-gray-500 font-medium">Or</span>
+
+                    {/* Google Button */}
+                    <Button
+                        type="button"
+                        onClick={handleGoogleAuth}
+                        className="w-full h-12 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-medium rounded-lg transition-all flex items-center justify-center gap-3"
+                    >
+                        <Chrome className="w-5 h-5 text-[#4285F4]" />
+                        Continue with Google
+                    </Button>
+
+                    {/* Sign Up Link */}
+                    <div className="text-center pt-2">
+                        <p className="text-sm text-gray-600">
+                            Don't have an account?{" "}
+                            <Link
+                                href="/register"
+                                className="font-semibold text-[#1428AE] hover:underline"
+                            >
+                                Sign up
+                            </Link>
+                        </p>
                     </div>
-                </div>
-
-                {/* Google Button */}
-                <Button
-                    type="button"
-                    onClick={handleGoogleAuth}
-                    className="w-full h-12 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 font-medium rounded-lg transition-all flex items-center justify-center gap-3"
-                >
-                    <Chrome className="w-5 h-5 text-[#4285F4]" />
-                    Continue with Google
-                </Button>
-
-                {/* Sign Up Link */}
-                <div className="text-center pt-2">
-                    <p className="text-sm text-gray-600">
-                        Don't have an account?{" "}
-                        <Link
-                            href="/register"
-                            className="font-semibold text-[#1428AE] hover:underline"
-                        >
-                            Sign up
-                        </Link>
-                    </p>
                 </div>
             </div>
         </div>
